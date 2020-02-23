@@ -1,0 +1,5 @@
+rootProject.name = 'Dine-A-Bite'
+
+include 'AuthenticationService'
+include 'StandManager'
+include 'OrderManager'
