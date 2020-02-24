@@ -18,3 +18,12 @@ dependencies {
     compile group: 'org.springframework', name: 'spring-core', version: '5.2.3.RELEASE'
     testCompile "junit:junit:4.12"
 }
+
+jar {
+    enabled=true
+    manifest {
+        attributes(
+                'Main-Class': 'cobol.services.authentication.AuthenticationService'
+        )
+    }
+}
