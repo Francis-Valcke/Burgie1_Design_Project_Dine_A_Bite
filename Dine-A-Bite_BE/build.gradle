@@ -27,7 +27,7 @@ subprojects {
         destinationDirectory = file(outputDir)
     }
 
-    task docker(type: Exec) {
+    task docker() {
         dependsOn bootJar
         doLast{
             exec {
@@ -37,10 +37,6 @@ subprojects {
                 commandLine 'docker', 'save', "$name" ,'-o', "${name}.tar"
             }
         }
-    }
-
-    task dockerRun(type: Exec) {
-        dependsOn docker
     }
 
     dependencies {
