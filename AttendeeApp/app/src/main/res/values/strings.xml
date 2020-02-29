@@ -1,3 +1,8 @@
+<!--Contains the static string resources used in the app-->
 <resources>
-    <string name="app_name">AttendeeApp</string>
+    <string name="app_name">Dine-A-Bite</string>
+    <string name="plusBtn">+</string>
+    <string name="cart_text">Items in your cart: </string>
+    <string name="cart_total_text">Total: </string>
+    <string name="confirm_order">Confirm your order</string>
 </resources>
