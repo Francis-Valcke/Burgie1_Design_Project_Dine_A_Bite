@@ -28,12 +28,16 @@ subprojects {
     }
 
     task docker() {
+        dependsOn clean
         dependsOn bootJar
         doLast{
+            def name = project.name.toLowerCase()
             exec {
-                def name = project.name.toLowerCase()
                 workingDir outputDir
                 commandLine 'docker', 'image', 'build', '--build-arg', "JAR_FILE=${project.name}.jar" ,'-t', "$name", '.'
+            }
+            exec {
+                workingDir outputDir
                 commandLine 'docker', 'save', "$name" ,'-o', "${name}.tar"
             }
         }
