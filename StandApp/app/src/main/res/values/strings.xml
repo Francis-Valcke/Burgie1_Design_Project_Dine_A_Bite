@@ -1,3 +1,11 @@
 <resources>
     <string name="app_name">StandApp</string>
+    <string name="sign_in">Sign in</string>
+    <string name="manager_dashboard">Manager Dashboard</string>
+    <string name="order_text">Orders</string>
+    <string name="order_1">Order #1</string>
+    <string name="textview_order">TextView</string>
+    <string name="button_done">Done</string>
+    <string name="button_start">Start</string>
+    <string name="button_picked_up">picked up</string>
 </resources>
