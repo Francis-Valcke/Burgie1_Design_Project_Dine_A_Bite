@@ -4,6 +4,8 @@ plugins {
         id 'java'
 }
 
+version = '0.0.1'
+
 def outputDir = "$rootDir/jars"
 project.ext.outDir = outputDir
 
@@ -20,6 +22,8 @@ subprojects {
     apply plugin: 'io.spring.dependency-management'
     apply plugin: 'java'
 
+    group = 'be.ugent.cobol'
+
     sourceCompatibility = 1.8
     targetCompatibility = 1.8
 
@@ -34,11 +38,11 @@ subprojects {
             def name = project.name.toLowerCase()
             exec {
                 workingDir outputDir
-                commandLine 'docker', 'image', 'build', '--build-arg', "JAR_FILE=${project.name}.jar" ,'-t', "$name", '.'
+                commandLine 'docker', 'image', 'build', '--build-arg', "JAR_FILE=${project.name}*.jar" ,'-t', "${name}:${project.version}", '.'
             }
             exec {
                 workingDir outputDir
-                commandLine 'docker', 'save', "$name" ,'-o', "${name}.tar"
+                commandLine 'docker', 'save', "${name}:${project.version}" ,'-o', "${name}-${project.version}.tar"
             }
         }
     }
