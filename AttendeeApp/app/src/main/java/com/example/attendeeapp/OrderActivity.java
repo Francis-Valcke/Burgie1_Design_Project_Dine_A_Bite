@@ -3,9 +3,7 @@ package com.example.attendeeapp;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
-import android.webkit.WebSettings;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -25,15 +23,14 @@ public class OrderActivity extends AppCompatActivity {
 
         // Instantiate the RequestQueue
         RequestQueue queue = Volley.newRequestQueue(this);
-        String url = "https://www.google.com";
+        String om_url = "https://www.google.com";
 
         // Request a string response (ping message) from the provided URL
-        StringRequest stringRequest = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
+        StringRequest stringRequest = new StringRequest(Request.Method.GET, om_url, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
                 // Display the first 500 characters of the response string
                 pingText.setText("Response is: " + response.substring(0, 500));
-                //Toast.makeText(OrderActivity.this,response.toString(),Toast.LENGTH_LONG).show();
             }
         }, new Response.ErrorListener() {
             @Override
