@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/account_action"
+        android:icon="@drawable/ic_person_white_24dp"
+        android:title="@string/account"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/orders_action"
+        android:title="@string/my_orders"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/settings_action"
+        android:title="@string/settings"
+        app:showAsAction="never" />
+
+</menu>

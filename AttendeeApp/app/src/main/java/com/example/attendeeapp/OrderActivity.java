@@ -1,8 +1,12 @@
 package com.example.attendeeapp;
 
+import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.widget.TextView;
 
 import com.android.volley.Request;
@@ -19,27 +23,46 @@ public class OrderActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_order);
 
+        // Custom Toolbar (instead of standard actionbar)
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
+        // Get a support ActionBar corresponding to this toolbar
+        ActionBar ab = getSupportActionBar();
+
+        // Enable the Up button
+        assert ab != null;
+        ab.setDisplayHomeAsUpEnabled(true);
+
         final TextView pingText = (TextView) findViewById(R.id.pingText);
 
         // Instantiate the RequestQueue
         RequestQueue queue = Volley.newRequestQueue(this);
-        String om_url = "https://www.google.com";
+        String om_url = "http://cobol.idlab.ugent.be:8091/pingOM";
 
         // Request a string response (ping message) from the provided URL
         StringRequest stringRequest = new StringRequest(Request.Method.GET, om_url, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
                 // Display the first 500 characters of the response string
-                pingText.setText("Response is: " + response.substring(0, 500));
+                if (response.length() < 50)  pingText.setText("Response is: " + response);
+                else pingText.setText("Response is: " + response.substring(0, 50));
             }
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                pingText.setText("That didn't work!");
+                pingText.setText(R.string.did_not_work_message);
             }
         });
 
         // Add the request to the RequestQueue
         queue.add(stringRequest);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.main_menu, menu);
+        return true;
     }
 }

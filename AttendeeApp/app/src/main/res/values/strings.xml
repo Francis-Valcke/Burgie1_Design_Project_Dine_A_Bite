@@ -6,4 +6,8 @@
     <string name="cart_total_text">Total: </string>
     <string name="confirm_order">Confirm your order</string>
     <string name="ping_text">Ping text</string>
+    <string name="account">Account</string>
+    <string name="my_orders">My Orders</string>
+    <string name="settings">Settings</string>
+    <string name="did_not_work_message">That didn\'t work!</string>
 </resources>
