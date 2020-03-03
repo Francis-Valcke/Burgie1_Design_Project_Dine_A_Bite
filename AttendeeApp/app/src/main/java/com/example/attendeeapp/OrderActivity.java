@@ -25,7 +25,7 @@ public class OrderActivity extends AppCompatActivity {
 
         // Instantiate the RequestQueue
         RequestQueue queue = Volley.newRequestQueue(this);
-        String url = "http://www.google.com";
+        String url = "https://www.google.com";
 
         // Request a string response (ping message) from the provided URL
         StringRequest stringRequest = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
