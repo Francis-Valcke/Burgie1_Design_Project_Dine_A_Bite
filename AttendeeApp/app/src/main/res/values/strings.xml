@@ -5,4 +5,5 @@
     <string name="cart_text">Items in your cart: </string>
     <string name="cart_total_text">Total: </string>
     <string name="confirm_order">Confirm your order</string>
+    <string name="ping_text">Ping text</string>
 </resources>

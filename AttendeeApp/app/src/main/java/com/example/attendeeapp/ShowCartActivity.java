@@ -2,6 +2,7 @@ package com.example.attendeeapp;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ListView;
@@ -46,7 +47,9 @@ public class ShowCartActivity extends AppCompatActivity {
         confirm.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v) {
-                //confirm order
+                //confirm order -> go to order view (test view for now)
+                Intent intent = new Intent(ShowCartActivity.this, OrderActivity.class);
+                startActivity(intent);
             }
         });
 
