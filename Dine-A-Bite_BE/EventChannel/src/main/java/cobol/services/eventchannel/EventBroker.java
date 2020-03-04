@@ -5,6 +5,7 @@ import java.util.HashSet;
 
 public class EventBroker {
     private HashMap<String, HashSet<EventSubscriber>> subscriberMap = new HashMap<>();
+    private HashMap<Integer, EventSubscriber> subscriberId = new HashMap<>();
 
     private final static EventBroker ourInstance = new EventBroker();
 
@@ -19,6 +20,7 @@ public class EventBroker {
     public void subscribe(EventSubscriber subscriber, String[] typeArray) {
         for (String type : typeArray) {
             HashSet<EventSubscriber> typeSet = subscriberMap.get(type);
+            subscriberId.put(subscriber.getId(), subscriber);
             if (typeSet == null) {
                 typeSet = new HashSet<>();
                 typeSet.add(subscriber);
@@ -50,12 +52,14 @@ public class EventBroker {
             HashSet<EventSubscriber> typeSet = subscriberMap.get(type);
                 if (typeSet != null) {
                     for (EventSubscriber s : typeSet) {
-                        if (s != source) {
-                            s.handleEvent(e);
-                        }
+                        s.handleEvent(e);  //loops are possible
                 }
             }
         }
+    }
+
+    public EventSubscriber getSubscriberStub(int id) {
+        return subscriberId.get(id);
     }
 
 }
