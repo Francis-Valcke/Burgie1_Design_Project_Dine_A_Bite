@@ -1,5 +1,6 @@
 package com.example.attendeeapp;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -75,5 +76,25 @@ public class ShowCartActivity extends AppCompatActivity {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.main_menu, menu);
         return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull android.view.MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.orders_action:
+                // User chooses the "My Orders" item
+                Intent intent = new Intent(ShowCartActivity.this, OrderActivity.class);
+                startActivity(intent);
+                return true;
+            case R.id.account_action:
+                // User chooses the "Account" item
+                // TODO make account activity
+                return true;
+            case R.id.settings_action:
+                // User chooses the "Settings" item
+                // TODO make settings activity
+            default:
+                return super.onOptionsItemSelected(item);
+        }
     }
 }
