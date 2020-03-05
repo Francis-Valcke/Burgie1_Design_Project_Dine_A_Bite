@@ -1,14 +1,10 @@
 package com.example.standapp;
 
-import android.content.Context;
-import android.graphics.Typeface;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseExpandableListAdapter;
 import android.widget.TextView;
-
-import org.w3c.dom.Text;
 
 import java.util.HashMap;
 import java.util.List;
@@ -64,7 +60,7 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
         String headerTitle = (String)getGroup(groupPosition);
         if (convertView == null) {
             //LayoutInflater inflater = (LayoutInflater)this.context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-            convertView = LayoutInflater.from(parent.getContext()).inflate(R.layout.custom_list_group, parent, false);
+            convertView = LayoutInflater.from(parent.getContext()).inflate(R.layout.custom_expandable_list_group, parent, false);
         }
         TextView listHeader = (TextView)convertView.findViewById(R.id.list_header);
         //listHeader.setTypeface(null, Typeface.BOLD);
@@ -77,7 +73,7 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
         final String childText = (String)getChild(groupPosition, childPosition);
         if (convertView == null) {
             //LayoutInflater inflater = (LayoutInflater)this.context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-            convertView = LayoutInflater.from(parent.getContext()).inflate(R.layout.custom_list_item, parent, false);
+            convertView = LayoutInflater.from(parent.getContext()).inflate(R.layout.custom_expandable_list_item, parent, false);
         }
         TextView textListHeader = (TextView)convertView.findViewById(R.id.list_item);
         textListHeader.setText(childText);

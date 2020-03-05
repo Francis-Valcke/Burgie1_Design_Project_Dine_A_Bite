@@ -8,4 +8,18 @@
     <string name="button_done">Done</string>
     <string name="button_start">Start</string>
     <string name="button_picked_up">picked up</string>
+    <string name="medium_fries">Medium Fries</string>
+    <string-array name="snacks">
+        <item>Burger</item>
+        <item>Doughnut</item>
+        <item>Hot Dog</item>
+        <item>Large fries</item>
+        <item>Medium fries</item>
+        <item>Small fries</item>
+        <item>Pizza</item>
+        <item>Sandwich</item>
+        <item>Toast</item>
+        <item>Juice</item>
+    </string-array>
+
 </resources>
