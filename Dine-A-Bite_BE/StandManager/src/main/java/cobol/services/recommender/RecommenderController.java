@@ -1,7 +1,6 @@
 package cobol.services.recommender;
 
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.json.simple.JSONObject;
 
 import java.util.ArrayList;
@@ -12,10 +11,11 @@ import java.util.concurrent.TimeUnit;
 public class RecommenderController {
     private List<Scheduler> schedulers = new ArrayList<Scheduler>();
 
-    @RequestMapping("/sched")
-    public JSONObject index() {
-
-        return recommend("apple");
+    @RequestMapping(value ="/post", method = RequestMethod.POST)
+    @ResponseBody
+    public JSONObject postOrder(@RequestBody String foodtype) {
+        System.out.println(foodtype);
+        return recommend(foodtype);
     }
     @RequestMapping("/start")
     public void start(){
