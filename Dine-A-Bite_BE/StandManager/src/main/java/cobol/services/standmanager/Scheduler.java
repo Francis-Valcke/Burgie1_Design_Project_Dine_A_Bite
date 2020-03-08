@@ -1,4 +1,4 @@
-package cobol.services.recommender;
+package cobol.services.standmanager;
 
 import java.util.ArrayList;
 import java.util.List;

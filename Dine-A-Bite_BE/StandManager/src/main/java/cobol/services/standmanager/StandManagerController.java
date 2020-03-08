@@ -1,4 +1,4 @@
-package cobol.services.recommender;
+package cobol.services.standmanager;
 
 import org.springframework.web.bind.annotation.*;
 import org.json.simple.JSONObject;
@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @RestController
-public class RecommenderController {
+public class StandManagerController {
     private List<Scheduler> schedulers = new ArrayList<Scheduler>();
 
     @RequestMapping(value ="/post", method = RequestMethod.POST)

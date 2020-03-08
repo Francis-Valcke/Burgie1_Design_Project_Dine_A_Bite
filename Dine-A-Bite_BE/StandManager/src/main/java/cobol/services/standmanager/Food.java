@@ -1,4 +1,4 @@
-package cobol.services.recommender;
+package cobol.services.standmanager;
 
 public class Food {
     private String name;
