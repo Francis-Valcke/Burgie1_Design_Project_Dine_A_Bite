@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:padding="?android:listPreferredItemPaddingLeft"
+    android:background="@color/colorPrimary"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingLeft="45dp"
+    android:paddingStart="30dp">
+
+    <TextView
+        android:id="@+id/list_header"
+        android:layout_width="31dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:descendantFocusability="blocksDescendants"
+        android:paddingLeft="?android:attr/expandableListPreferredItemIndicatorLeft"
+        android:text="@string/textview_order"
+        android:textColor="@android:color/white"
+        android:textSize="16dp" />
+
+    <Button
+        android:focusable="false"
+        android:id="@+id/button11"
+        android:layout_width="4dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="@string/button_start" />
+
+    <Button
+        android:focusable="false"
+        android:id="@+id/button7"
+        android:layout_width="8dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="@string/button_done" />
+
+    <Button
+        android:focusable="false"
+        android:id="@+id/button8"
+        android:layout_width="45dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="@string/button_picked_up" />
+
+</LinearLayout>
