@@ -17,6 +17,14 @@ public class EventBroker {
 
     }
 
+    /**
+     *
+     * @param subscriber The entity that wants to subscribe to a channel
+     * @param typeArray An array of strings, defining the channels to subscribe to
+     *
+     *
+     * This function adds a subscriber to the event channels it wants to listen to.
+     */
     public void subscribe(EventSubscriber subscriber, String[] typeArray) {
         for (String type : typeArray) {
             HashSet<EventSubscriber> typeSet = subscriberMap.get(type);
@@ -31,6 +39,13 @@ public class EventBroker {
         }
     }
 
+    /**
+     *
+     * @param subscriber The entity that wants to unsubscribe to a channel
+     * @param typeArray An array of strings, defining the channels to unsubscribe to
+     *
+     * This functions removes a subscriber from channels it does not want to listen to anymore.
+     */
     public void unSubscribe(EventSubscriber subscriber, String[] typeArray) {
         for (String type : typeArray) {
             HashSet<EventSubscriber> typeSet = subscriberMap.get(type);
@@ -42,10 +57,24 @@ public class EventBroker {
         }
     }
 
+    /**
+     *
+     * @param source the publisher that sent the event
+     * @param e the event
+     *
+     * Calls the process function.
+     */
     protected void addEvent(EventPublisher source, Event e) {
         process(source, e);
     }
 
+    /**
+     *
+     * @param source publisher that sent the event
+     * @param e the event
+     *
+     * Sends the event to every subscriber listening to the channels the event is sent to.
+     */
     private void process(EventPublisher source, Event e) {
         String[] types = e.getTypes();
         for (String type : types) {
@@ -58,6 +87,12 @@ public class EventBroker {
         }
     }
 
+    /**
+     *
+     * @param id the unique id of the subscriber
+     * @return the subscriber stub that is associated with an subscriber that is not on the server.
+     *
+     */
     public EventSubscriber getSubscriberStub(int id) {
         return subscriberId.get(id);
     }

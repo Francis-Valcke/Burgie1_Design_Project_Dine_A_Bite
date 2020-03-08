@@ -16,10 +16,19 @@ public class EventSubscriber {
         this.types = types.split(",");
     }
 
+    /**
+     * lets the stub subscribe to the appropriate channels
+     */
     void subscribe(EventSubscriber this) {
         EventBroker broker = EventBroker.getInstance();
         broker.subscribe(this, this.types);
     }
+
+    /**
+     * @param e the event
+     *
+     * add the event to the unhandled event list
+     */
     void handleEvent(Event e) {
         unhandledEvents.add(e);
     }
