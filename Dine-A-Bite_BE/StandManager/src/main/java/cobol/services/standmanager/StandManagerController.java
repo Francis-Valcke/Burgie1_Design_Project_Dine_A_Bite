@@ -1,12 +1,12 @@
-package cobol.services.authentication;
+package cobol.services.standmanager;
 
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-public class OrderManagerController {
-    @RequestMapping("/pingOM")
+public class StandManagerController {
+    @RequestMapping("/pingSM")
     public String index() {
-        return "Response from Order Manager";
+        return "Response from Stand Manager";
     }
 }
