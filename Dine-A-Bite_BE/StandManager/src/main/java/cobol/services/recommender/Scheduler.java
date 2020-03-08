@@ -6,12 +6,14 @@ import java.util.concurrent.TimeUnit;
 
 public class Scheduler extends Thread {
     private List<Order> inc = new ArrayList<Order>();
-    private List<String> foodtypes =new ArrayList<String>();
-    public List<String> getTypes(){
-        return foodtypes;
+    private List<Food> menu =new ArrayList<Food>();
+    private String standname;
+    public List<Food> getMenu(){
+        return menu;
     }
-    public Scheduler(List<String> types){
-        this.foodtypes=types;
+    public Scheduler(List<Food> types, String standname){
+        this.menu=types;
+        this.standname=standname;
     }
     public void addOrder(Order o){
         inc.add(o);
@@ -29,8 +31,12 @@ public class Scheduler extends Thread {
         return s;
     }
     public boolean checkType(String type){
-        if (foodtypes.contains(type)) return true;
-        else return false;
+        for (int i= 0; i<menu.size();i++){
+            if (menu.get(i).getType()==type){
+                return true;
+            }
+        }
+        return false;
     }
     public void prepClock(){
         if (inc.get(0).getRemtime()==0) {
@@ -54,4 +60,7 @@ public class Scheduler extends Thread {
         }
     }
 
+    public String getStandname() {
+        return standname;
+    }
 }

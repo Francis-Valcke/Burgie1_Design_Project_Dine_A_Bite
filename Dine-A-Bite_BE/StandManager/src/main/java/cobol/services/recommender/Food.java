@@ -1,12 +1,14 @@
 package cobol.services.recommender;
 
 public class Food {
-    private String type;
+    private String name;
     private int preptime;
+    private double price;
 
-    public Food(String type, int preptime) {
-        this.type = type;
+    public Food(String name, int preptime, double price) {
+        this.name = name;
         this.preptime = preptime;
+        this.price = price;
     }
 
     public int getTime() {
@@ -14,6 +16,14 @@ public class Food {
     }
 
     public String getType(){
-        return type;
+        return name;
+    }
+
+    public double getPrice() {
+        return price;
+    }
+
+    public void setPrice(double price) {
+        this.price = price;
     }
 }
