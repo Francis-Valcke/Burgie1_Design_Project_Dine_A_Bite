@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="937c28a1-e94d-4604-8c14-c78875d32236" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/Dine-A-Bite_BE/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/Dine-A-Bite_BE/build.gradle" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="ProjectId" id="1YaRsmchwoxK9aF9KlVYikABlm0" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showExcludedFiles" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="aspect.path.notification.shown" value="true" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="project.structure.last.edited" value="Modules" />
+    <property name="project.structure.proportion" value="0.15" />
+    <property name="project.structure.side.proportion" value="0.2" />
+  </component>
+  <component name="SvnConfiguration">
+    <configuration />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="937c28a1-e94d-4604-8c14-c78875d32236" name="Default Changelist" comment="" />
+      <created>1583178927338</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1583178927338</updated>
+      <workItem from="1583178928692" duration="4207000" />
+      <workItem from="1583316126844" duration="3816000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="1" />
+  </component>
+  <component name="WindowStateProjectService">
+    <state x="361" y="91" key="#Project_Structure" timestamp="1583316244075">
+      <screen x="0" y="0" width="1536" height="864" />
+    </state>
+    <state x="361" y="91" key="#Project_Structure/0.0.1536.864@0.0.1536.864" timestamp="1583316244075" />
+    <state x="223" y="87" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1583316274655">
+      <screen x="0" y="0" width="1536" height="864" />
+    </state>
+    <state x="223" y="87" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.1536.864@0.0.1536.864" timestamp="1583316274655" />
+    <state x="618" y="321" key="#com.intellij.ide.util.projectWizard.JdkChooserPanel.MyDialog" timestamp="1583315798692">
+      <screen x="0" y="0" width="1536" height="864" />
+    </state>
+    <state x="618" y="321" key="#com.intellij.ide.util.projectWizard.JdkChooserPanel.MyDialog/0.0.1536.864@0.0.1536.864" timestamp="1583315798692" />
+    <state x="445" y="142" key="FileChooserDialogImpl" timestamp="1583316795749">
+      <screen x="0" y="0" width="1536" height="864" />
+    </state>
+    <state x="445" y="142" key="FileChooserDialogImpl/0.0.1536.864@0.0.1536.864" timestamp="1583316795749" />
+    <state x="249" y="7" key="SettingsEditor" timestamp="1583317851305">
+      <screen x="0" y="0" width="1536" height="864" />
+    </state>
+    <state x="249" y="7" key="SettingsEditor/0.0.1536.864@0.0.1536.864" timestamp="1583317851305" />
+    <state x="465" y="256" key="com.intellij.ide.util.TipDialog" timestamp="1583316130446">
+      <screen x="0" y="0" width="1536" height="864" />
+    </state>
+    <state x="465" y="256" key="com.intellij.ide.util.TipDialog/0.0.1536.864@0.0.1536.864" timestamp="1583316130446" />
+    <state x="209" y="53" key="new project wizard" timestamp="1583317439017">
+      <screen x="0" y="0" width="1536" height="864" />
+    </state>
+    <state x="209" y="53" key="new project wizard/0.0.1536.864@0.0.1536.864" timestamp="1583317439017" />
+    <state x="425" y="197" key="run.anything.popup" timestamp="1583315926038">
+      <screen x="0" y="0" width="1536" height="864" />
+    </state>
+    <state x="425" y="197" key="run.anything.popup/0.0.1536.864@0.0.1536.864" timestamp="1583315926038" />
+  </component>
+</project>

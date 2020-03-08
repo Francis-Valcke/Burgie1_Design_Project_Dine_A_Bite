@@ -1,5 +1,8 @@
 package cobol.services.standmanager;
 
+/**
+ * Menu Item
+ */
 public class Food {
     private String name;
     private int preptime;
@@ -10,7 +13,12 @@ public class Food {
         this.preptime = preptime;
         this.price = price;
     }
-
+    /**
+     *  TODO: preptime changes dynamically depending on average time between "preparation" and "done" flags
+     */
+    public void setPreptime(int nieuwpreptime) {
+        this.preptime=nieuwpreptime;
+    }
     public int getTime() {
         return preptime;
     }

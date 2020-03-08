@@ -1,5 +1,15 @@
 package cobol.services.standmanager;
 
+/**
+ * Order:
+ *  - Food: menu item (see Food class for more info)
+ *  - clientid: id of client who ordered, (currently unused)
+ *  - remtime: remaining time of order, this is initialized on Food preparation time. Used to calculate schedule time in scheduler.
+ *  TODO: add flag for - "preparation"
+ *                     - "done"
+ *                     - "picked up"
+ *
+ */
 public class Order {
     private Food f;
     private int clientid;
