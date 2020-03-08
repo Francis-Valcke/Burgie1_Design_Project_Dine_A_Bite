@@ -1,2 +1,56 @@
-group = 'cobol'
-version = '0.0.1'
+plugins {
+    id "org.springframework.boot" version "2.2.5.RELEASE" apply false
+    id 'io.spring.dependency-management' version '1.0.8.RELEASE' apply false
+    id 'java'
+}
+
+def outputDir = "$rootDir/jars"
+project.ext.outDir = outputDir
+
+allprojects {
+    group = 'cobol'
+
+    repositories {
+        mavenCentral()
+    }
+}
+
+subprojects {
+    apply plugin: 'org.springframework.boot'
+    apply plugin: 'io.spring.dependency-management'
+    apply plugin: 'java'
+
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
+
+    bootJar {
+        destinationDirectory = file(outputDir)
+    }
+
+    task docker() {
+        dependsOn clean
+        dependsOn bootJar
+        doLast{
+            def name = project.name.toLowerCase()
+            exec {
+                workingDir outputDir
+                commandLine 'docker', 'image', 'build', '--build-arg', "JAR_FILE=${project.name}.jar" ,'-t', "$name", '.'
+            }
+            exec {
+                workingDir outputDir
+                commandLine 'docker', 'save', "$name" ,'-o', "${name}.tar"
+            }
+        }
+    }
+
+    dependencies {
+        // https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-web
+        implementation group: 'org.springframework.boot', name: 'spring-boot-starter-web', version: '2.2.4.RELEASE'
+        // https://mvnrepository.com/artifact/org.springframework/spring-core
+        implementation group: 'org.springframework', name: 'spring-core', version: '5.2.4.RELEASE'
+        // https://mvnrepository.com/artifact/org.springframework.security/spring-security-core
+        implementation group: 'org.springframework.security', name: 'spring-security-core', version: '5.2.2.RELEASE'
+
+        testImplementation "junit:junit:4.12"
+    }
+}
