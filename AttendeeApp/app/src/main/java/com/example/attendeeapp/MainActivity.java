@@ -1,13 +1,18 @@
 package com.example.attendeeapp;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.View;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+
+import androidx.appcompat.widget.Toolbar;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -36,6 +41,10 @@ public class MainActivity extends AppCompatActivity implements OnCartChangeListe
         menuItems.add(new MenuItem("Cheeseburger", new BigDecimal(2.33)));
         menuItems.add(new MenuItem("Pasta", new BigDecimal(5.61)));
 
+        // Custom Toolbar (instead of standard actionbar)
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
         //Instantiates menu item list
         ListView lView = (ListView)findViewById(R.id.menu_list);
         final MenuItemAdapter menuAdapter = new MenuItemAdapter(menuItems, this);
@@ -63,4 +72,31 @@ public class MainActivity extends AppCompatActivity implements OnCartChangeListe
         totalCount.setText(String.valueOf(cartCount));
     }
 
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.main_menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull android.view.MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.orders_action:
+                // User chooses the "My Orders" item
+                Intent intent = new Intent(MainActivity.this, OrderActivity.class);
+                startActivity(intent);
+                return true;
+            case R.id.account_action:
+                // User chooses the "Account" item
+                // TODO make account activity
+                return true;
+            case R.id.settings_action:
+                // User chooses the "Settings" item
+                // TODO make settings activity
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
 }

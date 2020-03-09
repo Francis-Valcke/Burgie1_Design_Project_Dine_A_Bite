@@ -58,7 +58,7 @@ public class MenuItemAdapter extends BaseAdapter {
         View view = convertView;
         if (view == null) {
             LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-            view = inflater.inflate(R.layout.menu_item, null);
+            view = inflater.inflate(R.layout.menu_item_material, null);
         }
 
         //Handle TextView to display one menu item name

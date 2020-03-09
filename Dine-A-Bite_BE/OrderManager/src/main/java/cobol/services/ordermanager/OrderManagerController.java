@@ -1,4 +1,4 @@
-package cobol.services.authentication;
+package cobol.services.ordermanager;
 
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
