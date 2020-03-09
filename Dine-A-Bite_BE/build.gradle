@@ -1,7 +1,7 @@
 plugins {
-    id "org.springframework.boot" version "2.2.5.RELEASE" apply false
-    id 'io.spring.dependency-management' version '1.0.8.RELEASE' apply false
-    id 'java'
+        id "org.springframework.boot" version "2.2.5.RELEASE" apply false
+        id 'io.spring.dependency-management' version '1.0.8.RELEASE' apply false
+        id 'java'
 }
 
 def outputDir = "$rootDir/jars"
@@ -50,7 +50,7 @@ subprojects {
         implementation group: 'org.springframework', name: 'spring-core', version: '5.2.4.RELEASE'
         // https://mvnrepository.com/artifact/org.springframework.security/spring-security-core
         implementation group: 'org.springframework.security', name: 'spring-security-core', version: '5.2.2.RELEASE'
-
+        compile 'com.googlecode.json-simple:json-simple:1.1.1'
         testImplementation "junit:junit:4.12"
     }
 }
