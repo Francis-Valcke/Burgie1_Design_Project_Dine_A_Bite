@@ -11,7 +11,9 @@ import android.widget.Toast;
 
 import java.util.ArrayList;
 
-//Handles all the menu items in the global menu list
+/**
+ * Handles all the menu items in the global menu list
+ */
 public class MenuItemAdapter extends BaseAdapter {
 
     private static final int MAX_CART_ITEM = 25;
@@ -30,10 +32,14 @@ public class MenuItemAdapter extends BaseAdapter {
         this.cartListener = listener;
     }
 
+    /**
+     * Function that returns all menu list items with positive item count
+     * @return: ordered menu items
+     */
     public ArrayList<MenuItem> getOrderedMenuList() {
         ArrayList<MenuItem> ordered = new ArrayList<MenuItem>();
         for(MenuItem i : list){
-            if(i.getCount() != 0) ordered.add(i);
+            if(i.getCount() > 0) ordered.add(i);
         }
         return ordered;
     }
@@ -61,18 +67,23 @@ public class MenuItemAdapter extends BaseAdapter {
             view = inflater.inflate(R.layout.menu_item_material, null);
         }
 
-        //Handle TextView to display one menu item name
+        // Handle TextView to display one menu item name
         TextView listItemText = (TextView)view.findViewById(R.id.menu_item);
         listItemText.setText(list.get(position).getItem());
 
-        //Handle TextView to display one menu item price
+        // Handle TextView to display one menu item price
         TextView listItemPrice = (TextView)view.findViewById(R.id.menu_item_price);
         listItemPrice.setText(list.get(position).getPriceEuro());
 
-        //Handle Button and add onClickListeners for one menu item
+        // Handle Button and add onClickListeners for one menu item
         Button plusBtn = (Button)view.findViewById(R.id.plus);
 
         plusBtn.setOnClickListener(new View.OnClickListener(){
+            /**
+             * Function that increases the menu item and cart count
+             * if an item is selected and handles maximum number of possible items
+             * @param v: View of list item
+             */
             @Override
             public void onClick(View v) {
                 if (cartCount < MAX_CART_ITEM) {

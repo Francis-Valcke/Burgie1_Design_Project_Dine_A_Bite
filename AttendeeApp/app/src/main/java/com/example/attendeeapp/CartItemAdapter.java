@@ -9,7 +9,9 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 
-//Handles all the cart items in the cart list
+/**
+ * Handles all the cart items in the cart list
+ */
 public class CartItemAdapter  extends BaseAdapter {
     private ArrayList<MenuItem> list = new ArrayList<MenuItem>();
     private Context context;

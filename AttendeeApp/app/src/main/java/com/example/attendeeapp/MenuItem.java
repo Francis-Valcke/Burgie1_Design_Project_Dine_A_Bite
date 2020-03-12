@@ -6,7 +6,9 @@ import java.math.RoundingMode;
 import java.text.NumberFormat;
 import java.util.Locale;
 
-//Model for one menu item
+/**
+ * Model for one menu item
+ */
 public class MenuItem implements Serializable {
     private static final int MAX_ITEM = 10;
     private String item;
