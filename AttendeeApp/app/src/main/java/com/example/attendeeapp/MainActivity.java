@@ -15,6 +15,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.widget.Toolbar;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -37,6 +38,8 @@ public class MainActivity extends AppCompatActivity implements OnCartChangeListe
 
     private ArrayList<MenuItem> menuItems = new ArrayList<MenuItem>();
 
+    MenuItemAdapter menuAdapter;
+    SwipeRefreshLayout pullToRefresh;
     /**
      * Called when app is first instantiated, creates menu items view
      * @param savedInstanceState
@@ -48,12 +51,22 @@ public class MainActivity extends AppCompatActivity implements OnCartChangeListe
 
         // Instantiates menu item list
         ListView lView = (ListView)findViewById(R.id.menu_list);
-        final MenuItemAdapter menuAdapter = new MenuItemAdapter(menuItems, this);
+        menuAdapter = new MenuItemAdapter(menuItems, this);
         menuAdapter.setCartChangeListener(this);
         lView.setAdapter(menuAdapter);
 
+        // Setup swipe to refresh menu
+        pullToRefresh = (SwipeRefreshLayout) findViewById(R.id.swiperefresh);
+        pullToRefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                fetchMenu();
+                pullToRefresh.setRefreshing(false);
+            }
+        });
+
         // Fetch global menu from server
-        fetchMenu(menuAdapter);
+        fetchMenu();
 
         // Custom Toolbar (instead of standard actionbar)
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -77,11 +90,10 @@ public class MainActivity extends AppCompatActivity implements OnCartChangeListe
 
     /**
      * Function to fetch the global menu from the server
-     * @param adapter: global menu item list handler
      * TODO: change url to live server
      * TODO: handle no internet connection
      */
-    private void fetchMenu(final MenuItemAdapter adapter){
+    private void fetchMenu(){
         // Instantiate the RequestQueue
         RequestQueue queue = Volley.newRequestQueue(this);
         String url = "http://10.0.2.2:8080/menu";
@@ -91,13 +103,14 @@ public class MainActivity extends AppCompatActivity implements OnCartChangeListe
             @Override
             public void onResponse(JSONObject response) {
                 try {
-                    Log.v("response", "Response: " + response.toString());
+                    menuItems.clear();
+                    //Log.v("response", "Response: " + response.toString());
                     for (Iterator<String> iter = response.keys(); iter.hasNext(); ) {
                         String key = iter.next();
                         String price = response.getString(key);
                         menuItems.add(new MenuItem(key, new BigDecimal(Double.valueOf(price))));
                     }
-                    adapter.notifyDataSetChanged();
+                    menuAdapter.notifyDataSetChanged();
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
