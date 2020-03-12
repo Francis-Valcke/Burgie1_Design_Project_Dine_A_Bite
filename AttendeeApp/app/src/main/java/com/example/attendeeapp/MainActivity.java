@@ -5,53 +5,62 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.View;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.widget.Toolbar;
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Iterator;
 
-//MainActivity for handling the global menu view page
+/**
+ * MainActivity for handling the global menu view page
+ */
 public class MainActivity extends AppCompatActivity implements OnCartChangeListener {
 
     private ArrayList<MenuItem> menuItems = new ArrayList<MenuItem>();
 
+    /**
+     * Called when app is first instantiated, creates menu items view
+     * @param savedInstanceState
+     */
     @Override
-    //Called when app is first instantiated, creates menu items view
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        menuItems.add(new MenuItem("Fries", new BigDecimal(4.10)));
-        menuItems.add(new MenuItem("Cheeseburger", new BigDecimal(2.33)));
-        menuItems.add(new MenuItem("Pasta", new BigDecimal(5.61)));
-        menuItems.add(new MenuItem("Fries", new BigDecimal(4.10)));
-        menuItems.add(new MenuItem("Cheeseburger", new BigDecimal(2.33)));
-        menuItems.add(new MenuItem("Pasta", new BigDecimal(5.61)));
-        menuItems.add(new MenuItem("Fries", new BigDecimal(4.10)));
-        menuItems.add(new MenuItem("Cheeseburger", new BigDecimal(2.33)));
-        menuItems.add(new MenuItem("Pasta", new BigDecimal(5.61)));
-        menuItems.add(new MenuItem("Fries", new BigDecimal(4.10)));
-        menuItems.add(new MenuItem("Cheeseburger", new BigDecimal(2.33)));
-        menuItems.add(new MenuItem("Pasta", new BigDecimal(5.61)));
-
-        // Custom Toolbar (instead of standard actionbar)
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-
-        //Instantiates menu item list
+        // Instantiates menu item list
         ListView lView = (ListView)findViewById(R.id.menu_list);
         final MenuItemAdapter menuAdapter = new MenuItemAdapter(menuItems, this);
         menuAdapter.setCartChangeListener(this);
         lView.setAdapter(menuAdapter);
 
-        //Initializes cart count at bottom of menu item list
+        // Fetch global menu from server
+        fetchMenu(menuAdapter);
+
+        // Custom Toolbar (instead of standard actionbar)
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
+
+        // Initializes cart count at bottom of menu item list
         TextView totalCount = (TextView)findViewById(R.id.cart_count);
         totalCount.setText("0");
 
@@ -66,12 +75,54 @@ public class MainActivity extends AppCompatActivity implements OnCartChangeListe
         });
     }
 
-    //Updates total amount in cart when a menu item is added
+    /**
+     * Function to fetch the global menu from the server
+     * @param adapter: global menu item list handler
+     * TODO: change url to live server
+     * TODO: handle no internet connection
+     */
+    private void fetchMenu(final MenuItemAdapter adapter){
+        // Instantiate the RequestQueue
+        RequestQueue queue = Volley.newRequestQueue(this);
+        String url = "http://10.0.2.2:8080/menu";
+
+        // Request the global menu in JSON from stand manager
+        JsonObjectRequest jsonRequest = new JsonObjectRequest(Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject response) {
+                try {
+                    Log.v("response", "Response: " + response.toString());
+                    for (Iterator<String> iter = response.keys(); iter.hasNext(); ) {
+                        String key = iter.next();
+                        String price = response.getString(key);
+                        menuItems.add(new MenuItem(key, new BigDecimal(Double.valueOf(price))));
+                    }
+                    adapter.notifyDataSetChanged();
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Toast mToast = Toast.makeText(MainActivity.this, "No network connection", Toast.LENGTH_SHORT);
+                mToast.show();
+            }
+        });
+
+        // Add the request to the RequestQueue
+        queue.add(jsonRequest);
+    }
+
+    /**
+     * Updates total amount in cart when a menu item is added
+     * @param cartCount: total number of items in the cart
+     */
     public void onCartChanged(int cartCount){
         TextView totalCount = (TextView)findViewById(R.id.cart_count);
         totalCount.setText(String.valueOf(cartCount));
     }
-
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
