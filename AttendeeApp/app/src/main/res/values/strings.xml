@@ -1,4 +1,4 @@
-<!--Contains the static string resources used in the app-->
+<!-- Contains the static string resources used in the app -->
 <resources>
     <string name="app_name">Dine-A-Bite</string>
     <string name="plusBtn">+</string>

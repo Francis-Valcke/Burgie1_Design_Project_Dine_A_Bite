@@ -9,7 +9,9 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 
-//Handles all the cart items in the cart list
+/**
+ * Handles all the cart items in the cart list
+ */
 public class CartItemAdapter  extends BaseAdapter {
     private ArrayList<MenuItem> list = new ArrayList<MenuItem>();
     private Context context;
@@ -39,7 +41,7 @@ public class CartItemAdapter  extends BaseAdapter {
         View view = convertView;
         if (view == null) {
             LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-            view = inflater.inflate(R.layout.cart_item, null);
+            view = inflater.inflate(R.layout.cart_item_material, null);
         }
 
         //Handle TextView to display one cart item name

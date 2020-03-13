@@ -19,7 +19,9 @@ import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Locale;
 
-//Activity to handle the view cart page
+/**
+ * Activity to handle the view cart page
+ */
 public class ShowCartActivity extends AppCompatActivity {
 
     ArrayList<MenuItem> ordered;
@@ -42,12 +44,12 @@ public class ShowCartActivity extends AppCompatActivity {
 
         ordered = (ArrayList<MenuItem>) getIntent().getSerializableExtra("menuList");
 
-        //Instantiates cart item list
+        // Instantiates cart item list
         ListView lView = (ListView)findViewById(R.id.cart_list);
         CartItemAdapter cartAdapter = new CartItemAdapter(ordered, this);
         lView.setAdapter(cartAdapter);
 
-        //Handle TextView to display total cart amount
+        // Handle TextView to display total cart amount (price)
         TextView total = (TextView)findViewById(R.id.cart_total_price);
         BigDecimal amount = new BigDecimal(0).setScale(2, RoundingMode.HALF_UP);
         for(MenuItem i : ordered) {
@@ -58,7 +60,7 @@ public class ShowCartActivity extends AppCompatActivity {
         String symbol = euro.getCurrency().getSymbol();
         total.setText(symbol + amount);
 
-        //Handle clickable TextView to confirm order
+        // Handle clickable TextView to confirm order
         TextView confirm = (TextView)findViewById(R.id.confirm_order);
         confirm.setOnClickListener(new View.OnClickListener(){
             @Override
@@ -81,6 +83,10 @@ public class ShowCartActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(@NonNull android.view.MenuItem item) {
         switch (item.getItemId()) {
+            case android.R.id.home:
+                // this takes the user 'back', as if they pressed the left-facing triangle icon on the main android toolbar.
+                super.onBackPressed();
+                return true;
             case R.id.orders_action:
                 // User chooses the "My Orders" item
                 Intent intent = new Intent(ShowCartActivity.this, OrderActivity.class);
