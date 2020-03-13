@@ -8,7 +8,7 @@ import java.util.List;
 
 @SpringBootApplication
 public class StandManager {
-    private List<Scheduler> schedulers = new ArrayList<Scheduler>();
+
     public static void main(String[] args) throws InterruptedException {
         SpringApplication.run(StandManager.class,args);
 

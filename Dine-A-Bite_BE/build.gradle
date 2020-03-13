@@ -4,11 +4,15 @@ plugins {
         id 'java'
 }
 
+version = '0.2'
+
 def outputDir = "$rootDir/jars"
 project.ext.outDir = outputDir
 
+
+
 allprojects {
-    group = 'cobol'
+    group = 'be.ugent.cobol'
 
     repositories {
         mavenCentral()
@@ -23,22 +27,28 @@ subprojects {
     sourceCompatibility = 1.8
     targetCompatibility = 1.8
 
+    task cleanJars{
+        doLast {
+            delete fileTree(dir: "${outputDir}", include: "${project.name}*")
+        }
+    }
+
     bootJar {
+        dependsOn cleanJars
         destinationDirectory = file(outputDir)
     }
 
     task docker() {
-        dependsOn clean
         dependsOn bootJar
         doLast{
             def name = project.name.toLowerCase()
             exec {
                 workingDir outputDir
-                commandLine 'docker', 'image', 'build', '--build-arg', "JAR_FILE=${project.name}.jar" ,'-t', "$name", '.'
+                commandLine 'docker', 'image', 'build', '--build-arg', "JAR_FILE=${project.name}*.jar" ,'-t', "${name}:${project.version}", '.'
             }
             exec {
                 workingDir outputDir
-                commandLine 'docker', 'save', "$name" ,'-o', "${name}.tar"
+                commandLine 'docker', 'save', "${name}:${project.version}" ,'-o', "${project.name}-${project.version}.tar"
             }
         }
     }
