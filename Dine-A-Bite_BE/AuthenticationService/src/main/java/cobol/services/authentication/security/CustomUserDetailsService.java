@@ -1,12 +1,12 @@
 package cobol.services.authentication.security;
 
-import cobol.services.authentication.domain.UserRepository;
+import cobol.services.authentication.domain.repository.UserRepository;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 
-@Component
+@Component("customUserDetailsService")
 public class CustomUserDetailsService implements UserDetailsService {
 
     private UserRepository users;

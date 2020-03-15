@@ -1,4 +1,4 @@
-package cobol.services.authentication.domain;
+package cobol.services.authentication.domain.entity;
 
 
 import lombok.AllArgsConstructor;

@@ -1,8 +1,7 @@
 package cobol.services.authentication.controller;
 
-import cobol.services.authentication.domain.TokenRepository;
-import cobol.services.authentication.domain.User;
-import cobol.services.authentication.domain.UserRepository;
+import cobol.services.authentication.domain.entity.User;
+import cobol.services.authentication.domain.repository.UserRepository;
 import cobol.services.authentication.exception.DuplicateUserException;
 import cobol.services.authentication.security.jwt.JwtTokenProvider;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,7 +31,6 @@ public class AuthenticationController {
     private AuthenticationManager authenticationManager;
     private JwtTokenProvider jwtTokenProvider;
     private UserRepository users;
-    private TokenRepository tokens;
 
     /**
      * API endpoint to test if the server is still alive.
@@ -127,11 +125,6 @@ public class AuthenticationController {
     @Autowired
     public void setUsers(UserRepository users) {
         this.users = users;
-    }
-
-    @Autowired
-    public void setTokens(TokenRepository tokens) {
-        this.tokens = tokens;
     }
 
     @Autowired

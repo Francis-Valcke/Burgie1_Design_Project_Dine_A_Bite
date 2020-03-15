@@ -1,7 +1,7 @@
 package cobol.services.authentication.domain;
 
-import lombok.Setter;
-import lombok.extern.slf4j.Slf4j;
+import cobol.services.authentication.domain.entity.User;
+import cobol.services.authentication.domain.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;

@@ -1,7 +1,7 @@
 package cobol.services.authentication.controller;
 
-import cobol.services.authentication.domain.User;
-import cobol.services.authentication.domain.UserRepository;
+import cobol.services.authentication.domain.entity.User;
+import cobol.services.authentication.domain.repository.UserRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
