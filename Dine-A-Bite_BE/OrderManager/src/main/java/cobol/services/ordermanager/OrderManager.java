@@ -8,6 +8,8 @@ public class OrderManager {
 
     public static void main(String[] args){
         SpringApplication.run(OrderManager.class,args);
+        Fetcher f = new Fetcher();
+        f.connect();
     }
 
 }
