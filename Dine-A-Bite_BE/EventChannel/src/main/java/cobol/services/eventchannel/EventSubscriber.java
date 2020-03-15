@@ -7,13 +7,16 @@ import java.util.List;
 public class EventSubscriber {
     private static int numSubscribers = 0;
     private int id;
-    private String[] types;
+    private List<String> types = new ArrayList<>();
     private List<Event> unhandledEvents = new ArrayList<>();
 
     EventSubscriber(String types) {
         id = numSubscribers;
         numSubscribers++;
-        this.types = types.split(",");
+        String[] temp_types = types.split(",");
+        for (String type : temp_types) {
+            this.types.add(type);
+        }
     }
 
     /**
@@ -31,6 +34,14 @@ public class EventSubscriber {
      */
     void handleEvent(Event e) {
         unhandledEvents.add(e);
+    }
+
+    public void addType(String type) {
+        this.types.add(type);
+    }
+
+    public List<String> getTypes() {
+        return this.types;
     }
 
     public int getId() {
