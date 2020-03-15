@@ -64,23 +64,22 @@ public class EventBroker {
 
     /**
      *
-     * @param source the publisher that sent the event
      * @param e the event
      *
      * Calls the process function.
      */
-    protected void addEvent(EventPublisher source, Event e) {
-        process(source, e);
+    protected void addEvent(Event e) {
+        System.out.println("Event was received with data: " + e.orderData); //TODO: remove, this is for testing
+        process(e);
     }
 
     /**
      *
-     * @param source publisher that sent the event
      * @param e the event
      *
      * Sends the event to every subscriber listening to the channels the event is sent to.
      */
-    private void process(EventPublisher source, Event e) {
+    private void process(Event e) {
         String[] types = e.getTypes();
         for (String type : types) {
             HashSet<EventSubscriber> typeSet = subscriberMap.get(type);
