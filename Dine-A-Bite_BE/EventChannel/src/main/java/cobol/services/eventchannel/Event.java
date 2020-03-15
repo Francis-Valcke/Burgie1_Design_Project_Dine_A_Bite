@@ -6,18 +6,22 @@ public class Event {
     protected String orderData;
     private String[] types;
 
-    Event() {
+    public Event() {
         myId = idCount;
         idCount++;
         orderData = "Default data";
     }
 
 
-    Event(String data, String[] types) {
+    public Event(String data, String[] types) {
         myId = idCount;
         idCount++;
         orderData = data;
         this.types = types;
+    }
+
+    public String getOrderData() {
+        return this.orderData;
     }
 
     public String[] getTypes() {
