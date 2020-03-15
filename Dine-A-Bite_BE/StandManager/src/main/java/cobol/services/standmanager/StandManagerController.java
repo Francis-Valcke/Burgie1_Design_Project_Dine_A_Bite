@@ -70,7 +70,7 @@ public class StandManagerController {
     @RequestMapping(value ="/post", method = RequestMethod.POST)
     @ResponseBody
     public JSONObject postOrder(@RequestParam() String foodtype) {
-        System.out.println(foodtype);
+        System.out.println("User requested recommended stand for " + foodtype);
         return recommend(foodtype);
     }
 
@@ -138,24 +138,34 @@ public class StandManagerController {
      */
     public JSONObject recommend(String type) {
         JSONObject obj = new JSONObject();
+
         int s = 1000;
+        List<JSONObject> bestStands = new ArrayList<>();
         String standname="";
+        System.out.println("0");
         for (int i = 0; i < schedulers.size(); i++) {
+            System.out.println("1");
             if (schedulers.get(i).checkType(type)) {
+                System.out.println("2");
                 int n = schedulers.get(i).timeSum();
                 if (n < s) {
+                    JSONObject newStand = new JSONObject();
                     s = n;
                     standname = schedulers.get(i).getStandname();
+                    newStand.put("stand", standname);
+
+                    System.out.println("DE STANDNAME IS : " + standname);
+
                 }
             }
         }
-        obj.put("stand", standname);
+        //obj.put("stand", standname);
         //obj.put("stand2", "foo");
         //obj.put("stand3", "foo");
         //obj.put("stand4", "foo");
         //obj.put("stand5", "foo");
 
-        System.out.print(obj);
+        System.out.print(obj.toJSONString());
         return obj;
     }
 

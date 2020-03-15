@@ -81,16 +81,17 @@ public class Scheduler extends Thread {
      * calls prepClock() every second
      */
     public void run(){
-        for (int i = 0; i< 60; i++){
-            try {
-                TimeUnit.SECONDS.sleep(1);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            prepClock();
 
-            if (i==60){
-                i=0;
+            for (int i = 0; i < 60; i++) {
+                try {
+                    TimeUnit.SECONDS.sleep(1);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                prepClock();
+
+                if (i==60){
+                  i=0;
             }
         }
     }
