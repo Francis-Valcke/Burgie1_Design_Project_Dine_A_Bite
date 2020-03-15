@@ -13,6 +13,9 @@ import androidx.annotation.Nullable;
 
 import java.util.List;
 
+/**
+ * This Adapter is currently not used so you can ignore it, I did not delete this class in case I might use it in the future
+ */
 public class SpinnerAdapter extends ArrayAdapter {
     private List<Integer> image;
     private List<String> text;

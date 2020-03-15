@@ -21,6 +21,9 @@ public class MainActivity extends AppCompatActivity {
     private List<String> listDataHeader;
     private HashMap<String,List<String>> listHash;
 
+    /**
+     * This onCreate function is the first function that will be run when the MainActivity opens up
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -40,6 +43,9 @@ public class MainActivity extends AppCompatActivity {
         listView.setAdapter(listAdapter);
     }
 
+    /**
+     * Initialize the orders, currently hardcoded, later this will be provided by the server
+     */
     private void initData() {
         listDataHeader = new ArrayList<>();
         listHash = new HashMap<>();
@@ -62,6 +68,9 @@ public class MainActivity extends AppCompatActivity {
         //listView.expandGroup(0);
     }
 
+    /**
+     * Opens up the dashboard activity
+     */
     public void openManagerDashboard() {
         Intent intent = new Intent(this, ManagerDashboard.class);
         startActivity(intent);

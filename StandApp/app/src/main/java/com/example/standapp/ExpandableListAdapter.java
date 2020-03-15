@@ -10,12 +10,10 @@ import java.util.HashMap;
 import java.util.List;
 
 public class ExpandableListAdapter extends BaseExpandableListAdapter {
-    //private Context context;
     private List<String> listDataHeader;
     private HashMap<String,List<String>> listHashMap;
 
     public ExpandableListAdapter(List<String> listDataHeader, HashMap<String, List<String>> listHashMap) {
-        //this.context = context;
         this.listDataHeader = listDataHeader;
         this.listHashMap = listHashMap;
     }
@@ -59,11 +57,9 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
     public View getGroupView(int groupPosition, boolean isExpanded, View convertView, ViewGroup parent) {
         String headerTitle = (String)getGroup(groupPosition);
         if (convertView == null) {
-            //LayoutInflater inflater = (LayoutInflater)this.context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
             convertView = LayoutInflater.from(parent.getContext()).inflate(R.layout.custom_expandable_list_group, parent, false);
         }
         TextView listHeader = (TextView)convertView.findViewById(R.id.list_header);
-        //listHeader.setTypeface(null, Typeface.BOLD);
         listHeader.setText(headerTitle);
         return convertView;
     }
@@ -72,7 +68,6 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
     public View getChildView(int groupPosition, int childPosition, boolean isLastChild, View convertView, ViewGroup parent) {
         final String childText = (String)getChild(groupPosition, childPosition);
         if (convertView == null) {
-            //LayoutInflater inflater = (LayoutInflater)this.context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
             convertView = LayoutInflater.from(parent.getContext()).inflate(R.layout.custom_expandable_list_item, parent, false);
         }
         TextView textListHeader = (TextView)convertView.findViewById(R.id.list_item);
