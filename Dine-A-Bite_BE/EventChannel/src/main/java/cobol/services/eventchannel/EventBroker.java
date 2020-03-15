@@ -2,6 +2,7 @@ package cobol.services.eventchannel;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 
 public class EventBroker {
     private HashMap<String, HashSet<EventSubscriber>> subscriberMap = new HashMap<>();
@@ -25,16 +26,20 @@ public class EventBroker {
      *
      * This function adds a subscriber to the event channels it wants to listen to.
      */
-    public void subscribe(EventSubscriber subscriber, String[] typeArray) {
+    public void subscribe(EventSubscriber subscriber, List<String> typeArray) {
         for (String type : typeArray) {
             HashSet<EventSubscriber> typeSet = subscriberMap.get(type);
-            subscriberId.put(subscriber.getId(), subscriber);
+            if (!subscriberId.containsKey(subscriber.getId())) {
+                subscriberId.put(subscriber.getId(), subscriber);
+            }
             if (typeSet == null) {
                 typeSet = new HashSet<>();
                 typeSet.add(subscriber);
                 subscriberMap.put(type, typeSet);
             } else {
-                typeSet.add(subscriber);
+                if (!typeSet.contains(subscriber)) {
+                    typeSet.add(subscriber);
+                }
             }
         }
     }
@@ -46,7 +51,7 @@ public class EventBroker {
      *
      * This functions removes a subscriber from channels it does not want to listen to anymore.
      */
-    public void unSubscribe(EventSubscriber subscriber, String[] typeArray) {
+    public void unSubscribe(EventSubscriber subscriber, List<String> typeArray) {
         for (String type : typeArray) {
             HashSet<EventSubscriber> typeSet = subscriberMap.get(type);
             if (typeSet == null) {

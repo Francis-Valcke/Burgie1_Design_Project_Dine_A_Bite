@@ -4,6 +4,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -30,11 +31,71 @@ public class EventController {
      * unique id. This is returned to the callee.
      *
      */
-    @GetMapping("/register")
+    @GetMapping("/registerSubcriber")
     public int register(@RequestParam(value="types", defaultValue = "") String types) {
         EventSubscriber newSubscriber = new EventSubscriber(types);
         newSubscriber.subscribe();
         return newSubscriber.getId();
+    }
+
+    /**
+     *
+     * @param stub_id The id to identify the subscriberstub
+     * @param type the channels the stub has to subscribe to
+     *
+     * This method allows subscribers to subscribe to channels they were previously not subscribed to.
+     */
+    @GetMapping("/registerSubscriber/toChannel")
+    public void toChannel(@RequestParam(value="id") int stub_id, @RequestParam(value="type", defaultValue = "") String type) {
+        EventBroker broker = EventBroker.getInstance();
+        EventSubscriber subscriber = broker.getSubscriberStub(stub_id);
+        subscriber.addType(type);
+        broker.subscribe(subscriber, subscriber.getTypes());
+    }
+
+    /**
+     *
+     * @param stub_id id of the stub to desubscribe
+     * @param type channels to desubscribe from, separated by commas. If none are given, stub desubscribes from all channels
+     */
+    @GetMapping("/deregisterSubscriber")
+    public void deRegister(@RequestParam(value="id") int stub_id, @RequestParam(value="type", defaultValue = "") String type) {
+        EventBroker broker = EventBroker.getInstance();
+        EventSubscriber subscriber = broker.getSubscriberStub(stub_id);
+        if (type == "") {
+            broker.unSubscribe(subscriber, subscriber.getTypes());
+        }
+        else {
+            List<String> typeList = new ArrayList<>();
+            String[] tempList = type.split(",");
+            for (String t : tempList) {
+                typeList.add(t);
+            }
+            broker.unSubscribe(subscriber, typeList);
+        }
+    }
+
+    /**
+     *
+     * @return The publisher element that will be used to handle events
+     */
+    @GetMapping("/registerPublisher")
+    public EventPublisher registerPublisher() {
+        return new EventPublisher();
+    }
+
+    /**
+     *
+     * @param p publisher object
+     * @param e event to publish
+     *
+     * publishes the event to the event broker. This must happen here, because the eventbroker is running on this
+     * microservice. Keep in mind the application that publishes needs to import EventPublisher and Event.
+     *
+     */
+    @GetMapping("/publish")
+    public void publish(@RequestParam(value="publisher") EventPublisher p, @RequestParam(value="event") Event e) {
+        p.Publish(e);
     }
 
     /**
