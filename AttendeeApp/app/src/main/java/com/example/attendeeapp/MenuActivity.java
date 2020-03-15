@@ -17,6 +17,7 @@ import android.widget.Toast;
 import androidx.appcompat.widget.Toolbar;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+import com.android.volley.NoConnectionError;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
@@ -39,6 +40,7 @@ public class MenuActivity extends AppCompatActivity implements OnCartChangeListe
     private ArrayList<MenuItem> menuItems = new ArrayList<MenuItem>();
     private MenuItemAdapter menuAdapter;
     private SwipeRefreshLayout pullToRefresh;
+    private Toast mToast;
 
     /**
      * Called after splash-screen is shown,
@@ -90,15 +92,17 @@ public class MenuActivity extends AppCompatActivity implements OnCartChangeListe
     }
 
     /**
-     * Function to fetch the global menu from the server
-     * TODO: change url to live server
+     * Function to fetch the global menu from the server in JSON
+     * Handles no network connection or server not reachable
+     * TODO: store menu in cache / fetch menu at splash screen
      */
     private void fetchMenu(){
         // Instantiate the RequestQueue
         RequestQueue queue = Volley.newRequestQueue(this);
-        String url = "http://10.0.2.2:8080/menu";
+        String url = "http://cobol.idlab.ugent.be:8092/menu";
 
         // Request the global menu in JSON from the stand manager
+        // Handle no network connection or server not reachable
         JsonObjectRequest jsonRequest = new JsonObjectRequest(Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject response) {
@@ -119,7 +123,15 @@ public class MenuActivity extends AppCompatActivity implements OnCartChangeListe
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                Toast mToast = Toast.makeText(MenuActivity.this, "No network connection", Toast.LENGTH_SHORT);
+                // NoConnectionError = no network connection
+                // other = server not reachable
+                if (mToast != null) mToast.cancel();
+                if (error instanceof NoConnectionError) {
+                    mToast = Toast.makeText(MenuActivity.this, "No network connection", Toast.LENGTH_LONG);
+
+                } else {
+                    mToast = Toast.makeText(MenuActivity.this, "Server cannot be reached. Try again later.", Toast.LENGTH_LONG);
+                }
                 mToast.show();
             }
         });
