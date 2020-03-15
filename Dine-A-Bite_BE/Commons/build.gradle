@@ -19,9 +19,6 @@ dependencies {
     compileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.12'
     annotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.12'
 
-    //Use the commons library of the project
-    implementation project(':Commons')
-
     //-----TESTING-----
 
     //For testing REST API
