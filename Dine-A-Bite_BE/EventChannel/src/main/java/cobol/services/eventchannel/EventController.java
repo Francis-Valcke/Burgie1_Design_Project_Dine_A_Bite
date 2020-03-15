@@ -96,25 +96,20 @@ public class EventController {
 
     /**
      *
-     * @return The publisher element that will be used to handle events
-     */
-    @GetMapping("/registerPublisher")
-    public EventPublisher registerPublisher() {
-        return new EventPublisher();
-    }
-
-    /**
-     *
-     * @param p publisher object
      * @param e event to publish
      *
      * publishes the event to the event broker. This must happen here, because the eventbroker is running on this
      * microservice. Keep in mind the application that publishes needs to import EventPublisher and Event.
      *
      */
-    @GetMapping("/publish")
-    public void publish(@RequestParam(value="publisher") EventPublisher p, @RequestParam(value="event") Event e) {
-        p.Publish(e);
+    //@GetMapping("/publish")
+    //public void publish(@RequestBody Event e) {
+    //    EventPublisher.Publish(e);
+    //}
+
+    @PostMapping(value = "/publishEvent", consumes = "application/json")
+    public void publish(@RequestBody Event e) {
+        EventPublisher.Publish(e);
     }
 
     /**
