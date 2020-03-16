@@ -1,6 +1,5 @@
 package cobol.services.ordermanager;
 
-import cobol.services.eventchannel.EventPublisher;
 import cobol.services.eventchannel.Event;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -11,8 +10,6 @@ import org.springframework.http.MediaType;
 import org.springframework.web.client.RestTemplate;
 
 public class OrderProcesser {
-
-    private EventPublisher publisher;
 
     /**
      *
