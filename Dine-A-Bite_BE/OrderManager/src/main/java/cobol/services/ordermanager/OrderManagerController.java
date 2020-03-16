@@ -61,7 +61,7 @@ public class OrderManagerController {
      * and puts the menu items in a JSON file with their price.
      * In the JSON file the keys are the menu item names and the values are the prices
      */
-    @RequestMapping(value ="/standmenu", method = RequestMethod.POST)
+    @RequestMapping(value ="/standmenu", method = RequestMethod.GET)
     @ResponseBody
     public JSONObject requestStandMenu(@RequestParam() String standname) {
         System.out.println("request menu of stand " + standname);

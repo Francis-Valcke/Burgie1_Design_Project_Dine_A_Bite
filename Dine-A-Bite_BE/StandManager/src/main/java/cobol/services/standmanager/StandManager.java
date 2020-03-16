@@ -1,4 +1,4 @@
-package cobol.services.standmanager.standhandler;
+package cobol.services.standmanager;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
