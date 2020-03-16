@@ -73,19 +73,13 @@ public class EventController {
         }
     }
 
+
     /**
      *
-     * @param e event to publish
+     * @param e The event to publish
      *
-     * publishes the event to the event broker. This must happen here, because the eventbroker is running on this
-     * microservice. Keep in mind the application that publishes needs to import EventPublisher and Event.
-     *
+     * Receives an event in JSON format, forwards it to the proper channels
      */
-    //@GetMapping("/publish")
-    //public void publish(@RequestBody Event e) {
-    //    EventPublisher.Publish(e);
-    //}
-
     @PostMapping(value = "/publishEvent", consumes = "application/json")
     public void publish(@RequestBody Event e) {
         EventPublisher.Publish(e);
