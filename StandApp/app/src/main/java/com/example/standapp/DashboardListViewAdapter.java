@@ -51,10 +51,12 @@ public class DashboardListViewAdapter extends BaseAdapter {
         ImageView icon = (ImageView) view.findViewById(R.id.icon_menu);
         TextView title = (TextView) view.findViewById(R.id.textView_title);
         TextView price = (TextView) view.findViewById(R.id.textView_price);
+        TextView count = (TextView) view.findViewById(R.id.textView_count_product);
 
-        icon.setImageResource(item.icon);
-        title.setText(item.title);
-        price.setText(item.price);
+        icon.setImageResource(item.getIcon());
+        title.setText(item.getTitle());
+        price.setText(item.getPrice());
+        count.setText(item.getCount());
 
         return view;
     }
