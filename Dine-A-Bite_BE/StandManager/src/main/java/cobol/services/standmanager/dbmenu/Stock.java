@@ -1,15 +1,11 @@
-package cobol.services.ordermanager.dbmenu;
+package cobol.services.standmanager.dbmenu;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.IdClass;
+import javax.persistence.*;
 import java.io.Serializable;
-
 class StockId implements Serializable{
     int stand_id;
     int food_id;
 }
-
 @Entity @IdClass(StockId.class)
 public class Stock {
     @Id

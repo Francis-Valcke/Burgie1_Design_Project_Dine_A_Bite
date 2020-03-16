@@ -1,5 +1,5 @@
 package cobol.services.standmanager;
-
+import cobol.services.standmanager.dbmenu.*;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
@@ -16,7 +16,6 @@ public class StandManager {
 
 
         //test
-        DbConnector dbc=new DbConnector();
         Food f1 = new Food("apple", 10, 4, null, "fruit");
         Food f2 = new Food("burger", 15,  10, "bacon between bread", "american");
         Food f3 = new Food("pizza", 20,  15);
@@ -27,7 +26,6 @@ public class StandManager {
         menu.add(f3);
         menu.add(f4);
         int[] l = {2, 4, 7, 3};
-        dbc.addStand("stand2",0,0.5, 1234, menu,l);
 
     }
 

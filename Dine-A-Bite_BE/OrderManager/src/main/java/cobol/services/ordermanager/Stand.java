@@ -1,5 +1,5 @@
 package cobol.services.ordermanager;
-
+import cobol.services.ordermanager.dbmenu.*;
 import org.json.simple.JSONObject;
 
 import java.util.ArrayList;
@@ -22,7 +22,7 @@ public class Stand {
         return obj;
     }
     public void fetchMenu(){
-        //fetch menu from db
+
     }
     public String getStandname() {
         return standname;
