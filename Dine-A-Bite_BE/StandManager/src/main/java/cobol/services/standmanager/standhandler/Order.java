@@ -1,4 +1,4 @@
-package cobol.services.standmanager;
+package cobol.services.standmanager.standhandler;
 
 /**
  * Order:

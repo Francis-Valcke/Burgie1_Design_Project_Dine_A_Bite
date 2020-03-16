@@ -7,7 +7,7 @@ public class EventPublisher {
      *
      * publishes an event
      */
-    void Publish(Event e) {
+    protected void Publish(Event e) {
         EventBroker.getInstance().addEvent(this, e);
     }
 }

@@ -4,24 +4,25 @@ import org.json.simple.JSONObject;
 
 import java.util.ArrayList;
 
-public class Stand {
+public class StandMenu {
     private String standname;
     private ArrayList<Food> menu;
 
-    public Stand(String standname) {
+    public StandMenu(String standname) {
         this.standname = standname;
     }
     public ArrayList<Food> getMenu(){
         return menu;
     }
-    public JSONObject setMenu(){
+    public JSONObject fetchMenu(){
         JSONObject obj = new JSONObject();
         for (int i = 0; i<menu.size();i++){
             obj.put(menu.get(i).getType(),menu.get(i).getPrice());
         }
         return obj;
     }
-    public void fetchMenu(){
+    public void setMenu(ArrayList<Food> menu){
+        this.menu=menu;
 
     }
     public String getStandname() {
