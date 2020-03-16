@@ -81,7 +81,7 @@ public class EventController {
     public void deRegister(@RequestParam(value="id") int stub_id, @RequestParam(value="type", defaultValue = "") String type) {
         EventBroker broker = EventBroker.getInstance();
         EventSubscriber subscriber = broker.getSubscriberStub(stub_id);
-        if (type == "") {
+        if (type.equals("")) {
             broker.unSubscribe(subscriber, subscriber.getTypes());
         }
         else {

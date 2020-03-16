@@ -2,7 +2,7 @@ package cobol.services.eventchannel;
 
 public class Event {
     private static int idCount = 0;
-    public int myId;
+    private int myId;
     protected String orderData;
     private String[] types;
 
@@ -26,6 +26,10 @@ public class Event {
 
     public String[] getTypes() {
         return types;
+    }
+
+    public int getMyId() {
+        return myId;
     }
 
     public void setTypes(String[] newTypes) {
