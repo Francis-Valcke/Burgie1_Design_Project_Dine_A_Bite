@@ -13,4 +13,7 @@
     <string name="menu_item">MenuItem</string>
     <string name="item_price">ItemPrice</string>
     <string name="count">Count</string>
+    <string name="tab_global">Global</string>
+    <string name="tab_stand">Per stand</string>
+    <string name="stand_spinner_text">Choose your stand: </string>
 </resources>
