@@ -8,7 +8,7 @@ import java.util.Iterator;
 
 public class Order {
     private static int order_amount = 1;
-    public int id;
+    private int id;
     private Map<Food, Integer> full_order = new HashMap<>();
     private double lat;
     private double lon;
@@ -17,7 +17,7 @@ public class Order {
         CONFIRMED,
         READY
     }
-    public status orderStatus;
+    private status orderStatus;
 
     /**
      *
@@ -53,6 +53,14 @@ public class Order {
         this.lon = -122.084;
         Food food = new Food("friet");
         this.full_order.put(food, 2);
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public status getOrderStatus() {
+        return orderStatus;
     }
 
     public void setState(status state) {
