@@ -22,7 +22,7 @@ public class DataInitializer implements CommandLineRunner {
                 User.builder()
                         .username("francis")
                         .password(passwordEncoder.encode("valcke"))
-                        .role(Arrays.asList("USER", "ADMIN"))
+                        .role(Arrays.asList("ROLE_USER", "ROLE_ADMIN"))
                         .build()
         );
 
@@ -30,7 +30,7 @@ public class DataInitializer implements CommandLineRunner {
                 User.builder()
                         .username("thomas")
                         .password(passwordEncoder.encode("valcke"))
-                        .role(Arrays.asList("USER"))
+                        .role(Arrays.asList("ROLE_USER"))
                         .build()
         );
 
@@ -38,7 +38,7 @@ public class DataInitializer implements CommandLineRunner {
                 User.builder()
                         .username("OrderManager")
                         .password(passwordEncoder.encode("OrderManager"))
-                        .role(Arrays.asList("APPLICATION"))
+                        .role(Arrays.asList("ROLE_APPLICATION"))
                         .build()
         );
 
@@ -46,7 +46,7 @@ public class DataInitializer implements CommandLineRunner {
                 User.builder()
                         .username("StandManager")
                         .password(passwordEncoder.encode("StandManager"))
-                        .role(Arrays.asList("APPLICATION"))
+                        .role(Arrays.asList("ROLE_APPLICATION"))
                         .build()
         );
     }

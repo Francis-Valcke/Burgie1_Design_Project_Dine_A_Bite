@@ -19,5 +19,7 @@ public class CustomUserDetailsService implements UserDetailsService {
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         return this.users.findById(username)
             .orElseThrow(() -> new UsernameNotFoundException("Username: " + username + " not found"));
+        //return this.users.findById(username)
+        //        .orElse(null);
     }
 }
