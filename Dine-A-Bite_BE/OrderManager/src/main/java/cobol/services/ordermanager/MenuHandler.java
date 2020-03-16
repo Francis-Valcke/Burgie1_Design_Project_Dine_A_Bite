@@ -116,13 +116,14 @@ public class MenuHandler {
      */
     public void fetchMenu(){
         JSONObject obj = new JSONObject();
-        List<String> s = new ArrayList<String>();
         for (int j = 0; j<stands.size();j++){
             for (int i = 0; i<stands.get(j).getMenu().size();i++){
-                if (!s.contains(stands.get(j).getMenu().get(i).getType())){
-                    obj.put(stands.get(j).getMenu().get(i).getType(),stands.get(j).getMenu().get(i).getPrice()); // assume prices of same product are equal
-                    s.add(stands.get(j).getMenu().get(i).getType());
-                }
+                List l = new ArrayList();
+                l.add(stands.get(j).getStandname());
+                l.add(stands.get(j).getMenu().get(i).getPrice());
+                l.add(stands.get(j).getMenu().get(i).getCategory());
+                l.add(stands.get(j).getMenu().get(i).getDescription());
+                obj.put(stands.get(j).getMenu().get(i).getType(),l);
 
             }
         }

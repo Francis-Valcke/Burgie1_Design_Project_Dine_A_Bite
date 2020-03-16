@@ -6,7 +6,7 @@ public class Event {
     protected String orderData;
     private String[] types;
 
-    public Event() {
+    Event() {
         myId = idCount;
         idCount++;
         orderData = "Default data";

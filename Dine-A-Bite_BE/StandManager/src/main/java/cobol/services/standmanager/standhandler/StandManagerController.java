@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Set;
 
 @RestController
-public class StandManagerController extends EventPublisher {
+public class StandManagerController {
 
     /**
      * The controller has a list of all schedulers.

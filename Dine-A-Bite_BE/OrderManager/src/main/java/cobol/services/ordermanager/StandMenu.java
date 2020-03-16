@@ -3,6 +3,7 @@ import cobol.services.ordermanager.dbmenu.*;
 import org.json.simple.JSONObject;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class StandMenu {
     private String standname;
@@ -17,7 +18,11 @@ public class StandMenu {
     public JSONObject fetchMenu(){
         JSONObject obj = new JSONObject();
         for (int i = 0; i<menu.size();i++){
-            obj.put(menu.get(i).getType(),menu.get(i).getPrice());
+            List l = new ArrayList();
+            l.add(menu.get(i).getPrice());
+            l.add(menu.get(i).getCategory());
+            l.add(menu.get(i).getDescription());
+            obj.put(menu.get(i).getType(),l);
         }
         return obj;
     }
