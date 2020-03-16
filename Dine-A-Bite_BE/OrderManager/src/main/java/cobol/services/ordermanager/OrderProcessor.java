@@ -9,19 +9,37 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.web.client.RestTemplate;
 
-public class OrderProcesser {
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * This is a Singleton
+ */
+public class OrderProcessor {
+
+    private final static OrderProcessor ourInstance = new OrderProcessor();
+
+    private Map<Integer, Order> running_orders = new HashMap<>();
+
+    public static OrderProcessor getOrderProcessor() {
+        return ourInstance;
+    }
+
+    private OrderProcessor() {};
 
     /**
      *
-     * @param o the order object whose state has changed
+     * @param order_id the id of the order whose state has changed
      * @param state new state of the order
      * @throws JsonProcessingException
      *
      * This method changes the state of an order an sends an event to the channel of this order
      */
-    public static void publishStateChange(Order o, Order.status state) throws JsonProcessingException{
+    public void publishStateChange(int order_id, Order.status state) throws JsonProcessingException{
+        Order o = running_orders.get(order_id);
         o.setState(state);
-        String[] order_channel = {String.valueOf(o.id)};
+        String[] order_channel = {String.valueOf(order_id)};
         String data = state.name();
         Event e = new Event(data, order_channel);
         System.out.println(e.getOrderData());
@@ -37,5 +55,8 @@ public class OrderProcesser {
         restTemplate.postForObject(uri, request, String.class);
     }
 
+    public void addOrder(Order o) {
+        this.running_orders.put(o.getId(), o);
+    }
 }
 
