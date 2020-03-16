@@ -20,6 +20,8 @@ import java.util.ArrayList;
  */
 public class MenuFragmentStand extends MenuFragment implements AdapterView.OnItemSelectedListener {
 
+    private String standName;
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
@@ -30,10 +32,11 @@ public class MenuFragmentStand extends MenuFragment implements AdapterView.OnIte
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
 
-        // Hardcoded stand names
+        // TODO: Hardcoded stand names
         ArrayList<String> standList = new ArrayList<String>();
         standList.add("food1");
         standList.add("food2");
+        standName = "food1";
 
         // Create a spinner item for the different stands
         Spinner spinner = (Spinner) view.findViewById(R.id.spinner);
@@ -55,7 +58,7 @@ public class MenuFragmentStand extends MenuFragment implements AdapterView.OnIte
         pullToRefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                fetchMenu("food1");
+                fetchMenu(standName);
                 pullToRefresh.setRefreshing(false);
             }
         });
@@ -68,8 +71,8 @@ public class MenuFragmentStand extends MenuFragment implements AdapterView.OnIte
                                int pos, long id) {
         // An item was selected. You can retrieve the selected item using
         // parent.getItemAtPosition(pos)
-        String b = (String) parent.getItemAtPosition(pos);
-        fetchMenu(b);
+        standName = (String) parent.getItemAtPosition(pos);
+        fetchMenu(standName);
     }
 
     public void onNothingSelected(AdapterView<?> parent) {
