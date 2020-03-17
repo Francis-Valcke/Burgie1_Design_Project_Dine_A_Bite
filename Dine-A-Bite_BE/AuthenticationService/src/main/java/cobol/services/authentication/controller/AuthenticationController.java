@@ -5,6 +5,7 @@ import cobol.services.authentication.domain.repository.UserRepository;
 import cobol.commons.security.exception.DuplicateUserException;
 import cobol.services.authentication.security.JwtProviderService;
 import cobol.commons.ResponseModel;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -12,11 +13,9 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,6 +25,7 @@ import static cobol.commons.ResponseModel.status.OK;
 import static org.springframework.http.ResponseEntity.ok;
 
 @RestController
+@Log4j2
 public class AuthenticationController {
 
     private PasswordEncoder passwordEncoder;
@@ -38,8 +38,10 @@ public class AuthenticationController {
      *
      * @return "AuthenticationService is alive!"
      */
-    @GetMapping("/ping")
-    public ResponseEntity heartbeat() {
+    @GetMapping("/pingAS")
+    public ResponseEntity ping(HttpServletRequest request) {
+        log.debug("Authentication Service was pinged by: " + request.getRemoteAddr());
+
         return ResponseEntity.ok(
                 ResponseModel.builder()
                         .status(OK.toString())

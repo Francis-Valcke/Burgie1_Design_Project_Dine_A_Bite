@@ -34,9 +34,10 @@ spring:
 #    jpa:
 #      repositories.enabled: true
 #
-#logging:
-#  level:
-#    org.springframework.web: INFO
-#    org.springframework.security: DEBUG
-#    com.example: DEBUG
-#  file: app.log
+logging:
+  level:
+    org.springframework.web: INFO
+    org.springframework.security: DEBUG
+    cobol: DEBUG
+  file:
+    name: app.log

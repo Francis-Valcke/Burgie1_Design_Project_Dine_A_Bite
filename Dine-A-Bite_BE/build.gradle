@@ -113,6 +113,8 @@ project(':AuthenticationService'){
 
         //For testing REST API
         testImplementation 'io.rest-assured:rest-assured:4.2.0'
+        testImplementation 'io.rest-assured:json-schema-validator:4.3.0'
+        testImplementation group: 'io.rest-assured', name: 'spring-mock-mvc', version: '4.3.0'
         testImplementation 'org.springframework.security:spring-security-test'
         testImplementation('org.springframework.boot:spring-boot-starter-test') {
             exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'

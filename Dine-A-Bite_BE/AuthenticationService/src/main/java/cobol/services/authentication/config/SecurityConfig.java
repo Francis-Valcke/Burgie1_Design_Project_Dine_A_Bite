@@ -83,15 +83,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         return super.authenticationManagerBean();
     }
 
-    /**
-     * Exposing a password encoder bean for later use.
-     *
-     * @return PasswordEncoder
-     */
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return PasswordEncoderFactories.createDelegatingPasswordEncoder();
-    }
 
     @Resource(name="customUserDetailsService")
     public void setUserDetailsService(UserDetailsService userDetailsService) {

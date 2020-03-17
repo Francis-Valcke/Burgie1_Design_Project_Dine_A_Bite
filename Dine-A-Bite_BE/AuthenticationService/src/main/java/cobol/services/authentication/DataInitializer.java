@@ -1,4 +1,4 @@
-package cobol.services.authentication.domain;
+package cobol.services.authentication;
 
 import cobol.services.authentication.domain.entity.User;
 import cobol.services.authentication.domain.repository.UserRepository;
