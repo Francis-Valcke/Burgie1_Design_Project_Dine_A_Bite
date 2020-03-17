@@ -1,6 +1,7 @@
-package cobol.services.authentication.controller;
+package cobol.services.authentication.exception;
 
-import cobol.services.authentication.exception.DuplicateUserException;
+import cobol.commons.security.exception.DuplicateUserException;
+import cobol.commons.ResponseModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -9,7 +10,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import javax.servlet.http.HttpServletRequest;
 
-import static cobol.services.authentication.controller.ResponseModel.status.ERROR;
+import static cobol.commons.ResponseModel.status.ERROR;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {

@@ -1,7 +1,7 @@
-package cobol.services.authentication.config;
+package cobol.services.ordermanager.security;
 
 import cobol.commons.security.jwt.JwtAuthenticationFilter;
-import cobol.services.authentication.security.JwtProviderService;
+import cobol.commons.security.jwt.JwtConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -18,23 +18,22 @@ import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-import javax.annotation.Resource;
+import javax.sql.DataSource;
+
 
 @EnableWebSecurity
 @Configuration
-@ComponentScan({"cobol.services.authentication", "cobol.commons"})
+@ComponentScan({"cobol", "cobol.commons"})
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
+    private DataSource dataSource;
     private JwtAuthenticationFilter jwtAuthenticationFilter;
     private UserDetailsService userDetailsService;
-    private PasswordEncoder passwordEncoder;
-
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-        auth.userDetailsService(userDetailsService);
+        auth.inMemoryAuthentication();
     }
-
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
@@ -44,18 +43,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
                 .authorizeRequests()
-                .antMatchers("/admin").hasRole("ADMIN")
-                .antMatchers("/user").hasAnyRole("ADMIN", "USER")
-                .antMatchers("/authenticate").permitAll()
-                .antMatchers("/create").permitAll()
-                .antMatchers("/pingAS").permitAll()
+                .antMatchers("/ping").permitAll()
                 .anyRequest().authenticated()
                 .and()
-                //.formLogin()
-                //.and()
-                //.apply(new JwtConfig(jwtTokenProviderService));
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
-
     }
 
     @Bean
@@ -65,29 +56,17 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     @Bean
-    public PasswordEncoder passwordEncoder() {
-        return PasswordEncoderFactories.createDelegatingPasswordEncoder();
-    }
-
-    @Bean
     public GrantedAuthorityDefaults grantedAuthorityDefaults(){
         return new GrantedAuthorityDefaults("");
     }
 
-    @Resource(name="customUserDetailsService")
-    public void setUserDetailsService(UserDetailsService userDetailsService) {
-        this.userDetailsService = userDetailsService;
-    }
-
-    @Autowired
-    public void setPasswordEncoder(PasswordEncoder passwordEncoder) {
-        this.passwordEncoder = passwordEncoder;
-    }
 
     @Autowired
     public void setJwtAuthenticationFilter(JwtAuthenticationFilter jwtAuthenticationFilter) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
     }
+
+
 }
 
 

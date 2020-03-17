@@ -1,4 +1,4 @@
-package cobol.services.authentication.exception;
+package cobol.commons.security.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.AuthenticationException;

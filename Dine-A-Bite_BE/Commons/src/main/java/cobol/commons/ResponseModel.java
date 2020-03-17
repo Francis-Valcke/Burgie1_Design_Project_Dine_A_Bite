@@ -1,7 +1,6 @@
-package cobol.services.authentication.controller;
+package cobol.commons;
 
 import lombok.Builder;
-import org.springframework.http.ResponseEntity;
 
 import java.util.HashMap;
 

@@ -1,13 +1,32 @@
 package cobol.services.eventchannel;
 
+import cobol.commons.ResponseModel;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
+import static cobol.commons.ResponseModel.status.OK;
+
 @RestController
 public class EventController {
+
+    /**
+     * API endpoint to test if the server is still alive.
+     *
+     * @return "EventChannel is alive!"
+     */
+    @GetMapping("/ping")
+    public ResponseEntity ping() {
+        return ResponseEntity.ok(
+                ResponseModel.builder()
+                        .status(OK.toString())
+                        .details("EventChannel is alive!")
+                        .build().generateResponse()
+        );
+    }
 
     /**
      *

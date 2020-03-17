@@ -2,6 +2,7 @@ package cobol.services.authentication.controller;
 
 import cobol.services.authentication.domain.entity.User;
 import cobol.services.authentication.domain.repository.UserRepository;
+import cobol.commons.ResponseModel;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -10,7 +11,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
-import static cobol.services.authentication.controller.ResponseModel.status.OK;
+import static cobol.commons.ResponseModel.status.OK;
 
 @AllArgsConstructor
 @RestController

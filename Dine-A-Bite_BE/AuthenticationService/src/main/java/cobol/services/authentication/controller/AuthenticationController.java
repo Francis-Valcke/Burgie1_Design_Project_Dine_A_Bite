@@ -2,8 +2,9 @@ package cobol.services.authentication.controller;
 
 import cobol.services.authentication.domain.entity.User;
 import cobol.services.authentication.domain.repository.UserRepository;
-import cobol.services.authentication.exception.DuplicateUserException;
-import cobol.services.authentication.security.jwt.JwtTokenProvider;
+import cobol.commons.security.exception.DuplicateUserException;
+import cobol.services.authentication.security.JwtProviderService;
+import cobol.commons.ResponseModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -20,8 +21,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static cobol.services.authentication.controller.ResponseModel.status.ERROR;
-import static cobol.services.authentication.controller.ResponseModel.status.OK;
+import static cobol.commons.ResponseModel.status.ERROR;
+import static cobol.commons.ResponseModel.status.OK;
 import static org.springframework.http.ResponseEntity.ok;
 
 @RestController
@@ -29,20 +30,20 @@ public class AuthenticationController {
 
     private PasswordEncoder passwordEncoder;
     private AuthenticationManager authenticationManager;
-    private JwtTokenProvider jwtTokenProvider;
+    private JwtProviderService jwtProviderService;
     private UserRepository users;
 
     /**
      * API endpoint to test if the server is still alive.
      *
-     * @return "I am alive"
+     * @return "AuthenticationService is alive!"
      */
-    @GetMapping("/pingAS")
+    @GetMapping("/ping")
     public ResponseEntity heartbeat() {
         return ResponseEntity.ok(
                 ResponseModel.builder()
                         .status(OK.toString())
-                        .details("I am alive!")
+                        .details("AuthenticationService is alive!")
                         .build().generateResponse()
         );
     }
@@ -64,7 +65,7 @@ public class AuthenticationController {
                     .orElseThrow(() -> new UsernameNotFoundException("Username " + username + "not found"));
             List<String> roles = user.getRole();
 
-            String token = jwtTokenProvider.createToken(username, user.getRole());
+            String token = jwtProviderService.createToken(username, user.getRole());
 
             Map<Object, Object> model = new HashMap<>();
             model.put("username", username);
@@ -121,7 +122,6 @@ public class AuthenticationController {
         }
     }
 
-
     @Autowired
     public void setUsers(UserRepository users) {
         this.users = users;
@@ -133,8 +133,8 @@ public class AuthenticationController {
     }
 
     @Autowired
-    public void setJwtTokenProvider(JwtTokenProvider jwtTokenProvider) {
-        this.jwtTokenProvider = jwtTokenProvider;
+    public void setJwtProviderService(JwtProviderService jwtProviderService) {
+        this.jwtProviderService = jwtProviderService;
     }
 
     @Autowired
