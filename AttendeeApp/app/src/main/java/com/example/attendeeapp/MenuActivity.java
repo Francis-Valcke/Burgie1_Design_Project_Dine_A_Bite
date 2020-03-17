@@ -5,46 +5,37 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.View;
-import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.widget.Toolbar;
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+import androidx.viewpager2.widget.ViewPager2;
 
-import com.android.volley.NoConnectionError;
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.Volley;
+import com.google.android.material.tabs.TabLayout;
+import com.google.android.material.tabs.TabLayoutMediator;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.Iterator;
 
 /**
- * Activity for handling the global menu view page
+ * Activity for handling the global/stand menu view page
  */
 public class MenuActivity extends AppCompatActivity implements OnCartChangeListener {
 
-    private ArrayList<MenuItem> menuItems = new ArrayList<MenuItem>();
-    private MenuItemAdapter menuAdapter;
-    private SwipeRefreshLayout pullToRefresh;
-    private Toast mToast;
+    private static final int MAX_CART_ITEM = 25;
+    private ArrayList<MenuItem> cartList = new ArrayList<MenuItem>();
+    private int cartCount;
+    private Toast mToast = null;
+    ViewPager2 viewPager;
 
     /**
-     * Called after splash-screen is shown,
-     * creates menu items view
+     * Called after splash-screen is shown
+     * Creates menu items view consisting of
+     * toolbar, fragment for global menu, fragment for stand menu
+     * and cart button with total count
      * @param savedInstanceState
      */
     @Override
@@ -52,31 +43,31 @@ public class MenuActivity extends AppCompatActivity implements OnCartChangeListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_menu);
 
-        // Instantiates menu item list
-        ListView lView = (ListView)findViewById(R.id.menu_list);
-        menuAdapter = new MenuItemAdapter(menuItems, this);
-        menuAdapter.setCartChangeListener(this);
-        lView.setAdapter(menuAdapter);
+        // Create a viewpager to slide between the global and stand menu
+        viewPager = findViewById(R.id.menu_view_pager);
+        viewPager.setAdapter(new MenuFragmentAdapter(this));
 
-        // Setup swipe to refresh menu (e.g. no internet connection)
-        pullToRefresh = (SwipeRefreshLayout) findViewById(R.id.swiperefresh);
-        pullToRefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-            @Override
-            public void onRefresh() {
-                fetchMenu();
-                pullToRefresh.setRefreshing(false);
-            }
-        });
-
-        // Fetch global menu from server
-        fetchMenu();
+        // Set up different tabs for the viewpager slider
+        TabLayout tabLayout = findViewById(R.id.menu_tab_layout);
+        new TabLayoutMediator(tabLayout, viewPager,
+                new TabLayoutMediator.TabConfigurationStrategy() {
+                    @Override public void onConfigureTab(@NonNull TabLayout.Tab tab, int position) {
+                        switch (position) {
+                            case 0:
+                                tab.setText(R.string.tab_global);
+                                break;
+                            case 1:
+                                tab.setText(R.string.tab_stand);
+                        }
+                    }
+                }).attach();
 
         // Custom Toolbar (instead of standard actionbar)
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
 
-        // Initializes cart count at bottom of menu item list
+        // Initializes cart button layout at bottom of menu item list
         TextView totalCount = (TextView)findViewById(R.id.cart_count);
         totalCount.setText("0");
 
@@ -84,69 +75,52 @@ public class MenuActivity extends AppCompatActivity implements OnCartChangeListe
         linLay.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(MenuActivity.this, ShowCartActivity.class);
-                intent.putExtra("menuList", menuAdapter.getOrderedMenuList());
+                Intent intent = new Intent(MenuActivity.this, CartActivity.class);
+                intent.putExtra("menuList", cartList);
                 startActivity(intent);
             }
         });
     }
 
     /**
-     * Function to fetch the global menu from the server in JSON
-     * Handles no network connection or server not reachable
-     * TODO: store menu in cache / fetch menu at splash screen
+     * Updates the cart when a menu item is added
+     * If the cart contains the item, increase the count
+     * else add the item to the cart
+     * If the cart is full (>= MAX_CART_ITEM) or the item has reached it maximum,
+     * the item is not added or counted
+     * @param cartItem: item to add to the cart with a unique item name
+     * TODO: enforce unique name when creating menu items
      */
-    private void fetchMenu(){
-        // Instantiate the RequestQueue
-        RequestQueue queue = Volley.newRequestQueue(this);
-        String url = "http://cobol.idlab.ugent.be:8092/menu";
-
-        // Request the global menu in JSON from the stand manager
-        // Handle no network connection or server not reachable
-        JsonObjectRequest jsonRequest = new JsonObjectRequest(Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
-            @Override
-            public void onResponse(JSONObject response) {
-                try {
-                    menuItems.clear();
-                    //Log.v("response", "Response: " + response.toString());
-                    for (Iterator<String> iter = response.keys(); iter.hasNext(); ) {
-                        String key = iter.next();
-                        String price = response.getString(key);
-                        menuItems.add(new MenuItem(key, new BigDecimal(Double.valueOf(price))));
+    public void onCartChanged(MenuItem cartItem) {
+        if (cartCount < MAX_CART_ITEM) {
+            try {
+                boolean contains = false;
+                for (MenuItem i : cartList) {
+                    if (i.getItem().equals(cartItem.getItem())) {
+                        // cartItems have a unique name
+                        i.increaseCount();
+                        contains = true;
+                        break;
                     }
-                    menuAdapter.notifyDataSetChanged();
-                } catch (JSONException e) {
-                    e.printStackTrace();
                 }
+                if(!contains){
+                    cartItem.increaseCount();
+                    cartList.add(cartItem);
+                }
+                cartCount++;
+                TextView totalCount = (TextView)findViewById(R.id.cart_count);
+                totalCount.setText(String.valueOf(cartCount));
 
-            }
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                // NoConnectionError = no network connection
-                // other = server not reachable
+            } catch (ArithmeticException e){
                 if (mToast != null) mToast.cancel();
-                if (error instanceof NoConnectionError) {
-                    mToast = Toast.makeText(MenuActivity.this, "No network connection", Toast.LENGTH_LONG);
-
-                } else {
-                    mToast = Toast.makeText(MenuActivity.this, "Server cannot be reached. Try again later.", Toast.LENGTH_LONG);
-                }
+                mToast = Toast.makeText(this,"No more than 10 items", Toast.LENGTH_SHORT);
                 mToast.show();
             }
-        });
-
-        // Add the request to the RequestQueue
-        queue.add(jsonRequest);
-    }
-
-    /**
-     * Updates total amount (count) in cart when a menu item is added
-     * @param cartCount: total number of items in the cart
-     */
-    public void onCartChanged(int cartCount){
-        TextView totalCount = (TextView)findViewById(R.id.cart_count);
-        totalCount.setText(String.valueOf(cartCount));
+        } else {
+            if (mToast != null) mToast.cancel();
+            mToast = Toast.makeText(this,"No more than 25 in total", Toast.LENGTH_SHORT);
+            mToast.show();
+        }
     }
 
     @Override

@@ -7,20 +7,16 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import java.util.ArrayList;
 
 /**
- * Handles all the menu items in the global menu list
+ * Handles all the menu items in a global/stand menu list
  */
 public class MenuItemAdapter extends BaseAdapter {
 
-    private static final int MAX_CART_ITEM = 25;
     private ArrayList<MenuItem> list = new ArrayList<MenuItem>();
-    private int cartCount;
     private Context context;
-    private Toast mToast = null;
     private OnCartChangeListener cartListener;
 
     public MenuItemAdapter(ArrayList<MenuItem> list,Context context) {
@@ -32,16 +28,9 @@ public class MenuItemAdapter extends BaseAdapter {
         this.cartListener = listener;
     }
 
-    /**
-     * Function that returns all menu list items with positive item count
-     * @return: ordered menu items
-     */
-    public ArrayList<MenuItem> getOrderedMenuList() {
-        ArrayList<MenuItem> ordered = new ArrayList<MenuItem>();
-        for(MenuItem i : list){
-            if(i.getCount() > 0) ordered.add(i);
-        }
-        return ordered;
+
+    public void putList(ArrayList<MenuItem> l) {
+        list = l;
     }
 
     @Override
@@ -77,7 +66,6 @@ public class MenuItemAdapter extends BaseAdapter {
 
         // Handle Button and add onClickListeners for one menu item
         Button plusBtn = (Button)view.findViewById(R.id.plus);
-
         plusBtn.setOnClickListener(new View.OnClickListener(){
             /**
              * Function that increases the menu item and cart count
@@ -86,23 +74,8 @@ public class MenuItemAdapter extends BaseAdapter {
              */
             @Override
             public void onClick(View v) {
-                if (cartCount < MAX_CART_ITEM) {
-                    try {
-                        list.get(position).increaseCount();
-                        cartCount++;
-                        cartListener.onCartChanged(cartCount);
-
-                        notifyDataSetChanged();
-                    } catch (ArithmeticException e){
-                        if (mToast != null) mToast.cancel();
-                        mToast = Toast.makeText(context,"No more than 10 items", Toast.LENGTH_SHORT);
-                        mToast.show();
-                    }
-                } else {
-                    if (mToast != null) mToast.cancel();
-                    mToast = Toast.makeText(context,"No more than 25 in total", Toast.LENGTH_SHORT);
-                    mToast.show();
-                }
+                // Pass menu item to the cart to (try) to be added
+                cartListener.onCartChanged(list.get(position));
             }
         });
 
