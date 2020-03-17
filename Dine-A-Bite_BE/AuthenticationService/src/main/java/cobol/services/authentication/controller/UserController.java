@@ -20,6 +20,12 @@ public class UserController {
 
     private UserRepository users;
 
+    /**
+     * API endpoint for retrieving information about the currently authenticated user.
+     * The currently authenticated user is the owner of the provided token.
+     * @param userDetails easy way for accessing the authenticated user.
+     * @return ResponseEntity
+     */
     @GetMapping("")
     public ResponseEntity info(@AuthenticationPrincipal UserDetails userDetails){
         User user = users.findById(userDetails.getUsername())
@@ -38,7 +44,7 @@ public class UserController {
      *
      * @param userDetails in the form of a bearer token as an Authorization header.
      *                    Example: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJmcmFuY2lzIiwicm9sZXMiOlsiQURNSU4iLCJVU0VSIl0sImlhdCI6MTU4NDExMDYxOSwiZXhwIjoxNTg0MTEwNjc5fQ.arfl_AQUSqmRsBtMgN-NxNRe16NTCgAqzdJxJTkeeh8
-     * @return
+     * @return ResponseEntity
      */
     @DeleteMapping("")
     public ResponseEntity delete(@AuthenticationPrincipal UserDetails userDetails){

@@ -4,6 +4,9 @@ import lombok.Builder;
 
 import java.util.HashMap;
 
+/**
+ * Utility class for forming structured HTTP responses.
+ */
 @Builder
 public class ResponseModel {
 

@@ -15,6 +15,14 @@ public class JwtProviderService {
 
     private JwtConfig jwtConfig;
 
+    /**
+     * The service bean method for actually creating JWT's.
+     * The settings that are used in this creation method are configured in the JwtConfig class.
+     *
+     * @param username username of user who requested the token.
+     * @param roles roles of that user.
+     * @return return JWT token as string.
+     */
     public String createToken(String username, List<String> roles) {
 
         Claims claims = Jwts.claims().setSubject(username);

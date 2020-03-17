@@ -13,9 +13,13 @@ import java.util.Arrays;
 public class DataInitializer implements CommandLineRunner {
 
     private UserRepository users;
-
     private PasswordEncoder passwordEncoder;
 
+    /**
+     * Debug methods for placing some initial users into the database.
+     * @param args runtime arguments
+     * @throws Exception throw any kind of exception
+     */
     @Override
     public void run(String... args) throws Exception {
         users.saveAndFlush(

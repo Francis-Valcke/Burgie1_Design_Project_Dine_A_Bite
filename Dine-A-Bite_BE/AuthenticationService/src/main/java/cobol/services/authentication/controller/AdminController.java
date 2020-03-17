@@ -16,8 +16,12 @@ import static cobol.commons.ResponseModel.status.OK;
 @RequestMapping("/admin")
 public class AdminController {
 
-    private UserRepository users;
 
+    /**
+     * Temporary API endpoint for testing role security.
+     *
+     * @return ResponseEntity
+     */
     @GetMapping("")
     public ResponseEntity info(){
 
@@ -29,10 +33,4 @@ public class AdminController {
         );
     }
 
-
-
-    @Autowired
-    public void setUsers(UserRepository users) {
-        this.users = users;
-    }
 }

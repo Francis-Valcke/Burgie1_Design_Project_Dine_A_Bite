@@ -30,12 +30,26 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     private PasswordEncoder passwordEncoder;
 
 
+    /**
+     * Overridden method for configuring the AuthenticationManagerBuilder.
+     * Here we indicate to the builder that a custom userDetailsService is being used which is injected into this class.
+     *
+     * @param auth to be configured
+     * @throws Exception any kind of exception
+     */
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
         auth.userDetailsService(userDetailsService);
     }
 
 
+    /**
+     * Overridden method for indicating to Spring Security which
+     * kind of security is requested and for which API endpoints.
+     *
+     * @param http to be configured
+     * @throws Exception any kind of exception
+     */
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.httpBasic()
@@ -58,20 +72,25 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     }
 
+    /**
+     * Easy way of exposing the AuthenticationManager as a bean.
+     *
+     * @return AuthenticationManager
+     */
     @Bean
     @Override
     public AuthenticationManager authenticationManagerBean() throws Exception {
         return super.authenticationManagerBean();
     }
 
+    /**
+     * Exposing a password encoder bean for later use.
+     *
+     * @return PasswordEncoder
+     */
     @Bean
     public PasswordEncoder passwordEncoder() {
         return PasswordEncoderFactories.createDelegatingPasswordEncoder();
-    }
-
-    @Bean
-    public GrantedAuthorityDefaults grantedAuthorityDefaults(){
-        return new GrantedAuthorityDefaults("");
     }
 
     @Resource(name="customUserDetailsService")

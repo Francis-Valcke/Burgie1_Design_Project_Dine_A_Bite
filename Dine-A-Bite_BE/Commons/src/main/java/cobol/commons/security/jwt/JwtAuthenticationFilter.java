@@ -18,6 +18,16 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
 
     private JwtVerificationService jwtVerificationService;
 
+
+    /**
+     * Custom filter to verify the provided JWT.
+     *
+     * @param req ServletRequest
+     * @param res ServletResponse
+     * @param filterChain FilterChain
+     * @throws IOException IOException
+     * @throws ServletException ServletException
+     */
     @Override
     public void doFilter(ServletRequest req, ServletResponse res, FilterChain filterChain)
             throws IOException, ServletException {

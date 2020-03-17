@@ -27,11 +27,26 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     private JwtAuthenticationFilter jwtAuthenticationFilter;
     private UserDetailsService userDetailsService;
 
+    /**
+     * Overridden method for configuring the AuthenticationManagerBuilder.
+     * Here we indicate to the builder that in memory authentication scheme is used.
+     * This is not entirely accurate as we are going to be authenticating solely on the presence of a valid JWT.
+     *
+     * @param auth to be configured
+     * @throws Exception any kind of exception
+     */
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
         auth.inMemoryAuthentication();
     }
 
+    /**
+     * Overridden method for indicating to Spring Security which
+     * kind of security is requested and for which API endpoints.
+     *
+     * @param http to be configured
+     * @throws Exception any kind of exception
+     */
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.httpBasic()
@@ -46,17 +61,16 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
     }
 
+    /**
+     * Easy way of exposing the AuthenticationManager as a bean.
+     *
+     * @return AuthenticationManager
+     */
     @Bean
     @Override
     public AuthenticationManager authenticationManagerBean() throws Exception {
         return super.authenticationManagerBean();
     }
-
-    @Bean
-    public GrantedAuthorityDefaults grantedAuthorityDefaults(){
-        return new GrantedAuthorityDefaults("");
-    }
-
 
     @Autowired
     public void setJwtAuthenticationFilter(JwtAuthenticationFilter jwtAuthenticationFilter) {

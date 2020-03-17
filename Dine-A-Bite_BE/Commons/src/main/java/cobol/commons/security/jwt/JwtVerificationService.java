@@ -22,6 +22,13 @@ public class JwtVerificationService {
 
     private JwtConfig jwtConfig;
 
+    /**
+     * Getting authenticated for a provided token.
+     *
+     * @param token JWT
+     * @return Authentication object
+     * @throws UsernameNotFoundException UsernameNotFoundException
+     */
     public Authentication getAuthentication(String token) throws UsernameNotFoundException {
         UserDetails userDetails = null;
         userDetails = CommonUser.builder()
@@ -31,6 +38,12 @@ public class JwtVerificationService {
         return new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
     }
 
+    /**
+     * Retrieving the actual token from the HTTP request header.
+     *
+     * @param req HTTP-request
+     * @return JWT
+     */
     public String resolveToken(HttpServletRequest req) {
         String bearerToken = req.getHeader("Authorization");
         if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
@@ -39,6 +52,12 @@ public class JwtVerificationService {
         return null;
     }
 
+    /**
+     * Validating the token based on being tamper free and non-expired.
+     *
+     * @param token JWT
+     * @return valid/invalid
+     */
     public boolean validateToken(String token) {
         try {
             Jws<Claims> claims = Jwts.parser().setSigningKey(jwtConfig.getSecretKey()).parseClaimsJws(token);
@@ -49,6 +68,12 @@ public class JwtVerificationService {
         }
     }
 
+    /**
+     * Retrieving the username from the JWT.
+     *
+     * @param token JWT
+     * @return username
+     */
     private String getUsername(String token) {
         return Jwts.parser()
                 .setSigningKey(jwtConfig.getSecretKey())
@@ -57,6 +82,12 @@ public class JwtVerificationService {
                 .getSubject();
     }
 
+    /**
+     * Retrieving the roles from the JWT.
+     *
+     * @param token JWT
+     * @return roles
+     */
     @SuppressWarnings("unchecked")
     private List<String> getRoles(String token) {
         return (List<String>) Jwts.parser()
