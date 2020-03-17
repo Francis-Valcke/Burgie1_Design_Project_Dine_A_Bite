@@ -58,7 +58,7 @@ public class JwtVerificationService {
      * @param token JWT
      * @return valid/invalid
      */
-    public boolean validateToken(String token) {
+    public boolean validateToken(String token) throws InvalidJwtAuthenticationException{
         try {
             Jws<Claims> claims = Jwts.parser().setSigningKey(jwtConfig.getSecretKey()).parseClaimsJws(token);
 

@@ -1,6 +1,8 @@
 package cobol.services.authentication;
 
+import cobol.services.authentication.domain.entity.Role;
 import cobol.services.authentication.domain.entity.User;
+import cobol.services.authentication.domain.repository.RoleRepository;
 import cobol.services.authentication.domain.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
@@ -13,6 +15,7 @@ import java.util.Arrays;
 public class DataInitializer implements CommandLineRunner {
 
     private UserRepository users;
+    private RoleRepository roles;
     private PasswordEncoder passwordEncoder;
 
     /**
@@ -22,6 +25,12 @@ public class DataInitializer implements CommandLineRunner {
      */
     @Override
     public void run(String... args) throws Exception {
+
+        roles.saveAndFlush(new Role("ROLE_USER"));
+        roles.saveAndFlush(new Role("ROLE_ADMIN"));
+        roles.saveAndFlush(new Role("ROLE_APPLICATION"));
+
+
         users.saveAndFlush(
                 User.builder()
                         .username("francis")
@@ -58,6 +67,11 @@ public class DataInitializer implements CommandLineRunner {
     @Autowired
     public void setUsers(UserRepository users) {
         this.users = users;
+    }
+
+    @Autowired
+    public void setRoles(RoleRepository roles) {
+        this.roles = roles;
     }
 
     @Autowired

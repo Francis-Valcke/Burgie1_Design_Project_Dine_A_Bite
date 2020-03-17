@@ -1,5 +1,6 @@
 package cobol.commons.security.jwt;
 
+import cobol.commons.security.exception.InvalidJwtAuthenticationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -32,15 +33,18 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
     public void doFilter(ServletRequest req, ServletResponse res, FilterChain filterChain)
             throws IOException, ServletException {
 
-        String token = jwtVerificationService.resolveToken((HttpServletRequest) req);
-        if (token != null && jwtVerificationService.validateToken(token)) {
-            Authentication auth = jwtVerificationService.getAuthentication(token);
 
-            if (auth != null) {
-                SecurityContextHolder.getContext().setAuthentication(auth);
+
+            String token = jwtVerificationService.resolveToken((HttpServletRequest) req);
+            if (token != null && jwtVerificationService.validateToken(token)) {
+                Authentication auth = jwtVerificationService.getAuthentication(token);
+
+                if (auth != null) {
+                    SecurityContextHolder.getContext().setAuthentication(auth);
+                }
             }
-        }
-        filterChain.doFilter(req, res);
+            filterChain.doFilter(req, res);
+
     }
 
     @Autowired
