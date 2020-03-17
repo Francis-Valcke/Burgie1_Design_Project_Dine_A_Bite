@@ -3,7 +3,7 @@ server:
 
 spring:
   datasource:
-    url: jdbc:mysql://localhost:3306/auth
+    url: jdbc:mysql://sql/auth
     username: root
     password: root
 #    cachePrepStmts: true
