@@ -20,7 +20,7 @@ public class OrderManagerController {
      *
      * @return "OrderManager is alive!"
      */
-    @GetMapping("/ping")
+    @GetMapping("/pingOM")
     public ResponseEntity ping() {
         return ResponseEntity.ok(
                 ResponseModel.builder()

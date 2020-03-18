@@ -18,7 +18,7 @@ public class StandManagerController {
      *
      * @return "StandManager is alive!"
      */
-    @GetMapping("/ping")
+    @GetMapping("/pingSM")
     public ResponseEntity ping() {
         return ResponseEntity.ok(
                 ResponseModel.builder()

@@ -18,7 +18,7 @@ public class EventController {
      *
      * @return "EventChannel is alive!"
      */
-    @GetMapping("/ping")
+    @GetMapping("/pingEC")
     public ResponseEntity ping() {
         return ResponseEntity.ok(
                 ResponseModel.builder()
