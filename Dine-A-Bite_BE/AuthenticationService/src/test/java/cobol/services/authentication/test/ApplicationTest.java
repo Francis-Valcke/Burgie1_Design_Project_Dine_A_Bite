@@ -2,7 +2,6 @@ package cobol.services.authentication.test;
 
 import cobol.services.authentication.domain.entity.User;
 import cobol.services.authentication.domain.repository.UserRepository;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.json.JSONObject;
 import org.junit.After;
@@ -13,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.context.WebApplicationContext;
@@ -52,7 +50,7 @@ public class ApplicationTest {
     }
 
     @Before
-    public void saveTestUsers() throws Exception {
+    public void saveTestUsers() {
         users.saveAndFlush(
                 User.builder()
                         .username("admin")
@@ -71,7 +69,7 @@ public class ApplicationTest {
     }
 
     @Test
-    public void getUserInfo() throws Exception {
+    public void pingTest() throws Exception {
         this.mockMvc
                 .perform(
                         get("/pingAS")
@@ -81,7 +79,7 @@ public class ApplicationTest {
     }
 
     @Test
-    public void getUserInfoWithoutAuthentication() throws Exception {
+    public void getUserInfoWithoutAuthenticationTest() throws Exception {
         this.mockMvc
                 .perform(
                         get("/user")
@@ -90,12 +88,12 @@ public class ApplicationTest {
     }
 
     @Test
-    public void performAuthenticateTestUser() throws Exception {
+    public void performAuthenticateTestUserTest() throws Exception {
         authenticateTestUser();
     }
 
     @Test
-    public void performAuthenticateTestAdmin() throws Exception {
+    public void performAuthenticateTestAdminTest() throws Exception {
         authenticateTestAdmin();
     }
 

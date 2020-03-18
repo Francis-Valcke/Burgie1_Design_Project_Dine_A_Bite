@@ -10,6 +10,10 @@ import org.springframework.stereotype.Service;
 import java.util.Date;
 import java.util.List;
 
+/**
+ * Bean that is in charge of creating tokens.
+ * Configured by the JwtConfig bean.
+ */
 @Service
 public class JwtProviderService {
 

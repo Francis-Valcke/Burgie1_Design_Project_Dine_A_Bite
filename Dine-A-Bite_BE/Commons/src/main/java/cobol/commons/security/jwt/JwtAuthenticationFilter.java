@@ -1,6 +1,5 @@
 package cobol.commons.security.jwt;
 
-import cobol.commons.security.exception.InvalidJwtAuthenticationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -14,6 +13,10 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 
+/**
+ * Custom authentication filter added to spring security that uses JWT's for authentication.
+ *
+ */
 @Component
 public class JwtAuthenticationFilter extends GenericFilterBean {
 

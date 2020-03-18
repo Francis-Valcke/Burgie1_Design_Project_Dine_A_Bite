@@ -6,6 +6,10 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 
+/**
+ * Component that indicates to spring security how user details are retrieved.
+ * In this case users are retrieved from a database using spring JPA.
+ */
 @Component("customUserDetailsService")
 public class CustomUserDetailsService implements UserDetailsService {
 

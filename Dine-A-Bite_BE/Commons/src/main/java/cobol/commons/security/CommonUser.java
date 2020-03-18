@@ -1,7 +1,6 @@
 package cobol.commons.security;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
@@ -14,6 +13,9 @@ import java.util.List;
 
 import static java.util.stream.Collectors.toList;
 
+/**
+ * The non entity version of the User class that is used across all modules to represent users.
+ */
 @Data
 @SuperBuilder
 @AllArgsConstructor

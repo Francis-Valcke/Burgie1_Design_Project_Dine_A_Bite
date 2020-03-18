@@ -17,6 +17,9 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.Date;
 import java.util.List;
 
+/**
+ * Bean that is in charge of decoding and verifying JWT's.
+ */
 @Service
 public class JwtVerificationService {
 

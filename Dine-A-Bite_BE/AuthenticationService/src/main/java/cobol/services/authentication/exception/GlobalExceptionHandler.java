@@ -12,6 +12,9 @@ import javax.servlet.http.HttpServletRequest;
 
 import static cobol.commons.ResponseModel.status.ERROR;
 
+/**
+ * When exceptions are thrown by rest controllers they will be routed here when they are handles within this class.
+ */
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -34,4 +37,5 @@ public class GlobalExceptionHandler {
                         .build().generateResponse()
         );
     }
+
 }

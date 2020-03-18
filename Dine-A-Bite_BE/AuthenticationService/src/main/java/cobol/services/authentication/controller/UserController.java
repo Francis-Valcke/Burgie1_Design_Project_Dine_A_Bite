@@ -13,6 +13,9 @@ import org.springframework.web.bind.annotation.*;
 
 import static cobol.commons.ResponseModel.status.OK;
 
+/**
+ * REST api controller what requires ROLE_ADMIN or ROLE_USER for access.
+ */
 @AllArgsConstructor
 @RestController
 @RequestMapping("/user")

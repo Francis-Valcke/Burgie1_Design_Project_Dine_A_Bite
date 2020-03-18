@@ -1,9 +1,7 @@
 package cobol.services.authentication.controller;
 
-import cobol.services.authentication.domain.repository.UserRepository;
 import cobol.commons.ResponseModel;
 import lombok.AllArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -11,6 +9,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import static cobol.commons.ResponseModel.status.OK;
 
+/**
+ * REST api controller what requires ROLE_ADMIN for access.
+ */
 @AllArgsConstructor
 @RestController
 @RequestMapping("/admin")

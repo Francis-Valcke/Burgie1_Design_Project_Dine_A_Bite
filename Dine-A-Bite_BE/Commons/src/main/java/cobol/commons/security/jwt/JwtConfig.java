@@ -7,7 +7,9 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PostConstruct;
 import java.util.Base64;
 
-
+/**
+ * Simple configuration bean used for providing JWT configuration details to other beans.
+ */
 @Component
 public class JwtConfig {
 

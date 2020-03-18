@@ -6,6 +6,9 @@ import lombok.NoArgsConstructor;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 
+/**
+ * Entity class that represents the role table in the database
+ */
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity

@@ -18,6 +18,10 @@ import java.util.List;
 
 import static java.util.stream.Collectors.toList;
 
+
+/**
+ * Entity class that represents the user table in the database
+ */
 @Entity
 @Table(name = "user")
 @Builder
