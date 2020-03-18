@@ -68,7 +68,7 @@ subprojects {
 }
 
 project(':Commons'){
-    version = '0.0.1'
+    version = '0.2.1'
 
     dependencies {
         //-----PRODUCTION-----
@@ -86,7 +86,7 @@ project(':Commons'){
 }
 
 project(':AuthenticationService'){
-    version = '0.0.0.1'
+    version = '0.2.3'
 
     dependencies {
         //-----INTERNAL-----
@@ -127,21 +127,7 @@ project(':AuthenticationService'){
 }
 
 project(':OrderManager'){
-    version = '0.0.1'
-
-    dependencies {
-        //-----INTERNAL-----
-        implementation project(':Commons')
-
-        //-----PRODUCTION-----
-        //Spring related imports
-        implementation group: 'org.springframework.boot', name: 'spring-boot-starter-security', version: '2.2.5.RELEASE'
-        implementation group: 'org.springframework.boot', name: 'spring-boot-starter-web', version: '2.2.5.RELEASE'
-    }
-}
-
-project(':EventChannel'){
-    version = '0.0.1'
+    version = '0.2.3'
 
     dependencies {
         //-----INTERNAL-----
@@ -155,7 +141,22 @@ project(':EventChannel'){
 }
 
 project(':StandManager'){
-    version = '0.0.1'
+    version = '0.2.3'
+
+    dependencies {
+        //-----INTERNAL-----
+        implementation project(':Commons')
+
+        //-----PRODUCTION-----
+        //Spring related imports
+        implementation group: 'org.springframework.boot', name: 'spring-boot-starter-security', version: '2.2.5.RELEASE'
+        implementation group: 'org.springframework.boot', name: 'spring-boot-starter-web', version: '2.2.5.RELEASE'
+    }
+}
+
+
+project(':EventChannel'){
+    version = '0.2.2'
 
     dependencies {
         //-----INTERNAL-----
