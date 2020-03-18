@@ -38,6 +38,7 @@ public abstract class MenuFragment extends Fragment {
      * TODO: store menu in cache / fetch menu at splash screen /
      * TODO: do not update when menu has not changed
      * TODO: notify user when cart item no long available
+     * TODO: add standName to menuItem!
      * IMPORTANT:
      * TODO: change urls and change POST request to GET @server
      * @param standName: the name of the stand to request the menu of,
@@ -51,6 +52,7 @@ public abstract class MenuFragment extends Fragment {
         if(standName.equals("")){
             url = url + "menu";
         } else {
+            //url = "http://localhost:8080/";
             url = url + "standmenu?standname=" + standName;
             req = Request.Method.POST;
         }

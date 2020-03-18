@@ -29,7 +29,6 @@ public class MenuActivity extends AppCompatActivity implements OnCartChangeListe
     private ArrayList<MenuItem> cartList = new ArrayList<MenuItem>();
     private int cartCount;
     private Toast mToast = null;
-    ViewPager2 viewPager;
 
     /**
      * Called after splash-screen is shown
@@ -44,7 +43,7 @@ public class MenuActivity extends AppCompatActivity implements OnCartChangeListe
         setContentView(R.layout.activity_menu);
 
         // Create a viewpager to slide between the global and stand menu
-        viewPager = findViewById(R.id.menu_view_pager);
+        ViewPager2 viewPager = findViewById(R.id.menu_view_pager);
         viewPager.setAdapter(new MenuFragmentAdapter(this));
 
         // Set up different tabs for the viewpager slider
@@ -91,7 +90,7 @@ public class MenuActivity extends AppCompatActivity implements OnCartChangeListe
      * @param cartItem: item to add to the cart with a unique item name
      * TODO: enforce unique name when creating menu items
      */
-    public void onCartChanged(MenuItem cartItem) {
+    public boolean onCartChanged(MenuItem cartItem) {
         if (cartCount < MAX_CART_ITEM) {
             try {
                 boolean contains = false;
@@ -110,17 +109,21 @@ public class MenuActivity extends AppCompatActivity implements OnCartChangeListe
                 cartCount++;
                 TextView totalCount = (TextView)findViewById(R.id.cart_count);
                 totalCount.setText(String.valueOf(cartCount));
+                return true;
 
             } catch (ArithmeticException e){
                 if (mToast != null) mToast.cancel();
-                mToast = Toast.makeText(this,"No more than 10 items", Toast.LENGTH_SHORT);
+                mToast = Toast.makeText(this,"No more than 10 items",
+                        Toast.LENGTH_SHORT);
                 mToast.show();
             }
         } else {
             if (mToast != null) mToast.cancel();
-            mToast = Toast.makeText(this,"No more than 25 in total", Toast.LENGTH_SHORT);
+            mToast = Toast.makeText(this,"No more than 25 in total",
+                    Toast.LENGTH_SHORT);
             mToast.show();
         }
+        return false;
     }
 
     @Override
