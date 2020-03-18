@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import cobol.services.ordermanager.Order;
+import cobol.services.ordermanager.Food;
 
 /**
  * schedulers all have:
@@ -16,12 +17,17 @@ public class Scheduler extends Thread {
     private List<Order> inc = new ArrayList<Order>();
     private List<Food> menu =new ArrayList<Food>();
     private String standname;
+    private int id;
     public List<Food> getMenu(){
         return menu;
     }
-    public Scheduler(List<Food> types, String standname){
+    public int getStandId(){
+        return this.id;
+    }
+    public Scheduler(List<Food> types, String standname, int id){
         this.menu=types;
         this.standname=standname;
+        this.id = id;
     }
 
     /**
@@ -69,7 +75,7 @@ public class Scheduler extends Thread {
     /**
      * Removes 1 (second) from the remaining time of the first scheduled order: the order that should be under preparation
      * TODO: remove 1 (second) from all orders that are flagged as "under preparation" (+ add flag for "preparation")
-     */
+
     public void prepClock(){
         if (inc.get(0).getRemtime()==0) {
             if (inc.size()==0) return;
@@ -77,7 +83,7 @@ public class Scheduler extends Thread {
         }
         inc.get(0).setRemtime(inc.get(0).getRemtime()-1);
     }
-
+*/
     /**
      * calls prepClock() every second
      */
@@ -89,7 +95,7 @@ public class Scheduler extends Thread {
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                prepClock();
+               // prepClock();
 
                 if (i==60){
                   i=0;

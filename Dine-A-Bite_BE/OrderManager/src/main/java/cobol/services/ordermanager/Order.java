@@ -7,11 +7,26 @@ import java.util.Map;
 import java.util.Iterator;
 
 public class Order {
+    private int remTime;
     private static int order_amount = 1;
     public int id;
     private Map<Food, Integer> full_order = new HashMap<>();
     private double lat;
     private double lon;
+
+
+    public Map<Food, Integer> getFull_order(){
+        return this.full_order;
+    }
+    // TODO: these 2 functions only temporary for remaining time (think this should be through event channel)
+    public int getRemtime() {
+        return this.remTime;
+    }
+
+    public void setRemtime(int i) {
+        this.remTime = i;
+    }
+
     public enum status {
         PENDING,
         CONFIRMED,
@@ -22,7 +37,7 @@ public class Order {
     /**
      *
      * @param order_file JSON file received from the attendee-app
-     *
+     * TODO: ZEER BELANGRIJK, momenteel bij de keys (en bij new food) gewoon vaste prijs en preptime, dit moet uiteraard nog aangepast worden
      * Constructs an order object from a JSON file
      */
     public Order(JSONObject order_file) {
@@ -37,7 +52,8 @@ public class Order {
         while (keys.hasNext()){
             String key = keys.next();
             int amount = (int)order_data.get(key);
-            Food item = new Food(key);
+
+            Food item = new Food(key,2,2);
             full_order.put(item, amount);
         }
     }
@@ -51,7 +67,7 @@ public class Order {
         orderStatus = status.PENDING;
         this.lat = 37.421998;
         this.lon = -122.084;
-        Food food = new Food("friet");
+        Food food = new Food("friet", 3, 5);
         this.full_order.put(food, 2);
     }
 
