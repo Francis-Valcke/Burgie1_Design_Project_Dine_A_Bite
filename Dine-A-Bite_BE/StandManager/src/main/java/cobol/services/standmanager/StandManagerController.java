@@ -1,13 +1,33 @@
 package cobol.services.standmanager;
 
+import cobol.commons.ResponseModel;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.json.simple.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import static cobol.commons.ResponseModel.status.OK;
+
 @RestController
 public class StandManagerController {
+
+    /**
+     * API endpoint to test if the server is still alive.
+     *
+     * @return "StandManager is alive!"
+     */
+    @GetMapping("/pingSM")
+    public ResponseEntity ping() {
+        return ResponseEntity.ok(
+                ResponseModel.builder()
+                        .status(OK.toString())
+                        .details("StandManager is alive!")
+                        .build().generateResponse()
+        );
+    }
+
     /**
      * The controller has a list of all schedulers.
      * More information on schedulers in class Scheduler
