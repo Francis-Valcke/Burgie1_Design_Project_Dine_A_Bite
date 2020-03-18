@@ -89,10 +89,9 @@ public class StandManagerController {
 
 
     /**
-     * @param type: type of food for which attendee seeks stand recommendation
-     * @return JSON object with standname
-     * Iterates over schedulers and looks for scheduler (that has the requested food item in menu) with shortest queue
-     * TODO: instead of returning 1 stand: return list of stands in recommended order
+     *
+     * @param order is the order for which the recommended stands are required
+     * @return JSON with a certain amount of recommended stands (currently based on lowest queue time only)
      */
     public JSONObject recommend(Order order) {
         //first get the Map with all the food of the order
