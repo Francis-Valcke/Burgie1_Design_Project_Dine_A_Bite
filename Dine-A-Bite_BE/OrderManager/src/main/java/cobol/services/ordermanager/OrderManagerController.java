@@ -3,6 +3,10 @@ package cobol.services.ordermanager;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import cobol.commons.ResponseModel;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
@@ -12,8 +16,24 @@ import java.util.List;
  * 
  * TODO: merge with code Wannes for Order functionality
  */
+import static cobol.commons.ResponseModel.status.OK;
+
 @RestController
 public class OrderManagerController {
+
+    /**
+     * API endpoint to test if the server is still alive.
+     *
+     * @return "OrderManager is alive!"
+     */
+    @GetMapping("/pingOM")
+    public ResponseEntity ping() {
+        return ResponseEntity.ok(
+                ResponseModel.builder()
+                        .status(OK.toString())
+                        .details("OrderManager is alive!")
+                        .build().generateResponse()
+        );
 
     @Autowired // This means to get the bean called standRepository
     private MenuHandler mh=new MenuHandler();
@@ -32,7 +52,7 @@ public class OrderManagerController {
      * Will check if there are already stands in database that are not in OM and add them to OM
      * @return tells u if there are already stands in DB
      */
-    @RequestMapping("/pingOM")
+    @RequestMapping("/updateOM")
     public String index() {
         List<String> s = mh.update();
         if (s.size()==0) return "No stands in database";

@@ -2,6 +2,7 @@
 <!-- Contains the splash screen when app is launched -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/activity_main"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
