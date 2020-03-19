@@ -10,8 +10,8 @@ import java.util.List;
 // CRUD refers Create, Read, Update, Delete
 
 public interface Food_Repository extends CrudRepository<Food, Integer> {
-    @Query("select u.name, u.price, u.preptime, u.description, fc.category from Food u " +
-            "inner join Stock s on s.food_id=u.id inner join Food_category fc on fc.food_id=u.id " +
+    @Query("select u from Food u " +
+            "inner join Stock s on s.food_id=u.id " +
             "inner join Stand st on s.stand_id=st.id where st.full_name = ?1")
-    List<String[]> findByStand(String standname);
+    List<Food> findByStand(String standname);
 }

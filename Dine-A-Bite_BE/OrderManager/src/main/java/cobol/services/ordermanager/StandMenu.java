@@ -20,6 +20,7 @@ public class StandMenu {
         JSONObject obj = new JSONObject();
         for (int i = 0; i<menu.size();i++){
             List l = new ArrayList();
+            l.add(brandname);
             l.add(menu.get(i).getPrice());
             l.add(menu.get(i).getCategory());
             l.add(menu.get(i).getDescription());

@@ -1,9 +1,8 @@
 package cobol.services.ordermanager.dbmenu;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 public class Food {
@@ -15,10 +14,13 @@ public class Food {
     private String name;
     private String description;
     private String brandname;
-
+    @ElementCollection(fetch=FetchType.EAGER)
+    @Column(name = "category_category")
+    private List<String> category = new ArrayList<>();
     public int getId() {
         return id;
     }
+
 
     public float getPrice() {
         return price;
@@ -59,4 +61,13 @@ public class Food {
     public void setBrandname(String brandname) {
         this.brandname = brandname;
     }
+
+    public List<String> getCategory() {
+        return category;
+    }
+
+    public void setCategory(List<String> category) {
+        this.category = category;
+    }
 }
+
