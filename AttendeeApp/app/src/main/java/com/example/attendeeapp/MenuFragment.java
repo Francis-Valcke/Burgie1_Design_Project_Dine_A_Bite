@@ -2,9 +2,11 @@ package com.example.attendeeapp;
 
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+import com.android.volley.AuthFailureError;
 import com.android.volley.NoConnectionError;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -18,7 +20,9 @@ import org.json.JSONObject;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 
 /**
  * Abstract parent class of global and stand menuFragments
@@ -93,7 +97,18 @@ public abstract class MenuFragment extends Fragment {
                 }
                 mToast.show();
             }
-        });
+        }) { // Add JSON headers
+            @Override
+            public @NonNull
+            Map<String, String> getHeaders()  throws AuthFailureError {
+                Map<String, String>  headers  = new HashMap<String, String>();
+                headers.put("Authorization", "Bearer " + "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOi" +
+                        "JmcmFuY2lzIiwicm9sZXMiOlsiUk9MRV9VU0VSIiwiUk9MRV9BRE1JTiJdLCJpYX" +
+                        "QiOjE1ODQ2MTAwMTcsImV4cCI6MTc0MjI5MDAxN30.5UNYM5Qtc4anyHrJXIuK0O" +
+                        "UlsbAPNyS9_vr-1QcOWnQ");
+                return headers;
+            }
+        };
 
         // Add the request to the RequestQueue
         queue.add(jsonRequest);

@@ -242,6 +242,10 @@ public class CartActivity extends AppCompatActivity {
             public @NonNull Map<String, String> getHeaders()  throws AuthFailureError {
                 Map<String, String>  headers  = new HashMap<String, String>();
                 headers.put("Content-Type", "application/json");
+                headers.put("Authorization", "Bearer " + "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOi" +
+                        "JmcmFuY2lzIiwicm9sZXMiOlsiUk9MRV9VU0VSIiwiUk9MRV9BRE1JTiJdLCJpYX" +
+                        "QiOjE1ODQ2MTAwMTcsImV4cCI6MTc0MjI5MDAxN30.5UNYM5Qtc4anyHrJXIuK0O" +
+                        "UlsbAPNyS9_vr-1QcOWnQ");
                 return headers;
             }
         };
