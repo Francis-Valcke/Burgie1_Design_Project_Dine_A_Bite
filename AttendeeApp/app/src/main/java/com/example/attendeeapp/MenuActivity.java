@@ -70,12 +70,12 @@ public class MenuActivity extends AppCompatActivity implements OnCartChangeListe
         TextView totalCount = (TextView)findViewById(R.id.cart_count);
         totalCount.setText("0");
 
-        RelativeLayout linLay = (RelativeLayout)findViewById(R.id.cart_layout);
-        linLay.setOnClickListener(new View.OnClickListener(){
+        RelativeLayout relLay = (RelativeLayout)findViewById(R.id.cart_layout);
+        relLay.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(MenuActivity.this, CartActivity.class);
-                intent.putExtra("menuList", cartList);
+                intent.putExtra("cartList", cartList);
                 startActivity(intent);
             }
         });
@@ -90,7 +90,7 @@ public class MenuActivity extends AppCompatActivity implements OnCartChangeListe
      * @param cartItem: item to add to the cart with a unique item name
      * TODO: enforce unique name when creating menu items
      */
-    public boolean onCartChanged(MenuItem cartItem) {
+    public int onCartChanged(MenuItem cartItem) {
         if (cartCount < MAX_CART_ITEM) {
             try {
                 boolean contains = false;
@@ -109,7 +109,6 @@ public class MenuActivity extends AppCompatActivity implements OnCartChangeListe
                 cartCount++;
                 TextView totalCount = (TextView)findViewById(R.id.cart_count);
                 totalCount.setText(String.valueOf(cartCount));
-                return true;
 
             } catch (ArithmeticException e){
                 if (mToast != null) mToast.cancel();
@@ -123,7 +122,7 @@ public class MenuActivity extends AppCompatActivity implements OnCartChangeListe
                     Toast.LENGTH_SHORT);
             mToast.show();
         }
-        return false;
+        return cartCount;
     }
 
     @Override

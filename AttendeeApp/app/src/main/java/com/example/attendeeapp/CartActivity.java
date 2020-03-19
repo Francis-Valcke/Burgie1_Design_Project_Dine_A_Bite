@@ -69,7 +69,7 @@ public class CartActivity extends AppCompatActivity {
         ab.setDisplayHomeAsUpEnabled(true);
 
         // Get the ordered items from the cart in the menu view
-        ordered = (ArrayList<MenuItem>) getIntent().getSerializableExtra("menuList");
+        ordered = (ArrayList<MenuItem>) getIntent().getSerializableExtra("cartList");
 
         // Instantiates cart item list
         ListView lView = (ListView)findViewById(R.id.cart_list);

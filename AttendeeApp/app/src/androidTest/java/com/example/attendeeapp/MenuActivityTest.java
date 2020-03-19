@@ -1,11 +1,14 @@
 package com.example.attendeeapp;
 
+import android.util.Log;
 import android.view.View;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toolbar;
 
 import androidx.recyclerview.widget.RecyclerView.Adapter;
+import androidx.test.annotation.UiThreadTest;
+import androidx.test.espresso.intent.Intents;
 import androidx.test.rule.ActivityTestRule;
 import androidx.viewpager2.widget.ViewPager2;
 
@@ -16,6 +19,16 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
+import java.math.BigDecimal;
+import java.util.ArrayList;
+
+import static androidx.test.espresso.Espresso.onView;
+import static androidx.test.espresso.action.ViewActions.click;
+import static androidx.test.espresso.intent.Intents.intended;
+import static androidx.test.espresso.intent.matcher.IntentMatchers.hasComponent;
+import static androidx.test.espresso.intent.matcher.IntentMatchers.hasExtra;
+import static androidx.test.espresso.matcher.ViewMatchers.withId;
+import static androidx.test.internal.runner.junit4.statement.UiThreadStatement.runOnUiThread;
 import static org.junit.Assert.*;
 
 public class MenuActivityTest {
@@ -29,6 +42,7 @@ public class MenuActivityTest {
     @Before
     public void setUp() throws Exception {
         mActivity = rule.getActivity();
+        Intents.init();
     }
 
     @After
@@ -116,9 +130,106 @@ public class MenuActivityTest {
         /*assertEquals(tab.getTabCount(), 2);;*/
     }
 
+    /**
+     * Testing behavior when adding items to your cart
+     * Test 1: adding 2 items 15 times
+     */
+    @UiThreadTest
     @Test
-    public void testOnCartChanged() {
-        // Test behavior when a menu item is added to the cart
+    public void testOnCartChanged_1() {
+        int cartCount = 0;
+        for (int i = 0; i < 30; i++){
+            String s = "food" + i%2;
+            cartCount = mActivity.onCartChanged(new MenuItem(s,
+                    new BigDecimal(Math.random()*100)));
+
+            // Only 10 of each should be added
+            int a = i + 1;
+            if (i >= 20) a = 20;
+            assertEquals(cartCount, a);
+        }
+    }
+
+    /**
+     * Testing behavior when adding items to your cart
+     * Test 2: adding the same item 15 times
+     * then adding another 2 items 15 times
+     */
+    @UiThreadTest
+    @Test
+    public void testOnCartChanged_2() {
+        // Adding the same item 15 times
+        int cartCount = 0;
+        int b = 0;
+        for (int i = 0; i < 15; i++){
+            String s = "food";
+            cartCount = mActivity.onCartChanged(new MenuItem(s,
+                    new BigDecimal(Math.random()*100)));
+
+            // Only 10 items maximum
+            b = i + 1;
+            if (i >= 10) b = 10;
+            assertEquals(cartCount, b);
+        }
+
+        // Then adding 2 different items another 15 times
+        for (int i = 0; i < 30; i++){
+            String s = "food" + i%2;
+            cartCount = mActivity.onCartChanged(new MenuItem(s,
+                    new BigDecimal(Math.random()*100)));
+
+            // Only 25 total items maximum
+            int a = i + b + 1;
+            if (i >= 25 - b) a = 25;
+            assertEquals(cartCount, a);
+        }
+    }
+
+    /**
+     * Testing behavior when adding items to your cart
+     * Test 3: adding 30 different items
+     * while continuously checking cartCount
+     */
+    @UiThreadTest
+    @Test
+    public void testOnCartChanged_3() {
+        int cartCount = 0;
+        for (int i = 0; i < 30; i++){
+            String s = "food" + i;
+            cartCount = mActivity.onCartChanged(new MenuItem(s,
+                    new BigDecimal(Math.random()*100)));
+
+            // Only 25 total items maximum
+            int a = i + 1;
+            if (i >= 25) a = 25;
+            assertEquals(cartCount, a);
+        }
+    }
+
+    /**
+     * Test if cartActivity is launched correctly
+     * and if cartList is successfully passed
+     */
+    @Test
+    public void testNextActivity() {
+        ArrayList<MenuItem> cartList = new ArrayList<MenuItem>();
+        final MenuItem i = new MenuItem("food", new BigDecimal(0));
+        cartList.add(i);
+
+        try {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    mActivity.onCartChanged(i);
+                }
+            });
+        } catch (Throwable e) {
+            Log.v("TestNextActivityError", e.toString());
+        }
+
+        onView(withId(R.id.cart_layout)).perform(click());
+        intended(hasComponent(CartActivity.class.getName()));
+        intended(hasExtra("cartList", cartList));
     }
 
 }
