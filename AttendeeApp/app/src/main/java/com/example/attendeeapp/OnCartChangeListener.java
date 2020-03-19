@@ -1,8 +1,10 @@
 package com.example.attendeeapp;
 
 /**
- * Interface to pass cart updates from menu item list
+ * Interface to pass cart updates from menu item list to the cart
  */
 public interface OnCartChangeListener {
-    public void onCartChanged(MenuItem cartItem);
+    public int onCartChangedAdd(MenuItem cartItem);
+
+    public int onCartChangedRemove(MenuItem cartItem);
 }

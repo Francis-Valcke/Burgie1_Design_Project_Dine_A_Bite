@@ -6,7 +6,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.Button;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 import java.util.ArrayList;
 
@@ -49,12 +52,25 @@ public class MenuItemAdapter extends BaseAdapter {
     }
 
     @Override
-    public View getView(final int position, View convertView, ViewGroup parent) {
+    public View getView(final int position, final View convertView, ViewGroup parent) {
         View view = convertView;
         if (view == null) {
-            LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+            LayoutInflater inflater = (LayoutInflater) context
+                    .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
             view = inflater.inflate(R.layout.menu_item_material, null);
         }
+
+        // Add expandable bottomSheet for every item
+        RelativeLayout reLay = (RelativeLayout) view.findViewById(R.id.menu_item_layout);
+        reLay.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v) {
+                MenuBottomSheetDialog bottomSheet = new MenuBottomSheetDialog(list.get(position));
+                bottomSheet.setCartChangeListener(cartListener);
+                bottomSheet.show(((AppCompatActivity) context).getSupportFragmentManager(),
+                        "bottomSheet");
+            }
+        });
 
         // Handle TextView to display one menu item name
         TextView listItemText = (TextView)view.findViewById(R.id.menu_item);
@@ -67,15 +83,10 @@ public class MenuItemAdapter extends BaseAdapter {
         // Handle Button and add onClickListeners for one menu item
         Button plusBtn = (Button)view.findViewById(R.id.plus);
         plusBtn.setOnClickListener(new View.OnClickListener(){
-            /**
-             * Function that increases the menu item and cart count
-             * if an item is selected and handles maximum number of possible items
-             * @param v: View of list item
-             */
             @Override
             public void onClick(View v) {
                 // Pass menu item to the cart to (try) to be added
-                cartListener.onCartChanged(list.get(position));
+                cartListener.onCartChangedAdd(list.get(position));
             }
         });
 
