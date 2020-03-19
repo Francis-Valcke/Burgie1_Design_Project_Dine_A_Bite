@@ -6,7 +6,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.Button;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.FragmentManager;
 
 import java.util.ArrayList;
 
@@ -49,12 +53,22 @@ public class MenuItemAdapter extends BaseAdapter {
     }
 
     @Override
-    public View getView(final int position, View convertView, ViewGroup parent) {
+    public View getView(final int position, final View convertView, ViewGroup parent) {
         View view = convertView;
         if (view == null) {
             LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
             view = inflater.inflate(R.layout.menu_item_material, null);
         }
+
+        // Add expandable bottomSheet for every item
+        RelativeLayout reLay = (RelativeLayout) view.findViewById(R.id.menu_item_layout);
+        reLay.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v) {
+                MenuBottomSheetDialog bottomSheet = new MenuBottomSheetDialog();
+                bottomSheet.show(((AppCompatActivity) context).getSupportFragmentManager(), "");
+            }
+        });
 
         // Handle TextView to display one menu item name
         TextView listItemText = (TextView)view.findViewById(R.id.menu_item);
