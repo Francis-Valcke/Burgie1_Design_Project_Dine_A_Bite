@@ -1,14 +1,15 @@
 <!-- Contains the stand menu fragment view -->
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/fragment_menu_global"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:id="@+id/fragment_menu_global"
     android:orientation="vertical">
+
 <LinearLayout
+    android:id="@+id/spinner_layout"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="horizontal"
-    android:id="@+id/spinner_layout">
+    android:orientation="horizontal">
     <TextView
         android:id="@+id/stand_spinner_text"
         android:layout_width="wrap_content"
@@ -23,11 +24,10 @@
         android:id="@+id/spinner"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:gravity="bottom"
-        android:layout_marginStart="25dp"/>
+        android:layout_marginStart="25dp"
+        android:gravity="bottom" />
 
 </LinearLayout>
-
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/swiperefresh"
         android:layout_width="match_parent"

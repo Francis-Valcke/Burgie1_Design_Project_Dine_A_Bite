@@ -63,7 +63,8 @@ public abstract class MenuFragment extends Fragment {
 
         // Request the global/stand menu in JSON from the stand manager
         // Handle no network connection or server not reachable
-        JsonObjectRequest jsonRequest = new JsonObjectRequest(req, url, null, new Response.Listener<JSONObject>() {
+        JsonObjectRequest jsonRequest = new JsonObjectRequest(req, url, null,
+                                                            new Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject response) {
                 try {
@@ -90,10 +91,12 @@ public abstract class MenuFragment extends Fragment {
                 // other = server not reachable
                 if (mToast != null) mToast.cancel();
                 if (error instanceof NoConnectionError) {
-                    mToast = Toast.makeText(getActivity(), "No network connection", Toast.LENGTH_LONG);
+                    mToast = Toast.makeText(getActivity(), "No network connection",
+                                            Toast.LENGTH_LONG);
 
                 } else {
-                    mToast = Toast.makeText(getActivity(), "Server cannot be reached. Try again later.", Toast.LENGTH_LONG);
+                    mToast = Toast.makeText(getActivity(), "Server cannot be reached. Try again later.",
+                                            Toast.LENGTH_LONG);
                 }
                 mToast.show();
             }

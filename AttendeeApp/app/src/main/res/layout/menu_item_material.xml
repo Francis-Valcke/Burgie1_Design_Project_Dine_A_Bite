@@ -1,20 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Contains one menu listItem view -->
 <RelativeLayout
+    android:id="@+id/menu_item_layout"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:clickable="true"
-    android:focusable="true"
-    android:id="@+id/menu_item_layout">
+    android:focusable="true">
 
 <com.google.android.material.card.MaterialCardView
     xmlns:app="http://schemas.android.com/apk/res-auto"
     style="@style/Widget.MaterialComponents.CardView"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="horizontal"
     android:layout_margin="3dp"
+    android:orientation="horizontal"
     app:cardElevation="2.5dp" >
 
     <LinearLayout

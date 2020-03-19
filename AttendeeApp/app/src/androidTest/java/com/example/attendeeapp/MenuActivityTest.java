@@ -133,6 +133,7 @@ public class MenuActivityTest {
     /**
      * Testing behavior when adding items to your cart
      * Test 1: adding 2 items 15 times
+     * TODO: add test for removing items from cart
      */
     @UiThreadTest
     @Test
@@ -140,7 +141,7 @@ public class MenuActivityTest {
         int cartCount = 0;
         for (int i = 0; i < 30; i++){
             String s = "food" + i%2;
-            cartCount = mActivity.onCartChanged(new MenuItem(s,
+            cartCount = mActivity.onCartChangedAdd(new MenuItem(s,
                     new BigDecimal(Math.random()*100)));
 
             // Only 10 of each should be added
@@ -163,7 +164,7 @@ public class MenuActivityTest {
         int b = 0;
         for (int i = 0; i < 15; i++){
             String s = "food";
-            cartCount = mActivity.onCartChanged(new MenuItem(s,
+            cartCount = mActivity.onCartChangedAdd(new MenuItem(s,
                     new BigDecimal(Math.random()*100)));
 
             // Only 10 items maximum
@@ -175,7 +176,7 @@ public class MenuActivityTest {
         // Then adding 2 different items another 15 times
         for (int i = 0; i < 30; i++){
             String s = "food" + i%2;
-            cartCount = mActivity.onCartChanged(new MenuItem(s,
+            cartCount = mActivity.onCartChangedAdd(new MenuItem(s,
                     new BigDecimal(Math.random()*100)));
 
             // Only 25 total items maximum
@@ -196,7 +197,7 @@ public class MenuActivityTest {
         int cartCount = 0;
         for (int i = 0; i < 30; i++){
             String s = "food" + i;
-            cartCount = mActivity.onCartChanged(new MenuItem(s,
+            cartCount = mActivity.onCartChangedAdd(new MenuItem(s,
                     new BigDecimal(Math.random()*100)));
 
             // Only 25 total items maximum
@@ -220,7 +221,7 @@ public class MenuActivityTest {
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    mActivity.onCartChanged(i);
+                    mActivity.onCartChangedAdd(i);
                 }
             });
         } catch (Throwable e) {

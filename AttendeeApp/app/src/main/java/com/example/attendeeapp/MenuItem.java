@@ -73,8 +73,12 @@ public class MenuItem implements Serializable {
         }
     }
 
-    public void decreaseCount() {
-        if(count == 0) return;
+    /**
+     * Decreases the number of times the item is in the cart
+     * Throws ArithmeticException when this item has reached 0
+     */
+    public void decreaseCount() throws ArithmeticException{
+        if(count == 0) throw new ArithmeticException("This menuItem cannot be decreased!");
         this.count--;
     }
 

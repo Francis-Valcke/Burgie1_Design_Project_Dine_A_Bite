@@ -102,7 +102,8 @@ public class CartActivity extends AppCompatActivity {
                     startActivity(intent);
                 } else {
                     if (mToast != null) mToast.cancel();
-                    mToast = Toast.makeText(CartActivity.this, "No items in your cart!", Toast.LENGTH_SHORT);
+                    mToast = Toast.makeText(CartActivity.this, "No items in your cart!",
+                                            Toast.LENGTH_SHORT);
                     mToast.show();
                 }
             }
@@ -135,7 +136,7 @@ public class CartActivity extends AppCompatActivity {
                     new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
                     1);
         } else {
-            // Request the lastest user location
+            // Request the latest user location
             fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
             fusedLocationClient.getLastLocation()
                     .addOnCompleteListener(new OnCompleteListener<Location>() {
@@ -225,16 +226,19 @@ public class CartActivity extends AppCompatActivity {
         //String url = "http://localhost:8080/post?foodtype";
 
         // Request recommendation from server for sent order (both in JSON)
-        JsonObjectRequest jsonRequest = new JsonObjectRequest(Request.Method.POST, url, js, new Response.Listener<JSONObject>() {
+        JsonObjectRequest jsonRequest = new JsonObjectRequest(Request.Method.POST, url, js,
+                                                            new Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject response) {
-                Toast mToast = Toast.makeText(CartActivity.this, "Ordering succesful!", Toast.LENGTH_SHORT);
+                Toast mToast = Toast.makeText(CartActivity.this, "Ordering succesful!",
+                                                Toast.LENGTH_SHORT);
                 mToast.show();
             }
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                Toast mToast = Toast.makeText(CartActivity.this, "Ordering failed", Toast.LENGTH_SHORT);
+                Toast mToast = Toast.makeText(CartActivity.this, "Ordering failed",
+                                                Toast.LENGTH_SHORT);
                 mToast.show();
             }
         }) { // Add JSON headers
@@ -265,7 +269,8 @@ public class CartActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(@NonNull android.view.MenuItem item) {
         switch (item.getItemId()) {
             case android.R.id.home:
-                // This takes the user 'back', as if they pressed the left-facing triangle icon on the main android toolbar.
+                // This takes the user 'back', as if they pressed the left-facing triangle icon
+                // on the main android toolbar.
                 super.onBackPressed();
                 return true;
             case R.id.orders_action:
