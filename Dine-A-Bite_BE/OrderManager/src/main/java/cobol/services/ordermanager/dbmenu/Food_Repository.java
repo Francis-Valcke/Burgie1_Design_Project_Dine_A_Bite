@@ -14,4 +14,7 @@ public interface Food_Repository extends CrudRepository<Food, Integer> {
             "inner join Stock s on s.food_id=u.id " +
             "inner join Stand st on s.stand_id=st.id where st.full_name = ?1")
     List<Food> findByStand(String standname);
+    @Query("select u from Food u " +
+            "where u.brandname = ?1")
+    List<Food> findByBrand(String standname);
 }

@@ -4,6 +4,8 @@ import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 /**
  * This class handles communication from standapplication: incoming changes to stand menus are registered in the menuhandler
  * This class also handles menurequests from the attendee applications, fetching the menus from the menuhandler
@@ -16,10 +18,27 @@ public class OrderManagerController {
     @Autowired // This means to get the bean called standRepository
     private MenuHandler mh=new MenuHandler();
 
+    /**
+     * will clear database and OM
+     * @return confirmation of deletion
+     */
+    @RequestMapping("/delete")
+    public String delete() {
+        mh.deleteAll();
+        return "deleting stands from Order Manager";
+    }
+
+    /**
+     * Will check if there are already stands in database that are not in OM and add them to OM
+     * @return tells u if there are already stands in DB
+     */
     @RequestMapping("/pingOM")
     public String index() {
-        mh.update();
-        return "Response from Order Manager";
+        List<String> s = mh.update();
+        if (s.size()==0) return "No stands in database";
+        String l ="Stands already in database: \n";
+        for (int i=0;i<s.size();i++)l+= s.get(i)+"\n";
+        return l;
     }
     /**
      * Add stand to database

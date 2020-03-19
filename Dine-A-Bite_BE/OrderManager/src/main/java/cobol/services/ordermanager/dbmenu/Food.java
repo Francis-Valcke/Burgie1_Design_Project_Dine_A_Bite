@@ -69,5 +69,8 @@ public class Food {
     public void setCategory(List<String> category) {
         this.category = category;
     }
+    public void addCategory(String category){
+        this.category.add(category);
+    }
 }
 
