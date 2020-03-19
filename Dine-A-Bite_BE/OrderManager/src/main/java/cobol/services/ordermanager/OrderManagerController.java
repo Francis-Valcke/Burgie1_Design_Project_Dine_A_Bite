@@ -34,7 +34,8 @@ public class OrderManagerController {
                         .details("OrderManager is alive!")
                         .build().generateResponse()
         );
-
+    }
+    
     @Autowired // This means to get the bean called standRepository
     private MenuHandler mh=new MenuHandler();
 
