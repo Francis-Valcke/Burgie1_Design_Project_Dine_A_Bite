@@ -11,6 +11,7 @@ public class Stand {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private int id;
     private String full_name;
+    private String brandname;
     private double location_lon = 0;
     private double location_lat = 0;
 
@@ -41,6 +42,14 @@ public class Stand {
 
     public void setFull_name(String full_name) {
         this.full_name = full_name;
+    }
+
+    public String getBrandname() {
+        return brandname;
+    }
+
+    public void setBrandname(String brandname) {
+        this.brandname = brandname;
     }
 }
 

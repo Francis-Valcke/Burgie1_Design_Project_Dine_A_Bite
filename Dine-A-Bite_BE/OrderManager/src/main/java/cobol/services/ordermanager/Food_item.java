@@ -1,16 +1,18 @@
 package cobol.services.ordermanager;
 
+import java.util.List;
+
 /**
  * Menu Item
  */
-public class Food {
+public class Food_item {
     private String name;
     private int preptime;
     private double price;
     private String description;
-    private String category;
+    private List<String> category;
 
-    public Food(String name, int preptime, double price) {
+    public Food_item(String name, int preptime, double price) {
         this.name = name;
         this.preptime = preptime;
         this.price = price;
@@ -18,7 +20,7 @@ public class Food {
         this.category=null;
 
     }
-    public Food(String name, int preptime, double price, String description, String category) {
+    public Food_item(String name, int preptime, double price, String description, List<String> category) {
         this.name = name;
         this.preptime = preptime;
         this.price = price;
@@ -51,7 +53,7 @@ public class Food {
         return description;
     }
 
-    public String getCategory() {
+    public List<String> getCategory() {
         return category;
     }
 }

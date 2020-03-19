@@ -7,12 +7,13 @@ import java.util.List;
 
 public class StandMenu {
     private String standname;
-    private ArrayList<Food> menu;
+    private ArrayList<Food_item> menu;
+    private String brandname;
 
     public StandMenu(String standname) {
         this.standname = standname;
     }
-    public ArrayList<Food> getMenu(){
+    public ArrayList<Food_item> getMenu(){
         return menu;
     }
     public JSONObject fetchMenu(){
@@ -26,11 +27,19 @@ public class StandMenu {
         }
         return obj;
     }
-    public void setMenu(ArrayList<Food> menu){
+    public void setMenu(ArrayList<Food_item> menu){
         this.menu=menu;
 
     }
     public String getStandname() {
         return standname;
+    }
+
+    public String getBrandname() {
+        return brandname;
+    }
+
+    public void setBrandname(String brandname) {
+        this.brandname = brandname;
     }
 }

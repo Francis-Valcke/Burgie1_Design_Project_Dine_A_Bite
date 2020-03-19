@@ -1,16 +1,8 @@
 package cobol.services.ordermanager;
 
-import cobol.services.ordermanager.dbmenu.Food_categoryRepository;
-import cobol.services.ordermanager.dbmenu.Food_priceRepository;
-import cobol.services.ordermanager.dbmenu.StandRepository;
-import cobol.services.ordermanager.dbmenu.StockRepository;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-
-import java.awt.*;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * This class handles communication from standapplication: incoming changes to stand menus are registered in the menuhandler
