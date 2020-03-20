@@ -1,7 +1,6 @@
 <!-- Contains the static string resources used in the app -->
 <resources>
     <string name="app_name">Dine-A-Bite</string>
-    <string name="plusBtn">+</string>
     <string name="cart_text">Items in your cart: </string>
     <string name="cart_total_text">Total: </string>
     <string name="confirm_order">Confirm your order</string>
@@ -47,4 +46,6 @@
     <string name="new_user_helper_text">New? You can create your account by filling in a unique username and secure password.</string>
     <string name="shared_pref_file_key">com.example.attendeeapp.PREFERENCE_FILE_KEY</string>
     <string name="remaining_time">Your order is ready in: </string>
+    <string name="personal_information">Personal Information</string>
+    <string name="username">Username:</string>
 </resources>

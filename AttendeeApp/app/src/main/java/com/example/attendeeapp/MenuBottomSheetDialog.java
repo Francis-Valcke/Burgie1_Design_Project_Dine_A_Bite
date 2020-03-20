@@ -75,7 +75,7 @@ public class MenuBottomSheetDialog extends BottomSheetDialogFragment {
         return view;
     }
 
-    public void setCartChangeListener(OnCartChangeListener listener){
+    void setCartChangeListener(OnCartChangeListener listener){
         this.cartListener = listener;
     }
 }
