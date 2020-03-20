@@ -1,26 +1,28 @@
 package cobol.services.eventchannel;
 
+import org.json.simple.JSONObject;
+
 public class Event {
     private static int idCount = 0;
     private int myId;
-    protected String orderData;
+    protected JSONObject orderData;
     private String[] types;
 
     public Event() {
         myId = idCount;
         idCount++;
-        orderData = "Default data";
+        orderData = null;
     }
 
 
-    public Event(String data, String[] types) {
+    public Event(JSONObject data, String[] types) {
         myId = idCount;
         idCount++;
         orderData = data;
         this.types = types;
     }
 
-    public String getOrderData() {
+    public JSONObject getOrderData() {
         return this.orderData;
     }
 
