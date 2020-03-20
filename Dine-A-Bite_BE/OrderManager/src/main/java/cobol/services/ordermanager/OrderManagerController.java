@@ -7,7 +7,6 @@ import cobol.commons.ResponseModel;
 import org.springframework.http.ResponseEntity;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.json.simple.JSONObject;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -17,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -71,8 +71,8 @@ public class OrderManagerController {
         return l;
     }
 
-    @PostMapping(value = "/placeOrder", consumes = "application/json")
-    public int placeOrder(@RequestBody JSONObject order_object) throws JsonProcessingException {
+    @PostMapping(value = "/placeOrder", consumes = "application/json", produces = "application/json")
+    public JSONObject placeOrder(@RequestBody JSONObject order_object) throws JsonProcessingException {
         Order new_order = new Order(order_object);
         OrderProcessor processor = OrderProcessor.getOrderProcessor();
         processor.addOrder(new_order);
@@ -86,9 +86,8 @@ public class OrderManagerController {
         HttpEntity<String> request = new HttpEntity<>(jsonString, headers);
         JSONObject ret = template.postForObject(uri, request, JSONObject.class);
 
-        //TODO: add id's of recommended stands to return value. Method is currently not ready in stand manager.
-
-        return new_order.getId();
+        ret.put("order_id", new_order.getId());
+        return ret;
     }
     /**
      * Add stand to database
