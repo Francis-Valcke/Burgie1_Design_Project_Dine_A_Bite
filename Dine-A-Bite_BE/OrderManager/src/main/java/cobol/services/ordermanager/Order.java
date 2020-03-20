@@ -3,15 +3,12 @@ package cobol.services.ordermanager;
 import org.json.simple.JSONObject;
 import cobol.services.ordermanager.dbmenu.Food;
 
-import java.awt.*;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Iterator;
+import java.util.*;
 
 public class Order {
     private static int order_amount = 1;
     private int id;
-    private Map<Food, Integer> full_order = new HashMap<>();
+    private Map<List<Food>, Integer> full_order = new HashMap<>();
     private double lat;
     private double lon;
     private int stand_id;
@@ -42,7 +39,12 @@ public class Order {
             String name_brandName = keys.next();
             int amount = (int)order_data.get(name_brandName);
             String[] args = name_brandName.split("_");
-            Food food = handler.getFood(args[0], args[1]);
+            List<Food> food = new ArrayList<>();
+            if (args.length == 1) {
+                food = handler.getCategory(args[0]);
+            } else {
+                food.add(handler.getFood(args[0], args[1]));
+            }
             full_order.put(food, amount);
         }
     }
@@ -56,7 +58,7 @@ public class Order {
         orderStatus = status.PENDING;
         this.lat = 37.421998;
         this.lon = -122.084;
-        Food food = new Food();
+        List<Food> food = new ArrayList<>();
         this.full_order.put(food, 2);
     }
 
