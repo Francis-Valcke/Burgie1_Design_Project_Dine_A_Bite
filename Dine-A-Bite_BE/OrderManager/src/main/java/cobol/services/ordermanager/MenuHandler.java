@@ -264,4 +264,8 @@ public class MenuHandler {
     public Food getFood(String name, String brandname){
         return food_Repository.findByNameAndBrand(name, brandname);
     }
+
+    public List<Food> getCategory(String name) {
+        return food_Repository.findByName(name);
+    }
 }
