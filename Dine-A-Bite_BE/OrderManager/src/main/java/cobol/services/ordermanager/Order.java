@@ -25,16 +25,15 @@ public class Order {
      *
      * Constructs an order object from a JSON file
      */
-    public Order(JSONObject order_file) {
+    public Order(JSONObject order_file, MenuHandler handler) {
         this.id = order_amount;
         order_amount++;
         orderStatus = status.PENDING;
-        JSONObject coordinates = (JSONObject) order_file.get("location");
+        Map<String,Double> coordinates = (Map<String,Double>)order_file.get("location");
         this.lat = (double) coordinates.get("latitude");
         this.lon = (double) coordinates.get("longitude");
-        JSONObject order_data = (JSONObject) order_file.get("order");
+        Map<String,Integer> order_data = (Map<String,Integer>) order_file.get("order");
         Iterator<String> keys = order_data.keySet().iterator();
-        MenuHandler handler = new MenuHandler();
         while (keys.hasNext()){
             String name_brandName = keys.next();
             int amount = (int)order_data.get(name_brandName);

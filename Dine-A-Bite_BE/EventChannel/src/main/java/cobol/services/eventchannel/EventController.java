@@ -48,7 +48,7 @@ public class EventController {
      * unique id. This is returned to the callee.
      *
      */
-    @GetMapping("/registerSubcriber")
+    @GetMapping("/registerSubscriber")
     public int register(@RequestParam(value="types", defaultValue = "") String types) {
         EventSubscriber newSubscriber = new EventSubscriber(types);
         newSubscriber.subscribe();

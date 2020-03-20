@@ -82,7 +82,7 @@ public class OrderManagerController {
      */
     @PostMapping(value = "/placeOrder", consumes = "application/json", produces = "application/json")
     public JSONObject placeOrder(@RequestBody JSONObject order_object) throws JsonProcessingException {
-        Order new_order = new Order(order_object);
+        Order new_order = new Order(order_object, mh);
         OrderProcessor processor = OrderProcessor.getOrderProcessor();
         processor.addOrder(new_order);
 
@@ -93,9 +93,16 @@ public class OrderManagerController {
         headers.setContentType(MediaType.APPLICATION_JSON);
         String uri = "http://localhost:8080/getRecommendation";
         HttpEntity<String> request = new HttpEntity<>(jsonString, headers);
-        JSONObject ret = template.postForObject(uri, request, JSONObject.class);
-
-        ret.put("order_id", new_order.getId());
+        //JSONObject ret = template.postForObject(uri, request, JSONObject.class);
+        //ret.put("order_id", new_order.getId());
+        //TODO: Uncomment lines above when recommender is available
+        //The following is a hardcoded recommendation
+        JSONObject ret = new JSONObject();
+        ret.put("order_id", 1);
+        JSONObject stand = new JSONObject();
+        stand.put("stand_id" , 1);
+        stand.put("estimated_time", 5);
+        ret.put("recommendation", stand);
         return ret;
     }
 
@@ -124,7 +131,7 @@ public class OrderManagerController {
         RestTemplate template = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        String uri = "http://localhost:8080/publishEvent";
+        String uri = "http://localhost:8083/publishEvent";
         HttpEntity<String> request = new HttpEntity<>(jsonString, headers);
         String response = template.postForObject(uri, request, String.class);
     }
