@@ -157,6 +157,7 @@ public class MenuHandler {
         Stand n = null;
         ArrayList st = (ArrayList) menu.get(standname);
         brandname = (String) st.get(0);
+        System.out.println(stands);
         for (int i = 0; i<stands.size();i++){
             if (stands.get(i).getFull_name().equals(standname)) {
                 if (brandname.equals(stands.get(i).getBrandname())){

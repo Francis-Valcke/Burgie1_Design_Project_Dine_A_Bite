@@ -63,6 +63,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/menu").permitAll()
                 .antMatchers("/standmenu").permitAll()
                 .antMatchers("/delete").permitAll()
+                .antMatchers("/placeOrder").permitAll()
+                .antMatchers("/confirmStand").permitAll()
                 .anyRequest().authenticated()
                 .and()
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

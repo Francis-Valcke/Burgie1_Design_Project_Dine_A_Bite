@@ -30,6 +30,8 @@ public class OrderProcessor {
 
     private OrderProcessor() {};
 
+
+    //TODO: Orderprocessor needs to listen the the right channels to receive notifications of the stands (DECLINED, etc)
     /**
      *
      * @param order_id the id of the order whose state has changed
