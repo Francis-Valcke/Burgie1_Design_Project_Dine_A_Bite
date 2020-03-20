@@ -58,6 +58,10 @@ public class OrderProcessor {
         HttpEntity<String> request = new HttpEntity<String>(jsonString, headers);
 
         restTemplate.postForObject(uri, request, String.class);
+
+        if (state == Order.status.DECLINED) {
+            running_orders.remove(order_id);
+        }
     }
 
     public void addOrder(Order o) {

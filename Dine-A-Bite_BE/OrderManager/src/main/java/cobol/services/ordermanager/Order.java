@@ -1,7 +1,9 @@
 package cobol.services.ordermanager;
 
 import org.json.simple.JSONObject;
+import cobol.services.ordermanager.dbmenu.Food;
 
+import java.awt.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Iterator;
@@ -15,11 +17,11 @@ public class Order {
     private int stand_id;
     public enum status {
         PENDING,
+        DECLINED,
         CONFIRMED,
         READY
     }
     private status orderStatus;
-
     /**
      *
      * @param order_file JSON file received from the attendee-app
@@ -30,16 +32,18 @@ public class Order {
         this.id = order_amount;
         order_amount++;
         orderStatus = status.PENDING;
-        JSONObject coords = (JSONObject) order_file.get("location");
-        this.lat = (double) coords.get("latitude");
-        this.lon = (double) coords.get("longitude");
+        JSONObject coordinates = (JSONObject) order_file.get("location");
+        this.lat = (double) coordinates.get("latitude");
+        this.lon = (double) coordinates.get("longitude");
         JSONObject order_data = (JSONObject) order_file.get("order");
         Iterator<String> keys = order_data.keySet().iterator();
+        MenuHandler handler = new MenuHandler();
         while (keys.hasNext()){
-            String key = keys.next();
-            int amount = (int)order_data.get(key);
-            Food item = new Food(key);
-            full_order.put(item, amount);
+            String name_brandName = keys.next();
+            int amount = (int)order_data.get(name_brandName);
+            String[] args = name_brandName.split("_");
+            Food food = handler.getFood(args[0], args[1]);
+            full_order.put(food, amount);
         }
     }
 
@@ -52,7 +56,7 @@ public class Order {
         orderStatus = status.PENDING;
         this.lat = 37.421998;
         this.lon = -122.084;
-        Food food = new Food("friet");
+        Food food = new Food();
         this.full_order.put(food, 2);
     }
 
