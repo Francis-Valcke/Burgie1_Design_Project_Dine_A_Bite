@@ -59,7 +59,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .authorizeRequests()
                 .antMatchers("/pingOM").permitAll()
                 .antMatchers("/updateOM").permitAll()
-                .antMatchers("/addStand").permitAll()
+                .antMatchers("/addstand").permitAll()
                 .antMatchers("/menu").permitAll()
                 .antMatchers("/standmenu").permitAll()
                 .antMatchers("/delete").permitAll()
