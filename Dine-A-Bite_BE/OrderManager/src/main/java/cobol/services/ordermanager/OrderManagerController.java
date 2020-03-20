@@ -78,6 +78,7 @@ public class OrderManagerController {
      * In the JSON file the keys are the menu item names and the values are the prices
      */
     @RequestMapping("/menu")
+    @ResponseBody
     public JSONObject requestTotalMenu() { //start with id=1 (temporary)
         System.out.println("request total menu");
         return mh.getTotalmenu();

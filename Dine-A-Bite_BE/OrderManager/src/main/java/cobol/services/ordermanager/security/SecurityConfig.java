@@ -58,6 +58,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .and()
                 .authorizeRequests()
                 .antMatchers("/pingOM").permitAll()
+                .antMatchers("/updateOM").permitAll()
+                .antMatchers("/addStand").permitAll()
+                .antMatchers("/menu").permitAll()
+                .antMatchers("/standmenu").permitAll()
+                .antMatchers("/delete").permitAll()
                 .anyRequest().authenticated()
                 .and()
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
