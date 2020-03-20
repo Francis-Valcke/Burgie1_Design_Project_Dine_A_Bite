@@ -120,11 +120,11 @@ public class MenuHandler {
             List<Food> f = food_Repository.findByStand(stands.get(j).getFull_name());
             for (int i = 0; i<f.size();i++){
                 List l = new ArrayList();
-                l.add(stands.get(j).getBrandname());
+                String k = f.get(i).getName()+"_"+stands.get(j).getBrandname();
                 l.add(f.get(i).getPrice());
                 l.add(f.get(i).getCategory());
                 l.add(f.get(i).getDescription());
-                obj.put(f.get(i).getName(),l);
+                obj.put(k,l);
 
             }
         }
