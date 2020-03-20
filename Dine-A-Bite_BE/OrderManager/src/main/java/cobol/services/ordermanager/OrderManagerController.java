@@ -1,5 +1,6 @@
 package cobol.services.ordermanager;
 
+import cobol.services.eventchannel.Event;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -71,6 +72,14 @@ public class OrderManagerController {
         return l;
     }
 
+    /**
+     *
+     * @param order_object the order recieved from the attendee app
+     * @return the order id, along with the json with recommended stands
+     * @throws JsonProcessingException
+     *
+     * Add the order to the order processor, gets a recommendation from the scheduler and forwards it to the attendee app.
+     */
     @PostMapping(value = "/placeOrder", consumes = "application/json", produces = "application/json")
     public JSONObject placeOrder(@RequestBody JSONObject order_object) throws JsonProcessingException {
         Order new_order = new Order(order_object);
@@ -89,6 +98,38 @@ public class OrderManagerController {
         ret.put("order_id", new_order.getId());
         return ret;
     }
+
+
+    /**
+     *
+     * @param order_id
+     * @param stand_id id of the chosen stand
+     *
+     * Sets the order id parameter of order. Adds the order to the stand channel.
+     */
+    @RequestMapping(value = "/confirmStand", method = RequestMethod.GET)
+    @ResponseBody
+    public void confirmStand(@RequestParam(name = "order_id") int order_id, @RequestParam(name = "stand_id") int stand_id) throws JsonProcessingException{
+        OrderProcessor processor = OrderProcessor.getOrderProcessor();
+        Order order = processor.getOrder(order_id);
+        order.setStand_id(stand_id);
+
+        JSONObject order_json = new JSONObject();
+        order_json.put("order", order);
+        String[] types = {String.valueOf(order_id), String.valueOf(stand_id)};
+        Event e = new Event(order_json, types);
+
+        ObjectMapper mapper = new ObjectMapper();
+        String jsonString = mapper.writeValueAsString(e);
+        RestTemplate template = new RestTemplate();
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        String uri = "http://localhost:8080/publishEvent";
+        HttpEntity<String> request = new HttpEntity<>(jsonString, headers);
+        String response = template.postForObject(uri, request, String.class);
+    }
+
+
     /**
      * Add stand to database
      * returns "saved" if correctly added

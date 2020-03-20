@@ -12,6 +12,7 @@ public class Order {
     private Map<Food, Integer> full_order = new HashMap<>();
     private double lat;
     private double lon;
+    private int stand_id;
     public enum status {
         PENDING,
         CONFIRMED,
@@ -65,5 +66,13 @@ public class Order {
 
     public void setState(status state) {
         this.orderStatus = state;
+    }
+
+    public void setStand_id(int id) {
+        this.stand_id = id;
+    }
+
+    public int getStand_id() {
+        return this.stand_id;
     }
 }
