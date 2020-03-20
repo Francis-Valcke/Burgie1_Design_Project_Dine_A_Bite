@@ -13,6 +13,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static java.lang.String.valueOf;
+
 /**
  * This is a Singleton
  */
@@ -39,8 +41,11 @@ public class OrderProcessor {
     public void publishStateChange(int order_id, Order.status state) throws JsonProcessingException{
         Order o = running_orders.get(order_id);
         o.setState(state);
-        String[] order_channel = {String.valueOf(order_id)};
-        String data = state.name();
+        String[] order_channel = {String.valueOf(order_id), String.valueOf(o.getStand_id())};
+        JSONObject data = new JSONObject();
+        data.put("order_id", o.getId());
+        data.put("state_change", state);
+        data.put("order", o);
         Event e = new Event(data, order_channel);
         System.out.println(e.getOrderData());
         ObjectMapper objectMapper = new ObjectMapper();
@@ -57,6 +62,10 @@ public class OrderProcessor {
 
     public void addOrder(Order o) {
         this.running_orders.put(o.getId(), o);
+    }
+
+    public Order getOrder(int order_id) {
+        return running_orders.get(order_id);
     }
 }
 
