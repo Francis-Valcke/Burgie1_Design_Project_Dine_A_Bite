@@ -9,8 +9,8 @@
         style="@style/Widget.MaterialComponents.CardView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
         android:layout_margin="3dp"
+        android:orientation="horizontal"
         app:cardElevation="2.5dp">
 
         <LinearLayout

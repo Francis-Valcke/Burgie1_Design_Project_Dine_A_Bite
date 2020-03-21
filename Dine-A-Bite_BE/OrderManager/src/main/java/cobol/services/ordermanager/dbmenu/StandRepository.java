@@ -10,6 +10,6 @@ import java.util.List;
 // CRUD refers Create, Read, Update, Delete
 
 public interface StandRepository extends CrudRepository<Stand, Integer> {
-    @Query("select s.full_name from Stand s")
-    String[] findStands();
+    @Query("select s from Stand s")
+    List<Stand> findStands();
 }

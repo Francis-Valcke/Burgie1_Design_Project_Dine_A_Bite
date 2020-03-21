@@ -29,7 +29,6 @@ public class MenuActivity extends AppCompatActivity implements OnCartChangeListe
     private ArrayList<MenuItem> cartList = new ArrayList<MenuItem>();
     private int cartCount;
     private Toast mToast = null;
-    ViewPager2 viewPager;
 
     /**
      * Called after splash-screen is shown
@@ -44,7 +43,7 @@ public class MenuActivity extends AppCompatActivity implements OnCartChangeListe
         setContentView(R.layout.activity_menu);
 
         // Create a viewpager to slide between the global and stand menu
-        viewPager = findViewById(R.id.menu_view_pager);
+        ViewPager2 viewPager = findViewById(R.id.menu_view_pager);
         viewPager.setAdapter(new MenuFragmentAdapter(this));
 
         // Set up different tabs for the viewpager slider
@@ -71,12 +70,12 @@ public class MenuActivity extends AppCompatActivity implements OnCartChangeListe
         TextView totalCount = (TextView)findViewById(R.id.cart_count);
         totalCount.setText("0");
 
-        RelativeLayout linLay = (RelativeLayout)findViewById(R.id.cart_layout);
-        linLay.setOnClickListener(new View.OnClickListener(){
+        RelativeLayout relLay = (RelativeLayout)findViewById(R.id.cart_layout);
+        relLay.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(MenuActivity.this, CartActivity.class);
-                intent.putExtra("menuList", cartList);
+                intent.putExtra("cartList", cartList);
                 startActivity(intent);
             }
         });
@@ -91,7 +90,7 @@ public class MenuActivity extends AppCompatActivity implements OnCartChangeListe
      * @param cartItem: item to add to the cart with a unique item name
      * TODO: enforce unique name when creating menu items
      */
-    public void onCartChanged(MenuItem cartItem) {
+    public int onCartChangedAdd(MenuItem cartItem) {
         if (cartCount < MAX_CART_ITEM) {
             try {
                 boolean contains = false;
@@ -113,14 +112,62 @@ public class MenuActivity extends AppCompatActivity implements OnCartChangeListe
 
             } catch (ArithmeticException e){
                 if (mToast != null) mToast.cancel();
-                mToast = Toast.makeText(this,"No more than 10 items", Toast.LENGTH_SHORT);
+                mToast = Toast.makeText(this,"No more than 10 items",
+                        Toast.LENGTH_SHORT);
                 mToast.show();
             }
         } else {
             if (mToast != null) mToast.cancel();
-            mToast = Toast.makeText(this,"No more than 25 in total", Toast.LENGTH_SHORT);
+            mToast = Toast.makeText(this,"No more than 25 in total",
+                    Toast.LENGTH_SHORT);
             mToast.show();
         }
+        return cartCount;
+    }
+
+    /**
+     * Updates the cart when a menu item is removed
+     * If the cart contains the item multiple times, decrease the count
+     * else if the cart contains it one time, remove the item
+     * If the cart is empty the item is not removed and a toast message is shown
+     * @param cartItem: item to remove from the cart with a unique item name
+     * TODO: enforce unique name when creating menu items
+     */
+    public int onCartChangedRemove(MenuItem cartItem) {
+        if (cartCount > 0) {
+            try {
+                boolean contains = false;
+                for (MenuItem i : cartList) {
+                    if (i.getItem().equals(cartItem.getItem())) {
+                        // cartItems have a unique name
+                        i.decreaseCount();
+                        if (i.getCount() == 0){
+                            cartList.remove(i);
+                        }
+                        contains = true;
+                        break;
+                    }
+                }
+                if(!contains){
+                    throw new ArithmeticException("This menuItem is not in the cart!");
+                }
+                cartCount--;
+                TextView totalCount = (TextView)findViewById(R.id.cart_count);
+                totalCount.setText(String.valueOf(cartCount));
+
+            } catch (ArithmeticException e){
+                if (mToast != null) mToast.cancel();
+                mToast = Toast.makeText(this,"This item is no longer in your cart",
+                        Toast.LENGTH_SHORT);
+                mToast.show();
+            }
+        } else {
+            if (mToast != null) mToast.cancel();
+            mToast = Toast.makeText(this,"No more items in your cart",
+                    Toast.LENGTH_SHORT);
+            mToast.show();
+        }
+        return cartCount;
     }
 
     @Override

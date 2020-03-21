@@ -10,10 +10,11 @@ version = '0.2'
 def outputDir = "$rootDir/jars"
 project.ext.outDir = outputDir
 
-
-
 allprojects {
     group = 'be.ugent.cobol'
+
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
 
     repositories {
         mavenCentral()
@@ -21,48 +22,154 @@ allprojects {
 }
 
 subprojects {
-    apply plugin: 'org.springframework.boot'
-    apply plugin: 'io.spring.dependency-management'
     apply plugin: 'java'
-    apply plugin: 'org.sonarqube'
+    if (!project.name.equals("Commons".toString())) {
+        apply plugin: 'org.sonarqube'
+        apply plugin: 'org.springframework.boot'
+        apply plugin: 'io.spring.dependency-management'
 
-    sourceCompatibility = 1.8
-    targetCompatibility = 1.8
-
-    task cleanJars{
-        doLast {
-            delete fileTree(dir: "${outputDir}", include: "${project.name}*")
-        }
-    }
-
-    bootJar {
-        dependsOn cleanJars
-        destinationDirectory = file(outputDir)
-    }
-
-    task docker() {
-        dependsOn bootJar
-        doLast{
-            def name = project.name.toLowerCase()
-            exec {
-                workingDir outputDir
-                commandLine 'docker', 'image', 'build', '--build-arg', "JAR_FILE=${project.name}*.jar" ,'-t', "${name}:${project.version}", '.'
-            }
-            exec {
-                workingDir outputDir
-                commandLine 'docker', 'save', "${name}:${project.version}" ,'-o', "${project.name}-${project.version}.tar"
+        task cleanJars {
+            doLast {
+                delete fileTree(dir: "${outputDir}", include: "${project.name}*")
             }
         }
+
+        bootJar {
+            dependsOn cleanJars
+            destinationDirectory = file(outputDir)
+        }
+
+        task docker() {
+            dependsOn bootJar
+            doLast {
+                def name = project.name.toLowerCase()
+                exec {
+                    workingDir outputDir
+                    commandLine 'docker', 'image', 'build', '--build-arg', "JAR_FILE=${project.name}*.jar", '-t', "${name}:${project.version}", '.'
+                }
+                exec {
+                    workingDir outputDir
+                    commandLine 'docker', 'save', "${name}:${project.version}", '-o', "${project.name}-${project.version}.tar"
+                }
+            }
+        }
+
+        dependencies {
+            // https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-web
+            implementation group: 'org.springframework.boot', name: 'spring-boot-starter-web', version: '2.2.4.RELEASE'
+            // https://mvnrepository.com/artifact/org.springframework/spring-core
+            implementation group: 'org.springframework', name: 'spring-core', version: '5.2.4.RELEASE'
+            // https://mvnrepository.com/artifact/org.springframework.security/spring-security-core
+            implementation group: 'org.springframework.security', name: 'spring-security-core', version: '5.2.2.RELEASE'
+            compile 'com.googlecode.json-simple:json-simple:1.1.1'
+            testImplementation "junit:junit:4.12"
+        }
     }
+}
+
+project(':Commons'){
+    version = '0.2.1'
 
     dependencies {
-        // https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-web
-        implementation group: 'org.springframework.boot', name: 'spring-boot-starter-web', version: '2.2.4.RELEASE'
-        // https://mvnrepository.com/artifact/org.springframework/spring-core
-        implementation group: 'org.springframework', name: 'spring-core', version: '5.2.4.RELEASE'
-        // https://mvnrepository.com/artifact/org.springframework.security/spring-security-core
-        implementation group: 'org.springframework.security', name: 'spring-security-core', version: '5.2.2.RELEASE'
-        compile 'com.googlecode.json-simple:json-simple:1.1.1'
-        testImplementation "junit:junit:4.12"
+        //-----PRODUCTION-----
+        //Spring related imports
+        implementation group: 'org.springframework.boot', name: 'spring-boot-starter-security', version: '2.2.5.RELEASE'
+        implementation group: 'org.springframework.boot', name: 'spring-boot-starter-web', version: '2.2.5.RELEASE'
+
+        //Support for json web tokens in java
+        implementation group: 'io.jsonwebtoken', name: 'jjwt', version: '0.9.1'
+
+        //Library for removing lots of boilerplate code, use in combination with intellij plugin
+        compileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.12'
+        annotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.12'
+    }
+}
+
+project(':AuthenticationService'){
+    version = '0.2.3'
+
+    dependencies {
+        //-----INTERNAL-----
+        implementation project(':Commons')
+
+        //-----PRODUCTION-----
+
+        //Mysql jdbc driver
+        implementation group: 'mysql', name: 'mysql-connector-java', version: '8.0.19'
+
+        //Spring related imports
+        implementation group: 'org.springframework.boot', name: 'spring-boot-starter-data-jpa', version: '2.2.5.RELEASE'
+        implementation group: 'org.springframework.boot', name: 'spring-boot-starter-security', version: '2.2.5.RELEASE'
+        implementation group: 'org.springframework.boot', name: 'spring-boot-starter-web', version: '2.2.5.RELEASE'
+
+        //Support for json web tokens in java
+        implementation group: 'io.jsonwebtoken', name: 'jjwt', version: '0.9.1'
+
+        //Library for removing lots of boilerplate code, use in combination with intellij plugin
+        compileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.12'
+        annotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.12'
+
+        //-----TESTING-----
+
+        //For testing REST API
+        testImplementation 'io.rest-assured:rest-assured:4.2.0'
+        testImplementation 'io.rest-assured:json-schema-validator:4.3.0'
+        testImplementation group: 'io.rest-assured', name: 'spring-mock-mvc', version: '4.3.0'
+        testImplementation 'org.springframework.security:spring-security-test'
+        testImplementation('org.springframework.boot:spring-boot-starter-test') {
+            exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
+        }
+
+        //Library for removing lots of boilerplate code, use in combination with intellij plugin
+        testCompileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.12'
+        testAnnotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.12'
+    }
+}
+
+project(':OrderManager'){
+    version = '0.2.6'
+
+    dependencies {
+        //-----INTERNAL-----
+        implementation project(':Commons')
+        implementation project(':EventChannel')
+        //Mysql jdbc driver
+        implementation group: 'mysql', name: 'mysql-connector-java', version: '8.0.19'
+
+        //Spring related imports
+        implementation group: 'org.springframework.boot', name: 'spring-boot-starter-data-jpa', version: '2.2.5.RELEASE'
+        //-----PRODUCTION-----
+        //Spring related imports
+        implementation group: 'org.springframework.boot', name: 'spring-boot-starter-security', version: '2.2.5.RELEASE'
+        implementation group: 'org.springframework.boot', name: 'spring-boot-starter-web', version: '2.2.5.RELEASE'
+    }
+}
+
+project(':StandManager'){
+    version = '0.2.3'
+
+    dependencies {
+        //-----INTERNAL-----
+        implementation project(':Commons')
+
+        //-----PRODUCTION-----
+        //Spring related imports
+        implementation group: 'org.springframework.boot', name: 'spring-boot-starter-security', version: '2.2.5.RELEASE'
+        implementation group: 'org.springframework.boot', name: 'spring-boot-starter-web', version: '2.2.5.RELEASE'
+    }
+}
+
+
+project(':EventChannel'){
+    version = '0.2.2'
+
+    dependencies {
+        //-----INTERNAL-----
+        implementation project(':Commons')
+
+        //-----PRODUCTION-----
+        //Spring related imports
+        implementation group: 'org.springframework.boot', name: 'spring-boot-starter-security', version: '2.2.5.RELEASE'
+        implementation group: 'org.springframework.boot', name: 'spring-boot-starter-web', version: '2.2.5.RELEASE'
     }
 }

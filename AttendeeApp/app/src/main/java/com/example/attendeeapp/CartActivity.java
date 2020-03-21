@@ -69,7 +69,7 @@ public class CartActivity extends AppCompatActivity {
         ab.setDisplayHomeAsUpEnabled(true);
 
         // Get the ordered items from the cart in the menu view
-        ordered = (ArrayList<MenuItem>) getIntent().getSerializableExtra("menuList");
+        ordered = (ArrayList<MenuItem>) getIntent().getSerializableExtra("cartList");
 
         // Instantiates cart item list
         ListView lView = (ListView)findViewById(R.id.cart_list);
@@ -102,7 +102,8 @@ public class CartActivity extends AppCompatActivity {
                     startActivity(intent);
                 } else {
                     if (mToast != null) mToast.cancel();
-                    mToast = Toast.makeText(CartActivity.this, "No items in your cart!", Toast.LENGTH_SHORT);
+                    mToast = Toast.makeText(CartActivity.this, "No items in your cart!",
+                                            Toast.LENGTH_SHORT);
                     mToast.show();
                 }
             }
@@ -135,7 +136,7 @@ public class CartActivity extends AppCompatActivity {
                     new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
                     1);
         } else {
-            // Request the lastest user location
+            // Request the latest user location
             fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
             fusedLocationClient.getLastLocation()
                     .addOnCompleteListener(new OnCompleteListener<Location>() {
@@ -222,18 +223,22 @@ public class CartActivity extends AppCompatActivity {
         // Instantiate the RequestQueue
         RequestQueue queue = Volley.newRequestQueue(this);
         String url = "http://cobol.idlab.ugent.be:8092/post?foodtype";
+        //String url = "http://localhost:8080/post?foodtype";
 
         // Request recommendation from server for sent order (both in JSON)
-        JsonObjectRequest jsonRequest = new JsonObjectRequest(Request.Method.POST, url, js, new Response.Listener<JSONObject>() {
+        JsonObjectRequest jsonRequest = new JsonObjectRequest(Request.Method.POST, url, js,
+                                                            new Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject response) {
-                Toast mToast = Toast.makeText(CartActivity.this, "Ordering succesful!", Toast.LENGTH_SHORT);
+                Toast mToast = Toast.makeText(CartActivity.this, "Ordering succesful!",
+                                                Toast.LENGTH_SHORT);
                 mToast.show();
             }
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                Toast mToast = Toast.makeText(CartActivity.this, "Ordering failed", Toast.LENGTH_SHORT);
+                Toast mToast = Toast.makeText(CartActivity.this, "Ordering failed",
+                                                Toast.LENGTH_SHORT);
                 mToast.show();
             }
         }) { // Add JSON headers
@@ -241,6 +246,10 @@ public class CartActivity extends AppCompatActivity {
             public @NonNull Map<String, String> getHeaders()  throws AuthFailureError {
                 Map<String, String>  headers  = new HashMap<String, String>();
                 headers.put("Content-Type", "application/json");
+                headers.put("Authorization", "Bearer " + "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOi" +
+                        "JmcmFuY2lzIiwicm9sZXMiOlsiUk9MRV9VU0VSIiwiUk9MRV9BRE1JTiJdLCJpYX" +
+                        "QiOjE1ODQ2MTAwMTcsImV4cCI6MTc0MjI5MDAxN30.5UNYM5Qtc4anyHrJXIuK0O" +
+                        "UlsbAPNyS9_vr-1QcOWnQ");
                 return headers;
             }
         };
@@ -260,7 +269,8 @@ public class CartActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(@NonNull android.view.MenuItem item) {
         switch (item.getItemId()) {
             case android.R.id.home:
-                // This takes the user 'back', as if they pressed the left-facing triangle icon on the main android toolbar.
+                // This takes the user 'back', as if they pressed the left-facing triangle icon
+                // on the main android toolbar.
                 super.onBackPressed();
                 return true;
             case R.id.orders_action:
