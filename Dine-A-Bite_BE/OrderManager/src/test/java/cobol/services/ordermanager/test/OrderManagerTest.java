@@ -62,9 +62,6 @@ public class OrderManagerTest {
         this.mockMvc = webAppContextSetup(this.applicationContext)
                 .apply(springSecurity())
                 .build();
-        SpringApplicationBuilder ec = new SpringApplicationBuilder(EventService.class);
-                //.properties("server.port=8081");
-        ec.run("port=8081");
     }
 
     @Test
