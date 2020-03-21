@@ -1,5 +1,6 @@
 package cobol.services.eventchannel;
 
+import cobol.commons.Event;
 import cobol.commons.ResponseModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

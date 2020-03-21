@@ -1,6 +1,6 @@
 package cobol.services.ordermanager;
 
-import cobol.services.eventchannel.Event;
+import cobol.commons.Event;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.json.simple.JSONObject;

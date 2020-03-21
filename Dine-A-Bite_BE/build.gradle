@@ -82,6 +82,8 @@ project(':Commons'){
         //Library for removing lots of boilerplate code, use in combination with intellij plugin
         compileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.12'
         annotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.12'
+
+        compile 'com.googlecode.json-simple:json-simple:1.1.1'
     }
 }
 

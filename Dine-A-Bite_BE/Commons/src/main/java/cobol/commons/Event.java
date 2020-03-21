@@ -1,4 +1,4 @@
-package cobol.services.eventchannel;
+package cobol.commons;
 
 import org.json.simple.JSONObject;
 
