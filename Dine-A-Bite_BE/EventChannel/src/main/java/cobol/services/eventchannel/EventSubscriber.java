@@ -1,5 +1,7 @@
 package cobol.services.eventchannel;
 
+import cobol.commons.Event;
+
 import java.util.ArrayList;
 import java.util.List;
 

@@ -1,5 +1,7 @@
 package cobol.services.eventchannel;
 
+import cobol.commons.Event;
+
 public class EventPublisher {
 
     /**
