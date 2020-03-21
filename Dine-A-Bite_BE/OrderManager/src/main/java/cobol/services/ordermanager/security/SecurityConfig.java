@@ -22,7 +22,7 @@ import javax.sql.DataSource;
  */
 @EnableWebSecurity
 @Configuration
-@ComponentScan({"cobol", "cobol.commons"})
+@ComponentScan({"cobol.services.ordermanager", "cobol.commons"})
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     private DataSource dataSource;
