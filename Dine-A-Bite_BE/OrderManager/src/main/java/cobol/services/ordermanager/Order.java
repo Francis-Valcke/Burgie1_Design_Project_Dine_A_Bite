@@ -2,6 +2,7 @@ package cobol.services.ordermanager;
 
 import org.json.simple.JSONObject;
 import cobol.services.ordermanager.dbmenu.Food;
+//import cobol.services.ordermanager.Food;
 
 import java.util.*;
 
@@ -9,9 +10,18 @@ public class Order {
     private int remTime;
     private static int order_amount = 1;
     private int id;
-    private Map<List<Food>, Integer> full_order = new HashMap<>();
+    //private Map<List<Food>, Integer> full_order = new HashMap<>();
+    private Map<Food, Integer> full_order = new HashMap<>();
     private double lat;
     private double lon;
+
+    public double getLat(){
+        return this.lat;
+    }
+
+    public double getLon(){
+        return this.lon;
+    }
 
 
     public Map<Food, Integer> getFull_order(){
@@ -71,8 +81,10 @@ public class Order {
         orderStatus = status.PENDING;
         this.lat = 37.421998;
         this.lon = -122.084;
-        List<Food> food = new ArrayList<>();
-        this.full_order.put(food, 2);
+        //List<Food> food = new ArrayList<>();
+        Food friet =  new Food("pizza", 2, 2);
+        //this.full_order.put(food, 2);
+        this.full_order.put(friet, 1);
     }
 
     public int getId() {

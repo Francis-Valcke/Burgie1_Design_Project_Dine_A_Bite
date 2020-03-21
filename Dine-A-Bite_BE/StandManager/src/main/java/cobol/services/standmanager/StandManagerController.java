@@ -78,6 +78,9 @@ public class StandManagerController {
         b.addOrder(new Order(f1, 1));
         b.addOrder(new Order(f1, 2));
         */
+        a.addOrder(new Order());
+        a.addOrder(new Order());
+        b.addOrder(new Order());
 
         schedulers.add(a);
         schedulers.add(b);
@@ -100,24 +103,21 @@ public class StandManagerController {
     @RequestMapping(value = "/post", consumes = "application/json")
     @ResponseBody
     public JSONObject postOrder(@RequestBody() Order order) {
-        System.out.println("User requested recommended stand for " + order.id);
+        System.out.println("User requested recommended stand for " + order.getId());
         return recommend(order);
     }
 
 
     /**
      *
-     * @param order is the order for which the recommended stands are required
-     * @return JSON with a certain amount of recommended stands (currently based on lowest queue time only)
+     * @param order the order for which you want to find corresponding stands
+     * @return list of schedulers (so the stands) which offer the correct food to complete the order
      */
-    public JSONObject recommend(Order order) {
-        //first get the Map with all the food of the order
+    public ArrayList<Scheduler> findCorrespondStands(Order order){
+        /* first get the Map with all the food of the order */
         Map<Food, Integer> foodMap = order.getFull_order();
 
-        //choose how many recommends you want
-        int amountOfRecommends = 3;
-
-        //group all stands (schedulers) with the correct type of food available
+        /* group all stands (schedulers) with the correct type of food available */
         ArrayList<Scheduler> goodSchedulers = new ArrayList<>();
         for (int i = 0; i < schedulers.size(); i++) {
             Boolean validStand = true;
@@ -135,16 +135,40 @@ public class StandManagerController {
                 goodSchedulers.add(currentScheduler);
             }
         }
+        return goodSchedulers;
+    }
 
-        //sort the stands (schedulers) based on remaining time
-        Collections.sort(goodSchedulers, new SchedulerComparator());
 
-        //check if you have enough stands (for amount of recommendations you want)
+    /**
+     *
+     * @param order is the order for which the recommended stands are required
+     * @return JSON with a certain amount of recommended stands (currently based on lowest queue time only)
+     */
+    public JSONObject recommend(Order order) {
+        /* choose how many recommends you want */
+        int amountOfRecommends = 3;
+
+        /* find stands (schedulers) which offer correct food for the order */
+        ArrayList<Scheduler> goodSchedulers = findCorrespondStands(order);
+
+        /* sort the stands (schedulers) based on remaining time */
+        Collections.sort(goodSchedulers, new SchedulerComparatorTime());
+
+        /* TODO: this is just how you could sort based on distance alone, need to combine this */
+        /* sort the stands (schedulers) based on distance */
+        //Collections.sort(goodSchedulers, new SchedulerComparatorDistance(order.getLat(),order.getLon()));
+
+        /* TODO: this is how you sort based on combination, weight is how much time you add for each unit of distance */
+        /* sort the stands (schedulers) based on combination of time and distance */
+        //double weight = 5;
+        //Collections.sort(goodSchedulers, new SchedulerComparator(order.getLat(), order.getLon(), weight);
+
+        /* check if you have enough stands (for amount of recommendations you want) */
         if (goodSchedulers.size() < amountOfRecommends){
             amountOfRecommends = goodSchedulers.size();
         }
 
-        //put everything into a JSON file to give as return value
+        /* put everything into a JSON file to give as return value */
         JSONObject obj = new JSONObject();
         for (int i = 0 ; i < amountOfRecommends ; i++){
             JSONObject add = new JSONObject();
@@ -154,8 +178,6 @@ public class StandManagerController {
             System.out.println(curScheduler.timeSum());
             obj.put(curScheduler.getStandname(), add);
         }
-
-
         return obj;
     }
 

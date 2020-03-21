@@ -18,6 +18,25 @@ public class Scheduler extends Thread {
     private List<Food> menu =new ArrayList<Food>();
     private String standname;
     private int id;
+    private double lon;
+    private double lat;
+
+    public double getLon(){
+        return this.lon;
+    }
+
+    public double getLat(){
+        return this.lat;
+    }
+
+    public void setLon(double l){
+        this.lon = l;
+    }
+
+    public void setLat(double l){
+        this.lat = l;
+    }
+
     public List<Food> getMenu(){
         return menu;
     }
@@ -72,22 +91,28 @@ public class Scheduler extends Thread {
         return false;
     }
 
+    public void decreaseOrderTime(Order o){
+        o.setRemtime(o.getRemtime()-1);
+    }
+
     /**
      * Removes 1 (second) from the remaining time of the first scheduled order: the order that should be under preparation
      * TODO: remove 1 (second) from all orders that are flagged as "under preparation" (+ add flag for "preparation")
-
+        */
     public void prepClock(){
         if (inc.get(0).getRemtime()==0) {
             if (inc.size()==0) return;
             orderDone();
         }
-        inc.get(0).setRemtime(inc.get(0).getRemtime()-1);
+        for (int i = 0; i < inc.size() ; i++){
+            decreaseOrderTime(inc.get(i));
+        }
     }
-*/
+
     /**
      * calls prepClock() every second
      */
-    public void run(){
+  /*  public void run(){
 
             for (int i = 0; i < 60; i++) {
                 try {
@@ -101,7 +126,17 @@ public class Scheduler extends Thread {
                   i=0;
             }
         }
-    }
+    }*/
+  public void run(){
+      while (true){
+          try {
+              TimeUnit.SECONDS.sleep(1);
+          } catch (InterruptedException e) {
+              e.printStackTrace();
+          }
+          prepClock();
+      }
+  }
 
     public String getStandname() {
         return standname;
