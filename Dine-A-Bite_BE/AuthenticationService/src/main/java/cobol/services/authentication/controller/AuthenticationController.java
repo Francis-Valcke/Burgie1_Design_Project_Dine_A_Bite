@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -108,9 +109,10 @@ public class AuthenticationController {
                 throw new DuplicateUserException("A user with that name exists already.");
 
             users.save(User.builder()
-                            .username(data.getUsername())
-                            .password(passwordEncoder.encode(data.getPassword()))
-                            .build()
+                    .username(data.getUsername())
+                    .password(passwordEncoder.encode(data.getPassword()))
+                    .role(Collections.singletonList("ROLE_USER"))
+                    .build()
             );
 
             return ResponseEntity.ok(
