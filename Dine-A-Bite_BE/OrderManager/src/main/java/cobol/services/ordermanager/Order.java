@@ -8,7 +8,7 @@ import java.util.*;
 public class Order {
     private static int order_amount = 1;
     private int id;
-    private Map<List<Food>, Integer> full_order = new HashMap<>();
+    private Map<String, Integer> full_order = new HashMap<>();
     private double lat;
     private double lon;
     private int stand_id;
@@ -38,13 +38,7 @@ public class Order {
             String name_brandName = keys.next();
             int amount = (int)order_data.get(name_brandName);
             String[] args = name_brandName.split("_");
-            List<Food> food = new ArrayList<>();
-            if (args.length == 1) {
-                food = handler.getCategory(args[0]);
-            } else {
-                food.add(handler.getFood(args[0], args[1]));
-            }
-            full_order.put(food, amount);
+            full_order.put(args[0], amount);
         }
     }
 
@@ -57,7 +51,7 @@ public class Order {
         orderStatus = status.PENDING;
         this.lat = 37.421998;
         this.lon = -122.084;
-        List<Food> food = new ArrayList<>();
+        String food = "Nice pizza";
         this.full_order.put(food, 2);
     }
 
