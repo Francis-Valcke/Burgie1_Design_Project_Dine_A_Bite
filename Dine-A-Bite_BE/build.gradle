@@ -127,11 +127,12 @@ project(':AuthenticationService'){
 }
 
 project(':OrderManager'){
-    version = '0.2.3'
+    version = '0.2.6'
 
     dependencies {
         //-----INTERNAL-----
         implementation project(':Commons')
+        implementation project(':EventChannel')
         //Mysql jdbc driver
         implementation group: 'mysql', name: 'mysql-connector-java', version: '8.0.19'
 
