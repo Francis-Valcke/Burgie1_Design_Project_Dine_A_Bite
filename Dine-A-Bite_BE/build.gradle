@@ -142,6 +142,19 @@ project(':OrderManager'){
         //Spring related imports
         implementation group: 'org.springframework.boot', name: 'spring-boot-starter-security', version: '2.2.5.RELEASE'
         implementation group: 'org.springframework.boot', name: 'spring-boot-starter-web', version: '2.2.5.RELEASE'
+
+        //For testing REST API
+        testImplementation 'io.rest-assured:rest-assured:4.2.0'
+        testImplementation 'io.rest-assured:json-schema-validator:4.3.0'
+        testImplementation group: 'io.rest-assured', name: 'spring-mock-mvc', version: '4.3.0'
+        testImplementation 'org.springframework.security:spring-security-test'
+        testImplementation('org.springframework.boot:spring-boot-starter-test') {
+            exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
+        }
+
+        //Library for removing lots of boilerplate code, use in combination with intellij plugin
+        testCompileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.12'
+        testAnnotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.12'
     }
 }
 
