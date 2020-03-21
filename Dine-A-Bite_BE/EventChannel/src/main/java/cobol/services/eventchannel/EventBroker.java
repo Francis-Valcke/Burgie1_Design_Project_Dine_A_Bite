@@ -1,5 +1,7 @@
 package cobol.services.eventchannel;
 
+import cobol.commons.Event;
+
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -69,7 +71,7 @@ public class EventBroker {
      * Calls the process function.
      */
     protected void addEvent(Event e) {
-        System.out.println("Event was received with data: " + e.orderData); //TODO: remove, this is for testing
+        System.out.println("Event was received with data: " + e.getOrderData()); //TODO: remove, this is for testing
         process(e);
     }
 

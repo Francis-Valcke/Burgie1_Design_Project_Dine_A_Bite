@@ -1,6 +1,6 @@
 package cobol.services.ordermanager;
 
-import cobol.services.eventchannel.Event;
+import cobol.commons.Event;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.Iterator;
 import java.util.List;
 
 /**
