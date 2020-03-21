@@ -1,12 +1,31 @@
 package cobol.services.eventchannel;
 
+import cobol.commons.ResponseModel;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import static cobol.commons.ResponseModel.status.OK;
+
 @RestController
 public class EventController {
+
+    /**
+     * API endpoint to test if the server is still alive.
+     *
+     * @return "EventChannel is alive!"
+     */
+    @GetMapping("/pingEC")
+    public ResponseEntity ping() {
+        return ResponseEntity.ok(
+                ResponseModel.builder()
+                        .status(OK.toString())
+                        .details("EventChannel is alive!")
+                        .build().generateResponse()
+        );
+    }
 
     /**
      *
@@ -29,7 +48,7 @@ public class EventController {
      * unique id. This is returned to the callee.
      *
      */
-    @GetMapping("/registerSubcriber")
+    @GetMapping("/registerSubscriber")
     public int register(@RequestParam(value="types", defaultValue = "") String types) {
         EventSubscriber newSubscriber = new EventSubscriber(types);
         newSubscriber.subscribe();
@@ -60,7 +79,7 @@ public class EventController {
     public void deRegister(@RequestParam(value="id") int stub_id, @RequestParam(value="type", defaultValue = "") String type) {
         EventBroker broker = EventBroker.getInstance();
         EventSubscriber subscriber = broker.getSubscriberStub(stub_id);
-        if (type == "") {
+        if (type.equals("")) {
             broker.unSubscribe(subscriber, subscriber.getTypes());
         }
         else {

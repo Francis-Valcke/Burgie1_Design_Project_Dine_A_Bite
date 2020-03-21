@@ -81,6 +81,7 @@ public class EventBroker {
      */
     private void process(Event e) {
         String[] types = e.getTypes();
+        System.out.println("Event recieved with data: " + e.getOrderData()); //visual feedback
         for (String type : types) {
             HashSet<EventSubscriber> typeSet = subscriberMap.get(type);
                 if (typeSet != null) {

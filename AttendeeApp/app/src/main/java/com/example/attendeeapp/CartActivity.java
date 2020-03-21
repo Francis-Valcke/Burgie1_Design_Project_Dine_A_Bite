@@ -12,7 +12,6 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.View;
@@ -46,7 +45,7 @@ import java.util.Map;
 /**
  * Activity to handle the view cart page
  */
-public class ShowCartActivity extends AppCompatActivity {
+public class CartActivity extends AppCompatActivity {
 
     ArrayList<MenuItem> ordered;
     private FusedLocationProviderClient fusedLocationClient;
@@ -56,7 +55,7 @@ public class ShowCartActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_show_cart);
+        setContentView(R.layout.activity_cart);
 
         // Custom Toolbar (instead of standard actionbar)
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -69,7 +68,8 @@ public class ShowCartActivity extends AppCompatActivity {
         assert ab != null;
         ab.setDisplayHomeAsUpEnabled(true);
 
-        ordered = (ArrayList<MenuItem>) getIntent().getSerializableExtra("menuList");
+        // Get the ordered items from the cart in the menu view
+        ordered = (ArrayList<MenuItem>) getIntent().getSerializableExtra("cartList");
 
         // Instantiates cart item list
         ListView lView = (ListView)findViewById(R.id.cart_list);
@@ -88,21 +88,22 @@ public class ShowCartActivity extends AppCompatActivity {
         total.setText(symbol + amount);
 
         // Handle clickable TextView to confirm order
+        // Only if there are items in the cart, the order can continue
         TextView confirm = (TextView)findViewById(R.id.confirm_order);
         confirm.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v) {
                 // confirm order -> go to order view (test view for now)
                 // Send order with JSON + location
-                // Only if there are items in the cart, the order can continu
                 if (ordered.size() > 0) {
                     checkLocationPermission();
                     requestOrderRecommend();
-                    Intent intent = new Intent(ShowCartActivity.this, OrderActivity.class);
+                    Intent intent = new Intent(CartActivity.this, OrderActivity.class);
                     startActivity(intent);
                 } else {
                     if (mToast != null) mToast.cancel();
-                    mToast = Toast.makeText(ShowCartActivity.this, "No items in your cart!", Toast.LENGTH_SHORT);
+                    mToast = Toast.makeText(CartActivity.this, "No items in your cart!",
+                                            Toast.LENGTH_SHORT);
                     mToast.show();
                 }
             }
@@ -122,8 +123,8 @@ public class ShowCartActivity extends AppCompatActivity {
 
     /**
      * Check if location permission is granted
-     * it not: request the location permission else
-     * if permission was granted, renew user location
+     * It not: request the location permission
+     * else if permission was granted, renew user location
      */
     public void checkLocationPermission() {
         if (ContextCompat.checkSelfPermission(this,
@@ -135,7 +136,7 @@ public class ShowCartActivity extends AppCompatActivity {
                     new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
                     1);
         } else {
-            // Request the lastest user location
+            // Request the latest user location
             fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
             fusedLocationClient.getLastLocation()
                     .addOnCompleteListener(new OnCompleteListener<Location>() {
@@ -222,18 +223,22 @@ public class ShowCartActivity extends AppCompatActivity {
         // Instantiate the RequestQueue
         RequestQueue queue = Volley.newRequestQueue(this);
         String url = "http://cobol.idlab.ugent.be:8092/post?foodtype";
+        //String url = "http://localhost:8080/post?foodtype";
 
-        // Request recommandation from server for sent order (both in JSON)
-        JsonObjectRequest jsonRequest = new JsonObjectRequest(Request.Method.POST, url, js, new Response.Listener<JSONObject>() {
+        // Request recommendation from server for sent order (both in JSON)
+        JsonObjectRequest jsonRequest = new JsonObjectRequest(Request.Method.POST, url, js,
+                                                            new Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject response) {
-                Toast mToast = Toast.makeText(ShowCartActivity.this, "Ordering succesful!", Toast.LENGTH_SHORT);
+                Toast mToast = Toast.makeText(CartActivity.this, "Ordering succesful!",
+                                                Toast.LENGTH_SHORT);
                 mToast.show();
             }
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                Toast mToast = Toast.makeText(ShowCartActivity.this, "Ordering failed", Toast.LENGTH_SHORT);
+                Toast mToast = Toast.makeText(CartActivity.this, "Ordering failed",
+                                                Toast.LENGTH_SHORT);
                 mToast.show();
             }
         }) { // Add JSON headers
@@ -241,6 +246,10 @@ public class ShowCartActivity extends AppCompatActivity {
             public @NonNull Map<String, String> getHeaders()  throws AuthFailureError {
                 Map<String, String>  headers  = new HashMap<String, String>();
                 headers.put("Content-Type", "application/json");
+                headers.put("Authorization", "Bearer " + "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOi" +
+                        "JmcmFuY2lzIiwicm9sZXMiOlsiUk9MRV9VU0VSIiwiUk9MRV9BRE1JTiJdLCJpYX" +
+                        "QiOjE1ODQ2MTAwMTcsImV4cCI6MTc0MjI5MDAxN30.5UNYM5Qtc4anyHrJXIuK0O" +
+                        "UlsbAPNyS9_vr-1QcOWnQ");
                 return headers;
             }
         };
@@ -260,12 +269,13 @@ public class ShowCartActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(@NonNull android.view.MenuItem item) {
         switch (item.getItemId()) {
             case android.R.id.home:
-                // This takes the user 'back', as if they pressed the left-facing triangle icon on the main android toolbar.
+                // This takes the user 'back', as if they pressed the left-facing triangle icon
+                // on the main android toolbar.
                 super.onBackPressed();
                 return true;
             case R.id.orders_action:
                 // User chooses the "My Orders" item
-                Intent intent = new Intent(ShowCartActivity.this, OrderActivity.class);
+                Intent intent = new Intent(CartActivity.this, OrderActivity.class);
                 startActivity(intent);
                 return true;
             case R.id.account_action:

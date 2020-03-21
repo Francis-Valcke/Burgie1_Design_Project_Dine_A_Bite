@@ -14,6 +14,7 @@ public class MenuItem implements Serializable {
     private String item;
     private BigDecimal price;
     private int count=0;
+    private String standName;
 
     public MenuItem(String item,BigDecimal price) {
         this.item = item;
@@ -29,6 +30,14 @@ public class MenuItem implements Serializable {
         this.item = item;
     }
 
+    public String getStandName() {
+        return standName;
+    }
+
+    public void setStandName(String standName) {
+        this.standName = standName;
+    }
+
     public BigDecimal getPrice() {
         return price;
     }
@@ -37,6 +46,10 @@ public class MenuItem implements Serializable {
         this.price = price;
     }
 
+    /**
+     * Return the price of a menu item with the euro symbol
+     * @return: String of euro symbol with price
+     */
     public String getPriceEuro() {
         NumberFormat euro = NumberFormat.getCurrencyInstance(Locale.FRANCE);
         euro.setMinimumFractionDigits(2);
@@ -48,6 +61,10 @@ public class MenuItem implements Serializable {
         return count;
     }
 
+    /**
+     * Increases the number of times the item is added to the cart
+     * Throws ArithmeticException when the maximum number of this item is reached
+     */
     public void increaseCount() throws ArithmeticException {
         if (this.count < MAX_ITEM) {
             this.count++;
@@ -56,8 +73,12 @@ public class MenuItem implements Serializable {
         }
     }
 
-    public void decreaseCount() {
-        if(count == 0) return;
+    /**
+     * Decreases the number of times the item is in the cart
+     * Throws ArithmeticException when this item has reached 0
+     */
+    public void decreaseCount() throws ArithmeticException{
+        if(count == 0) throw new ArithmeticException("This menuItem cannot be decreased!");
         this.count--;
     }
 
