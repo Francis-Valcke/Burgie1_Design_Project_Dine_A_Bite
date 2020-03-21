@@ -10,10 +10,8 @@ import org.springframework.http.MediaType;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
-import static java.lang.String.valueOf;
 
 /**
  * This is a Singleton
