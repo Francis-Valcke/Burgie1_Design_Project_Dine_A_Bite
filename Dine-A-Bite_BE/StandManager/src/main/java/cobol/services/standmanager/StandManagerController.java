@@ -87,6 +87,18 @@ public class StandManagerController {
 
     /**
      *
+     * @param order order which wants to be placed
+     * TODO: really implement this
+     */
+    @RequestMapping(value = "/placeOrder", consumes = "application/json")
+    public void placeOrder(@RequestBody() Order order){
+        //add order to right scheduler
+    }
+
+
+
+    /**
+     *
      * @param order order object for which the Order Manager wants a recommendation
      * @return recommendation in JSON format
      */
