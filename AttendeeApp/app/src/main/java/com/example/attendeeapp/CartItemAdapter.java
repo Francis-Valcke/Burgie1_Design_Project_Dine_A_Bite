@@ -45,7 +45,7 @@ public class CartItemAdapter  extends BaseAdapter {
             view = inflater.inflate(R.layout.cart_item_material, null);
         }
 
-        //Handle TextView to display one cart item name
+        //Handle TextView to display one cart item name, if this name has a stand, display it too
         TextView listItemText = (TextView)view.findViewById(R.id.cart_item);
         String name = list.get(position).getFoodName();
         if(!list.get(position).getStandName().equals("")) name += " (" + list.get(position)

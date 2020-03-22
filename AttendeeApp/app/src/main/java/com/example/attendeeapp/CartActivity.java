@@ -32,6 +32,7 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -194,7 +195,8 @@ public class CartActivity extends AppCompatActivity {
     /**
      * Sends order of user to the server in JSON to request a recommendation
      * Send a JSON object with ordered items and user location
-     * Format: location (latitude, longitude), order (item1, ...)
+     * Format: "location" (latitude, longitude), "order" (item1, ...)
+     * Format or order: ("itemName_brandName": [count, "standName1], ...)
      * Location is (360, 360) when user location is unknown
      */
     private void requestOrderRecommend() {
@@ -205,7 +207,11 @@ public class CartActivity extends AppCompatActivity {
         JSONObject js_location = new JSONObject();
         try {
             for(MenuItem i : ordered) {
-                    js_items.put(i.getFoodName(), i.getCount());
+                    JSONArray js_array = new JSONArray();
+                    js_array.put(i.getCount());
+                    js_array.put(i.getStandName());
+                    String key = i.getFoodName() + "_" + i.getBrandName();
+                    js_items.put(key, js_array);
             }
 
             if(lastLocation != null) {

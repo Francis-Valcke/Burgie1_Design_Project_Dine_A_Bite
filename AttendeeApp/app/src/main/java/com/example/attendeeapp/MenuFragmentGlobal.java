@@ -1,12 +1,10 @@
 package com.example.attendeeapp;
 
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -54,7 +52,7 @@ public class MenuFragmentGlobal extends MenuFragment {
     }
 
     /**
-     * Overloaded function of abstract MenuFragment superclass
+     * Updates the global menu from the server response
      * Error are handled in the fetchMenu (superclass) function
      * @param response: the JSON response from the server
      * @param standName: the requested menu standName, "" is global
@@ -70,14 +68,17 @@ public class MenuFragmentGlobal extends MenuFragment {
             String foodName = item_name[0];
             String brandName = item_name[1];
 
+            // Create the menuItem with price, food and brandName
             JSONArray jsonArray = response.getJSONArray(key);
             double price = jsonArray.getDouble(0);
             MenuItem item = new MenuItem(foodName, new BigDecimal(price), brandName);
 
+            // Add categories to the menuItem
             JSONArray cat_array = jsonArray.getJSONArray(1);
             for (int j = 0; j < cat_array.length(); j++) {
                 item.addCategory((String) cat_array.get(j));
             }
+            // Add the description, if provided
             String description = jsonArray.getString(2);
             if (!description.equals("null")) item.setDescription(description);
 

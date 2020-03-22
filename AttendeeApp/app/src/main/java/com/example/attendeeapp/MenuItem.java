@@ -59,9 +59,14 @@ public class MenuItem implements Serializable {
     /**
      * Will only add distinct categories (set)
      * @param cat: Category to add
+     * @return: if the add was successful
      */
-    public void addCategory(String cat) {
-        category.add(cat);
+    public boolean addCategory(String cat) {
+        return category.add(cat);
+    }
+
+    public boolean removeCategory(String cat) {
+        return category.remove(cat);
     }
 
     public String getDescription() {
