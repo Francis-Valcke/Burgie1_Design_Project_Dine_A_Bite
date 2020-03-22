@@ -270,7 +270,7 @@ public class MenuHandler {
                 else fp.setBrandname(brandname);
             }
             food_Repository.save(fp);
-            int count = (int) a.get(2);
+            int count = (int)(a.get(2));
             Stock s = null;
             boolean newitem=true;
             for (int i=0; i<items.size();i++){

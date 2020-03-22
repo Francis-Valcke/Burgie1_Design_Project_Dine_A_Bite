@@ -13,7 +13,7 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
     private List<String> listDataHeader;
     private HashMap<String,List<String>> listHashMap;
 
-    public ExpandableListAdapter(List<String> listDataHeader, HashMap<String, List<String>> listHashMap) {
+    ExpandableListAdapter(List<String> listDataHeader, HashMap<String, List<String>> listHashMap) {
         this.listDataHeader = listDataHeader;
         this.listHashMap = listHashMap;
     }
@@ -59,7 +59,7 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
         if (convertView == null) {
             convertView = LayoutInflater.from(parent.getContext()).inflate(R.layout.custom_expandable_list_group, parent, false);
         }
-        TextView listHeader = (TextView)convertView.findViewById(R.id.list_header);
+        TextView listHeader = convertView.findViewById(R.id.list_header);
         listHeader.setText(headerTitle);
         return convertView;
     }
@@ -70,7 +70,7 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
         if (convertView == null) {
             convertView = LayoutInflater.from(parent.getContext()).inflate(R.layout.custom_expandable_list_item, parent, false);
         }
-        TextView textListHeader = (TextView)convertView.findViewById(R.id.list_item);
+        TextView textListHeader = convertView.findViewById(R.id.list_item);
         textListHeader.setText(childText);
         return convertView;
     }

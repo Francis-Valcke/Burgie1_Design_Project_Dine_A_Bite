@@ -74,7 +74,7 @@ public class MenuItemAdapter extends BaseAdapter {
 
         // Handle TextView to display one menu item name
         TextView listItemText = (TextView)view.findViewById(R.id.menu_item);
-        listItemText.setText(list.get(position).getItem());
+        listItemText.setText(list.get(position).getFoodName());
 
         // Handle TextView to display one menu item price
         TextView listItemPrice = (TextView)view.findViewById(R.id.menu_item_price);

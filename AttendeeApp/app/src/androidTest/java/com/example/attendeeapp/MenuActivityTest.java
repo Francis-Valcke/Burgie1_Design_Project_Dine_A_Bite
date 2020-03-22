@@ -10,6 +10,7 @@ import androidx.recyclerview.widget.RecyclerView.Adapter;
 import androidx.test.annotation.UiThreadTest;
 import androidx.test.espresso.intent.Intents;
 import androidx.test.rule.ActivityTestRule;
+import androidx.test.rule.GrantPermissionRule;
 import androidx.viewpager2.widget.ViewPager2;
 
 import com.google.android.material.tabs.TabLayout;
@@ -21,6 +22,7 @@ import org.junit.Test;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
 
 import static androidx.test.espresso.Espresso.onView;
 import static androidx.test.espresso.action.ViewActions.click;
@@ -36,13 +38,15 @@ public class MenuActivityTest {
     @Rule
     public ActivityTestRule<MenuActivity> rule =
             new ActivityTestRule<MenuActivity>(MenuActivity.class);
+    @Rule
+    public GrantPermissionRule permissionRule = GrantPermissionRule
+            .grant(android.Manifest.permission.ACCESS_FINE_LOCATION);
 
     private MenuActivity mActivity = null;
 
     @Before
     public void setUp() throws Exception {
         mActivity = rule.getActivity();
-        Intents.init();
     }
 
     @After
@@ -142,7 +146,7 @@ public class MenuActivityTest {
         for (int i = 0; i < 30; i++){
             String s = "food" + i%2;
             cartCount = mActivity.onCartChangedAdd(new MenuItem(s,
-                    new BigDecimal(Math.random()*100)));
+                    new BigDecimal(Math.random()*100), ""));
 
             // Only 10 of each should be added
             int a = i + 1;
@@ -165,7 +169,7 @@ public class MenuActivityTest {
         for (int i = 0; i < 15; i++){
             String s = "food";
             cartCount = mActivity.onCartChangedAdd(new MenuItem(s,
-                    new BigDecimal(Math.random()*100)));
+                    new BigDecimal(Math.random()*100), ""));
 
             // Only 10 items maximum
             b = i + 1;
@@ -177,7 +181,7 @@ public class MenuActivityTest {
         for (int i = 0; i < 30; i++){
             String s = "food" + i%2;
             cartCount = mActivity.onCartChangedAdd(new MenuItem(s,
-                    new BigDecimal(Math.random()*100)));
+                    new BigDecimal(Math.random()*100), ""));
 
             // Only 25 total items maximum
             int a = i + b + 1;
@@ -198,7 +202,7 @@ public class MenuActivityTest {
         for (int i = 0; i < 30; i++){
             String s = "food" + i;
             cartCount = mActivity.onCartChangedAdd(new MenuItem(s,
-                    new BigDecimal(Math.random()*100)));
+                    new BigDecimal(Math.random()*100), ""));
 
             // Only 25 total items maximum
             int a = i + 1;
@@ -214,7 +218,7 @@ public class MenuActivityTest {
     @Test
     public void testNextActivity() {
         ArrayList<MenuItem> cartList = new ArrayList<MenuItem>();
-        final MenuItem i = new MenuItem("food", new BigDecimal(0));
+        final MenuItem i = new MenuItem("food", new BigDecimal(0), "");
         cartList.add(i);
 
         try {
@@ -228,9 +232,16 @@ public class MenuActivityTest {
             Log.v("TestNextActivityError", e.toString());
         }
 
+        Intents.init();
+        try {
+            TimeUnit.SECONDS.sleep(2);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         onView(withId(R.id.cart_layout)).perform(click());
         intended(hasComponent(CartActivity.class.getName()));
         intended(hasExtra("cartList", cartList));
+        Intents.release();
     }
 
 }

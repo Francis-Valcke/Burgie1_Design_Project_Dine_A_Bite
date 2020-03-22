@@ -1,5 +1,6 @@
 package cobol.services.ordermanager;
 
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import cobol.services.ordermanager.dbmenu.Food;
 //import cobol.services.ordermanager.Food;
@@ -56,11 +57,16 @@ public class Order {
         Map<String,Double> coordinates = (Map<String,Double>)order_file.get("location");
         this.lat = (double) coordinates.get("latitude");
         this.lon = (double) coordinates.get("longitude");
-        Map<String,Integer> order_data = (Map<String,Integer>) order_file.get("order");
-        Iterator<String> keys = order_data.keySet().iterator();
-        while (keys.hasNext()){
-            String name_brandName = keys.next();
-            int amount = (int)order_data.get(name_brandName);
+        Map<String, JSONArray> order_data = (Map<String, JSONArray>) order_file.get("order");
+        Iterator<String> item_name = order_data.keySet().iterator();
+        while (item_name.hasNext()){
+            String name_brandName = item_name.next();
+            List data = (List) order_data.get(name_brandName);
+            int amount = (int) data.get(0);
+            String standName = (String) data.get(1);
+            if (!standName.equals("")) {
+                //TODO: split order, since stand is already chosen no recommendation is needed
+            }
             String[] args = name_brandName.split("_");
             full_order.put(args[0], amount);
         }

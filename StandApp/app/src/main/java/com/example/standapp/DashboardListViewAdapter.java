@@ -15,10 +15,10 @@ import java.util.List;
 
 public class DashboardListViewAdapter extends BaseAdapter {
 
-    LayoutInflater inflater;
-    List<ManagerDashboard.DashboardItem> items;
+    private LayoutInflater inflater;
+    private List<DashboardItem> items;
 
-    public DashboardListViewAdapter(Activity context, List<ManagerDashboard.DashboardItem> items) {
+    DashboardListViewAdapter(Activity context, List<DashboardItem> items) {
         super();
         this.items = items;
         this.inflater = (LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -41,20 +41,22 @@ public class DashboardListViewAdapter extends BaseAdapter {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        ManagerDashboard.DashboardItem  item = items.get(position);
+        DashboardItem  item = items.get(position);
         View view = convertView;
 
 
         if (convertView == null) {
             view = inflater.inflate(R.layout.custom_product_listview, null);
         }
-        ImageView icon = (ImageView) view.findViewById(R.id.icon_menu);
-        TextView title = (TextView) view.findViewById(R.id.textView_title);
-        TextView price = (TextView) view.findViewById(R.id.textView_price);
+        ImageView icon = view.findViewById(R.id.icon_menu);
+        TextView title = view.findViewById(R.id.textView_title);
+        TextView price = view.findViewById(R.id.textView_price);
+        TextView count = view.findViewById(R.id.textView_count_product);
 
-        icon.setImageResource(item.icon);
-        title.setText(item.title);
-        price.setText(item.price);
+        icon.setImageResource(item.getIcon());
+        title.setText(item.getTitle());
+        price.setText(item.getPrice());
+        count.setText(item.getCount());
 
         return view;
     }
