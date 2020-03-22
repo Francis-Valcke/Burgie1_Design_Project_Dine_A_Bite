@@ -1,25 +1,24 @@
 package com.example.standapp;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
 
-import android.content.Intent;
-import android.view.View;
-import android.widget.Button;
+import android.view.MenuItem;
 
 import android.os.Bundle;
-import android.widget.ExpandableListView;
 
-import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import com.google.android.material.navigation.NavigationView;
 
-public class MainActivity extends AppCompatActivity {
-    private Button buttonDashboard;
-    private ExpandableListView listView;
-    private ExpandableListAdapter listAdapter;
-    private List<String> listDataHeader;
-    private HashMap<String,List<String>> listHash;
+public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
+
+    private DrawerLayout drawer;
+    private static ProfileFragment profile;
+    private static OrderFragment order;
+    private static DashboardFragment dashboard;
 
     /**
      * This onCreate function is the first function that will be run when the MainActivity opens up
@@ -29,50 +28,57 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        buttonDashboard = (Button) findViewById(R.id.button_dashboard);
-        buttonDashboard.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                openManagerDashboard();
-            }
-        });
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
 
-        listView = (ExpandableListView)findViewById(R.id.expandable_listview);
-        initData();
-        listAdapter = new ExpandableListAdapter(listDataHeader,listHash);
-        listView.setAdapter(listAdapter);
+        drawer = findViewById(R.id.drawer_layout);
+        NavigationView navigationView = findViewById(R.id.nav_view);
+        navigationView.setNavigationItemSelectedListener(this);
+
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        drawer.addDrawerListener(toggle);
+        toggle.syncState();
+
+        profile = new ProfileFragment();
+        order = new OrderFragment();
+        dashboard = new DashboardFragment();
+
+        if (savedInstanceState == null) {
+            getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, profile).commit();
+            navigationView.setCheckedItem(R.id.nav_profile);
+        }
     }
 
     /**
-     * Initialize the orders, currently hardcoded, later this will be provided by the server
+     * This function is called when an item is clicked in the navigation drawer, and depending on the item clicked, the corresponding switch case will be selected
+     * @param item the item in navigation drawer that was selected by the user
      */
-    private void initData() {
-        listDataHeader = new ArrayList<>();
-        listHash = new HashMap<>();
+    @Override
+    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
 
-        listDataHeader.add("Order#1");
-        listDataHeader.add("Order#2");
+        switch (item.getItemId()) {
+            case R.id.nav_profile:
+                getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, profile).commit();
+                break;
+            case R.id.nav_orders:
+                getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, order).commit();
+                break;
+            case R.id.nav_dashboard:
+                //if (items != null) dashboard.setItems(items);
+                getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, dashboard).commit();
+                break;
+        }
 
-        List<String> order1 = new ArrayList<>();
-        order1.add("2 Fries");
-        order1.add("3 Cheeseburgers");
-
-        listHash.put(listDataHeader.get(0), order1);
-
-        List<String> order2 = new ArrayList<>();
-        order2.add("22 Chickennuggets");
-        order2.add("5 Pizza Margheritta");
-        order2.add("1270 Fanta");
-
-        listHash.put(listDataHeader.get(1), order2);
-        //listView.expandGroup(0);
+        drawer.closeDrawer(GravityCompat.START);
+        return true;
     }
 
-    /**
-     * Opens up the dashboard activity
-     */
-    public void openManagerDashboard() {
-        Intent intent = new Intent(this, ManagerDashboard.class);
-        startActivity(intent);
+    @Override
+    public void onBackPressed() {
+        if (drawer.isDrawerOpen(GravityCompat.START)) {
+            drawer.closeDrawer(GravityCompat.START);
+        } else {
+            super.onBackPressed();
+        }
     }
 }
