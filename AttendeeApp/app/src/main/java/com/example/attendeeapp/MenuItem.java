@@ -14,12 +14,12 @@ public class MenuItem implements Serializable {
     private static final int MAX_ITEM = 10;
     private String foodName;
     private BigDecimal price;
-    private int count=0;
+    private int count = 0;
 
-    private String standName;
+    private String standName = "";
     private String brandName;
     HashSet<String> category = new HashSet<String>();
-    String description;
+    String description = "";
 
     public MenuItem(String foodName, BigDecimal price, String brandName) {
         this.foodName = foodName;

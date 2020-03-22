@@ -57,9 +57,10 @@ public class MenuFragmentGlobal extends MenuFragment {
      * Overloaded function of abstract MenuFragment superclass
      * Error are handled in the fetchMenu (superclass) function
      * @param response: the JSON response from the server
+     * @param standName: the requested menu standName, "" is global
      * @throws JSONException
      */
-    public void updateMenu(JSONObject response) throws JSONException {
+    public void updateMenu(JSONObject response, String standName) throws JSONException {
         // Renew the list
         menuItems.clear();
         //Log.v("response", "Response: " + response.toString());

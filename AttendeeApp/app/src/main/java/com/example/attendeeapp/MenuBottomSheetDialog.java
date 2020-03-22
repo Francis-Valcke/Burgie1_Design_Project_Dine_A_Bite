@@ -31,9 +31,11 @@ public class MenuBottomSheetDialog extends BottomSheetDialogFragment {
         View view = inflater.inflate(R.layout.fragment_menu_bottom_sheet, container,
                             false);
 
-        // Handle TextView to display the menu item name
+        // Handle TextView to display the menu item name, if this name has a stand, display it too
         TextView listItemText = (TextView)view.findViewById(R.id.menu_item_bottom);
-        listItemText.setText(item.getFoodName());
+        String name = item.getFoodName();
+        if(!item.getStandName().equals("")) name += " (" + item.getStandName() + ")";
+        listItemText.setText(name);
 
         // Handle TextView to display the menu item price
         TextView listItemPrice = (TextView)view.findViewById(R.id.price_item_bottom);

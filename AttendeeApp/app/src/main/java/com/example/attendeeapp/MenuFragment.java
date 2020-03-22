@@ -38,9 +38,10 @@ public abstract class MenuFragment extends Fragment {
      * Updates the current global/stand menu with the updated version returned from the server
      * The global and stand fragment handle the adding of the menu items themselves
      * @param response: the JSON response from the server
+     * @param standName: the requested menu standName, "" is global
      * @throws JSONException
      */
-    public abstract void updateMenu(JSONObject response) throws JSONException;
+    public abstract void updateMenu(JSONObject response, String standName) throws JSONException;
 
     /**
      * Function to fetch the global or stand menu from the server in JSON
@@ -51,7 +52,7 @@ public abstract class MenuFragment extends Fragment {
      * @param standName: the name of the stand to request the menu of,
      *                "" if the global menu is required
      */
-    protected void fetchMenu(String standName){
+    protected void fetchMenu(final String standName){
         // Instantiate the RequestQueue
         RequestQueue queue = Volley.newRequestQueue(getActivity());
         String url = "http://cobol.idlab.ugent.be:8091/";
@@ -72,7 +73,7 @@ public abstract class MenuFragment extends Fragment {
 
                 try {
                     // Let fragments handle the response
-                    updateMenu(response);
+                    updateMenu(response, standName);
                 } catch (Exception e) { // Catch all exceptions TODO: only specific ones
                     Log.v("Exception fetchMenu", e.toString());
                     if (mToast != null) mToast.cancel();

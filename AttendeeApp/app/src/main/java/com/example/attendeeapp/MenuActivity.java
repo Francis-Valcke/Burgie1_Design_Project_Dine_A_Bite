@@ -95,8 +95,9 @@ public class MenuActivity extends AppCompatActivity implements OnCartChangeListe
             try {
                 boolean contains = false;
                 for (MenuItem i : cartList) {
-                    if (i.getFoodName().equals(cartItem.getFoodName())) {
-                        // cartItems have a unique name
+                    if (i.getFoodName().equals(cartItem.getFoodName()) &&
+                            i.getStandName().equals(cartItem.getStandName())) {
+                        // cartItems have a unique foodName and standName
                         i.increaseCount();
                         contains = true;
                         break;
@@ -138,7 +139,8 @@ public class MenuActivity extends AppCompatActivity implements OnCartChangeListe
             try {
                 boolean contains = false;
                 for (MenuItem i : cartList) {
-                    if (i.getFoodName().equals(cartItem.getFoodName())) {
+                    if (i.getFoodName().equals(cartItem.getFoodName()) &&
+                            i.getStandName().equals(cartItem.getStandName())) {
                         // cartItems have a unique name
                         i.decreaseCount();
                         if (i.getCount() == 0){

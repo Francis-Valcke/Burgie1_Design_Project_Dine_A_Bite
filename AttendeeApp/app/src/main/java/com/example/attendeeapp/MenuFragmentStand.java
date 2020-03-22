@@ -168,9 +168,10 @@ public class MenuFragmentStand extends MenuFragment implements AdapterView.OnIte
      * Overloaded function of abstract MenuFragment superclass
      * Error are handled in the fetchMenu (superclass) function
      * @param response: the JSON response from the server
+     * @param standName: the requested menu standName, "" is global
      * @throws JSONException
      */
-    public void updateMenu(JSONObject response) throws JSONException {
+    public void updateMenu(JSONObject response, String standName) throws JSONException {
         // Renew the list
         menuItems.clear();
         //Log.v("response", "Response: " + response.toString());
@@ -181,6 +182,7 @@ public class MenuFragmentStand extends MenuFragment implements AdapterView.OnIte
             String brandName = jsonArray.getString(0);
             double price = jsonArray.getDouble(1);
             MenuItem item = new MenuItem(foodName, new BigDecimal(price), brandName);
+            item.setStandName(standName);
 
             JSONArray cat_array = jsonArray.getJSONArray(2);
             for (int j = 0; j < cat_array.length(); j++) {
