@@ -41,6 +41,10 @@ public class MenuBottomSheetDialog extends BottomSheetDialogFragment {
         TextView listItemPrice = (TextView)view.findViewById(R.id.price_item_bottom);
         listItemPrice.setText(item.getPriceEuro());
 
+        // Handle TextView to display the brandName
+        TextView listItemBrand = (TextView)view.findViewById(R.id.brandName_bottom);
+        listItemBrand.setText(item.getBrandName());
+
         // Handle TextView to display the description
         TextView listItemDescr = (TextView)view.findViewById(R.id.description_bottom);
         listItemDescr.setText(item.getDescription());
