@@ -23,7 +23,7 @@ public class Order {
     }
 
 
-    public Map<Food, Integer> getFull_order(){
+    public Map<String, Integer> getFull_order(){
         return this.full_order;
     }
     // TODO: these 2 functions only temporary for remaining time (think this should be through event channel)
@@ -90,11 +90,4 @@ public class Order {
         this.orderStatus = state;
     }
 
-    public void setStand_id(int id) {
-        this.stand_id = id;
-    }
-
-    public int getStand_id() {
-        return this.stand_id;
-    }
 }
