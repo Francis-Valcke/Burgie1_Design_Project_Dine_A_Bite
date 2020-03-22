@@ -12,7 +12,7 @@
         android:layout_marginStart="20dp"
         android:layout_marginBottom="10dp"
         android:layout_marginTop="10dp"
-        android:textColor="#EA2929"
+        android:textColor="@color/colorPrimary"
         android:textAppearance="@style/TextAppearance.AppCompat.Title"
         android:text="@string/update_item" />
 
@@ -96,6 +96,6 @@
         android:layout_marginLeft="150dp"
         android:layout_marginTop="10dp"
         android:layout_marginRight="150dp"
-        android:backgroundTint="#4CAF50"
+        android:backgroundTint="@color/colorPrimary"
         android:text="@string/done" />
 </LinearLayout>
