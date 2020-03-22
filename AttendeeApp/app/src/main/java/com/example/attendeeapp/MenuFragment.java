@@ -1,5 +1,6 @@
 package com.example.attendeeapp;
 
+import android.util.Log;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -18,10 +19,8 @@ import com.android.volley.toolbox.Volley;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 
 /**
@@ -35,6 +34,13 @@ public abstract class MenuFragment extends Fragment {
     protected SwipeRefreshLayout pullToRefresh;
     protected Toast mToast;
 
+    /**
+     * Updates the current global/stand menu with the updated version returned from the server
+     * The global and stand fragment handle the adding of the menu items themselves
+     * @param response: the JSON response from the server
+     * @throws JSONException
+     */
+    public abstract void updateMenu(JSONObject response) throws JSONException;
 
     /**
      * Function to fetch the global or stand menu from the server in JSON
@@ -42,47 +48,38 @@ public abstract class MenuFragment extends Fragment {
      * TODO: store menu in cache / fetch menu at splash screen /
      * TODO: do not update when menu has not changed
      * TODO: notify user when cart item no long available
-     * TODO: add standName to menuItem!
-     * IMPORTANT:
-     * TODO: change urls and change POST request to GET @server
      * @param standName: the name of the stand to request the menu of,
      *                "" if the global menu is required
      */
     protected void fetchMenu(String standName){
         // Instantiate the RequestQueue
         RequestQueue queue = Volley.newRequestQueue(getActivity());
-        String url = "http://cobol.idlab.ugent.be:8092/";
+        String url = "http://cobol.idlab.ugent.be:8091/";
         int req = Request.Method.GET;
         if(standName.equals("")){
             url = url + "menu";
         } else {
-            //url = "http://localhost:8080/";
+            //url = "http://localhost:8080/standmenu?standname=" + standName;
             url = url + "standmenu?standname=" + standName;
-            req = Request.Method.POST;
         }
 
-        // Request the global/stand menu in JSON from the stand manager
+        // Request the global/stand menu in JSON from the order manager
         // Handle no network connection or server not reachable
         JsonObjectRequest jsonRequest = new JsonObjectRequest(req, url, null,
                                                             new Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject response) {
+
                 try {
-                    // Renew the list
-                    menuItems.clear();
-                    //Log.v("response", "Response: " + response.toString());
-                    for (Iterator<String> iter = response.keys(); iter.hasNext(); ) {
-                        String key = iter.next();
-                        String price = response.getString(key);
-                        menuItems.add(new MenuItem(key, new BigDecimal(Double.valueOf(price))));
-                    }
-                    menuAdapter.putList(menuItems);
-                    menuAdapter.notifyDataSetChanged();
-
-                } catch (JSONException e) {
-                    e.printStackTrace();
+                    // Let fragments handle the response
+                    updateMenu(response);
+                } catch (Exception e) { // Catch all exceptions TODO: only specific ones
+                    Log.v("Exception fetchMenu", e.toString());
+                    if (mToast != null) mToast.cancel();
+                    mToast = Toast.makeText(getActivity(), "An error occurred when fetching the menu!",
+                            Toast.LENGTH_LONG);
+                    mToast.show();
                 }
-
             }
         }, new Response.ErrorListener() {
             @Override

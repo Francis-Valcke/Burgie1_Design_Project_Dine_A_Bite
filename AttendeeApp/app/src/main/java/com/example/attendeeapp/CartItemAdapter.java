@@ -47,7 +47,7 @@ public class CartItemAdapter  extends BaseAdapter {
 
         //Handle TextView to display one cart item name
         TextView listItemText = (TextView)view.findViewById(R.id.cart_item);
-        listItemText.setText(list.get(position).getItem());
+        listItemText.setText(list.get(position).getFoodName());
 
         //Handle TextView to display one cart item price
         TextView listItemPrice = (TextView)view.findViewById(R.id.cart_item_price);

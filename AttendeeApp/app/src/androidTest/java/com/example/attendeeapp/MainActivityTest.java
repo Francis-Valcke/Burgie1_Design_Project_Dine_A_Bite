@@ -5,6 +5,7 @@ import android.app.Instrumentation;
 import android.view.View;
 import android.widget.LinearLayout;
 
+import androidx.test.espresso.intent.Intents;
 import androidx.test.platform.app.InstrumentationRegistry;
 import androidx.test.rule.ActivityTestRule;
 
@@ -13,6 +14,10 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
+import java.util.concurrent.TimeUnit;
+
+import static androidx.test.espresso.intent.Intents.intended;
+import static androidx.test.espresso.intent.matcher.IntentMatchers.hasComponent;
 import static org.junit.Assert.*;
 
 /**
@@ -53,9 +58,13 @@ public class MainActivityTest {
      */
     @Test
     public void isLaunchingNext() {
-        Activity menuActivity = InstrumentationRegistry.getInstrumentation()
-                .waitForMonitorWithTimeout(monitor, 1000);
-        assertNotNull(menuActivity);
-        menuActivity.finish();
+        Intents.init();
+        try {
+            TimeUnit.MILLISECONDS.sleep(1500);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        intended(hasComponent(MenuActivity.class.getName()));
+        Intents.release();
     }
 }

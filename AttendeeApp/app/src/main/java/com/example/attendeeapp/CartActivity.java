@@ -12,6 +12,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.View;
@@ -204,7 +205,7 @@ public class CartActivity extends AppCompatActivity {
         JSONObject js_location = new JSONObject();
         try {
             for(MenuItem i : ordered) {
-                    js_items.put(i.getItem(), i.getCount());
+                    js_items.put(i.getFoodName(), i.getCount());
             }
 
             if(lastLocation != null) {
@@ -218,7 +219,7 @@ public class CartActivity extends AppCompatActivity {
             js.put("order", js_items);
 
         } catch (JSONException e){
-            e.printStackTrace();
+            Log.v("JSONException in cart", e.toString());
         }
         // Instantiate the RequestQueue
         RequestQueue queue = Volley.newRequestQueue(this);

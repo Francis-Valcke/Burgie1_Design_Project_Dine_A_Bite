@@ -33,11 +33,15 @@ public class MenuBottomSheetDialog extends BottomSheetDialogFragment {
 
         // Handle TextView to display the menu item name
         TextView listItemText = (TextView)view.findViewById(R.id.menu_item_bottom);
-        listItemText.setText(item.getItem());
+        listItemText.setText(item.getFoodName());
 
         // Handle TextView to display the menu item price
         TextView listItemPrice = (TextView)view.findViewById(R.id.price_item_bottom);
         listItemPrice.setText(item.getPriceEuro());
+
+        // Handle TextView to display the description
+        TextView listItemDescr = (TextView)view.findViewById(R.id.description_bottom);
+        listItemDescr.setText(item.getDescription());
 
         // Handle plus and minus Buttons and add onClickListeners for one menu item
         Button plusBtn = (Button)view.findViewById(R.id.bottom_sheet_plus);
