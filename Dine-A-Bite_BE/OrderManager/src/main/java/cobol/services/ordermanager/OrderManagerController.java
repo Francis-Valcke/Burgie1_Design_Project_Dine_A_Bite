@@ -1,32 +1,29 @@
 package cobol.services.ordermanager;
 
 import cobol.commons.Event;
-import org.json.simple.JSONObject;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
 import cobol.commons.ResponseModel;
-import org.springframework.http.ResponseEntity;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.json.simple.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.PostConstruct;
 import java.util.List;
 
+import static cobol.commons.ResponseModel.status.OK;
+
 /**
  * This class handles communication from standapplication: incoming changes to stand menus are registered in the menuhandler
  * This class also handles menurequests from the attendee applications, fetching the menus from the menuhandler
- * 
+ * <p>
  * TODO: merge with code Wannes for Order functionality
  */
-import static cobol.commons.ResponseModel.status.OK;
 
 @RestController
 public class OrderManagerController {
@@ -93,6 +90,7 @@ public class OrderManagerController {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         String uri = "http://localhost:8081/getRecommendation";
+        headers.add("Authorization", "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJPcmRlck1hbmFnZXIiLCJyb2xlcyI6WyJST0xFX0FQUExJQ0FUSU9OIl0sImlhdCI6MTU4NDkxMTY3MSwiZXhwIjoxNzQyNTkxNjcxfQ.VmujsURhZaXRp5FQJXzmQMB-e6QSNF-OyPLeMEMOVvI");
         HttpEntity<String> request = new HttpEntity<>(jsonString, headers);
         JSONObject ret = template.postForObject(uri, request, JSONObject.class);
         ret.put("order_id", new_order.getId());

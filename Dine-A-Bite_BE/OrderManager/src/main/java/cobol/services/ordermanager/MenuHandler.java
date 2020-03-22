@@ -1,12 +1,9 @@
 package cobol.services.ordermanager;
 
-
 import cobol.services.ordermanager.dbmenu.*;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.json.simple.JSONObject;
-import org.json.simple.JSONValue;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -146,28 +143,25 @@ public class MenuHandler {
      * @return "stand name already taken" if a stand tries to take a name of an existing stand of a different brand
      */
 
-    String addStand(JSONObject menu) throws JsonProcessingException {
+    public String addStand(JSONObject menu) throws JsonProcessingException {
 
-        /**
-         * Initialise stand
-         */
+        //Initialise stand
+
         List<Stand> stands = standRepository.findStands();
         String standname = null;
         Number llon = 0;
         Number llat = 0;
         String brandname = null;
         Set<String> keys = menu.keySet();
-        /**
-         * Look if standname in JSON file
-         */
+        //Look if standname in JSON file
+
         for (String key : keys) {
             if (((ArrayList)menu.get(key)).size()==3){
                 standname = key;
             }
         }
-        /**
-         * Look if stand already exists
-         */
+        //Look if stand already exists
+
         boolean newstand = true;
         Stand n = null;
         ArrayList st = (ArrayList) menu.get(standname);
@@ -182,9 +176,8 @@ public class MenuHandler {
 
             }
         }
-        /**
-         * Save stand
-         */
+        //Save stand
+
         llon = (Number) st.get(1);
         llat = (Number) st.get(2);
         if (newstand){
@@ -200,21 +193,18 @@ public class MenuHandler {
         if (newstand){
             si=new StandInfo(n.getId(),n.getFull_name(),n.getBrandname(),(long)n.getLocation_lat(),(long)n.getLocation_lon());
         }
-        /**
-         * Add/edit menu
-         */
+        //Add/edit menu
+
         List<Food> f = (List<Food>) food_Repository.findByBrand(brandname);
         for (String key : keys) {
-            /**
-             * Look for menu items in JSON file
-             */
+            //Look for menu items in JSON file
+
             ArrayList a = (ArrayList) menu.get(key);
             if (((ArrayList)menu.get(key)).size()==3){
                 continue;//this is standname, not menu item
             }
-            /**
-             * check if food item already part of brand
-             */
+            //check if food item already part of brand
+
             boolean b=false;
             Food fp=null;
             for (int k =0;k<f.size();k++){
@@ -224,16 +214,14 @@ public class MenuHandler {
 
                 }
             }
-            /**
-             * make new food item if there does not exist a food item of brand with same name already
-             */
+            //make new food item if there does not exist a food item of brand with same name already
+
             if (!b) {
                 fp = new Food();
                 fp.setName(key);
             }
-            /**
-             * Edit food item attributes
-             */
+            //Edit food item attributes
+
             Float d = ((Number) a.get(0)).floatValue();
             int preptime =(int) a.get(1);
             String desc = (String) a.get(4);
@@ -306,6 +294,7 @@ public class MenuHandler {
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
             String uri = "http://localhost:8081/newStand";
+            headers.add("Authorization", "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJPcmRlck1hbmFnZXIiLCJyb2xlcyI6WyJST0xFX0FQUExJQ0FUSU9OIl0sImlhdCI6MTU4NDkxMTY3MSwiZXhwIjoxNzQyNTkxNjcxfQ.VmujsURhZaXRp5FQJXzmQMB-e6QSNF-OyPLeMEMOVvI");
             HttpEntity<String> request = new HttpEntity<>(jsonString, headers);
             boolean addinfo = (boolean) template.postForObject(uri, request, JSONObject.class).get("added");
             if (addinfo)System.out.println("Scheduler added");
