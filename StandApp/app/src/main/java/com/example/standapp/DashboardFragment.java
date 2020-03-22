@@ -32,6 +32,7 @@ import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 
 import org.json.JSONArray;
@@ -99,13 +100,15 @@ public class DashboardFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 // Create JSON Object to send to the server
-                JSONObject js = new JSONObject();
+                final JSONObject js = new JSONObject();
                 JSONArray js_value = new JSONArray(); //[brandname,lon,lat]
+                double longitude = 360.0;
+                double latitude = 360.0;
 
                 try {
                     js_value.put(brandname.getText().toString()); //first the brandname is added, after that the two coordinates are added in the next lines
-                    js_value.put(360.0); //longitude -> TODO: hardcoded currently, fix later
-                    js_value.put(360.0);//latitude -> TODO: hardcoded currently, fix later
+                    js_value.put(longitude); //longitude -> TODO: hardcoded currently, fix later
+                    js_value.put(latitude);//latitude -> TODO: hardcoded currently, fix later
                     js.put(standname.getText().toString(), js_value);
 
                     for (DashboardItem i: items) {
@@ -124,6 +127,7 @@ public class DashboardFragment extends Fragment {
                         js.put(i.getTitle(), js_item_values);
                         i.setCount("0");
                     }
+                    adapter.notifyDataSetChanged();
                     if (js.length() == 1) {
                         Toast mToast = Toast.makeText(getContext(), "Nothing to send!", Toast.LENGTH_SHORT);
                         mToast.show();
@@ -135,27 +139,31 @@ public class DashboardFragment extends Fragment {
 
                 //Instantiate the RequestQueue
                 RequestQueue queue = Volley.newRequestQueue(getContext());
-                String url = "http://cobol.idlab.ugent.be:8092/standmenu?standname=food1"; // TODO: fix url
+                String url = "http://cobol.idlab.ugent.be:8091/addstand"; // TODO: fix url
 
-                //Sen
-                JsonObjectRequest jsonRequest = new JsonObjectRequest(Request.Method.POST, url, js, new Response.Listener<JSONObject>() {
+                //POST
+                StringRequest jsonRequest = new StringRequest(Request.Method.POST, url, new Response.Listener<String>() {
                     @Override
-                    public void onResponse(JSONObject response) {
-                        Toast mToast = Toast.makeText(getContext(), "Submission succesful!", Toast.LENGTH_SHORT);
+                    public void onResponse(String response) {
+                        Toast mToast = Toast.makeText(getContext(), response, Toast.LENGTH_SHORT);
                         mToast.show();
                     }
                 }, new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
-                        Toast mToast = Toast.makeText(getContext(), "Submission failed", Toast.LENGTH_SHORT);
+                        error.printStackTrace();
+                        Toast mToast = Toast.makeText(getContext(), error.toString(), Toast.LENGTH_SHORT);
                         mToast.show();
                     }
                 }) {
                     @Override
-                    public Map<String, String> getHeaders() throws AuthFailureError {
-                        Map<String,String> headers = new HashMap<String,String>();
-                        headers.put("Content-Type","application/json");
-                        return headers;
+                    public byte[] getBody() throws AuthFailureError {
+                        return js.toString().getBytes();
+                    }
+
+                    @Override
+                    public String getBodyContentType() {
+                        return "application/json";
                     }
                 };
                 //Add the request to the RequestQueue
