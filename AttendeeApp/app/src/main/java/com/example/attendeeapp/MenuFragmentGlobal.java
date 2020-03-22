@@ -74,9 +74,11 @@ public class MenuFragmentGlobal extends MenuFragment {
             MenuItem item = new MenuItem(foodName, new BigDecimal(price), brandName);
 
             // Add categories to the menuItem
-            JSONArray cat_array = jsonArray.getJSONArray(1);
-            for (int j = 0; j < cat_array.length(); j++) {
-                item.addCategory((String) cat_array.get(j));
+            if(!jsonArray.getString(1).equals("null")) {
+                JSONArray cat_array = jsonArray.getJSONArray(1);
+                for (int j = 0; j < cat_array.length(); j++) {
+                    item.addCategory((String) cat_array.get(j));
+                }
             }
             // Add the description, if provided
             String description = jsonArray.getString(2);
