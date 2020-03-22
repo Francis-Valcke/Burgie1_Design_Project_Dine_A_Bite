@@ -56,14 +56,12 @@ public class OrderManagerTest {
     @Autowired
     ObjectMapper objectMapper;
 
-    @Before
     public void setup() {
         this.mockMvc = webAppContextSetup(this.applicationContext)
                 .apply(springSecurity())
                 .build();
     }
 
-    @Test
     public void pingTest() throws Exception {
         this.mockMvc
                 .perform(
@@ -71,8 +69,6 @@ public class OrderManagerTest {
                 )
                 .andExpect(status().isOk());
     }
-
-    @Test
     public void placeOrderTest() throws Exception {
         OrderEntry entry = new OrderEntry();
         JSONObject response = new JSONObject(this.mockMvc
