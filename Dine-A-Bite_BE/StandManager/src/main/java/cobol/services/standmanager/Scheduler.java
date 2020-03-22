@@ -1,7 +1,9 @@
 package cobol.services.standmanager;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import cobol.services.ordermanager.Order;
 
@@ -14,11 +16,12 @@ import cobol.services.ordermanager.Order;
  */
 public class Scheduler extends Thread {
     private List<Order> inc = new ArrayList<Order>();
-    private List<Food> menu =new ArrayList<Food>();
+    private Map<String, int[]> menu =new HashMap<>();
     private String standname;
     private int id;
     private double lon;
     private double lat;
+    private String brand;
 
     public double getLon(){
         return this.lon;
@@ -36,16 +39,27 @@ public class Scheduler extends Thread {
         this.lat = l;
     }
 
-    public List<Food> getMenu(){
-        return menu;
+    public Map<String, int[]> getMenu(){
+        return this.menu;
     }
+
     public int getStandId(){
         return this.id;
     }
-    public Scheduler(List<Food> types, String standname, int id){
-        this.menu=types;
+
+    public String getStandName(){
+        return this.standname;
+    }
+
+    public String getBrand(){
+        return this.brand;
+    }
+
+    public Scheduler(Map<String, int[]> menu, String standname, int id, String brand){
+        this.menu=menu;
         this.standname=standname;
         this.id = id;
+        this.brand = brand;
     }
 
     /**
@@ -82,8 +96,8 @@ public class Scheduler extends Thread {
      * @return true/false
      */
     public boolean checkType(String type){
-        for (int i= 0; i<menu.size();i++){
-            if (menu.get(i).getType().equals(type)){
+        for (String food : menu.keySet()){
+            if (food == type){
                 return true;
             }
         }
@@ -99,33 +113,20 @@ public class Scheduler extends Thread {
      * TODO: remove 1 (second) from all orders that are flagged as "under preparation" (+ add flag for "preparation")
         */
     public void prepClock(){
-        if (inc.get(0).getRemtime()==0) {
-            if (inc.size()==0) return;
-            orderDone();
+        if (inc.size() == 0){
+            return;
         }
-        for (int i = 0; i < inc.size() ; i++){
-            decreaseOrderTime(inc.get(i));
+        else {
+            if (inc.get(0).getRemtime() == 0) {
+                if (inc.size() == 0) return;
+                orderDone();
+            }
+            for (int i = 0; i < inc.size(); i++) {
+                decreaseOrderTime(inc.get(i));
+            }
         }
     }
 
-    /**
-     * calls prepClock() every second
-     */
-  /*  public void run(){
-
-            for (int i = 0; i < 60; i++) {
-                try {
-                    TimeUnit.SECONDS.sleep(1);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-               // prepClock();
-
-                if (i==60){
-                  i=0;
-            }
-        }
-    }*/
   public void run(){
       while (true){
           try {
@@ -137,7 +138,4 @@ public class Scheduler extends Thread {
       }
   }
 
-    public String getStandname() {
-        return standname;
-    }
 }

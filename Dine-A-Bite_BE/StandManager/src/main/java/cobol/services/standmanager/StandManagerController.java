@@ -41,8 +41,8 @@ public class StandManagerController {
     /**
      * In order to temporarily test the functionalities of the stand manager,
      * without a proper ordering process and without proper initialization of stands,
-     * this function initializes a possible state of the server with 2 running schedulers of 2 distincts foodstands: "food1" and "food2".
-     * To start this up, simply send a GET message to localhost:8080/start
+     * this function initializes a possible state of the server with 2 running schedulers
+     * To start this up, simply send a GET message to localhost:8081/start
      * TODO: replace this with proper testing function? (JUnit/Rest assured)
      */
     @RequestMapping("/start")
@@ -50,33 +50,12 @@ public class StandManagerController {
         /**
          * Initialize stand menus and schedulers
          */
-        Food f1 = new Food("apple", 10, 4);
-        Food f2 = new Food("burger", 15,  10);
-        Food f3 = new Food("pizza", 20,  15);
-        Food f4 = new Food("pizza with salami", 20,  16);
-        List<Food> fs = new ArrayList<Food>();
-        fs.add(f1);
-        fs.add(f2);
-        fs.add(f3);
-        List<Food> fs2 = new ArrayList<Food>();
-        fs2.add(f1);
-        fs2.add(f2);
-        fs2.add(f4);
-        Scheduler a = new Scheduler(fs, "food1", 1);
-        Scheduler b = new Scheduler(fs2, "food2",2);
-        /*a.addOrder(new Order(f1, 0));
-        a.addOrder(new Order(f2, 0));
-        a.addOrder(new Order(f3, 1));
-        a.addOrder(new Order(f3, 2));
-        b.addOrder(new Order(f1, 0));
-        b.addOrder(new Order(f2, 0));
-        b.addOrder(new Order(f2, 0));
-        b.addOrder(new Order(f1, 1));
-        b.addOrder(new Order(f1, 2));
-        */
-        a.addOrder(new Order());
-        a.addOrder(new Order());
-        b.addOrder(new Order());
+        System.out.println("TESTTEST");
+        Map<String, int[]> menu = new HashMap<>();
+        int[] prijsenpreptime = {2,3};
+        menu.put("burger", prijsenpreptime);
+        Scheduler a = new Scheduler(menu, "food1", 1, "mcdo");
+        Scheduler b = new Scheduler(menu, "food2",2, "burgerking");
 
         schedulers.add(a);
         schedulers.add(b);
@@ -88,15 +67,30 @@ public class StandManagerController {
         }
 
     }
+
     /**
-     * @return the name of the recommended stand in JSON format.
-     * @RequestParam() String foodtype: post a type of food
-     * (In Postman: Select POST, go to params, enter "foodtype" as KEY and enter a menu item as value)
-     * (ex:localhost:8080/post?foodtype=pizza)
-     * (in current test above: "pizza", "apple", "burger" and "pizza with salami" are menu items)
+     *
+     * @param info class object StandInfo which is used to start a scheduler for stand added in order manager
+     * available at localhost:8081/newStand
+     * @return true (if no errors)
      */
-    //@RequestMapping(value ="/post", method = RequestMethod.POST)
-    @RequestMapping(value = "/post", consumes = "application/json")
+    @RequestMapping(value = "/newStand", consumes = "application/json")
+    public boolean addNewStand(@RequestBody() StandInfo info){
+        Scheduler s = new Scheduler(info.getMenu(), info.getName(), info.getId(), info.getBrand());
+        s.setLat(info.getLat());
+        s.setLon(info.getLon());
+        schedulers.add(s);
+        s.start();
+        return true;
+    }
+
+
+    /**
+     *
+     * @param order order object for which the Order Manager wants a recommendation
+     * @return recommendation in JSON format
+     */
+    @RequestMapping(value = "/getRecommendation", consumes = "application/json")
     @ResponseBody
     public JSONObject postOrder(@RequestBody() Order order) {
         System.out.println("User requested recommended stand for " + order.getId());
@@ -111,15 +105,15 @@ public class StandManagerController {
      */
     public ArrayList<Scheduler> findCorrespondStands(Order order){
         /* first get the Map with all the food of the order */
-        Map<Food, Integer> foodMap = order.getFull_order();
+        Map<String, Integer> foodMap = order.getFull_order();
 
         /* group all stands (schedulers) with the correct type of food available */
         ArrayList<Scheduler> goodSchedulers = new ArrayList<>();
         for (int i = 0; i < schedulers.size(); i++) {
             Boolean validStand = true;
             Scheduler currentScheduler = schedulers.get(i);
-            for (Food food : foodMap.keySet()) {
-                if (currentScheduler.checkType(food.getType())) {
+            for (String food : foodMap.keySet()) {
+                if (currentScheduler.checkType(food)) {
                     validStand = true;
                 }
                 else{
@@ -172,7 +166,7 @@ public class StandManagerController {
             add.put("stand_id", curScheduler.getStandId());
             add.put("time_estimate", curScheduler.timeSum());
             System.out.println(curScheduler.timeSum());
-            obj.put(curScheduler.getStandname(), add);
+            obj.put(curScheduler.getStandName(), add);
         }
         return obj;
     }

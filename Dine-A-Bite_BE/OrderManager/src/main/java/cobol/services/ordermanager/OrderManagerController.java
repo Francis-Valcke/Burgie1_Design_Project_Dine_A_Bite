@@ -90,18 +90,19 @@ public class OrderManagerController {
         RestTemplate template = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        String uri = "http://localhost:8080/getRecommendation";
+        String uri = "http://localhost:8081/getRecommendation";
         HttpEntity<String> request = new HttpEntity<>(jsonString, headers);
-        //JSONObject ret = template.postForObject(uri, request, JSONObject.class);
-        //ret.put("order_id", new_order.getId());
+        JSONObject ret = template.postForObject(uri, request, JSONObject.class);
+        ret.put("order_id", new_order.getId());
         //TODO: Uncomment lines above when recommender is available
+
         //The following is a hardcoded recommendation
-        JSONObject ret = new JSONObject();
-        ret.put("order_id", 1);
+        //JSONObject ret = new JSONObject();
+        /*ret.put("order_id", 1);
         JSONObject stand = new JSONObject();
         stand.put("stand_id" , 1);
         stand.put("estimated_time", 5);
-        ret.put("recommendation", stand);
+        ret.put("recommendation", stand);*/
         return ret;
     }
 

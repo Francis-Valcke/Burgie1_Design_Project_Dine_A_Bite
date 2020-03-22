@@ -13,6 +13,7 @@ public class Order {
     private Map<String, Integer> full_order = new HashMap<>();
     private double lat;
     private double lon;
+    private int stand_id;
 
     public double getLat(){
         return this.lat;
@@ -90,4 +91,12 @@ public class Order {
         this.orderStatus = state;
     }
 
+
+    public void setStand_id(int id) {
+        this.stand_id = id;
+    }
+
+    public int getStand_id() {
+        return this.stand_id;
+    }
 }
