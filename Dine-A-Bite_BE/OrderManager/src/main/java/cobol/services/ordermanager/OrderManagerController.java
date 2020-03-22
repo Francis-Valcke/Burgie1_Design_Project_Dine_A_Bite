@@ -130,7 +130,7 @@ public class OrderManagerController {
         RestTemplate template = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        String uri = "http://localhost:8083/publishEvent";
+        String uri = "http://localhost:8080/publishEvent";
         HttpEntity<String> request = new HttpEntity<>(jsonString, headers);
         String response = template.postForObject(uri, request, String.class);
     }
