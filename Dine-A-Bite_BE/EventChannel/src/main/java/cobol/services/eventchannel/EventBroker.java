@@ -1,7 +1,10 @@
 package cobol.services.eventchannel;
 
+import cobol.commons.Event;
+
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 
 public class EventBroker {
     private HashMap<String, HashSet<EventSubscriber>> subscriberMap = new HashMap<>();
@@ -25,16 +28,20 @@ public class EventBroker {
      *
      * This function adds a subscriber to the event channels it wants to listen to.
      */
-    public void subscribe(EventSubscriber subscriber, String[] typeArray) {
+    public void subscribe(EventSubscriber subscriber, List<String> typeArray) {
         for (String type : typeArray) {
             HashSet<EventSubscriber> typeSet = subscriberMap.get(type);
-            subscriberId.put(subscriber.getId(), subscriber);
+            if (!subscriberId.containsKey(subscriber.getId())) {
+                subscriberId.put(subscriber.getId(), subscriber);
+            }
             if (typeSet == null) {
                 typeSet = new HashSet<>();
                 typeSet.add(subscriber);
                 subscriberMap.put(type, typeSet);
             } else {
-                typeSet.add(subscriber);
+                if (!typeSet.contains(subscriber)) {
+                    typeSet.add(subscriber);
+                }
             }
         }
     }
@@ -46,7 +53,7 @@ public class EventBroker {
      *
      * This functions removes a subscriber from channels it does not want to listen to anymore.
      */
-    public void unSubscribe(EventSubscriber subscriber, String[] typeArray) {
+    public void unSubscribe(EventSubscriber subscriber, List<String> typeArray) {
         for (String type : typeArray) {
             HashSet<EventSubscriber> typeSet = subscriberMap.get(type);
             if (typeSet == null) {
@@ -59,24 +66,24 @@ public class EventBroker {
 
     /**
      *
-     * @param source the publisher that sent the event
      * @param e the event
      *
      * Calls the process function.
      */
-    protected void addEvent(EventPublisher source, Event e) {
-        process(source, e);
+    protected void addEvent(Event e) {
+        System.out.println("Event was received with data: " + e.getOrderData()); //TODO: remove, this is for testing
+        process(e);
     }
 
     /**
      *
-     * @param source publisher that sent the event
      * @param e the event
      *
      * Sends the event to every subscriber listening to the channels the event is sent to.
      */
-    private void process(EventPublisher source, Event e) {
+    private void process(Event e) {
         String[] types = e.getTypes();
+        System.out.println("Event recieved with data: " + e.getOrderData()); //visual feedback
         for (String type : types) {
             HashSet<EventSubscriber> typeSet = subscriberMap.get(type);
                 if (typeSet != null) {

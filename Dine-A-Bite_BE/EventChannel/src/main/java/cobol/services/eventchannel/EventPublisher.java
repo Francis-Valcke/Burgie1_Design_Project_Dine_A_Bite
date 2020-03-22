@@ -1,5 +1,7 @@
 package cobol.services.eventchannel;
 
+import cobol.commons.Event;
+
 public class EventPublisher {
 
     /**
@@ -7,7 +9,7 @@ public class EventPublisher {
      *
      * publishes an event
      */
-    void Publish(Event e) {
-        EventBroker.getInstance().addEvent(this, e);
+    static void Publish(Event e) {
+        EventBroker.getInstance().addEvent(e);
     }
 }

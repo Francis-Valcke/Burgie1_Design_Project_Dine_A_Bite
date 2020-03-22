@@ -58,6 +58,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .and()
                 .authorizeRequests()
                 .antMatchers("/pingEC").permitAll()
+                .antMatchers("/publishEvent").permitAll()
+                .antMatchers("/registerSubscriber").permitAll()
+                .antMatchers("/registerSubscriber/toChannel").permitAll()
+                .antMatchers("/deregisterSubscriber").permitAll()
+
                 .anyRequest().authenticated()
                 .and()
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

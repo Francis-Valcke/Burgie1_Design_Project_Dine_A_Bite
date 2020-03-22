@@ -68,7 +68,6 @@ subprojects {
 }
 
 project(':Commons'){
-    version = '0.2.1'
 
     dependencies {
         //-----PRODUCTION-----
@@ -82,11 +81,12 @@ project(':Commons'){
         //Library for removing lots of boilerplate code, use in combination with intellij plugin
         compileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.12'
         annotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.12'
+
+        compile 'com.googlecode.json-simple:json-simple:1.1.1'
     }
 }
 
 project(':AuthenticationService'){
-    version = '0.2.3'
 
     dependencies {
         //-----INTERNAL-----
@@ -127,11 +127,11 @@ project(':AuthenticationService'){
 }
 
 project(':OrderManager'){
-    version = '0.2.3'
 
     dependencies {
         //-----INTERNAL-----
         implementation project(':Commons')
+        implementation project(':EventChannel')
         //Mysql jdbc driver
         implementation group: 'mysql', name: 'mysql-connector-java', version: '8.0.19'
 
@@ -141,11 +141,23 @@ project(':OrderManager'){
         //Spring related imports
         implementation group: 'org.springframework.boot', name: 'spring-boot-starter-security', version: '2.2.5.RELEASE'
         implementation group: 'org.springframework.boot', name: 'spring-boot-starter-web', version: '2.2.5.RELEASE'
+
+        //For testing REST API
+        testImplementation 'io.rest-assured:rest-assured:4.2.0'
+        testImplementation 'io.rest-assured:json-schema-validator:4.3.0'
+        testImplementation group: 'io.rest-assured', name: 'spring-mock-mvc', version: '4.3.0'
+        testImplementation 'org.springframework.security:spring-security-test'
+        testImplementation('org.springframework.boot:spring-boot-starter-test') {
+            exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
+        }
+
+        //Library for removing lots of boilerplate code, use in combination with intellij plugin
+        testCompileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.12'
+        testAnnotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.12'
     }
 }
 
 project(':StandManager'){
-    version = '0.2.3'
 
     dependencies {
         //-----INTERNAL-----
@@ -160,7 +172,6 @@ project(':StandManager'){
 
 
 project(':EventChannel'){
-    version = '0.2.2'
 
     dependencies {
         //-----INTERNAL-----

@@ -1,11 +1,11 @@
 package cobol.services.eventchannel;
 
+import cobol.commons.Event;
 import cobol.commons.ResponseModel;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static cobol.commons.ResponseModel.status.OK;
@@ -49,11 +49,60 @@ public class EventController {
      * unique id. This is returned to the callee.
      *
      */
-    @GetMapping("/register")
+    @GetMapping("/registerSubscriber")
     public int register(@RequestParam(value="types", defaultValue = "") String types) {
         EventSubscriber newSubscriber = new EventSubscriber(types);
         newSubscriber.subscribe();
         return newSubscriber.getId();
+    }
+
+    /**
+     *
+     * @param stub_id The id to identify the subscriberstub
+     * @param type the channels the stub has to subscribe to
+     *
+     * This method allows subscribers to subscribe to channels they were previously not subscribed to.
+     */
+    @GetMapping("/registerSubscriber/toChannel")
+    public void toChannel(@RequestParam(value="id") int stub_id, @RequestParam(value="type", defaultValue = "") String type) {
+        EventBroker broker = EventBroker.getInstance();
+        EventSubscriber subscriber = broker.getSubscriberStub(stub_id);
+        subscriber.addType(type);
+        broker.subscribe(subscriber, subscriber.getTypes());
+    }
+
+    /**
+     *
+     * @param stub_id id of the stub to desubscribe
+     * @param type channels to desubscribe from, separated by commas. If none are given, stub desubscribes from all channels
+     */
+    @GetMapping("/deregisterSubscriber")
+    public void deRegister(@RequestParam(value="id") int stub_id, @RequestParam(value="type", defaultValue = "") String type) {
+        EventBroker broker = EventBroker.getInstance();
+        EventSubscriber subscriber = broker.getSubscriberStub(stub_id);
+        if (type.equals("")) {
+            broker.unSubscribe(subscriber, subscriber.getTypes());
+        }
+        else {
+            List<String> typeList = new ArrayList<>();
+            String[] tempList = type.split(",");
+            for (String t : tempList) {
+                typeList.add(t);
+            }
+            broker.unSubscribe(subscriber, typeList);
+        }
+    }
+
+
+    /**
+     *
+     * @param e The event to publish
+     *
+     * Receives an event in JSON format, forwards it to the proper channels
+     */
+    @PostMapping(value = "/publishEvent", consumes = "application/json")
+    public void publish(@RequestBody Event e) {
+        EventPublisher.Publish(e);
     }
 
     /**

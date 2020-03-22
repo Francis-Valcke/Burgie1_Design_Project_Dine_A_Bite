@@ -17,4 +17,8 @@ public interface Food_Repository extends CrudRepository<Food, Integer> {
     @Query("select u from Food u " +
             "where u.brandname = ?1")
     List<Food> findByBrand(String standname);
+    @Query("select u from Food u where u.name=?1 and u.brandname=?2")
+    Food findByNameAndBrand(String name, String Brand);
+    @Query("select u from Food u where u.name=?1")
+    List<Food> findByName(String name);
 }
