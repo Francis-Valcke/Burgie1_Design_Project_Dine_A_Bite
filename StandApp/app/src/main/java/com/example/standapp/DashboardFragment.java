@@ -3,18 +3,12 @@ package com.example.standapp;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
-import android.os.Parcel;
-import android.os.Parcelable;
-import android.text.AlteredCharSequence;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -23,7 +17,6 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Spinner;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.volley.AuthFailureError;
@@ -31,7 +24,6 @@ import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 
@@ -41,8 +33,6 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 public class DashboardFragment extends Fragment {
 
@@ -51,13 +41,10 @@ public class DashboardFragment extends Fragment {
     private DashboardListViewAdapter adapter;
     private Spinner spinner;
     private Button addButton;
-    private Button deleteButton;
     private Button submitButton;
     private HashMap<String,DashboardItem> hash_snacks;
-    private Bundle bundle;
     private EditText standname;
     private EditText brandname;
-
 
     @Nullable
     @Override
@@ -66,26 +53,23 @@ public class DashboardFragment extends Fragment {
         //View view = getView() != null ? getView() : inflater.inflate(R.layout.activity_manager_dashboard, container, false);
         final View view = inflater.inflate(R.layout.activity_manager_dashboard, container, false);
         View view_profile = inflater.inflate(R.layout.fragment_profile, container, false);
-        standname = (EditText)view_profile.findViewById(R.id.editText_standname);
-        brandname = (EditText)view_profile.findViewById(R.id.editText_brandname);
+        standname = view_profile.findViewById(R.id.editText_standname);
+        brandname = view_profile.findViewById(R.id.editText_brandname);
 
-        addButton = (Button)view.findViewById(R.id.add_button);
-        submitButton = (Button)view.findViewById(R.id.submit_button);
-        spinner = (Spinner)view.findViewById(R.id.spinner);
+        addButton = view.findViewById(R.id.add_button);
+        submitButton = view.findViewById(R.id.submit_button);
+        spinner = view.findViewById(R.id.spinner);
         ArrayAdapter<CharSequence> arrayAdapter = ArrayAdapter.createFromResource(getContext(), R.array.snacks, android.R.layout.simple_spinner_item);
         arrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinner.setAdapter(arrayAdapter);
 
-        listView = (ListView)view.findViewById(R.id.listView_dashboard);
-        //if(items == null) items = new ArrayList<DashboardItem>();
+        listView = view.findViewById(R.id.listView_dashboard);
 
         adapter = new DashboardListViewAdapter(getActivity(), items);
         listView.setAdapter(adapter);
         initHash();
 
-        /**
-         * When you click on the Add button, this will add the chosen snack in the dashboard
-         */
+        // When you click on the Add button, this will add the chosen snack in the dashboard
         addButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -108,18 +92,18 @@ public class DashboardFragment extends Fragment {
                 try {
                     js_value.put(brandname.getText().toString()); //first the brandname is added, after that the two coordinates are added in the next lines
                     js_value.put(longitude); //longitude -> TODO: hardcoded currently, fix later
-                    js_value.put(latitude);//latitude -> TODO: hardcoded currently, fix later
+                    js_value.put(latitude); //latitude -> TODO: hardcoded currently, fix later
                     js.put(standname.getText().toString(), js_value);
 
                     for (DashboardItem i: items) {
                         int new_count = Integer.parseInt(i.getCount());
                         if (new_count == 0) continue; //if there are 0 items in stock, then no need to send it to the server
-                        int preptime = Integer.parseInt(i.getPreptime());
+                        int prep_time = Integer.parseInt(i.getPrep_time());
                         float price = Float.parseFloat(i.getPrice());
 
                         JSONArray js_item_values = new JSONArray();
                         js_item_values.put(price);
-                        js_item_values.put(preptime);
+                        js_item_values.put(prep_time);
                         js_item_values.put(new_count);
                         js_item_values.put(i.getCategory());
                         js_item_values.put(i.getDescription());
@@ -171,9 +155,8 @@ public class DashboardFragment extends Fragment {
             }
         });
 
-        /**
-         * When you click long on an item of the menu, the item gets deleted, but you will first receive a notification asking you if you are sure you want to delete it
-         */
+
+        // When you click long on an item of the menu, the item gets deleted, but you will first receive a notification asking you if you are sure you want to delete it
         listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
@@ -195,9 +178,8 @@ public class DashboardFragment extends Fragment {
             }
         });
 
-        /**
-         * When you click once on an item, you will be able to edit it
-         */
+
+        // When you click once on an item, you will be able to edit it
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -338,18 +320,18 @@ public class DashboardFragment extends Fragment {
      * @param oldPrice the price of the item before you edit it
      * @param position the position of the item within the menu
      */
-    public void showEditBox(String oldTitle, String oldPrice, String oldCount, final int position) {
+    private void showEditBox(String oldTitle, String oldPrice, String oldCount, final int position) {
         final Dialog dialog = new Dialog(getContext());
         dialog.setTitle("Edit Box");
         dialog.setContentView(R.layout.edit_box);
-        final EditText editTitle = (EditText)dialog.findViewById(R.id.editText_title);
+        final EditText editTitle = dialog.findViewById(R.id.editText_title);
         editTitle.setText(oldTitle);
-        final EditText editPrice = (EditText)dialog.findViewById(R.id.editText_price);
+        final EditText editPrice = dialog.findViewById(R.id.editText_price);
         editPrice.setText(oldPrice);
-        final EditText editCount = (EditText)dialog.findViewById(R.id.editText_count);
+        final EditText editCount = dialog.findViewById(R.id.editText_count);
         editCount.setText(oldCount);
 
-        Button editB = (Button)dialog.findViewById(R.id.button_edit);
+        Button editB = dialog.findViewById(R.id.button_edit);
         editB.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

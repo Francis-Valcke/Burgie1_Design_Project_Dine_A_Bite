@@ -28,10 +28,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Toolbar toolbar = (Toolbar)findViewById(R.id.toolbar);
+        Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        drawer = (DrawerLayout)findViewById(R.id.drawer_layout);
+        drawer = findViewById(R.id.drawer_layout);
         NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
@@ -51,12 +51,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     /**
      * This function is called when an item is clicked in the navigation drawer, and depending on the item clicked, the corresponding switch case will be selected
-     * @param item the item in navigatoin drawer that was selected by the user
+     * @param item the item in navigation drawer that was selected by the user
      */
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-        /*if (items != null) System.out.println("ENTERED IF-LOOP, length items: " + items.size());
-        if (dashboard.getItems() != null) System.out.println("ENTERED IF-LOOP, length dashboard_items: " + dashboard.getItems().size());*/
 
         switch (item.getItemId()) {
             case R.id.nav_profile:
@@ -83,12 +81,4 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             super.onBackPressed();
         }
     }
-
-    /**
-     * Opens up the dashboard activity
-     */
-    /*public void openManagerDashboard() {
-        Intent intent = new Intent(this, DashboardFragment.class);
-        startActivity(intent);
-    }*/
 }

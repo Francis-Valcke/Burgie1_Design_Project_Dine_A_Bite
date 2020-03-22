@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">StandApp</string>
+    <string name="app_name">Dine-A-Bite Stands</string>
     <string name="sign_in">Sign in</string>
     <string name="manager_dashboard">Manager Dashboard</string>
     <string name="order_text">Orders</string>
@@ -11,6 +11,17 @@
     <string name="medium_fries">Medium Fries</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="account">Account</string>
+    <string name="standname">Stand name:</string>
+    <string name="brandname">Brand name:</string>
+    <string name="price_text">Price: €</string>
+    <string name="update_item">Update item</string>
+    <string name="title_text">Title:</string>
+    <string name="price_text_2">Price: €</string>
+    <string name="count_text">Count:</string>
+    <string name="done">Done</string>
+    <string name="dine_a_bite_stands">Dine-A-Bite Stands</string>
+    <string name="logo">Logo</string>
     <string-array name="snacks">
         <item>Burger</item>
         <item>Doughnut</item>

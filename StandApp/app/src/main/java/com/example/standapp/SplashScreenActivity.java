@@ -2,7 +2,6 @@ package com.example.standapp;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
 
@@ -20,7 +19,6 @@ public class SplashScreenActivity extends AppCompatActivity {
                 .withBackgroundColor(android.R.color.holo_green_light)
                 .withHeaderText("Welcome")
                 .withFooterText("Copyright 2020")
-                //.withBeforeLogoText("Stand Application")
                 .withAfterLogoText("Making sure your event runs smoothly")
                 .withLogo(R.mipmap.ic_launcher_round);
 

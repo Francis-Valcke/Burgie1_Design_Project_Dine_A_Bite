@@ -5,18 +5,16 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-
-
     <TextView
         android:id="@+id/textView2"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="20dp"
+        android:layout_marginStart="20dp"
         android:layout_marginBottom="10dp"
         android:layout_marginTop="10dp"
         android:textColor="#EA2929"
         android:textAppearance="@style/TextAppearance.AppCompat.Title"
-        android:text="Update item" />
+        android:text="@string/update_item" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -28,9 +26,9 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:layout_marginLeft="20dp"
+            android:layout_marginStart="20dp"
             android:gravity=""
-            android:text="Title:" />
+            android:text="@string/title_text" />
 
         <EditText
             android:id="@+id/editText_title"
@@ -46,7 +44,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:layout_marginLeft="20dp">
+        android:layout_marginStart="20dp">
 
         <TextView
             android:id="@+id/textView6"
@@ -54,7 +52,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:gravity=""
-            android:text="Price: €" />
+            android:text="@string/price_text_2" />
 
         <EditText
             android:id="@+id/editText_price"
@@ -70,7 +68,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:layout_marginLeft="20dp">
+        android:layout_marginStart="20dp">
 
         <TextView
             android:id="@+id/textView_count"
@@ -78,7 +76,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:gravity=""
-            android:text="Count:" />
+            android:text="@string/count_text" />
 
         <EditText
             android:id="@+id/editText_count"
@@ -99,5 +97,5 @@
         android:layout_marginTop="10dp"
         android:layout_marginRight="150dp"
         android:backgroundTint="#4CAF50"
-        android:text="Done" />
+        android:text="@string/done" />
 </LinearLayout>

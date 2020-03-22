@@ -1,16 +1,13 @@
 package com.example.standapp;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.ExpandableListView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 
 import java.util.ArrayList;
@@ -29,7 +26,7 @@ public class OrderFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.activity_order, container, false);
 
-        listView = (ExpandableListView)view.findViewById(R.id.expandable_listview);
+        listView = view.findViewById(R.id.expandable_listview);
         initData();
         listAdapter = new ExpandableListAdapter(listDataHeader,listHash);
         listView.setAdapter(listAdapter);
@@ -77,14 +74,6 @@ public class OrderFragment extends Fragment {
         order2.add("1270 Fanta");
 
         listHash.put(listDataHeader.get(1), order2);
-        //listView.expandGroup(0);
     }
 
-    /**
-     * Opens up the dashboard activity
-     */
-    /*public void openManagerDashboard() {
-        Intent intent = new Intent(this, DashboardFragment.class);
-        startActivity(intent);
-    }*/
 }

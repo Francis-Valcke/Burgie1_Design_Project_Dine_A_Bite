@@ -3,88 +3,88 @@ package com.example.standapp;
 /**
  * The Dashboard item is a class consisting of the icon, title and price of the snack within in the menu (e.g., Pizza with price of 3 euros etc.)
  */
-public class DashboardItem {
-    public int icon;
-    public String title;
-    public String price;
-    public String preptime;
-    public String count;
-    public String category;
-    public String description;
+class DashboardItem {
+    private int icon;
+    private String title;
+    private String price;
+    private String prep_time;
+    private String count;
+    private String category;
+    private String description;
 
     DashboardItem(int icon, String title, String price, String preptime, String count, String category, String description) {
         this.icon = icon; //thumbnail for item
         this.title = title; //name of item
         this.price = price; //price of item
-        this.preptime = preptime; //preparation time of item
+        this.prep_time = preptime; //preparation time of item
         this.count = count; //amount of items in stock (count=-1 if no items in stock)
         this.category = category; //category that the item belongs to
         this.description = description; //description of the item
     }
 
-    public DashboardItem(DashboardItem item) {
+    DashboardItem(DashboardItem item) {
         this.icon = item.icon;
         this.title = item.title;
         this.price = item.price;
-        this.preptime = item.preptime;
+        this.prep_time = item.prep_time;
         this.count = item.count;
         this.category = item.category;
         this.description = item.description;
     }
 
-    public int getIcon() {
+    int getIcon() {
         return icon;
     }
 
-    public void setIcon(int icon) {
+    void setIcon(int icon) {
         this.icon = icon;
     }
 
-    public String getTitle() {
+    String getTitle() {
         return title;
     }
 
-    public void setTitle(String title) {
+    void setTitle(String title) {
         this.title = title;
     }
 
-    public String getPrice() {
+    String getPrice() {
         return price;
     }
 
-    public void setPrice(String price) {
+    void setPrice(String price) {
         this.price = price;
     }
 
-    public String getPreptime() {
-        return preptime;
+    String getPrep_time() {
+        return prep_time;
     }
 
-    public void setPreptime(String preptime) {
-        this.preptime = preptime;
+    void setPrep_time(String prep_time) {
+        this.prep_time = prep_time;
     }
 
-    public String getCount() {
+    String getCount() {
         return count;
     }
 
-    public void setCount(String count) {
+    void setCount(String count) {
         this.count = count;
     }
 
-    public String getCategory() {
+    String getCategory() {
         return category;
     }
 
-    public void setCategory(String category) {
+    void setCategory(String category) {
         this.category = category;
     }
 
-    public String getDescription() {
+    String getDescription() {
         return description;
     }
 
-    public void setDescription(String description) {
+    void setDescription(String description) {
         this.description = description;
     }
 }

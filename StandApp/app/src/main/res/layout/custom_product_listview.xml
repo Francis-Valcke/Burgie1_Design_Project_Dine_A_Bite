@@ -8,7 +8,6 @@
         android:layout_width="240dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
-
         android:padding="7dp"
         app:srcCompat="@drawable/medium_fries" />
 
@@ -24,7 +23,7 @@
             android:id="@+id/textView_title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="0dp"
+            android:layout_marginStart="0dp"
             android:layout_marginTop="10dp"
             android:text="@string/medium_fries"
             android:textAppearance="@style/TextAppearance.AppCompat.Title" />
@@ -36,12 +35,12 @@
 
             <TextView
                 android:id="@+id/textView5"
-                android:layout_width="7dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginLeft="0dp"
+                android:layout_marginStart="0dp"
                 android:layout_marginTop="8dp"
                 android:layout_weight="1"
-                android:text="Price: €" />
+                android:text="@string/price_text" />
 
             <TextView
                 android:id="@+id/textView_price"
@@ -59,16 +58,16 @@
 
             <TextView
                 android:id="@+id/textView100"
-                android:layout_width="118dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginLeft="0dp"
+                android:layout_marginStart="0dp"
                 android:layout_marginTop="8dp"
                 android:layout_weight="1"
                 android:text="New items in stock: " />
 
             <TextView
                 android:id="@+id/textView_count_product"
-                android:layout_width="154dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:layout_weight="1"

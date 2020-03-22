@@ -15,10 +15,10 @@ import java.util.List;
 
 public class DashboardListViewAdapter extends BaseAdapter {
 
-    LayoutInflater inflater;
-    List<DashboardItem> items;
+    private LayoutInflater inflater;
+    private List<DashboardItem> items;
 
-    public DashboardListViewAdapter(Activity context, List<DashboardItem> items) {
+    DashboardListViewAdapter(Activity context, List<DashboardItem> items) {
         super();
         this.items = items;
         this.inflater = (LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -48,10 +48,10 @@ public class DashboardListViewAdapter extends BaseAdapter {
         if (convertView == null) {
             view = inflater.inflate(R.layout.custom_product_listview, null);
         }
-        ImageView icon = (ImageView) view.findViewById(R.id.icon_menu);
-        TextView title = (TextView) view.findViewById(R.id.textView_title);
-        TextView price = (TextView) view.findViewById(R.id.textView_price);
-        TextView count = (TextView) view.findViewById(R.id.textView_count_product);
+        ImageView icon = view.findViewById(R.id.icon_menu);
+        TextView title = view.findViewById(R.id.textView_title);
+        TextView price = view.findViewById(R.id.textView_price);
+        TextView count = view.findViewById(R.id.textView_count_product);
 
         icon.setImageResource(item.getIcon());
         title.setText(item.getTitle());

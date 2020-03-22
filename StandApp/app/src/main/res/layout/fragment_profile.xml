@@ -9,12 +9,12 @@
         android:id="@+id/textView_profile"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="20dp"
+        android:layout_marginStart="20dp"
         android:layout_marginBottom="10dp"
         android:layout_marginTop="10dp"
         android:textColor="#E91E63"
         android:textAppearance="@style/TextAppearance.AppCompat.Title"
-        android:text="Profile" />
+        android:text="@string/account" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -26,9 +26,9 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:layout_marginLeft="20dp"
+            android:layout_marginStart="20dp"
             android:gravity=""
-            android:text="Standname:" />
+            android:text="@string/standname" />
 
         <EditText
             android:id="@+id/editText_standname"
@@ -45,7 +45,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:layout_marginLeft="20dp">
+        android:layout_marginStart="20dp">
 
         <TextView
             android:id="@+id/textView_brandname"
@@ -53,7 +53,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:gravity=""
-            android:text="Brandname:" />
+            android:text="@string/brandname" />
 
         <EditText
             android:id="@+id/editText_brandname"
