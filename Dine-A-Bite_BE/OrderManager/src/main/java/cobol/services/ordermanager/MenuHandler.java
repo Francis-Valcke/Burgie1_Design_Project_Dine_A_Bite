@@ -143,8 +143,8 @@ public class MenuHandler {
 
         List<Stand> stands = standRepository.findStands();
         String standname = null;
-        double llon = 0;
-        double llat = 0;
+        Number llon = 0;
+        Number llat = 0;
         String brandname = null;
         Set<String> keys = menu.keySet();
         System.out.println(keys);
@@ -167,17 +167,16 @@ public class MenuHandler {
 
             }
         }
-
-        llon = (double) st.get(1);
-        llat = (double) st.get(2);
+        llon=(Number)st.get(1);
+        llat=(Number)st.get(2);
         if (newstand){
             n = new Stand();
             n.setBrandname(brandname);
             n.setFull_name(standname);
         }
 
-        n.setLocation_lat(llat);
-        n.setLocation_lon(llon);
+        n.setLocation_lat(llat.doubleValue());
+        n.setLocation_lon(llon.doubleValue());
         standRepository.save(n);
         List<Food> f = (List<Food>) food_Repository.findByBrand(brandname);
         for (String key : keys) {
@@ -199,10 +198,8 @@ public class MenuHandler {
                 fp = new Food();
                 fp.setName(key);
             }
-
-            Double d = (Double) a.get(0);
-
-            int preptime =(int) a.get(1);
+            int preptime =(int)(a.get(1));
+            float d = ((Number)a.get(0)).floatValue();
             String desc = (String) a.get(4);
             List<String> cat = Arrays.asList(new String[]{(String) a.get(3)});
             if (b) {
@@ -217,8 +214,8 @@ public class MenuHandler {
                         for (int p = 0; p < cat.size(); p++) fp.addCategory(cat.get(p));
                     }
                 }
-                if (d.floatValue()<0);
-                else fp.setPrice(d.floatValue());
+                if (d<0);
+                else fp.setPrice(d);
                 if (preptime <0) ;
                 else {
                     fp.setPreptime(preptime);
@@ -227,7 +224,7 @@ public class MenuHandler {
                 else fp.setDescription(desc);
             }
             else {
-                fp.setPrice(d.floatValue());
+                fp.setPrice(d);
                 fp.setPreptime(preptime);
                 if (cat.get(0).equals("")) fp.setCategory(null);
                 else fp.setCategory(cat);
@@ -237,7 +234,7 @@ public class MenuHandler {
                 else fp.setBrandname(brandname);
             }
             food_Repository.save(fp);
-            int count = (int) a.get(2);
+            int count = (int)(a.get(2));
             Stock s = null;
             if (!newstand){
                 System.out.println(fp.getId());
