@@ -9,6 +9,8 @@
     <string name="button_start">Start</string>
     <string name="button_picked_up">picked up</string>
     <string name="medium_fries">Medium Fries</string>
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
     <string-array name="snacks">
         <item>Burger</item>
         <item>Doughnut</item>

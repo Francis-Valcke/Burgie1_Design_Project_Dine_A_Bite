@@ -20,9 +20,10 @@ public class SplashScreenActivity extends AppCompatActivity {
                 .withBackgroundColor(android.R.color.holo_green_light)
                 .withHeaderText("Welcome")
                 .withFooterText("Copyright 2020")
-                .withBeforeLogoText("Stand Application")
+                //.withBeforeLogoText("Stand Application")
                 .withAfterLogoText("Making sure your event runs smoothly")
                 .withLogo(R.mipmap.ic_launcher_round);
+
 
         View easySplashScreen = config.create();
         setContentView(easySplashScreen);

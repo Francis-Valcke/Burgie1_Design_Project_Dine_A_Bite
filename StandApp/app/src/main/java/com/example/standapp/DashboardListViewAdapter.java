@@ -16,9 +16,9 @@ import java.util.List;
 public class DashboardListViewAdapter extends BaseAdapter {
 
     LayoutInflater inflater;
-    List<ManagerDashboard.DashboardItem> items;
+    List<DashboardItem> items;
 
-    public DashboardListViewAdapter(Activity context, List<ManagerDashboard.DashboardItem> items) {
+    public DashboardListViewAdapter(Activity context, List<DashboardItem> items) {
         super();
         this.items = items;
         this.inflater = (LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -41,7 +41,7 @@ public class DashboardListViewAdapter extends BaseAdapter {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        ManagerDashboard.DashboardItem  item = items.get(position);
+        DashboardItem  item = items.get(position);
         View view = convertView;
 
 
