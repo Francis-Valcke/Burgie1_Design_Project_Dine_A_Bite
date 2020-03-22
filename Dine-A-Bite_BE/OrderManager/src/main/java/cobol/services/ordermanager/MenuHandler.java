@@ -3,9 +3,16 @@ package cobol.services.ordermanager;
 
 import cobol.services.ordermanager.dbmenu.*;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.json.simple.JSONObject;
+import org.json.simple.JSONValue;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.*;
 
@@ -139,20 +146,28 @@ public class MenuHandler {
      * @return "stand name already taken" if a stand tries to take a name of an existing stand of a different brand
      */
 
-    String addStand(JSONObject menu) {
+    String addStand(JSONObject menu) throws JsonProcessingException {
 
+        /**
+         * Initialise stand
+         */
         List<Stand> stands = standRepository.findStands();
         String standname = null;
-        double llon = 0;
-        double llat = 0;
+        Number llon = 0;
+        Number llat = 0;
         String brandname = null;
         Set<String> keys = menu.keySet();
-        System.out.println(keys);
+        /**
+         * Look if standname in JSON file
+         */
         for (String key : keys) {
             if (((ArrayList)menu.get(key)).size()==3){
                 standname = key;
             }
         }
+        /**
+         * Look if stand already exists
+         */
         boolean newstand = true;
         Stand n = null;
         ArrayList st = (ArrayList) menu.get(standname);
@@ -167,26 +182,40 @@ public class MenuHandler {
 
             }
         }
-
-        llon = (double) st.get(1);
-        llat = (double) st.get(2);
+        /**
+         * Save stand
+         */
+        llon = (Number) st.get(1);
+        llat = (Number) st.get(2);
         if (newstand){
             n = new Stand();
             n.setBrandname(brandname);
             n.setFull_name(standname);
         }
-
-        n.setLocation_lat(llat);
-        n.setLocation_lon(llon);
+        n.setLocation_lat(llat.doubleValue());
+        n.setLocation_lon(llon.doubleValue());
         standRepository.save(n);
+        List<Stock> items = stockRepository.findStockByStand(n.getId());
+        StandInfo si = null;
+        if (newstand){
+            si=new StandInfo(n.getId(),n.getFull_name(),n.getBrandname(),(long)n.getLocation_lat(),(long)n.getLocation_lon());
+        }
+        /**
+         * Add/edit menu
+         */
         List<Food> f = (List<Food>) food_Repository.findByBrand(brandname);
         for (String key : keys) {
-            //JSONArray a = (JSONArray)menu.get(key);
+            /**
+             * Look for menu items in JSON file
+             */
             ArrayList a = (ArrayList) menu.get(key);
             if (((ArrayList)menu.get(key)).size()==3){
-                continue;
+                continue;//this is standname, not menu item
             }
-            boolean b=false;//check if food item already part of brand
+            /**
+             * check if food item already part of brand
+             */
+            boolean b=false;
             Food fp=null;
             for (int k =0;k<f.size();k++){
                 if (f.get(k).getName().equals(key)){
@@ -195,13 +224,17 @@ public class MenuHandler {
 
                 }
             }
+            /**
+             * make new food item if there does not exist a food item of brand with same name already
+             */
             if (!b) {
                 fp = new Food();
                 fp.setName(key);
             }
-
-            Double d = (Double) a.get(0);
-
+            /**
+             * Edit food item attributes
+             */
+            Float d = ((Number) a.get(0)).floatValue();
             int preptime =(int) a.get(1);
             String desc = (String) a.get(4);
             List<String> cat = Arrays.asList(new String[]{(String) a.get(3)});
@@ -217,8 +250,8 @@ public class MenuHandler {
                         for (int p = 0; p < cat.size(); p++) fp.addCategory(cat.get(p));
                     }
                 }
-                if (d.floatValue()<0);
-                else fp.setPrice(d.floatValue());
+                if (d<0);
+                else fp.setPrice(d);
                 if (preptime <0) ;
                 else {
                     fp.setPreptime(preptime);
@@ -227,7 +260,7 @@ public class MenuHandler {
                 else fp.setDescription(desc);
             }
             else {
-                fp.setPrice(d.floatValue());
+                fp.setPrice(d);
                 fp.setPreptime(preptime);
                 if (cat.get(0).equals("")) fp.setCategory(null);
                 else fp.setCategory(cat);
@@ -239,7 +272,13 @@ public class MenuHandler {
             food_Repository.save(fp);
             int count = (int) a.get(2);
             Stock s = null;
-            if (!newstand){
+            boolean newitem=true;
+            for (int i=0; i<items.size();i++){
+                if (items.get(i).getFood_id()==fp.getId()){
+                    newitem=false;
+                }
+            }
+            if (!newitem){
                 System.out.println(fp.getId());
                 s =stockRepository.findStock(fp.getId(),n.getId());
                 if (count<0);
@@ -253,11 +292,26 @@ public class MenuHandler {
                 System.out.println(fp.getId());
             }
             stockRepository.save(s);
+            if (newstand){
+                si.addMenuItem(fp.getName(),(double)fp.getPrice(),fp.getPreptime());
+            }
         }
 
         fetchStandMenu(standname);
         fetchMenu();
+        if (newstand){
+            ObjectMapper mapper = new ObjectMapper();
+            String jsonString = mapper.writeValueAsString(si);
+            RestTemplate template = new RestTemplate();
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            String uri = "http://localhost:8081/newStand";
+            HttpEntity<String> request = new HttpEntity<>(jsonString, headers);
+            boolean addinfo = (boolean) template.postForObject(uri, request, JSONObject.class).get("added");
+            if (addinfo)System.out.println("Scheduler added");
 
+
+        }
         return "Saved";
     }
 

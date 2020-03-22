@@ -60,6 +60,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/pingSM").permitAll()
                 .antMatchers("/start").permitAll()
                 .antMatchers("/getRecommendation").permitAll()
+                .antMatchers("/newStand").permitAll()
                 .anyRequest().authenticated()
                 .and()
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

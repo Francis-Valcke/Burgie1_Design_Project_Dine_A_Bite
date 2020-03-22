@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
+import javax.annotation.PostConstruct;
 import java.util.List;
 
 /**
@@ -62,6 +63,7 @@ public class OrderManagerController {
      * Will check if there are already stands in database that are not in OM and add them to OM
      * @return tells u if there are already stands in DB
      */
+    @PostConstruct
     @RequestMapping("/updateOM")
     public String index() {
         List<String> s = mh.update();
@@ -143,7 +145,7 @@ public class OrderManagerController {
      */
     @PostMapping(path = "/addstand") // Map ONLY POST Requests
     public @ResponseBody
-    String addStand(@RequestBody JSONObject menu) {
+    String addStand(@RequestBody JSONObject menu) throws JsonProcessingException {
         return mh.addStand(menu);
     }
     /**

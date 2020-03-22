@@ -1,6 +1,7 @@
 package cobol.services.standmanager;
 
 import cobol.services.ordermanager.Order;
+import org.json.simple.JSONValue;
 import org.springframework.web.bind.annotation.*;
 
 
@@ -75,13 +76,16 @@ public class StandManagerController {
      * @return true (if no errors)
      */
     @RequestMapping(value = "/newStand", consumes = "application/json")
-    public boolean addNewStand(@RequestBody() StandInfo info){
+    public JSONObject addNewStand(@RequestBody() StandInfo info){
         Scheduler s = new Scheduler(info.getMenu(), info.getName(), info.getId(), info.getBrand());
         s.setLat(info.getLat());
         s.setLon(info.getLon());
         schedulers.add(s);
         s.start();
-        return true;
+        System.out.println("lol");
+        JSONObject obj = new JSONObject();
+        obj.put("added",true);
+        return obj;
     }
 
 
