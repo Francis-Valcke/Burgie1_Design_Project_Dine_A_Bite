@@ -17,7 +17,9 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.context.WebApplicationContext;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
@@ -31,12 +33,15 @@ public class OrderManagerTest {
 
     private class OrderEntry {
         public Map<String, Double> location = new HashMap<>();
-        public Map<String, Integer> order = new HashMap<>();
+        public Map<String, List> order = new HashMap<>();
 
         OrderEntry() {
             location.put("latitude", 37.421998);
             location.put("longitude", 122.084);
-            order.put("Nice pizza", 4);
+            List item = new ArrayList();
+            item.add(3);
+            item.add("");
+            order.put("Superburger_Matthias", item);
         }
 
     }
