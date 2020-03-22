@@ -9,7 +9,9 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 
-//Handles all the cart items in the cart list
+/**
+ * Handles all the cart items in the cart list
+ */
 public class CartItemAdapter  extends BaseAdapter {
     private ArrayList<MenuItem> list = new ArrayList<MenuItem>();
     private Context context;
@@ -38,13 +40,17 @@ public class CartItemAdapter  extends BaseAdapter {
     public View getView(final int position, View convertView, ViewGroup parent) {
         View view = convertView;
         if (view == null) {
-            LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-            view = inflater.inflate(R.layout.cart_item, null);
+            LayoutInflater inflater = (LayoutInflater) context
+                    .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+            view = inflater.inflate(R.layout.cart_item_material, null);
         }
 
-        //Handle TextView to display one cart item name
+        //Handle TextView to display one cart item name, if this name has a stand, display it too
         TextView listItemText = (TextView)view.findViewById(R.id.cart_item);
-        listItemText.setText(list.get(position).getItem());
+        String name = list.get(position).getFoodName();
+        if(!list.get(position).getStandName().equals("")) name += " (" + list.get(position)
+                                                                        .getStandName() + ")";
+        listItemText.setText(name);
 
         //Handle TextView to display one cart item price
         TextView listItemPrice = (TextView)view.findViewById(R.id.cart_item_price);
