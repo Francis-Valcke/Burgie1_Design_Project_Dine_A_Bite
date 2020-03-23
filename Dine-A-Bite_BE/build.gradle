@@ -131,7 +131,6 @@ project(':OrderManager'){
     dependencies {
         //-----INTERNAL-----
         implementation project(':Commons')
-        implementation project(':EventChannel')
         //Mysql jdbc driver
         implementation group: 'mysql', name: 'mysql-connector-java', version: '8.0.19'
 
@@ -162,8 +161,6 @@ project(':StandManager'){
     dependencies {
         //-----INTERNAL-----
         implementation project(':Commons')
-        compile project(':EventChannel').sourceSets.main.output
-        compile project(':OrderManager').sourceSets.main.output
         //-----PRODUCTION-----
         //Spring related imports
         implementation group: 'org.springframework.boot', name: 'spring-boot-starter-security', version: '2.2.5.RELEASE'

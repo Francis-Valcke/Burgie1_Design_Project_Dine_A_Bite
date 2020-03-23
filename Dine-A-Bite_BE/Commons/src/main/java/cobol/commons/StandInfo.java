@@ -1,4 +1,4 @@
-package cobol.services.ordermanager;
+package cobol.commons;
 
 import java.util.HashMap;
 import java.util.Map;

@@ -1,9 +1,7 @@
-package cobol.services.ordermanager;
+package cobol.commons;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
-import cobol.services.ordermanager.dbmenu.Food;
-//import cobol.services.ordermanager.Food;
 
 import java.util.*;
 
@@ -50,7 +48,7 @@ public class Order {
      * TODO: ZEER BELANGRIJK, momenteel bij de keys (en bij new food) gewoon vaste prijs en preptime, dit moet uiteraard nog aangepast worden
      * Constructs an order object from a JSON file
      */
-    public Order(JSONObject order_file, MenuHandler handler) {
+    public Order(JSONObject order_file) {
         this.id = order_amount;
         order_amount++;
         orderStatus = status.PENDING;

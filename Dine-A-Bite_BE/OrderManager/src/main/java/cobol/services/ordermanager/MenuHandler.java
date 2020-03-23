@@ -1,5 +1,6 @@
 package cobol.services.ordermanager;
 
+import cobol.commons.StandInfo;
 import cobol.services.ordermanager.dbmenu.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -293,7 +294,7 @@ public class MenuHandler {
             RestTemplate template = new RestTemplate();
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
-            String uri = "http://localhost:8081/newStand";
+            String uri = "http://localhost:8082/newStand";
             headers.add("Authorization", "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJPcmRlck1hbmFnZXIiLCJyb2xlcyI6WyJST0xFX0FQUExJQ0FUSU9OIl0sImlhdCI6MTU4NDkxMTY3MSwiZXhwIjoxNzQyNTkxNjcxfQ.VmujsURhZaXRp5FQJXzmQMB-e6QSNF-OyPLeMEMOVvI");
             HttpEntity<String> request = new HttpEntity<>(jsonString, headers);
             boolean addinfo = (boolean) template.postForObject(uri, request, JSONObject.class).get("added");

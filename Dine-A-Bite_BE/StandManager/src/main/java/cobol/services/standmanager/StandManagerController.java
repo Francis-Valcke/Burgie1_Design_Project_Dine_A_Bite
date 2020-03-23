@@ -1,8 +1,6 @@
 package cobol.services.standmanager;
 
-import cobol.services.ordermanager.Order;
-//TODO: make this as import from commons
-import org.json.simple.JSONValue;
+import cobol.commons.Order;
 import org.springframework.web.bind.annotation.*;
 
 

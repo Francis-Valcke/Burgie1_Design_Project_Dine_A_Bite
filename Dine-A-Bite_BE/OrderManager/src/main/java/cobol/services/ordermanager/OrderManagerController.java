@@ -1,6 +1,7 @@
 package cobol.services.ordermanager;
 
 import cobol.commons.Event;
+import cobol.commons.Order;
 import cobol.commons.ResponseModel;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -80,7 +81,7 @@ public class OrderManagerController {
      */
     @PostMapping(value = "/placeOrder", consumes = "application/json", produces = "application/json")
     public JSONObject placeOrder(@RequestBody JSONObject order_object) throws JsonProcessingException {
-        Order new_order = new Order(order_object, mh);
+        Order new_order = new Order(order_object);
         OrderProcessor processor = OrderProcessor.getOrderProcessor();
         processor.addOrder(new_order);
 
@@ -89,7 +90,7 @@ public class OrderManagerController {
         RestTemplate template = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        String uri = "http://localhost:8081/getRecommendation";
+        String uri = "http://localhost:8082/getRecommendation";
         headers.add("Authorization", "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJPcmRlck1hbmFnZXIiLCJyb2xlcyI6WyJST0xFX0FQUExJQ0FUSU9OIl0sImlhdCI6MTU4NDkxMTY3MSwiZXhwIjoxNzQyNTkxNjcxfQ.VmujsURhZaXRp5FQJXzmQMB-e6QSNF-OyPLeMEMOVvI");
         HttpEntity<String> request = new HttpEntity<>(jsonString, headers);
         JSONObject ret = template.postForObject(uri, request, JSONObject.class);
@@ -131,7 +132,9 @@ public class OrderManagerController {
         RestTemplate template = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        String uri = "http://localhost:8080/publishEvent";
+        String uri = "http://localhost:8083/publishEvent";
+        headers.add("Authorization", "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJPcmRlck1hbmFnZXIiLCJyb2xlcyI6WyJST0xFX0FQUExJQ0FUSU9OIl0sImlhdCI6MTU4NDkxMTY3MSwiZXhwIjoxNzQyNTkxNjcxfQ.VmujsURhZaXRp5FQJXzmQMB-e6QSNF-OyPLeMEMOVvI");
+
         HttpEntity<String> request = new HttpEntity<>(jsonString, headers);
         String response = template.postForObject(uri, request, String.class);
     }
