@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <TextView
+        android:id="@+id/personal_info"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="10dp"
+        android:text="@string/account_information"
+        style="@style/TextAppearance.MaterialComponents.Headline6"/>
+
+    <LinearLayout
+        android:id="@+id/stand_name_info"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp"
+        android:paddingTop="10dp"
+        android:layout_below="@id/personal_info">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingEnd="10dp"
+            android:paddingStart="0dp"
+            android:text="@string/standname"
+            android:textSize="18sp"
+            style="@style/TextAppearance.MaterialComponents.Body1" />
+
+        <TextView
+            android:id="@+id/stand_name"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            style="@style/TextAppearance.MaterialComponents.Body2"
+            android:maxLength="20" />
+
+        <com.google.android.material.button.MaterialButton
+            xmlns:app="http://schemas.android.com/apk/res-auto"
+            android:id="@+id/edit_stand_name_button"
+            android:layout_width="50dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton.Icon"
+            app:icon="@drawable/ic_edit2_black_24dp" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp"
+        android:paddingTop="10dp"
+        android:layout_below="@+id/stand_name_info">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingEnd="10dp"
+            android:paddingStart="0dp"
+            android:text="@string/brand_name"
+            android:textSize="18sp"
+            style="@style/TextAppearance.MaterialComponents.Body1" />
+
+        <TextView
+            android:id="@+id/brand_name"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            style="@style/TextAppearance.MaterialComponents.Body2"
+            android:maxLength="20" />
+
+        <com.google.android.material.button.MaterialButton
+            xmlns:app="http://schemas.android.com/apk/res-auto"
+            android:id="@+id/edit_brand_name_button"
+            android:layout_width="50dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton.Icon"
+            app:icon="@drawable/ic_edit2_black_24dp" />
+
+    </LinearLayout>
+
+</RelativeLayout>

@@ -49,8 +49,6 @@ public class DashboardFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull final LayoutInflater inflater, @Nullable final ViewGroup container, @Nullable Bundle savedInstanceState) {
-        //setRetainInstance(true);
-        //View view = getView() != null ? getView() : inflater.inflate(R.layout.activity_manager_dashboard, container, false);
         final View view = inflater.inflate(R.layout.activity_manager_dashboard, container, false);
         View view_profile = inflater.inflate(R.layout.fragment_profile, container, false);
         standname = view_profile.findViewById(R.id.editText_standname);
@@ -190,131 +188,6 @@ public class DashboardFragment extends Fragment {
     }
 
     /**
-     * This onCreate function is the first function that will be run when the Manager Dashboard opens up
-     * @param savedInstanceState the instance that was saved since last time that you have closed the app
-     */
-    /*@Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_manager_dashboard);
-
-        addButton = (Button) findViewById(R.id.add_button);
-        submitButton = (Button) findViewById(R.id.submit_button);
-        spinner = (Spinner)findViewById(R.id.spinner);
-        ArrayAdapter<CharSequence> arrayAdapter = ArrayAdapter.createFromResource(this, R.array.snacks, android.R.layout.simple_spinner_item);
-        arrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinner.setAdapter(arrayAdapter);
-
-        listView = (ListView) findViewById(R.id.listView_dashboard);
-        items = new ArrayList<DashboardItem>();
-        adapter = new DashboardListViewAdapter(this, items);
-        listView.setAdapter(adapter);
-        initHash();
-
-        /**
-         * When you click on the Add button, this will add the chosen snack in the dashboard
-         */
-        /*addButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String selected_item = spinner.getSelectedItem().toString();
-                DashboardItem item = hash_snacks.get(selected_item);
-                items.add(item);
-                adapter.notifyDataSetChanged();
-            }
-        });
-
-        submitButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Create JSON Object to send to the server
-                JSONObject js = new JSONObject();
-                JSONArray js_location = new JSONArray(); //[lon,lat]
-
-                try {
-                    js_location.put(360); //longitude -> TODO: hardcoded currently, fix later
-                    js_location.put(360);//latitude -> TODO: hardcoded currently, fix later
-                    js.put("Elberds Burgers", js_location);
-
-                    for (DashboardItem i: items) {
-                        JSONArray js_item_values = new JSONArray();
-                        js_item_values.put(i.getPrice());
-                        js_item_values.put(i.getPreptime());
-                        js_item_values.put(i.getCount());
-                        js_item_values.put(i.getCategory());
-                        js_item_values.put(i.getDescription());
-
-                        js.put(i.getTitle(), js_item_values);
-                    }
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-
-                //Instantiate the RequestQueue
-                RequestQueue queue = Volley.newRequestQueue(DashboardFragment.this);
-                String url = "http://cobol.idlab.ugent.be:8092/standmenu?standname=food1"; // TODO: fix url
-
-                //Sen
-                JsonObjectRequest jsonRequest = new JsonObjectRequest(Request.Method.POST, url, js, new Response.Listener<JSONObject>() {
-                    @Override
-                    public void onResponse(JSONObject response) {
-                        Toast mToast = Toast.makeText(DashboardFragment.this, "Submission succesful!", Toast.LENGTH_SHORT);
-                        mToast.show();
-                    }
-                }, new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        Toast mToast = Toast.makeText(DashboardFragment.this, "Submission failed", Toast.LENGTH_SHORT);
-                        mToast.show();
-                    }
-                }) {
-                    @Override
-                    public Map<String, String> getHeaders() throws AuthFailureError {
-                        Map<String,String> headers = new HashMap<String,String>();
-                        headers.put("Content-Type","application/json");
-                        return headers;
-                    }
-                };
-                //Add the request to the RequestQueue
-                queue.add(jsonRequest);
-            }
-        });*/
-
-        /**
-         * When you click long on an item of the menu, the item gets deleted, but you will first receive a notification asking you if you are sure you want to delete it
-         */
-        /*listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-            @Override
-            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-                final int pos = position;
-                new AlertDialog.Builder(DashboardFragment.this)
-                        .setTitle("Are you sure?")
-                        .setMessage("Do you want to delete this item")
-                        .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialog, int which) {
-                                        items.remove(pos);
-                                        adapter.notifyDataSetChanged();
-                                    }
-                        })
-                        .setNegativeButton("No", null)
-                        .show();
-                return true;
-            }
-        });*/
-
-        /**
-         * When you click once on an item, you will be able to edit it
-         */
-        /*listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                showEditBox(items.get(position).getTitle(), items.get(position).getPrice(), items.get(position).getCount(), position);
-            }
-        });
-    }*/
-
-    /**
      * This function edits the title and price of the item
      * @param oldTitle the title of the item before you edit it
      * @param oldPrice the price of the item before you edit it
@@ -374,27 +247,4 @@ public class DashboardFragment extends Fragment {
         hash_snacks.put("Toast", toast);
         hash_snacks.put("Juice", juice);
     }
-
-    // save whatever you would have in onSaveInstanceState() and return a bundle with the saved data
-    /*public Bundle getState() {
-        //Bundle bundle = new Bundle();
-        //bundle.putParcelableArrayList("items", items);
-        return bundle;
-    }
-
-    @Override
-    public void onPause() {
-        System.out.println("State PAUSED!");
-        super.onPause();
-        bundle = new Bundle();
-        bundle.putParcelableArrayList("items", items);
-    }
-
-    public ArrayList<DashboardItem> getItems() {
-        return items;
-    }
-    public void setItems(ArrayList<DashboardItem> item) {
-        items = item;
-        adapter.notifyDataSetChanged();
-    }*/
 }

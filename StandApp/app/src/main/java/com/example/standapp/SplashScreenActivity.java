@@ -22,7 +22,6 @@ public class SplashScreenActivity extends AppCompatActivity {
                 .withAfterLogoText("Making sure your event runs smoothly")
                 .withLogo(R.mipmap.ic_launcher_round);
 
-
         View easySplashScreen = config.create();
         setContentView(easySplashScreen);
     }
