@@ -63,6 +63,8 @@ public abstract class MenuFragment extends Fragment {
             //url = "http://localhost:8080/standmenu?standname=" + standName;
             url = url + "standmenu?standname=" + standName;
         }
+        // Remove spaces from the url
+        url = url.replace(' ', '+');
 
         // Request the global/stand menu in JSON from the order manager
         // Handle no network connection or server not reachable
