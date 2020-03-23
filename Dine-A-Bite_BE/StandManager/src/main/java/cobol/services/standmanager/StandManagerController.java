@@ -152,11 +152,10 @@ public class StandManagerController {
         ArrayList<Scheduler> goodSchedulers = findCorrespondStands(order);
 
         /* sort the stands (schedulers) based on remaining time */
-        Collections.sort(goodSchedulers, new SchedulerComparatorTime());
+        //Collections.sort(goodSchedulers, new SchedulerComparatorTime(order.getFull_order()));
 
-        /* TODO: this is just how you could sort based on distance alone, need to combine this */
         /* sort the stands (schedulers) based on distance */
-        //Collections.sort(goodSchedulers, new SchedulerComparatorDistance(order.getLat(),order.getLon()));
+        Collections.sort(goodSchedulers, new SchedulerComparatorDistance(order.getLat(),order.getLon()));
 
         /* TODO: this is how you sort based on combination, weight is how much time you add for each unit of distance */
         /* sort the stands (schedulers) based on combination of time and distance */
@@ -173,9 +172,13 @@ public class StandManagerController {
         for (int i = 0 ; i < amountOfRecommends ; i++){
             JSONObject add = new JSONObject();
             Scheduler curScheduler = goodSchedulers.get(i);
+            System.out.println(curScheduler.getStandName());
+            SchedulerComparatorDistance sc = new SchedulerComparatorDistance(curScheduler.getLat(),curScheduler.getLon());
+            SchedulerComparatorTime st = new SchedulerComparatorTime(order.getFull_order());
             add.put("stand_id", curScheduler.getStandId());
-            add.put("time_estimate", curScheduler.timeSum());
-            System.out.println(curScheduler.timeSum());
+            add.put("distance", sc.getDistance(order.getLat(),order.getLon()));
+            add.put("time_estimate", st.getTimesum(curScheduler));
+            System.out.println(st.getTimesum(curScheduler));
             obj.put(curScheduler.getStandName(), add);
         }
         return obj;

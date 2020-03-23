@@ -35,9 +35,14 @@ public class SchedulerComparatorDistance implements Comparator<Scheduler> {
      *
      * @param lat1 lat coords for first point
      * @param lon1 lon coords for first point
-     * @param lat2 lat coords for second point
-     * @param lon2 lon coords for second point
+     * lat: lat coords for this scheduler
+     * lon: lon coords for this scheduler
      * @return the distance between the 2 points
      */
-
+    public double getDistance(double lat1, double lon1){
+        double xdiff = Math.pow(lat - lat1,2);
+        double ydiff = Math.pow(lon - lon1,2);
+        double distance = Math.sqrt(xdiff + ydiff);
+        return distance;
+    }
 }

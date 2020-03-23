@@ -304,6 +304,7 @@ public class MenuHandler {
         }
         return "Saved";
     }
+    public String getStandName(int id) { return standRepository.findStandById(id).getFull_name();}
 
     public Food getFood(String name, String brandname){
         return food_Repository.findByNameAndBrand(name, brandname);

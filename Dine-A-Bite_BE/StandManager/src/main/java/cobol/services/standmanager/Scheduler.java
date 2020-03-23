@@ -22,7 +22,9 @@ public class Scheduler extends Thread {
     private double lon;
     private double lat;
     private String brand;
-
+    public int getPreptime(String foodname){
+        return menu.get(foodname)[1];
+    }
     public double getLon(){
         return this.lon;
     }

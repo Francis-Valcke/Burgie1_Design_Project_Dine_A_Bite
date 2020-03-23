@@ -16,6 +16,7 @@ import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.PostConstruct;
 import java.util.List;
+import java.util.Set;
 
 import static cobol.commons.ResponseModel.status.OK;
 
@@ -94,8 +95,15 @@ public class OrderManagerController {
         headers.add("Authorization", "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJPcmRlck1hbmFnZXIiLCJyb2xlcyI6WyJST0xFX0FQUExJQ0FUSU9OIl0sImlhdCI6MTU4NDkxMTY3MSwiZXhwIjoxNzQyNTkxNjcxfQ.VmujsURhZaXRp5FQJXzmQMB-e6QSNF-OyPLeMEMOVvI");
         HttpEntity<String> request = new HttpEntity<>(jsonString, headers);
         JSONObject ret = template.postForObject(uri, request, JSONObject.class);
+        Set<String> keys = ret.keySet(); //emptys keyset
+        //Look if standname in JSON file
+
+        for (String key : keys) {
+            System.out.println("order recommender for: "+(key));
+        }
+
+
         ret.put("order_id", new_order.getId());
-        //TODO: Uncomment lines above when recommender is available
 
         //The following is a hardcoded recommendation
         //JSONObject ret = new JSONObject();
