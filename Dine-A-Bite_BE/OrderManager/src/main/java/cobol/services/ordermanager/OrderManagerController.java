@@ -1,31 +1,31 @@
 package cobol.services.ordermanager;
 
 import cobol.commons.Event;
-import org.json.simple.JSONObject;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
+import cobol.commons.Order;
 import cobol.commons.ResponseModel;
-import org.springframework.http.ResponseEntity;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.json.simple.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
+import javax.annotation.PostConstruct;
 import java.util.List;
+import java.util.Set;
+
+import static cobol.commons.ResponseModel.status.OK;
 
 /**
  * This class handles communication from standapplication: incoming changes to stand menus are registered in the menuhandler
  * This class also handles menurequests from the attendee applications, fetching the menus from the menuhandler
- * 
+ * <p>
  * TODO: merge with code Wannes for Order functionality
  */
-import static cobol.commons.ResponseModel.status.OK;
 
 @RestController
 public class OrderManagerController {
@@ -62,6 +62,7 @@ public class OrderManagerController {
      * Will check if there are already stands in database that are not in OM and add them to OM
      * @return tells u if there are already stands in DB
      */
+    @PostConstruct
     @RequestMapping("/updateOM")
     public String index() {
         List<String> s = mh.update();
@@ -81,7 +82,7 @@ public class OrderManagerController {
      */
     @PostMapping(value = "/placeOrder", consumes = "application/json", produces = "application/json")
     public JSONObject placeOrder(@RequestBody JSONObject order_object) throws JsonProcessingException {
-        Order new_order = new Order(order_object, mh);
+        Order new_order = new Order(order_object);
         OrderProcessor processor = OrderProcessor.getOrderProcessor();
         processor.addOrder(new_order);
 
@@ -90,18 +91,27 @@ public class OrderManagerController {
         RestTemplate template = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        String uri = "http://localhost:8080/getRecommendation";
+        String uri = "http://localhost:8082/getRecommendation";
+        headers.add("Authorization", "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJPcmRlck1hbmFnZXIiLCJyb2xlcyI6WyJST0xFX0FQUExJQ0FUSU9OIl0sImlhdCI6MTU4NDkxMTY3MSwiZXhwIjoxNzQyNTkxNjcxfQ.VmujsURhZaXRp5FQJXzmQMB-e6QSNF-OyPLeMEMOVvI");
         HttpEntity<String> request = new HttpEntity<>(jsonString, headers);
-        //JSONObject ret = template.postForObject(uri, request, JSONObject.class);
-        //ret.put("order_id", new_order.getId());
-        //TODO: Uncomment lines above when recommender is available
+        JSONObject ret = template.postForObject(uri, request, JSONObject.class);
+        Set<String> keys = ret.keySet(); //emptys keyset
+        //Look if standname in JSON file
+
+        for (String key : keys) {
+            System.out.println("order recommender for: "+(key));
+        }
+
+
+        ret.put("order_id", new_order.getId());
+
         //The following is a hardcoded recommendation
-        JSONObject ret = new JSONObject();
-        ret.put("order_id", 1);
+        //JSONObject ret = new JSONObject();
+        /*ret.put("order_id", 1);
         JSONObject stand = new JSONObject();
         stand.put("stand_id" , 1);
         stand.put("estimated_time", 5);
-        ret.put("recommendation", stand);
+        ret.put("recommendation", stand);*/
         return ret;
     }
 
@@ -130,7 +140,9 @@ public class OrderManagerController {
         RestTemplate template = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        String uri = "http://localhost:8080/publishEvent";
+        String uri = "http://localhost:8083/publishEvent";
+        headers.add("Authorization", "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJPcmRlck1hbmFnZXIiLCJyb2xlcyI6WyJST0xFX0FQUExJQ0FUSU9OIl0sImlhdCI6MTU4NDkxMTY3MSwiZXhwIjoxNzQyNTkxNjcxfQ.VmujsURhZaXRp5FQJXzmQMB-e6QSNF-OyPLeMEMOVvI");
+
         HttpEntity<String> request = new HttpEntity<>(jsonString, headers);
         String response = template.postForObject(uri, request, String.class);
     }
@@ -142,7 +154,7 @@ public class OrderManagerController {
      */
     @PostMapping(path = "/addstand") // Map ONLY POST Requests
     public @ResponseBody
-    String addStand(@RequestBody JSONObject menu) {
+    String addStand(@RequestBody JSONObject menu) throws JsonProcessingException {
         return mh.addStand(menu);
     }
     /**

@@ -1,17 +1,14 @@
 package cobol.services.standmanager;
 
+import cobol.commons.Order;
+import org.springframework.web.bind.annotation.*;
 
 
 import cobol.commons.ResponseModel;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
 import org.json.simple.JSONObject;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static cobol.commons.ResponseModel.status.OK;
 
@@ -40,48 +37,150 @@ public class StandManagerController {
     private List<Scheduler> schedulers = new ArrayList<Scheduler>();
 
 
+    /**
+     * just a function for testing and starting some schedulers for practice
+     */
+    @RequestMapping("/start")
+    public void start(){
+        /**
+         * Initialize stand menus and schedulers
+         */
+        System.out.println("TESTTEST");
+        Map<String, int[]> menu = new HashMap<>();
+        int[] prijsenpreptime = {2,3};
+        menu.put("burger", prijsenpreptime);
+        Scheduler a = new Scheduler(menu, "food1", 1, "mcdo");
+        Scheduler b = new Scheduler(menu, "food2",2, "burgerking");
+
+        schedulers.add(a);
+        schedulers.add(b);
+        /**
+         * start running schedulers
+         */
+        for (int i=0;i<schedulers.size();i++){
+            schedulers.get(i).start();
+        }
+
+    }
 
     /**
-     * @return the name of the recommended stand in JSON format.
-     * @RequestParam() String foodtype: post a type of food
-     * (In Postman: Select POST, go to params, enter "foodtype" as KEY and enter a menu item as value)
-     * (ex:localhost:8080/post?foodtype=pizza)
-     * (in current test above: "pizza", "apple", "burger" and "pizza with salami" are menu items)
+     *
+     * @param info class object StandInfo which is used to start a scheduler for stand added in order manager
+     * available at localhost:8081/newStand
+     * @return true (if no errors)
      */
-    @RequestMapping(value ="/post", method = RequestMethod.POST)
-    @ResponseBody
-    public JSONObject postOrder(@RequestParam() String foodtype) {
-        System.out.println(foodtype);
-        return recommend(foodtype);
+    @RequestMapping(value = "/newStand", consumes = "application/json")
+    public JSONObject addNewStand(@RequestBody() StandInfo info){
+        Scheduler s = new Scheduler(info.getMenu(), info.getName(), info.getId(), info.getBrand());
+        s.setLat(info.getLat());
+        s.setLon(info.getLon());
+        schedulers.add(s);
+        s.start();
+        System.out.println("lol");
+        JSONObject obj = new JSONObject();
+        obj.put("added",true);
+        return obj;
     }
 
 
     /**
-     * @param type: type of food for which attendee seeks stand recommendation
-     * @return JSON object with standname
-     * Iterates over schedulers and looks for scheduler (that has the requested food item in menu) with shortest queue
-     * TODO: instead of returning 1 stand: return list of stands in recommended order
+     *
+     * @param order order which wants to be placed
+     * TODO: really implement this
      */
-    public JSONObject recommend(String type) {
-        JSONObject obj = new JSONObject();
-        int s = 1000;
-        String standname="";
+    @RequestMapping(value = "/placeOrder", consumes = "application/json")
+    public void placeOrder(@RequestBody() Order order){
+        //add order to right scheduler
+    }
+
+
+
+    /**
+     *
+     * @param order order object for which the Order Manager wants a recommendation
+     * @return recommendation in JSON format
+     */
+    @RequestMapping(value = "/getRecommendation", consumes = "application/json")
+    @ResponseBody
+    public JSONObject postOrder(@RequestBody() Order order) {
+        System.out.println("User requested recommended stand for " + order.getId());
+        return recommend(order);
+    }
+
+
+    /**
+     *
+     * @param order the order for which you want to find corresponding stands
+     * @return list of schedulers (so the stands) which offer the correct food to complete the order
+     */
+    public ArrayList<Scheduler> findCorrespondStands(Order order){
+        /* first get the Map with all the food of the order */
+        Map<String, Integer> foodMap = order.getFull_order();
+
+        /* group all stands (schedulers) with the correct type of food available */
+        ArrayList<Scheduler> goodSchedulers = new ArrayList<>();
         for (int i = 0; i < schedulers.size(); i++) {
-            if (schedulers.get(i).checkType(type)) {
-                int n = schedulers.get(i).timeSum();
-                if (n < s) {
-                    s = n;
-                    standname = schedulers.get(i).getStandname();
+            Boolean validStand = true;
+            Scheduler currentScheduler = schedulers.get(i);
+            for (String food : foodMap.keySet()) {
+                if (currentScheduler.checkType(food)) {
+                    validStand = true;
+                }
+                else{
+                    validStand = false;
+                    break;
                 }
             }
+            if (validStand == true){
+                goodSchedulers.add(currentScheduler);
+            }
         }
-        obj.put("stand", standname);
-        //obj.put("stand2", "foo");
-        //obj.put("stand3", "foo");
-        //obj.put("stand4", "foo");
-        //obj.put("stand5", "foo");
+        return goodSchedulers;
+    }
 
-        System.out.print(obj);
+
+    /**
+     *
+     * @param order is the order for which the recommended stands are required
+     * @return JSON with a certain amount of recommended stands (currently based on lowest queue time only)
+     */
+    public JSONObject recommend(Order order) {
+        /* choose how many recommends you want */
+        int amountOfRecommends = 3;
+
+        /* find stands (schedulers) which offer correct food for the order */
+        ArrayList<Scheduler> goodSchedulers = findCorrespondStands(order);
+
+        /* sort the stands (schedulers) based on remaining time */
+        //Collections.sort(goodSchedulers, new SchedulerComparatorTime(order.getFull_order()));
+
+        /* sort the stands (schedulers) based on distance */
+        Collections.sort(goodSchedulers, new SchedulerComparatorDistance(order.getLat(),order.getLon()));
+
+        /* TODO: this is how you sort based on combination, weight is how much time you add for each unit of distance */
+        /* sort the stands (schedulers) based on combination of time and distance */
+        //double weight = 5;
+        //Collections.sort(goodSchedulers, new SchedulerComparator(order.getLat(), order.getLon(), weight);
+
+        /* check if you have enough stands (for amount of recommendations you want) */
+        if (goodSchedulers.size() < amountOfRecommends){
+            amountOfRecommends = goodSchedulers.size();
+        }
+
+        /* put everything into a JSON file to give as return value */
+        JSONObject obj = new JSONObject();
+        for (int i = 0 ; i < amountOfRecommends ; i++){
+            JSONObject add = new JSONObject();
+            Scheduler curScheduler = goodSchedulers.get(i);
+            System.out.println(curScheduler.getStandName());
+            SchedulerComparatorDistance sc = new SchedulerComparatorDistance(curScheduler.getLat(),curScheduler.getLon());
+            SchedulerComparatorTime st = new SchedulerComparatorTime(order.getFull_order());
+            add.put("stand_id", curScheduler.getStandId());
+            add.put("distance", sc.getDistance(order.getLat(),order.getLon()));
+            add.put("time_estimate", st.getTimesum(curScheduler));
+            System.out.println(st.getTimesum(curScheduler));
+            obj.put(curScheduler.getStandName(), add);
+        }
         return obj;
     }
 

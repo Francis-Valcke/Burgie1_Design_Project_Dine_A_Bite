@@ -1,18 +1,40 @@
-package cobol.services.ordermanager;
+package cobol.commons;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
-import cobol.services.ordermanager.dbmenu.Food;
 
 import java.util.*;
 
 public class Order {
+    private int remTime;
     private static int order_amount = 1;
     private int id;
     private Map<String, Integer> full_order = new HashMap<>();
     private double lat;
     private double lon;
     private int stand_id;
+
+    public double getLat(){
+        return this.lat;
+    }
+
+    public double getLon(){
+        return this.lon;
+    }
+
+
+    public Map<String, Integer> getFull_order(){
+        return this.full_order;
+    }
+    // TODO: these 2 functions only temporary for remaining time (think this should be through event channel)
+    public int getRemtime() {
+        return this.remTime;
+    }
+
+    public void setRemtime(int i) {
+        this.remTime = i;
+    }
+
     public enum status {
         PENDING,
         DECLINED,
@@ -23,10 +45,10 @@ public class Order {
     /**
      *
      * @param order_file JSON file received from the attendee-app
-     *
+     * TODO: ZEER BELANGRIJK, momenteel bij de keys (en bij new food) gewoon vaste prijs en preptime, dit moet uiteraard nog aangepast worden
      * Constructs an order object from a JSON file
      */
-    public Order(JSONObject order_file, MenuHandler handler) {
+    public Order(JSONObject order_file) {
         this.id = order_amount;
         order_amount++;
         orderStatus = status.PENDING;
@@ -72,6 +94,7 @@ public class Order {
     public void setState(status state) {
         this.orderStatus = state;
     }
+
 
     public void setStand_id(int id) {
         this.stand_id = id;
