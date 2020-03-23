@@ -19,6 +19,10 @@ public class SchedulerComparator implements Comparator<Scheduler> {
         this.weight = weight;
     }
 
+    public SchedulerComparator(){
+
+    }
+
     @Override
     /**
      * compares the time between 2 schedulers where there is time added as distance*weight

@@ -1,6 +1,7 @@
 package cobol.services.standmanager;
 
 import cobol.services.ordermanager.Order;
+//TODO: make this as import from commons
 import org.json.simple.JSONValue;
 import org.springframework.web.bind.annotation.*;
 
@@ -38,13 +39,8 @@ public class StandManagerController {
     private List<Scheduler> schedulers = new ArrayList<Scheduler>();
 
 
-
     /**
-     * In order to temporarily test the functionalities of the stand manager,
-     * without a proper ordering process and without proper initialization of stands,
-     * this function initializes a possible state of the server with 2 running schedulers
-     * To start this up, simply send a GET message to localhost:8081/start
-     * TODO: replace this with proper testing function? (JUnit/Rest assured)
+     * just a function for testing and starting some schedulers for practice
      */
     @RequestMapping("/start")
     public void start(){
