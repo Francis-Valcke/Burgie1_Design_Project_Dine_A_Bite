@@ -7,11 +7,18 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textfield.TextInputEditText;
 
@@ -92,6 +99,29 @@ public class ProfileFragment extends Fragment {
             }
 
         });
+
+        // Instantiate the RequestQueue
+        RequestQueue queue = Volley.newRequestQueue(this.getContext());
+        String om_url = "http://cobol.idlab.ugent.be:8091/pingOM";
+
+        // Request a string response (ping message) from the provided URL
+        StringRequest stringRequest = new StringRequest(Request.Method.GET, om_url, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                // Display the first 500 characters of the response string
+                Toast mToast = Toast.makeText(getContext(), "Succes", Toast.LENGTH_LONG);
+                mToast.show();
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Toast mToast = Toast.makeText(getContext(), "Fail", Toast.LENGTH_LONG);
+                mToast.show();
+            }
+        });
+
+        // Add the request to the RequestQueue
+        queue.add(stringRequest);
 
         return view;
     }

@@ -48,11 +48,11 @@ public class DashboardFragment2 extends Fragment {
         final String standName = "Levis Burgers";
         final String brandName = "Levis Burgers";
 
-        //Bundle bundle = this.getArguments();
-        //if (bundle != null) {
-            //Toast testToast = Toast.makeText(getContext(), bundle.getString("standName"), Toast.LENGTH_LONG);
-            //testToast.show();
-        //}
+        Bundle bundle = this.getArguments();
+        if (bundle != null) {
+            Toast testToast = Toast.makeText(getContext(), bundle.getString("standName"), Toast.LENGTH_LONG);
+            testToast.show();
+        }
 
         final DashboardListViewAdapter adapter = new DashboardListViewAdapter(Objects.requireNonNull(this.getActivity()), items);
         menuList.setAdapter(adapter);
@@ -118,10 +118,10 @@ public class DashboardFragment2 extends Fragment {
                         // if there are 0 items in stock, then no need to send it to the server
                         if (new_count == 0) continue;
                         int prep_time = Integer.parseInt(i.getPrep_time());
-                        //float price = Float.parseFloat(i.getPrice());
+                        float price = Float.parseFloat(i.getPrice());
 
                         JSONArray js_item_values = new JSONArray();
-                        js_item_values.put(i.getPrice());
+                        js_item_values.put(price);
                         js_item_values.put(prep_time);
                         js_item_values.put(new_count);
                         js_item_values.put(i.getCategory());
@@ -174,7 +174,7 @@ public class DashboardFragment2 extends Fragment {
                     public Map<String, String> getHeaders() {
                         HashMap<String, String> headers = new HashMap<>();
                         headers.put("Content-Type", "application/json");
-                        headers.put("Authorization", "Bearer" + "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJmcmFuY2lzIiwicm9sZXMiOlsiUk9MRV9VU0VSIiwiUk9MRV9BRE1JTiJdLCJpYXQiOjE1ODQ2MTAwMTcsImV4cCI6MTc0MjI5MDAxN30.5UNYM5Qtc4anyHrJXIuK0OUlsbAPNyS9_vr-1QcOWnQ");
+                        headers.put("Authorization", "Bearer" + " " + "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJmcmFuY2lzIiwicm9sZXMiOlsiUk9MRV9VU0VSIiwiUk9MRV9BRE1JTiJdLCJpYXQiOjE1ODQ2MTAwMTcsImV4cCI6MTc0MjI5MDAxN30.5UNYM5Qtc4anyHrJXIuK0OUlsbAPNyS9_vr-1QcOWnQ");
                         return headers;
                     }
                 };
