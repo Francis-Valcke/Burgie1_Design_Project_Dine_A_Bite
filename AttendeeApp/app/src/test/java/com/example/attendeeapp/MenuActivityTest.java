@@ -20,17 +20,16 @@ import org.robolectric.shadows.ShadowIntent;
 import org.robolectric.shadows.ShadowLooper;
 
 import java.math.BigDecimal;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Random;
 
 import static org.junit.Assert.*;
 import static org.robolectric.Shadows.shadowOf;
 
 @RunWith(RobolectricTestRunner.class)
 public class MenuActivityTest {
+
     // TODO: test permission granting
+
     private MenuActivity menuActivity;
 
     @Before
