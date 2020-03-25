@@ -88,6 +88,7 @@ public class MenuActivity extends AppCompatActivity implements OnCartChangeListe
      * If the cart is full (>= MAX_CART_ITEM) or the item has reached it maximum,
      * the item is not added or counted
      * @param cartItem: item to add to the cart with a unique item name
+     * @return the (updated) cartCount
      * TODO: enforce unique name when creating menu items
      */
     public int onCartChangedAdd(MenuItem cartItem) {
@@ -96,8 +97,9 @@ public class MenuActivity extends AppCompatActivity implements OnCartChangeListe
                 boolean contains = false;
                 for (MenuItem i : cartList) {
                     if (i.getFoodName().equals(cartItem.getFoodName()) &&
-                            i.getStandName().equals(cartItem.getStandName())) {
-                        // cartItems have a unique (foodName, standName)
+                            i.getStandName().equals(cartItem.getStandName()) &&
+                            i.getBrandName().equals(cartItem.getBrandName())) {
+                        // cartItems have a unique ((foodName, brandName), standName)
                         i.increaseCount();
                         contains = true;
                         break;
@@ -132,6 +134,7 @@ public class MenuActivity extends AppCompatActivity implements OnCartChangeListe
      * else if the cart contains it one time, remove the item
      * If the cart is empty the item is not removed and a toast message is shown
      * @param cartItem: item to remove from the cart with a unique item name
+     * @return the (updated) cartCount
      * TODO: enforce unique name when creating menu items
      */
     public int onCartChangedRemove(MenuItem cartItem) {
@@ -140,8 +143,9 @@ public class MenuActivity extends AppCompatActivity implements OnCartChangeListe
                 boolean contains = false;
                 for (MenuItem i : cartList) {
                     if (i.getFoodName().equals(cartItem.getFoodName()) &&
-                            i.getStandName().equals(cartItem.getStandName())) {
-                        // cartItems have a unique (foodName, standName)
+                            i.getStandName().equals(cartItem.getStandName()) &&
+                            i.getBrandName().equals(cartItem.getBrandName())) {
+                        // cartItems have a unique ((foodName, brandName), standName)
                         i.decreaseCount();
                         if (i.getCount() == 0){
                             cartList.remove(i);

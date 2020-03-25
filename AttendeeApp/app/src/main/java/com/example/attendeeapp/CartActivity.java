@@ -229,8 +229,7 @@ public class CartActivity extends AppCompatActivity {
         }
         // Instantiate the RequestQueue
         RequestQueue queue = Volley.newRequestQueue(this);
-        String url = "http://cobol.idlab.ugent.be:8092/post?foodtype";
-        //String url = "http://localhost:8080/post?foodtype";
+        String url = "http://cobol.idlab.ugent.be:8091/placeOrder";
 
         // Request recommendation from server for sent order (both in JSON)
         JsonObjectRequest jsonRequest = new JsonObjectRequest(Request.Method.POST, url, js,
