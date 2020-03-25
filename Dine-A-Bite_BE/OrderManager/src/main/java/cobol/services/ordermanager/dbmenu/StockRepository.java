@@ -14,5 +14,7 @@ public interface StockRepository extends CrudRepository<Stock, Integer> {
     Stock findStock(int fid, int sid);
     @Query("select s from Stock s inner join Stand st on st.id=s.stand_id where st.id=?1")
     List<Stock> findStockByStand(int sid);
+    @Query("select s.stand_id from Stock s where s.food_id=?1")
+    List<Integer> findStandIdByFoodId(int fid);
 
 }

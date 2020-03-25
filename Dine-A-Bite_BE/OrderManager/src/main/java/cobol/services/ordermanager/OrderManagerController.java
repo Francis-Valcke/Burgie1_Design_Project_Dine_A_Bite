@@ -29,6 +29,8 @@ import static cobol.commons.ResponseModel.status.OK;
 
 @RestController
 public class OrderManagerController {
+    @Autowired // This means to get the bean called standRepository
+    private MenuHandler mh=new MenuHandler();
 
     /**
      * API endpoint to test if the server is still alive.
@@ -44,9 +46,11 @@ public class OrderManagerController {
                         .build().generateResponse()
         );
     }
-    
-    @Autowired // This means to get the bean called standRepository
-    private MenuHandler mh=new MenuHandler();
+    @GetMapping("/SMswitch")
+    public void SMswitch(@RequestParam(name = "on") boolean sm){
+        this.mh.SmSwitch(sm);
+    }
+
 
     /**
      * will clear database and OM
@@ -187,7 +191,15 @@ public class OrderManagerController {
         System.out.println("request menu of stand " + standname);
         return mh.getStandMenu(standname);
     }
+    @RequestMapping(value ="/deleteStand", method = RequestMethod.GET)
+    @ResponseBody
+    public String deleteStand(@RequestParam() String standname) {
+        System.out.println("delete stand: " + standname);
+        boolean b =mh.deleteStand(standname);
+        if (b) return "Stand " + standname + " deleted.";
+        else return "No stand by that name exists";
 
+    }
     /**
      *
      * @return names of all stands:

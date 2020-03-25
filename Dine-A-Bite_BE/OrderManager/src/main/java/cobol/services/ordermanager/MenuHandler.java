@@ -32,10 +32,14 @@ public class MenuHandler {
     @Autowired
     private StockRepository stockRepository;
 
+    private boolean SMon=true;
     public MenuHandler() {
         standmenus = new HashMap<>();
     }
 
+    public void SmSwitch(boolean b){
+        this.SMon=b;
+    }
     /**
      * this will clear the database and the JSON cache files
      */
@@ -58,7 +62,6 @@ public class MenuHandler {
     public List<String> update(){
         Stand[] s = standRepository.findStands().toArray(new Stand[standRepository.findStands().size()]);
         List<String> standnames = new ArrayList<>();
-        System.out.println(s.length);
         for ( int i=0;i<s.length;i++){
             if (standnames.contains(s[i].getFull_name())){
                 standRepository.delete(s[i]);
@@ -228,8 +231,6 @@ public class MenuHandler {
             String desc = (String) a.get(4);
             List<String> cat = Arrays.asList(new String[]{(String) a.get(3)});
             if (b) {
-                System.out.println(cat);
-                System.out.println(fp.getCategory());
                 if (cat == null || fp.getCategory().containsAll(cat)||cat.get(0).equals("")) ;
                 else {
                     if (fp.getCategory() == null) {
@@ -268,7 +269,6 @@ public class MenuHandler {
                 }
             }
             if (!newitem){
-                System.out.println(fp.getId());
                 s =stockRepository.findStock(fp.getId(),n.getId());
                 if (count<0);
                 else s.setCount(count);
@@ -278,7 +278,6 @@ public class MenuHandler {
                 s.setCount(count);
                 s.setFood_id(fp.getId());
                 s.setStand_id(n.getId());
-                System.out.println(fp.getId());
             }
             stockRepository.save(s);
             if (newstand){
@@ -288,7 +287,7 @@ public class MenuHandler {
 
         fetchStandMenu(standname);
         fetchMenu();
-        if (newstand){
+        if (newstand&&SMon){
             ObjectMapper mapper = new ObjectMapper();
             String jsonString = mapper.writeValueAsString(si);
             RestTemplate template = new RestTemplate();
@@ -304,7 +303,19 @@ public class MenuHandler {
         }
         return "Saved";
     }
-    public String getStandName(int id) { return standRepository.findStandById(id).getFull_name();}
+    public boolean deleteStand(String name){
+        if (standRepository.findStandByName(name)==null) return false;
+        int id = standRepository.findStandByName(name).getId();
+        List<Stock> st = stockRepository.findStockByStand(id);
+        for (int i=0;i<st.size();i++){
+            List<Integer> l = stockRepository.findStandIdByFoodId(st.get(i).getFood_id());
+            if (l.size()<2) food_Repository.deleteById(st.get(i).getFood_id());
+        }
+        stockRepository.deleteAll(st);
+        standRepository.deleteById(id);
+        return true;
+
+    }
 
     public Food getFood(String name, String brandname){
         return food_Repository.findByNameAndBrand(name, brandname);
