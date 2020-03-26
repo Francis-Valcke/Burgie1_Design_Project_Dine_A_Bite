@@ -128,8 +128,13 @@ public class MenuActivityTest {
         ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
         Intent startedIntent = shadowOf(menuActivity).getNextStartedActivity();
         ShadowIntent shadowIntent = shadowOf(startedIntent);
+
         assertEquals(CartActivity.class, shadowIntent.getIntentClass());
-        assertEquals(cartList, startedIntent.getSerializableExtra("cartList"));
+        // Add MenuItem equals method comparer
+        ArrayList<MenuItem> testList = (ArrayList<MenuItem>) startedIntent.getSerializableExtra("cartList");
+        assertEquals(cartList.get(0).getFoodName(), testList.get(0).getFoodName());
+        assertEquals(1, testList.get(0).getCount());
+        assertEquals(1, startedIntent.getIntExtra("cartCount", -1));
     }
 
 
