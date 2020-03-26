@@ -71,7 +71,7 @@ public class Scheduler extends Thread {
      */
     public boolean checkType(String type){
         for (String food : menu.keySet()){
-            if (food == type){
+            if (food.equals(type)){
                 return true;
             }
         }
