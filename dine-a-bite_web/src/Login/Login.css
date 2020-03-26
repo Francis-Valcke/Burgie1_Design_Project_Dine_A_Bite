@@ -1,0 +1,27 @@
+.Login{
+    margin: 5em;
+    display: inline-block;
+    padding: 24px;
+    /* margin: inherit; */
+    background-color: #008577;
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.473);
+    color: white;
+}
+
+label{
+    display: block;
+    margin: 0.5em;
+}
+
+div{
+    margin: 1em;
+}
+
+input{
+    text-align: center;
+}
+
+button{
+    width: inherit;
+    
+}
