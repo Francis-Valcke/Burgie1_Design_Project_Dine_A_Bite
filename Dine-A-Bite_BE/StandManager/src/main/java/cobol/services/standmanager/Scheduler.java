@@ -9,53 +9,25 @@ import cobol.commons.order.Order;
 
 /**
  * schedulers all have:
- *      - menu: the menu information of a stand: more information on menu items in class: Food
- *      - inc: a list of the incoming orders: more information on orders in class: Order
- *      - standname: a unique name
  *  TODO: change "inc" to proper schedule
  */
 public class Scheduler extends Thread {
+    // a list of incoming orders
     private List<Order> inc = new ArrayList<Order>();
+
+    // FoodName, Array [prepTime, Price] -- MenuItem
     private Map<String, int[]> menu =new HashMap<>();
+
+    // Stand identifiers
     private String standname;
     private int id;
+
+    // Coordinates of Stand
     private double lon;
     private double lat;
+
     private String brand;
-    public int getPreptime(String foodname){
-        return menu.get(foodname)[1];
-    }
-    public double getLon(){
-        return this.lon;
-    }
 
-    public double getLat(){
-        return this.lat;
-    }
-
-    public void setLon(double l){
-        this.lon = l;
-    }
-
-    public void setLat(double l){
-        this.lat = l;
-    }
-
-    public Map<String, int[]> getMenu(){
-        return this.menu;
-    }
-
-    public int getStandId(){
-        return this.id;
-    }
-
-    public String getStandName(){
-        return this.standname;
-    }
-
-    public String getBrand(){
-        return this.brand;
-    }
 
     public Scheduler(Map<String, int[]> menu, String standname, int id, String brand){
         this.menu=menu;
@@ -129,15 +101,51 @@ public class Scheduler extends Thread {
         }
     }
 
-  public void run(){
-      while (true){
-          try {
-              TimeUnit.SECONDS.sleep(1);
-          } catch (InterruptedException e) {
-              e.printStackTrace();
-          }
-          prepClock();
-      }
-  }
+    public void run(){
+        while (true){
+            try {
+                TimeUnit.SECONDS.sleep(1);
+            } catch (InterruptedException e) {
+               e.printStackTrace();
+            }
+            prepClock();
+        }
+    }
+
+
+    public int getPreptime(String foodname){
+        return menu.get(foodname)[1];
+    }
+    public double getLon(){
+        return this.lon;
+    }
+
+    public double getLat(){
+        return this.lat;
+    }
+
+    public void setLon(double l){
+        this.lon = l;
+    }
+
+    public void setLat(double l){
+        this.lat = l;
+    }
+
+    public Map<String, int[]> getMenu(){
+        return this.menu;
+    }
+
+    public int getStandId(){
+        return this.id;
+    }
+
+    public String getStandName(){
+        return this.standname;
+    }
+
+    public String getBrand(){
+        return this.brand;
+    }
 
 }

@@ -12,8 +12,6 @@ import lombok.NoArgsConstructor;
 public class OrderItem {
 
     private String foodname;
-    private String brandname;
-    private String standname;
     private int amount;
 
 
@@ -21,8 +19,6 @@ public class OrderItem {
     public String toString() {
         return "OrderItem{" +
                 "foodname='" + foodname + '\'' +
-                ", brandname='" + brandname + '\'' +
-                ", standname='" + standname + '\'' +
                 ", amount=" + amount +
                 '}';
     }

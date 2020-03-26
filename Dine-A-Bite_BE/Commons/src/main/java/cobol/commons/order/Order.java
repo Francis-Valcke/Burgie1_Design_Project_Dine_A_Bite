@@ -23,10 +23,10 @@ public class Order {
     private int remainingTimeSec;
     private status orderStatus;
     private int standId;
+    private String brandName;
 
     //----- Request ------//
 
-    // foodname, amount of this fooditem requested
     private ArrayList<OrderItem> orderItems;
 
     // Coordinates Attendee on moment that order was mad
@@ -71,6 +71,14 @@ public class Order {
 
 
     // ---- Getters and Setters ----- //
+
+    public String getBrandName() {
+        return brandName;
+    }
+
+    public void setBrandName(String brandName) {
+        this.brandName = brandName;
+    }
 
     public double getLatitude(){
         return this.latitude;

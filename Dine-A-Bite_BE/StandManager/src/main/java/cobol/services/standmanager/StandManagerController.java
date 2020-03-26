@@ -1,6 +1,7 @@
 package cobol.services.standmanager;
 
 import cobol.commons.order.Order;
+import cobol.commons.order.OrderItem;
 import org.springframework.web.bind.annotation.*;
 
 
@@ -114,15 +115,20 @@ public class StandManagerController {
      * @return list of schedulers (so the stands) which offer the correct food to complete the order
      */
     public ArrayList<Scheduler> findCorrespondStands(Order order){
-        /* first get the Map with all the food of the order */
-        Map<String, Integer> foodMap = order.getFullOrder();
+        // first get the Array with all the food of the order
+        ArrayList<OrderItem> orderItems = order.getOrderItems();
 
-        /* group all stands (schedulers) with the correct type of food available */
+
+        // group all stands (schedulers) with the correct type of food available
         ArrayList<Scheduler> goodSchedulers = new ArrayList<>();
+
         for (int i = 0; i < schedulers.size(); i++) {
-            Boolean validStand = true;
+            boolean validStand = true;
+
             Scheduler currentScheduler = schedulers.get(i);
-            for (String food : foodMap.keySet()) {
+
+            for (OrderItem orderItem : orderItems) {
+                String food= orderItem.getFoodname();
                 if (currentScheduler.checkType(food)) {
                     validStand = true;
                 }
@@ -131,7 +137,8 @@ public class StandManagerController {
                     break;
                 }
             }
-            if (validStand == true){
+
+            if (validStand){
                 goodSchedulers.add(currentScheduler);
             }
         }
@@ -174,7 +181,7 @@ public class StandManagerController {
             Scheduler curScheduler = goodSchedulers.get(i);
             System.out.println(curScheduler.getStandName());
             SchedulerComparatorDistance sc = new SchedulerComparatorDistance(curScheduler.getLat(),curScheduler.getLon());
-            SchedulerComparatorTime st = new SchedulerComparatorTime(order.getFullOrder());
+            SchedulerComparatorTime st = new SchedulerComparatorTime(order.getOrderItems());
             add.put("stand_id", curScheduler.getStandId());
             add.put("distance", sc.getDistance(order.getLatitude(),order.getLongitude()));
             add.put("time_estimate", st.getTimesum(curScheduler));
