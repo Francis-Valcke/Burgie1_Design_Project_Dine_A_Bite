@@ -2,17 +2,15 @@
          "latitude": 0.0,
          "longitude":0.0,
          "orderStatus": "SEND",
+         "standname": "mcdo-gent",
+         "brandname": "mcdo",
          "orderItems":[
                  {
                    "foodname":"burger",
-                   "brandname":"mcdo",
-                   "standname":"mcdo-gent",
                    "amount":3
                  },
                  {
                    "foodname":"pizza",
-                   "brandname":"pizzahut",
-                   "standname":"pizzahut-gent",
                    "amount":3
                  }
          ]

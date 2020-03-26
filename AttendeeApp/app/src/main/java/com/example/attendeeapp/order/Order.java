@@ -1,11 +1,13 @@
-package cobol.commons.order;
+package com.example.attendeeapp.order;
 
+import com.example.attendeeapp.MenuItem;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.json.simple.JSONObject;
 
-import java.lang.reflect.Array;
-import java.util.*;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class Order {
 
@@ -49,7 +51,7 @@ public class Order {
 
         // Read in request
         ObjectMapper mapper = new ObjectMapper();
-        Order temp=mapper.readValue(orderFile.toJSONString(), Order.class);
+        Order temp=mapper.readValue(orderFile.toString(), Order.class);
 
         this.latitude = temp.getLatitude();
         this.longitude= temp.getLongitude();
@@ -64,6 +66,24 @@ public class Order {
         orderCounter++;
     }
 
+
+    public Order(List<MenuItem> menuItems, String standName, String brandName, double latitude, double longitude){
+        this.latitude=latitude;
+        this.longitude=longitude;
+
+        this.standName=standName;
+        this.brandName=brandName;
+
+        this.orderStatus=status.SEND;
+
+        this.orderItems=new ArrayList<>();
+        for (MenuItem menuItem : menuItems) {
+            orderItems.add(OrderItem.builder()
+                    .amount(menuItem.getCount())
+                    .foodname(menuItem.getFoodName())
+                    .build());
+        }
+    }
 
     public Order() {
         this.remainingTimeSec=-1;
