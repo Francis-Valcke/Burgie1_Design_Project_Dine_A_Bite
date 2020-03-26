@@ -53,7 +53,6 @@ public class MenuBottomSheetDialog extends BottomSheetDialogFragment {
         // Handle plus and minus Buttons and add onClickListeners for one menu item
         Button plusBtn = (Button)view.findViewById(R.id.bottom_sheet_plus);
         plusBtn.setOnClickListener(new View.OnClickListener(){
-            // Handle Button and add onClickListeners for one menu item
             @Override
             public void onClick(View v) {
                 // Pass menu item to the cart to (try) to be added

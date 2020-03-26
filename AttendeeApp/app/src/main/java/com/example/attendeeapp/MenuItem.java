@@ -28,6 +28,16 @@ public class MenuItem implements Serializable {
         this.brandName = brandName;
     }
 
+    public MenuItem(MenuItem copy) {
+        this.foodName = copy.foodName;
+        this.price = copy.getPrice();
+        this.count = copy.count;
+        this.standName = copy.standName;
+        this.brandName = copy.brandName;
+        this.category = new HashSet<String>(copy.category);
+        this.description = copy.description;
+    }
+
     public String getFoodName() {
         return foodName;
     }

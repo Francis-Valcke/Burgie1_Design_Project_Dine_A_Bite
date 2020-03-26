@@ -76,9 +76,24 @@ public class MenuActivity extends AppCompatActivity implements OnCartChangeListe
             public void onClick(View v) {
                 Intent intent = new Intent(MenuActivity.this, CartActivity.class);
                 intent.putExtra("cartList", cartList);
-                startActivity(intent);
+                intent.putExtra("cartCount", cartCount);
+                startActivityForResult(intent, 1);
             }
         });
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == 1) {
+            if(resultCode == RESULT_OK) {
+                cartList = (ArrayList<MenuItem>) data.getSerializableExtra("cartList");
+                cartCount = data.getIntExtra("cartCount", 0);
+                TextView totalCount = (TextView)findViewById(R.id.cart_count);
+                totalCount.setText("" + cartCount);
+            }
+
+        }
     }
 
     /**
@@ -106,8 +121,9 @@ public class MenuActivity extends AppCompatActivity implements OnCartChangeListe
                     }
                 }
                 if(!contains){
-                    cartItem.increaseCount();
-                    cartList.add(cartItem);
+                    MenuItem newItem = new MenuItem(cartItem);
+                    newItem.increaseCount();
+                    cartList.add(newItem);
                 }
                 cartCount++;
                 TextView totalCount = (TextView)findViewById(R.id.cart_count);
