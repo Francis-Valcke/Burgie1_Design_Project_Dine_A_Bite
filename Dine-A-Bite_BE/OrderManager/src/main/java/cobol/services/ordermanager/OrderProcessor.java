@@ -1,7 +1,7 @@
 package cobol.services.ordermanager;
 
 import cobol.commons.Event;
-import cobol.commons.Order;
+import cobol.commons.order.Order;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.json.simple.JSONObject;
@@ -42,7 +42,7 @@ public class OrderProcessor {
     public void publishStateChange(int order_id, Order.status state) throws JsonProcessingException{
         Order o = running_orders.get(order_id);
         o.setState(state);
-        String[] order_channel = {String.valueOf(order_id), String.valueOf(o.getStand_id())};
+        String[] order_channel = {String.valueOf(order_id), String.valueOf(o.getStandId())};
         JSONObject data = new JSONObject();
         data.put("order_id", o.getId());
         data.put("state_change", state);

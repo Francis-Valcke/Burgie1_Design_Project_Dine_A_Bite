@@ -1,8 +1,9 @@
 package cobol.services.ordermanager;
 
 import cobol.commons.Event;
-import cobol.commons.Order;
+import cobol.commons.order.Order;
 import cobol.commons.ResponseModel;
+import cobol.commons.security.CommonUser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.json.simple.JSONObject;
@@ -11,6 +12,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
@@ -81,13 +83,20 @@ public class OrderManagerController {
      * Add the order to the order processor, gets a recommendation from the scheduler and forwards it to the attendee app.
      */
     @PostMapping(value = "/placeOrder", consumes = "application/json", produces = "application/json")
-    public JSONObject placeOrder(@RequestBody JSONObject order_object) throws JsonProcessingException {
-        Order new_order = new Order(order_object);
+    public JSONObject placeOrder(@AuthenticationPrincipal CommonUser userDetails, @RequestBody JSONObject order_object) throws JsonProcessingException {
+
+        ObjectMapper mapper = new ObjectMapper();
+        Order new_order= new Order(order_object);
+
+
+//        Order new_order = new Order(order_object);
+
         OrderProcessor processor = OrderProcessor.getOrderProcessor();
         processor.addOrder(new_order);
 
-        ObjectMapper mapper = new ObjectMapper();
+
         String jsonString = mapper.writeValueAsString(new_order);
+
         RestTemplate template = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -128,7 +137,7 @@ public class OrderManagerController {
     public void confirmStand(@RequestParam(name = "order_id") int order_id, @RequestParam(name = "stand_id") int stand_id) throws JsonProcessingException{
         OrderProcessor processor = OrderProcessor.getOrderProcessor();
         Order order = processor.getOrder(order_id);
-        order.setStand_id(stand_id);
+        order.setStandId(stand_id);
 
         JSONObject order_json = new JSONObject();
         order_json.put("order", order);

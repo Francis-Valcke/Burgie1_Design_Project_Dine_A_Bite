@@ -1,6 +1,6 @@
 package cobol.services.standmanager;
 
-import cobol.commons.Order;
+import cobol.commons.order.Order;
 import org.springframework.web.bind.annotation.*;
 
 
@@ -115,7 +115,7 @@ public class StandManagerController {
      */
     public ArrayList<Scheduler> findCorrespondStands(Order order){
         /* first get the Map with all the food of the order */
-        Map<String, Integer> foodMap = order.getFull_order();
+        Map<String, Integer> foodMap = order.getFullOrder();
 
         /* group all stands (schedulers) with the correct type of food available */
         ArrayList<Scheduler> goodSchedulers = new ArrayList<>();
@@ -155,7 +155,7 @@ public class StandManagerController {
         //Collections.sort(goodSchedulers, new SchedulerComparatorTime(order.getFull_order()));
 
         /* sort the stands (schedulers) based on distance */
-        Collections.sort(goodSchedulers, new SchedulerComparatorDistance(order.getLat(),order.getLon()));
+        Collections.sort(goodSchedulers, new SchedulerComparatorDistance(order.getLatitude(),order.getLongitude()));
 
         /* TODO: this is how you sort based on combination, weight is how much time you add for each unit of distance */
         /* sort the stands (schedulers) based on combination of time and distance */
@@ -174,9 +174,9 @@ public class StandManagerController {
             Scheduler curScheduler = goodSchedulers.get(i);
             System.out.println(curScheduler.getStandName());
             SchedulerComparatorDistance sc = new SchedulerComparatorDistance(curScheduler.getLat(),curScheduler.getLon());
-            SchedulerComparatorTime st = new SchedulerComparatorTime(order.getFull_order());
+            SchedulerComparatorTime st = new SchedulerComparatorTime(order.getFullOrder());
             add.put("stand_id", curScheduler.getStandId());
-            add.put("distance", sc.getDistance(order.getLat(),order.getLon()));
+            add.put("distance", sc.getDistance(order.getLatitude(),order.getLongitude()));
             add.put("time_estimate", st.getTimesum(curScheduler));
             System.out.println(st.getTimesum(curScheduler));
             obj.put(curScheduler.getStandName(), add);
