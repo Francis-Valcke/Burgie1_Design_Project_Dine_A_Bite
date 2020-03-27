@@ -67,20 +67,43 @@ public class OrderManagerController {
     @PostConstruct
     @RequestMapping("/updateOM")
     public String index() {
-        List<String> s = mh.update();
-        if (s.size()==0) return "No stands in database";
-        String l ="Stands already in database: \n";
-        for (int i=0;i<s.size();i++)l+= s.get(i)+"\n";
-        return l;
+        List<String> stands = mh.update();
+        if (stands.size()==0) {
+            return "No stands in database";
+        }
+        else{
+            StringBuilder response = new StringBuilder();
+            response.append("Stands already in database: \n");
+
+            for (String s : stands) {
+                response.append(s).append("\n");
+            }
+
+            return response.toString();
+        }
+
+    }
+
+    @RequestMapping("/getOrderInfo")
+    public JSONObject getOrderInfo(@RequestParam(name="orderId") int orderId){
+
+        // retrieve order from database
+        JSONObject response= null;
+
+
+        
+
+
+        return response;
     }
 
     /**
+     * Add the order to the order processor, gets a recommendation from the scheduler and forwards it to the attendee app.
      *
      * @param order_object the order recieved from the attendee app
      * @return the order id, along with the json with recommended stands
      * @throws JsonProcessingException
      *
-     * Add the order to the order processor, gets a recommendation from the scheduler and forwards it to the attendee app.
      */
     @PostMapping(value = "/placeOrder", consumes = "application/json", produces = "application/json")
     public JSONObject placeOrder(@AuthenticationPrincipal CommonUser userDetails, @RequestBody JSONObject order_object) throws JsonProcessingException {
@@ -88,49 +111,37 @@ public class OrderManagerController {
         ObjectMapper mapper = new ObjectMapper();
         Order new_order= new Order(order_object);
 
-
-//        Order new_order = new Order(order_object);
-
         OrderProcessor processor = OrderProcessor.getOrderProcessor();
         processor.addOrder(new_order);
 
-
         String jsonString = mapper.writeValueAsString(new_order);
 
+        // Ask standmanager for recommendation
         RestTemplate template = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         String uri = "http://cobol.idlab.ugent.be:8092/getRecommendation";
         headers.add("Authorization", "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJPcmRlck1hbmFnZXIiLCJyb2xlcyI6WyJST0xFX0FQUExJQ0FUSU9OIl0sImlhdCI6MTU4NDkxMTY3MSwiZXhwIjoxNzQyNTkxNjcxfQ.VmujsURhZaXRp5FQJXzmQMB-e6QSNF-OyPLeMEMOVvI");
         HttpEntity<String> request = new HttpEntity<>(jsonString, headers);
-        JSONObject ret = template.postForObject(uri, request, JSONObject.class);
-        Set<String> keys = ret.keySet(); //emptys keyset
-        //Look if standname in JSON file
 
+        JSONObject response = template.postForObject(uri, request, JSONObject.class);
+        Set<String> keys = response.keySet(); //emptys keyset
+
+        //Look if standname in JSON file
         for (String key : keys) {
             System.out.println("order recommender for: "+(key));
         }
 
-
-        ret.put("order_id", new_order.getId());
-
-        //The following is a hardcoded recommendation
-        //JSONObject ret = new JSONObject();
-        /*ret.put("order_id", 1);
-        JSONObject stand = new JSONObject();
-        stand.put("stand_id" , 1);
-        stand.put("estimated_time", 5);
-        ret.put("recommendation", stand);*/
-        return ret;
+        response.put("order_id", new_order.getId());
+        return response;
     }
 
 
     /**
+     * Sets the order id parameter of order. Adds the order to the stand channel.
      *
      * @param order_id
      * @param stand_id id of the chosen stand
-     *
-     * Sets the order id parameter of order. Adds the order to the stand channel.
      */
     @RequestMapping(value = "/confirmStand", method = RequestMethod.GET)
     @ResponseBody
