@@ -62,6 +62,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/registerSubscriber").permitAll()
                 .antMatchers("/registerSubscriber/toChannel").permitAll()
                 .antMatchers("/deregisterSubscriber").permitAll()
+                .antMatchers("/events").permitAll()
 
                 .anyRequest().authenticated()
                 .and()

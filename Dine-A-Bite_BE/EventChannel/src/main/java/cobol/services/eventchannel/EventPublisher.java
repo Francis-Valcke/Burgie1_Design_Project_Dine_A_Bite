@@ -6,8 +6,8 @@ public class EventPublisher {
 
     /**
      * @param e the event
-     *
-     * publishes an event
+     *          <p>
+     *          publishes an event
      */
     static void Publish(Event e) {
         EventBroker.getInstance().addEvent(e);
