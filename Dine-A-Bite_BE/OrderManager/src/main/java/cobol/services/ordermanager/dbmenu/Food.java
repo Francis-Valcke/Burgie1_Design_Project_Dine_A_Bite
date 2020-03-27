@@ -1,6 +1,7 @@
 package cobol.services.ordermanager.dbmenu;
 
 import javax.persistence.*;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -9,7 +10,7 @@ public class Food {
     @Id
     @GeneratedValue(strategy=GenerationType.AUTO)
     private int id;
-    private float price;
+    private BigDecimal price;
     private int preptime;
     private String name;
     private String description;
@@ -22,11 +23,11 @@ public class Food {
     }
 
 
-    public float getPrice() {
+    public BigDecimal getPrice() {
         return price;
     }
 
-    public void setPrice(float price) {
+    public void setPrice(BigDecimal price) {
         this.price = price;
     }
 

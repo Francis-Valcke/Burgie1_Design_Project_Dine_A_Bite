@@ -76,7 +76,6 @@ public class StandManagerController {
         s.setLon(info.getLon());
         schedulers.add(s);
         s.start();
-        System.out.println("lol");
         JSONObject obj = new JSONObject();
         obj.put("added",true);
         return obj;

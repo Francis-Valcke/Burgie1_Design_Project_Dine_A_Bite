@@ -5,6 +5,7 @@ import cobol.commons.Order;
 import cobol.commons.ResponseModel;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
@@ -68,7 +69,7 @@ public class OrderManagerController {
      */
     @PostConstruct
     @RequestMapping("/updateOM")
-    public String index() {
+    public String index() throws JsonProcessingException {
         List<String> s = mh.update();
         if (s.size()==0) return "No stands in database";
         String l ="Stands already in database: \n";
@@ -170,7 +171,7 @@ public class OrderManagerController {
      */
     @RequestMapping("/menu")
     @ResponseBody
-    public JSONObject requestTotalMenu() { //start with id=1 (temporary)
+    public JSONArray requestTotalMenu() { //start with id=1 (temporary)
         System.out.println("request total menu");
         return mh.getTotalmenu();
     }
@@ -187,7 +188,7 @@ public class OrderManagerController {
      */
     @RequestMapping(value ="/standmenu", method = RequestMethod.GET)
     @ResponseBody
-    public JSONObject requestStandMenu(@RequestParam() String standname) {
+    public JSONArray requestStandMenu(@RequestParam() String standname) {
         System.out.println("request menu of stand " + standname);
         return mh.getStandMenu(standname);
     }

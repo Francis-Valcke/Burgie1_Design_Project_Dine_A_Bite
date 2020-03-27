@@ -1,9 +1,12 @@
 package cobol.services.ordermanager.test;
 
+import cobol.commons.MenuItem;
+import cobol.commons.StandInfo;
 import cobol.services.ordermanager.dbmenu.Food_Repository;
 import cobol.services.ordermanager.dbmenu.StandRepository;
 import cobol.services.ordermanager.dbmenu.StockRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.junit.*;
@@ -21,6 +24,8 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.web.context.WebApplicationContext;
 
+import java.math.BigDecimal;
+import java.math.MathContext;
 import java.util.*;
 
 import static org.junit.Assert.assertTrue;
@@ -35,7 +40,7 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
  * 2 stands of same brand
  * 1 stand of different brand
  * Every stand has unique items and items they share with other stands
- * 
+ *
  * Tests in this class:
  * Stands correctly added - check
  * Menu items correctly added:
@@ -55,7 +60,7 @@ public class MenuHandlerTest {
         put("burgerstand-2", Arrays.asList(new Integer[]{1, 4, 5}));
         put("pizzastand-1", Arrays.asList(new Integer[]{2, 3, 4}));
     }};
-    private ArrayList<Double> prices = new ArrayList<Double>(Arrays.asList(new Double[]{10.0, 11.0, 12.0, 13.0, 2.5, 4.0}));
+    private ArrayList<BigDecimal> prices = new ArrayList<BigDecimal>(Arrays.asList(new BigDecimal[]{BigDecimal.valueOf(10.0), BigDecimal.valueOf(11.0), BigDecimal.valueOf(12.0), BigDecimal.valueOf(13.0), BigDecimal.valueOf(2.5), BigDecimal.valueOf(4.0)}));
     private ArrayList<Integer> preptimes = new ArrayList<Integer>(Arrays.asList(new Integer[]{10, 11, 12, 13, 2, 4}));
     private ArrayList<String> categories = new ArrayList<String>(Arrays.asList(new String[]{"burger", "burger", "pizza", "pizza", "drink", "fries"}));
     private ArrayList<String> descriptions = new ArrayList<String>(Arrays.asList(new String[]{"burger with bacon", "burger with cheese", "pizza with salami", "pizza with pineapple", "", ""}));
@@ -75,30 +80,21 @@ public class MenuHandlerTest {
                 .build();
         this.mockMvc.perform(get("/SMswitch?on=false").contentType(MediaType.APPLICATION_JSON)
                         .header("Authorization", token));
-        Map<String, JSONObject> objs = new HashMap<>();
-        ArrayList<Object> o = null;
+        Map<String, StandInfo> standInfos = new HashMap<>();
         int n = 0;
         for (String key: stands.keySet()){
             JSONObject obj = new JSONObject();
-            o = new ArrayList<Object>();
-            o.add(key.split("-")[0]);
-            o.add(0.0+n*10);
-            o.add(0.0-n*10);
-            obj.put(key, o);
-            objs.put(key, obj);
+            StandInfo si = new StandInfo(key, key.split("-")[0], (long)0.0+n*10, (long)0.0-n*10);
+            standInfos.put(key, si);
+            n++;
         }
-
-        ArrayList<Object> o2 = null;
         for (int i = 0;i<foodnames.size();i++){
-            o2 = new ArrayList<Object>();
-            o2.add(prices.get(i));
-            o2.add(preptimes.get(i));
-            o2.add(20);
-            o2.add(categories.get(i));
-            o2.add(descriptions.get(i));
-            for (String key: stands.keySet()){
+             for (String key: stands.keySet()){
                 if (stands.get(key).contains(i)){
-                    objs.get(key).put(foodnames.get(i),o2);
+                    List<String> cat = new ArrayList<>();
+                    cat.add(categories.get(i));
+                    MenuItem mi = new MenuItem(foodnames.get(i), prices.get(i), preptimes.get(i),20, key.split("-")[0], descriptions.get(i),cat);
+                    standInfos.get(key).addMenuItem(mi);
                 }
             }
 
@@ -106,7 +102,7 @@ public class MenuHandlerTest {
 
         for (String key: stands.keySet()){
             MvcResult result = this.mockMvc.perform(post("/addstand").contentType(MediaType.APPLICATION_JSON)
-                    .header("Authorization", token).content(String.valueOf(objs.get(key)))).andReturn();
+                    .header("Authorization", token).content(objectMapper.writeValueAsString(standInfos.get(key)))).andReturn();
             String ret=result.getResponse().getContentAsString();
             assertTrue(ret.equals("Saved"));
         }
@@ -121,25 +117,25 @@ public class MenuHandlerTest {
                 .header("Authorization", token))
                 .andReturn();
         String json=result.getResponse().getContentAsString();
-        System.out.println(json);
         JSONParser parser = new JSONParser();
-        JSONObject menu = (JSONObject) parser.parse(json);
-        for (int i=0;i<foodnames.size();i++){
+        JSONArray menu = (JSONArray) parser.parse(json);
+        for (int j=0;j<menu.size();j++){
+            MenuItem mi = objectMapper.readValue(menu.get(j).toString(), MenuItem.class);
+            int i = foodnames.indexOf(mi.getFoodName());
             for (String key: stands.keySet()){
                 if (stands.get(key).contains(i)){
-                    assertTrue(menu.keySet().contains(foodnames.get(i)+"_"+key.split("-")[0]));
-                    ArrayList a = (ArrayList) menu.get(foodnames.get(i)+"_"+key.split("-")[0]);
-                    assertTrue((double)a.get(0)==prices.get(i));
-                    if (descriptions.get(i)=="")assertTrue(((String)a.get(2))==null);
-                    else assertTrue(((String)a.get(2)).equals(descriptions.get(i)));
-                    assertTrue(((ArrayList<String>)a.get(1)).get(0).equals(categories.get(i)));
-
+                    assertTrue(mi.getFoodName().equals(foodnames.get(i)));
+                    assertTrue(mi.getPrice().round(new MathContext(2)).equals(prices.get(i).round(new MathContext(2))));
+                    if (descriptions.get(i).equals(""))assertTrue(mi.getDescription()==null);
+                    else assertTrue(descriptions.get(i).equals(mi.getDescription()));
+                    boolean catOk = false;
+                    for (String cat: mi.getCategory()){
+                        if (cat.equals(categories.get(i))) catOk=true;
+                    }
+                    assertTrue(catOk);
                 }
-
-
             }
         }
-
     }
     @After
     public void clearMenus() throws Exception {

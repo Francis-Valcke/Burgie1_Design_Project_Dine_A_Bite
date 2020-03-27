@@ -16,7 +16,7 @@ import cobol.commons.Order;
  */
 public class Scheduler extends Thread {
     private List<Order> inc = new ArrayList<Order>();
-    private Map<String, int[]> menu =new HashMap<>();
+    private Map<String, int[]> menu;
     private String standname;
     private int id;
     private double lon;
