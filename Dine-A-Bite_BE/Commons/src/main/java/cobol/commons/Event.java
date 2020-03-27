@@ -5,6 +5,7 @@ import org.json.simple.JSONObject;
 public class Event {
     private static int idCount = 0;
     private int myId;
+    private String dataType;
     protected JSONObject orderData;
     private String[] types;
 
@@ -15,11 +16,12 @@ public class Event {
     }
 
 
-    public Event(JSONObject data, String[] types) {
+    public Event(JSONObject data, String[] types, String dataType) {
         myId = idCount;
         idCount++;
         orderData = data;
         this.types = types;
+        this.dataType = dataType;
     }
 
     public JSONObject getOrderData() {
@@ -36,6 +38,10 @@ public class Event {
 
     public void setTypes(String[] newTypes) {
         types = newTypes;
+    }
+
+    public String getDataType() {
+        return dataType;
     }
 
 }
