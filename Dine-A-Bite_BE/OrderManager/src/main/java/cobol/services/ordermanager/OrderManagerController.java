@@ -140,7 +140,7 @@ public class OrderManagerController {
         JSONObject order_json = new JSONObject();
         order_json.put("order", order);
         String[] types = {String.valueOf(order_id), String.valueOf(stand_id)};
-        Event e = new Event(order_json, types);
+        Event e = new Event(order_json, types, "Order");
 
         String jsonString = objectMapper.writeValueAsString(e);
         String uri = "http://cobol.idlab.ugent.be:8093/publishEvent";

@@ -2,6 +2,11 @@ package cobol.services.ordermanager;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+
 /**
  * Het maken van lokale database als je deze functionaliteit lokaal wilt testen:
  *
@@ -50,7 +55,12 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  */
 @SpringBootApplication
 public class OrderManager {
+
     public static void main(String[] args) {
+        OrderProcessor processor = OrderProcessor.getOrderProcessor();
+        ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
         SpringApplication.run(OrderManager.class, args);
+        executorService.scheduleAtFixedRate(processor::run, 0, 1, TimeUnit.SECONDS);
     }
+
 }

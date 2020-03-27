@@ -25,54 +25,53 @@ public class OrderProcessor {
     private final static OrderProcessor ourInstance = new OrderProcessor();
     private Map<Integer, Order> running_orders = new HashMap<>();
     private int subscriberId;
-    private List<Event> eventQueue = new LinkedList<Event>();
+    private volatile LinkedList<Event> eventQueue = new LinkedList<Event>();
     private RestTemplate restTemplate;
     private HttpHeaders headers;
     private HttpEntity entity;
-    @Autowired
     private ObjectMapper objectMapper;
 
     private OrderProcessor() {
+        objectMapper = new ObjectMapper();
         this.restTemplate = new RestTemplate();
         this.headers = new HttpHeaders();
         this.headers.add("Authorization", "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJPcmRlck1hbmFnZXIiLCJyb2xlcyI6WyJST0xFX0FQUExJQ0FUSU9OIl0sImlhdCI6MTU4NDkxMTY3MSwiZXhwIjoxNzQyNTkxNjcxfQ.VmujsURhZaXRp5FQJXzmQMB-e6QSNF-OyPLeMEMOVvI");
-        String uri = "http://cobol.idlab.ugent.be:8092/registerSubscriber";
+        String uri = "http://localhost:8083/registerSubscriber";
         this.entity = new HttpEntity(headers);
         ResponseEntity<String> response = restTemplate.exchange(uri, HttpMethod.GET, entity, String.class);
-        this.subscriberId = Integer.valueOf(response.toString());
+        this.subscriberId = Integer.valueOf(response.getBody());
     };
 
 
-    //TODO: Orderprocessor needs to listen the the right channels to receive notifications of the stands (DECLINED, etc)
-    public void publishStateChange(int order_id, Order.status state) throws JsonProcessingException{
-        Order o = running_orders.get(order_id);
-        o.setState(state);
-        String[] order_channel = {String.valueOf(order_id), String.valueOf(o.getStand_id())};
-        JSONObject data = new JSONObject();
-        data.put("order_id", o.getId());
-        data.put("state_change", state);
-        data.put("order", o);
-        Event e = new Event(data, order_channel);
-        String jsonString = objectMapper.writeValueAsString(e);
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        String uri = "http://cobol.idlab.ugent.be:8092/publishEvent";
-        entity = new HttpEntity<String>(jsonString, headers);
-        restTemplate.postForObject(uri, entity, String.class);
-        if (state == Order.status.DECLINED) {
-            running_orders.remove(order_id);
-        }
-        entity = new HttpEntity(headers); //remove jsonstring for further use
-    }
-
-    public void pollEvents() throws JsonProcessingException {
-        String uri = "http://cobol.idlab.ugent.be:8092/events";
+    public void run() {
+        System.out.println("I got here");
+        String uri = "http://localhost:8083/events";
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(uri)
                 .queryParam("id", this.subscriberId);
         ResponseEntity<String> response = this.restTemplate.exchange(builder.toUriString(), HttpMethod.GET, this.entity, String.class);
-        JSONObject responseObject = this.objectMapper.readValue(response.toString(), JSONObject.class);
-        String details = (String) responseObject.get("details");
-        List<Event> eventList = objectMapper.readValue(details, new TypeReference<List<Event>>() {});
-        eventQueue.addAll(eventList);
+        try {
+            JSONObject responseObject = this.objectMapper.readValue(response.getBody(), JSONObject.class);
+            String details = (String) responseObject.get("details");
+            List<Event> eventList = objectMapper.readValue(details, new TypeReference<List<Event>>() {});
+            eventQueue.addAll(eventList);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void processEvents() throws JsonProcessingException {
+        while (!eventQueue.isEmpty()) {
+            Event e = eventQueue.poll();
+            if (e.getDataType().equals("Order")) {
+                Order o = objectMapper.readValue(e.getOrderData().toString(), new TypeReference<Order>() {});
+                Order.status newStatus = o.getOrderStatus();
+                Order localOrder = running_orders.get(o.getId());
+                localOrder.setState(newStatus);
+                if (newStatus.equals(Order.status.DECLINED)) {
+                    running_orders.remove(o.getId());
+                }
+            }
+        }
     }
 
     public void addOrder(Order o) {
