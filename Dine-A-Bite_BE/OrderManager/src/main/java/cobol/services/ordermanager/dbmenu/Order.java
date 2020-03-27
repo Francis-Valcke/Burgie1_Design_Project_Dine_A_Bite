@@ -1,12 +1,19 @@
-package cobol.commons.order;
+package cobol.services.ordermanager.dbmenu;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.hibernate.annotations.Type;
 import org.json.simple.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.persistence.*;
+import javax.validation.constraints.NotNull;
+import java.io.Serializable;
 import java.util.*;
 
-public class Order {
+@Entity
+@Table(name="orders")
+public class Order implements Serializable {
 
     // Static counter that keeps track of number of order
     // TODO: needs to change, counter must be kept in database
@@ -16,22 +23,33 @@ public class Order {
     //----- Backend Information -----//
 
     // unique id for this order
+    @Id
+    @NotNull
+    @Column
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    // Remaining time in seconds
+    @Column(columnDefinition = "datetime")
     private Calendar startTime;
+    @Column(columnDefinition = "datetime")
     private Calendar expectedTime;
+    @Column
     private status orderStatus;
+    @Column
     private int standId;
+    @Column
     private String brandName;
+    @Column
     private String standName;
 
     //----- Request ------//
-
-    private ArrayList<OrderItem> orderItems;
+    @OneToMany(mappedBy = "itemId")
+    private List<OrderItem> orderItems;
 
     // Coordinates Attendee on moment that order was mad
+    @Column
     private double latitude;
+    @Column
     private double longitude;
 
 
@@ -56,20 +74,11 @@ public class Order {
         this.orderItems= new ArrayList<>(temp.getOrderItems());
 
         // Add new information
-        // TODO needs to be fetched from database or something else
-        this.id=orderCounter;
-
-        this.orderStatus=status.PENDING;
-
-        // set time
-        // TODO needs to be asked from StandManager
         this.startTime=Calendar.getInstance();
         this.expectedTime=Calendar.getInstance();
         expectedTime.setTime(startTime.getTime());
         expectedTime.add(Calendar.MINUTE, 15);
 
-        // Update ID counter
-        orderCounter++;
     }
 
 
@@ -96,7 +105,7 @@ public class Order {
         return this.longitude;
     }
 
-    public ArrayList<OrderItem> getOrderItems() {
+    public List<OrderItem> getOrderItems() {
         return orderItems;
     }
 
@@ -144,7 +153,7 @@ public class Order {
     public String toString() {
         return "Order{" +
                 "id=" + id +
-                ", remainingTimeSec=" + getRemainingTime() +
+                ", remainingTimeSec=" + this.getRemainingTime() +
                 ", orderStatus=" + orderStatus +
                 ", orderItems=" + orderItems +
                 ", latitude=" + latitude +

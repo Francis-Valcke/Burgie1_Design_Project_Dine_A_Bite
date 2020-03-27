@@ -1,7 +1,7 @@
 package cobol.services.standmanager;
 
-import cobol.commons.order.Order;
-import cobol.commons.order.OrderItem;
+import cobol.commons.order.CommonOrder;
+import cobol.commons.order.CommonOrderItem;
 import org.springframework.web.bind.annotation.*;
 
 
@@ -43,9 +43,7 @@ public class StandManagerController {
      */
     @RequestMapping("/start")
     public void start(){
-        /**
-         * Initialize stand menus and schedulers
-         */
+        // Initialize stand menus and schedulers
         System.out.println("TESTTEST");
         Map<String, int[]> menu = new HashMap<>();
         int[] prijsenpreptime = {2,3};
@@ -55,9 +53,7 @@ public class StandManagerController {
 
         schedulers.add(a);
         schedulers.add(b);
-        /**
-         * start running schedulers
-         */
+        // start running schedulers
         for (int i=0;i<schedulers.size();i++){
             schedulers.get(i).start();
         }
@@ -90,7 +86,7 @@ public class StandManagerController {
      * TODO: really implement this
      */
     @RequestMapping(value = "/placeOrder", consumes = "application/json")
-    public void placeOrder(@RequestBody() Order order){
+    public void placeOrder(@RequestBody() CommonOrder order){
         //add order to right scheduler
     }
 
@@ -103,7 +99,7 @@ public class StandManagerController {
      */
     @RequestMapping(value = "/getRecommendation", consumes = "application/json")
     @ResponseBody
-    public JSONObject postOrder(@RequestBody() Order order) {
+    public JSONObject postCommonOrder(@RequestBody() CommonOrder order) {
         System.out.println("User requested recommended stand for " + order.getId());
         return recommend(order);
     }
@@ -114,9 +110,9 @@ public class StandManagerController {
      * @param order the order for which you want to find corresponding stands
      * @return list of schedulers (so the stands) which offer the correct food to complete the order
      */
-    public ArrayList<Scheduler> findCorrespondStands(Order order){
+    public ArrayList<Scheduler> findCorrespondStands(CommonOrder order){
         // first get the Array with all the food of the order
-        ArrayList<OrderItem> orderItems = order.getOrderItems();
+        ArrayList<CommonOrderItem> orderItems = new ArrayList<>(order.getOrderItems());
 
 
         // group all stands (schedulers) with the correct type of food available
@@ -127,7 +123,7 @@ public class StandManagerController {
 
             Scheduler currentScheduler = schedulers.get(i);
 
-            for (OrderItem orderItem : orderItems) {
+            for (CommonOrderItem orderItem : orderItems) {
                 String food= orderItem.getFoodname();
                 if (currentScheduler.checkType(food)) {
                     validStand = true;
@@ -151,7 +147,7 @@ public class StandManagerController {
      * @param order is the order for which the recommended stands are required
      * @return JSON with a certain amount of recommended stands (currently based on lowest queue time only)
      */
-    public JSONObject recommend(Order order) {
+    public JSONObject recommend(CommonOrder order) {
         /* choose how many recommends you want */
         int amountOfRecommends = 3;
 
@@ -181,7 +177,7 @@ public class StandManagerController {
             Scheduler curScheduler = goodSchedulers.get(i);
             System.out.println(curScheduler.getStandName());
             SchedulerComparatorDistance sc = new SchedulerComparatorDistance(curScheduler.getLat(),curScheduler.getLon());
-            SchedulerComparatorTime st = new SchedulerComparatorTime(order.getOrderItems());
+            SchedulerComparatorTime st = new SchedulerComparatorTime(new ArrayList<>(order.getOrderItems()));
             add.put("stand_id", curScheduler.getStandId());
             add.put("distance", sc.getDistance(order.getLatitude(),order.getLongitude()));
             add.put("time_estimate", st.getTimesum(curScheduler));

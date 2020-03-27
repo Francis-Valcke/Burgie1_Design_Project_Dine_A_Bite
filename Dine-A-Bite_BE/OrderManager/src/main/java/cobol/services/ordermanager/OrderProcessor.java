@@ -1,7 +1,7 @@
 package cobol.services.ordermanager;
 
 import cobol.commons.Event;
-import cobol.commons.order.Order;
+import cobol.services.ordermanager.dbmenu.Order;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.json.simple.JSONObject;
@@ -56,7 +56,7 @@ public class OrderProcessor {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.add("Authorization", "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJPcmRlck1hbmFnZXIiLCJyb2xlcyI6WyJST0xFX0FQUExJQ0FUSU9OIl0sImlhdCI6MTU4NDkxMTY3MSwiZXhwIjoxNzQyNTkxNjcxfQ.VmujsURhZaXRp5FQJXzmQMB-e6QSNF-OyPLeMEMOVvI");
-        String uri = "http://cobol.idlab.ugent.be:8092/publishEvent";
+        String uri = OrderManager.ECURL+"/publishEvent";
         HttpEntity<String> request = new HttpEntity<String>(jsonString, headers);
 
         restTemplate.postForObject(uri, request, String.class);

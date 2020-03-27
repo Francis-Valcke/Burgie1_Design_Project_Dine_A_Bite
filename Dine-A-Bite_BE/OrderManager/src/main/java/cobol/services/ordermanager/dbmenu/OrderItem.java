@@ -1,13 +1,50 @@
-package cobol.commons.order;
+package cobol.services.ordermanager.dbmenu;
 
-public class OrderItem {
+import javax.persistence.*;
+import java.io.Serializable;
 
+@Entity
+@Table(name="orderitem")
+public class OrderItem implements Serializable {
+
+    @ManyToOne
+    @JoinColumn(name="id", nullable=false)
+    private Order order;
+
+    @Id
+    @Column
+    @GeneratedValue
+    private int itemId;
+
+    @Column
     private String foodname;
+    @Column
     private int amount;
+
+
+    public OrderItem(){
+
+    }
 
     public OrderItem(String foodname, int amount) {
         this.foodname = foodname;
         this.amount = amount;
+    }
+
+    public Order getOrder() {
+        return order;
+    }
+
+    public void setOrder(Order order) {
+        this.order = order;
+    }
+
+    public int getItemId() {
+        return itemId;
+    }
+
+    public void setItemId(int itemId) {
+        this.itemId = itemId;
     }
 
     public String getFoodname() {

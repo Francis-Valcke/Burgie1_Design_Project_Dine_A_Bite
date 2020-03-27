@@ -1,7 +1,7 @@
 package cobol.services.standmanager;
 
-import cobol.commons.order.OrderItem;
 
+import cobol.commons.order.CommonOrderItem;
 import java.util.ArrayList;
 import java.util.Comparator;
 
@@ -9,8 +9,8 @@ import java.util.Comparator;
  * this class is used to compare and sort Stands (so schedulers) based on their remaining queuetime
  */
 public class SchedulerComparatorTime implements Comparator<Scheduler> {
-    private ArrayList<OrderItem> orderItems;
-    public SchedulerComparatorTime(ArrayList<OrderItem> orderItems){
+    private ArrayList<CommonOrderItem> orderItems;
+    public SchedulerComparatorTime(ArrayList<CommonOrderItem> orderItems){
         this.orderItems=orderItems;
     }
 
@@ -19,7 +19,7 @@ public class SchedulerComparatorTime implements Comparator<Scheduler> {
     public int compare(Scheduler o1, Scheduler o2) {
         int time1=0;
         int time2=0;
-        for (OrderItem orderItem : orderItems) {
+        for (CommonOrderItem orderItem : orderItems) {
             String foodName= orderItem.getFoodname();
             time1+=o1.getPreptime(foodName)*orderItem.getAmount();
             time2+=o2.getPreptime(foodName)*orderItem.getAmount();
@@ -30,7 +30,7 @@ public class SchedulerComparatorTime implements Comparator<Scheduler> {
 
     public int getTimesum(Scheduler o){
         int time=0;
-        for (OrderItem orderItem : orderItems) {
+        for (CommonOrderItem orderItem : orderItems) {
             time+=o.getPreptime(orderItem.getFoodname())*orderItem.getAmount();
         }
         return o.timeSum()+time;

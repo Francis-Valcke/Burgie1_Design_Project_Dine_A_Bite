@@ -1,11 +1,9 @@
 package cobol.services.standmanager;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import cobol.commons.order.CommonOrder;
+
+import java.util.*;
 import java.util.concurrent.TimeUnit;
-import cobol.commons.order.Order;
 
 /**
  * schedulers all have:
@@ -13,7 +11,7 @@ import cobol.commons.order.Order;
  */
 public class Scheduler extends Thread {
     // a list of incoming orders
-    private List<Order> inc = new ArrayList<Order>();
+    private List<CommonOrder> inc = new LinkedList<>();
 
     // FoodName, Array [prepTime, Price] -- MenuItem
     private Map<String, int[]> menu =new HashMap<>();
@@ -39,7 +37,7 @@ public class Scheduler extends Thread {
     /**
      * schedules order: add new order to the end of schedule
      */
-    public void addOrder(Order o){
+    public void addOrder(CommonOrder o){
         inc.add(o);
     }
 
@@ -78,10 +76,6 @@ public class Scheduler extends Thread {
         return false;
     }
 
-    public void decreaseOrderTime(Order o){
-        o.setRemtime(o.getRemainingTime()-1);
-    }
-
     /**
      * Removes 1 (second) from the remaining time of the first scheduled order: the order that should be under preparation
      * TODO: remove 1 (second) from all orders that are flagged as "under preparation" (+ add flag for "preparation")
@@ -91,12 +85,9 @@ public class Scheduler extends Thread {
             return;
         }
         else {
-            if (inc.get(0).getRemainingTime() == 0) {
+            if (inc.get(0).getRemainingTime() < 0) {
                 if (inc.size() == 0) return;
                 orderDone();
-            }
-            for (int i = 0; i < inc.size(); i++) {
-                decreaseOrderTime(inc.get(i));
             }
         }
     }
@@ -104,7 +95,7 @@ public class Scheduler extends Thread {
     public void run(){
         while (true){
             try {
-                TimeUnit.SECONDS.sleep(1);
+                TimeUnit.MINUTES.sleep(1);
             } catch (InterruptedException e) {
                e.printStackTrace();
             }
