@@ -57,9 +57,9 @@ public class EventChannelTest {
             JSONObject testData = new JSONObject();
             testData.put("data", "This is a test");
             String[] typesOne = {"1", "2"};
-            Event eventOne = new Event(testData, typesOne);
+            Event eventOne = new Event(testData, typesOne, "test");
             String[] typesTwo = {"3", "4"};
-            Event eventTwo = new Event(testData, typesTwo);
+            Event eventTwo = new Event(testData, typesTwo, "test");
             eventList.add(eventOne);
             eventList.add(eventTwo);
             for (Event e : eventList) {
