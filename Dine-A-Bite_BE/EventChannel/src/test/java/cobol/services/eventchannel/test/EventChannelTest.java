@@ -47,7 +47,6 @@ public class EventChannelTest {
         Thread brokerThread = new Thread(broker);
         brokerThread.start();
         this.mockMvc = webAppContextSetup(this.applicationContext)
-                .apply(springSecurity())
                 .build();
         if (!setupDone) {
             this.mockMvc
