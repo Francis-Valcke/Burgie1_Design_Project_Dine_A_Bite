@@ -3,14 +3,17 @@ package cobol.services.ordermanager;
 import cobol.commons.Event;
 import cobol.commons.Order;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.json.simple.JSONObject;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.*;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 
@@ -27,7 +30,22 @@ public class OrderProcessor {
         return ourInstance;
     }
 
-    private OrderProcessor() {};
+    private int subscriberId;
+
+    private List<Event> eventQueue = new LinkedList<Event>();
+
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    private OrderProcessor() {
+        RestTemplate restTemplate = new RestTemplate();
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Authorization", "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJPcmRlck1hbmFnZXIiLCJyb2xlcyI6WyJST0xFX0FQUExJQ0FUSU9OIl0sImlhdCI6MTU4NDkxMTY3MSwiZXhwIjoxNzQyNTkxNjcxfQ.VmujsURhZaXRp5FQJXzmQMB-e6QSNF-OyPLeMEMOVvI");
+        String uri = "http://cobol.idlab.ugent.be:8092/registerSubscriber";
+        HttpEntity entity = new HttpEntity(headers);
+        ResponseEntity<String> response = restTemplate.exchange(uri, HttpMethod.GET, entity, String.class);
+        this.subscriberId = Integer.valueOf(response.toString());
+    };
 
 
     //TODO: Orderprocessor needs to listen the the right channels to receive notifications of the stands (DECLINED, etc)
@@ -49,7 +67,6 @@ public class OrderProcessor {
         data.put("order", o);
         Event e = new Event(data, order_channel);
         System.out.println(e.getOrderData());
-        ObjectMapper objectMapper = new ObjectMapper();
         String jsonString = objectMapper.writeValueAsString(e);
 
         RestTemplate restTemplate = new RestTemplate();
@@ -64,6 +81,21 @@ public class OrderProcessor {
         if (state == Order.status.DECLINED) {
             running_orders.remove(order_id);
         }
+    }
+
+    public void pollEvents() throws JsonProcessingException {
+        RestTemplate restTemplate = new RestTemplate();
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Authorization", "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJPcmRlck1hbmFnZXIiLCJyb2xlcyI6WyJST0xFX0FQUExJQ0FUSU9OIl0sImlhdCI6MTU4NDkxMTY3MSwiZXhwIjoxNzQyNTkxNjcxfQ.VmujsURhZaXRp5FQJXzmQMB-e6QSNF-OyPLeMEMOVvI");
+        String uri = "http://cobol.idlab.ugent.be:8092/events";
+        HttpEntity<?> entity = new HttpEntity<>(headers);
+        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(uri)
+                .queryParam("id", this.subscriberId);
+        ResponseEntity<String> response = restTemplate.exchange(builder.toUriString(), HttpMethod.GET, entity, String.class);
+        JSONObject responseObject = objectMapper.readValue(response.toString(), JSONObject.class);
+        String details = (String) responseObject.get("details");
+        List<Event> eventList = objectMapper.readValue(details, new TypeReference<List<Event>>() {});
+        eventQueue.addAll(eventList);
     }
 
     public void addOrder(Order o) {
