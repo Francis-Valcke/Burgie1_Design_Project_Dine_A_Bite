@@ -4,7 +4,6 @@ import cobol.commons.order.OrderItem;
 
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.Map;
 
 /**
  * this class is used to compare and sort Stands (so schedulers) based on their remaining queuetime

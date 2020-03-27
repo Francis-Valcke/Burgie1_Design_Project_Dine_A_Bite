@@ -87,10 +87,7 @@ public class Order {
 
         this.orderItems=new ArrayList<>();
         for (MenuItem menuItem : menuItems) {
-            orderItems.add(OrderItem.builder()
-                    .amount(menuItem.getCount())
-                    .foodname(menuItem.getFoodName())
-                    .build());
+            orderItems.add(new OrderItem(menuItem.getFoodName(), menuItem.getCount()));
         }
     }
 
