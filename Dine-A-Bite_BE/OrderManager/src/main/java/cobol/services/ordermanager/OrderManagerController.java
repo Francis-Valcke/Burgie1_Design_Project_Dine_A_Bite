@@ -30,6 +30,22 @@ import static cobol.commons.ResponseModel.status.OK;
 @RestController
 public class OrderManagerController {
 
+    private RestTemplate restTemplate;
+    private HttpHeaders headers;
+    private HttpEntity<String> entity;
+    @Autowired // This means to get the bean called standRepository
+    private MenuHandler mh=new MenuHandler();
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    OrderManagerController() {
+        this.restTemplate = new RestTemplate();
+        this.headers = new HttpHeaders();
+        this.headers.setContentType(MediaType.APPLICATION_JSON);
+        this.headers.add("Authorization", "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJPcmRlck1hbmFnZXIiLCJyb2xlcyI6WyJST0xFX0FQUExJQ0FUSU9OIl0sImlhdCI6MTU4NDkxMTY3MSwiZXhwIjoxNzQyNTkxNjcxfQ.VmujsURhZaXRp5FQJXzmQMB-e6QSNF-OyPLeMEMOVvI");
+
+    }
+
     /**
      * API endpoint to test if the server is still alive.
      *
@@ -44,9 +60,6 @@ public class OrderManagerController {
                         .build().generateResponse()
         );
     }
-    
-    @Autowired // This means to get the bean called standRepository
-    private MenuHandler mh=new MenuHandler();
 
     /**
      * will clear database and OM
@@ -85,16 +98,11 @@ public class OrderManagerController {
         Order new_order = new Order(order_object);
         OrderProcessor processor = OrderProcessor.getOrderProcessor();
         processor.addOrder(new_order);
-
-        ObjectMapper mapper = new ObjectMapper();
-        String jsonString = mapper.writeValueAsString(new_order);
-        RestTemplate template = new RestTemplate();
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
+        String jsonString = objectMapper.writeValueAsString(new_order);
         String uri = "http://cobol.idlab.ugent.be:8092/getRecommendation";
         headers.add("Authorization", "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJPcmRlck1hbmFnZXIiLCJyb2xlcyI6WyJST0xFX0FQUExJQ0FUSU9OIl0sImlhdCI6MTU4NDkxMTY3MSwiZXhwIjoxNzQyNTkxNjcxfQ.VmujsURhZaXRp5FQJXzmQMB-e6QSNF-OyPLeMEMOVvI");
-        HttpEntity<String> request = new HttpEntity<>(jsonString, headers);
-        JSONObject ret = template.postForObject(uri, request, JSONObject.class);
+        entity = new HttpEntity<>(jsonString, headers);
+        JSONObject ret = restTemplate.postForObject(uri, entity, JSONObject.class);
         Set<String> keys = ret.keySet(); //emptys keyset
         //Look if standname in JSON file
 
@@ -135,16 +143,10 @@ public class OrderManagerController {
         String[] types = {String.valueOf(order_id), String.valueOf(stand_id)};
         Event e = new Event(order_json, types);
 
-        ObjectMapper mapper = new ObjectMapper();
-        String jsonString = mapper.writeValueAsString(e);
-        RestTemplate template = new RestTemplate();
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
+        String jsonString = objectMapper.writeValueAsString(e);
         String uri = "http://cobol.idlab.ugent.be:8093/publishEvent";
-        headers.add("Authorization", "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJPcmRlck1hbmFnZXIiLCJyb2xlcyI6WyJST0xFX0FQUExJQ0FUSU9OIl0sImlhdCI6MTU4NDkxMTY3MSwiZXhwIjoxNzQyNTkxNjcxfQ.VmujsURhZaXRp5FQJXzmQMB-e6QSNF-OyPLeMEMOVvI");
-
-        HttpEntity<String> request = new HttpEntity<>(jsonString, headers);
-        String response = template.postForObject(uri, request, String.class);
+        entity = new HttpEntity<>(jsonString, headers);
+        String response = restTemplate.postForObject(uri, entity, String.class);
     }
 
 

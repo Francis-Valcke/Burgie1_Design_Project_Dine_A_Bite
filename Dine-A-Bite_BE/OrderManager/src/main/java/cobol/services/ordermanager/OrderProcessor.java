@@ -23,41 +23,28 @@ import java.util.Map;
 public class OrderProcessor {
 
     private final static OrderProcessor ourInstance = new OrderProcessor();
-
     private Map<Integer, Order> running_orders = new HashMap<>();
-
-    public static OrderProcessor getOrderProcessor() {
-        return ourInstance;
-    }
-
     private int subscriberId;
-
     private List<Event> eventQueue = new LinkedList<Event>();
-
+    private RestTemplate restTemplate;
+    private HttpHeaders headers;
+    private HttpEntity entity;
     @Autowired
     private ObjectMapper objectMapper;
 
     private OrderProcessor() {
-        RestTemplate restTemplate = new RestTemplate();
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Authorization", "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJPcmRlck1hbmFnZXIiLCJyb2xlcyI6WyJST0xFX0FQUExJQ0FUSU9OIl0sImlhdCI6MTU4NDkxMTY3MSwiZXhwIjoxNzQyNTkxNjcxfQ.VmujsURhZaXRp5FQJXzmQMB-e6QSNF-OyPLeMEMOVvI");
+        this.restTemplate = new RestTemplate();
+        this.headers = new HttpHeaders();
+        this.headers.add("Authorization", "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJPcmRlck1hbmFnZXIiLCJyb2xlcyI6WyJST0xFX0FQUExJQ0FUSU9OIl0sImlhdCI6MTU4NDkxMTY3MSwiZXhwIjoxNzQyNTkxNjcxfQ.VmujsURhZaXRp5FQJXzmQMB-e6QSNF-OyPLeMEMOVvI");
         String uri = "http://cobol.idlab.ugent.be:8092/registerSubscriber";
-        HttpEntity entity = new HttpEntity(headers);
+        this.entity = new HttpEntity(headers);
         ResponseEntity<String> response = restTemplate.exchange(uri, HttpMethod.GET, entity, String.class);
         this.subscriberId = Integer.valueOf(response.toString());
     };
 
 
     //TODO: Orderprocessor needs to listen the the right channels to receive notifications of the stands (DECLINED, etc)
-    /**
-     *
-     * @param order_id the id of the order whose state has changed
-     * @param state new state of the order
-     * @throws JsonProcessingException
-     *
-     * This method changes the state of an order an sends an event to the channel of this order
-     */
-    public void publishStateChange(int order_id, Order.status state) throws JsonProcessingException{
+    /*public void publishStateChange(int order_id, Order.status state) throws JsonProcessingException{
         Order o = running_orders.get(order_id);
         o.setState(state);
         String[] order_channel = {String.valueOf(order_id), String.valueOf(o.getStand_id())};
@@ -81,18 +68,14 @@ public class OrderProcessor {
         if (state == Order.status.DECLINED) {
             running_orders.remove(order_id);
         }
-    }
+    }*/
 
     public void pollEvents() throws JsonProcessingException {
-        RestTemplate restTemplate = new RestTemplate();
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Authorization", "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJPcmRlck1hbmFnZXIiLCJyb2xlcyI6WyJST0xFX0FQUExJQ0FUSU9OIl0sImlhdCI6MTU4NDkxMTY3MSwiZXhwIjoxNzQyNTkxNjcxfQ.VmujsURhZaXRp5FQJXzmQMB-e6QSNF-OyPLeMEMOVvI");
         String uri = "http://cobol.idlab.ugent.be:8092/events";
-        HttpEntity<?> entity = new HttpEntity<>(headers);
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(uri)
                 .queryParam("id", this.subscriberId);
-        ResponseEntity<String> response = restTemplate.exchange(builder.toUriString(), HttpMethod.GET, entity, String.class);
-        JSONObject responseObject = objectMapper.readValue(response.toString(), JSONObject.class);
+        ResponseEntity<String> response = this.restTemplate.exchange(builder.toUriString(), HttpMethod.GET, this.entity, String.class);
+        JSONObject responseObject = this.objectMapper.readValue(response.toString(), JSONObject.class);
         String details = (String) responseObject.get("details");
         List<Event> eventList = objectMapper.readValue(details, new TypeReference<List<Event>>() {});
         eventQueue.addAll(eventList);
@@ -104,6 +87,10 @@ public class OrderProcessor {
 
     public Order getOrder(int order_id) {
         return running_orders.get(order_id);
+    }
+
+    public static OrderProcessor getOrderProcessor() {
+        return ourInstance;
     }
 }
 
