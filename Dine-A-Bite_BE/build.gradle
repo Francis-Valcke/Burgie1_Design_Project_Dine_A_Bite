@@ -68,7 +68,8 @@ subprojects {
 }
 
 sonarqube {
-    Process process = Runtime.getRuntime().exec( "git rev-parse --abbrev-ref HEAD" );
+    //Process process = Runtime.getRuntime().exec( "git rev-parse --abbrev-ref HEAD" );
+    Process process = Runtime.getRuntime().exec("git name-rev --name-only HEAD");
     process.waitFor();
     BufferedReader reader = new BufferedReader(new InputStreamReader( process.getInputStream() ) );
     String branchName = reader.readLine();
