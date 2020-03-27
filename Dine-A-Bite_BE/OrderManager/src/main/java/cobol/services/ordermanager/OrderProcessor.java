@@ -44,7 +44,7 @@ public class OrderProcessor {
 
 
     //TODO: Orderprocessor needs to listen the the right channels to receive notifications of the stands (DECLINED, etc)
-    /*public void publishStateChange(int order_id, Order.status state) throws JsonProcessingException{
+    public void publishStateChange(int order_id, Order.status state) throws JsonProcessingException{
         Order o = running_orders.get(order_id);
         o.setState(state);
         String[] order_channel = {String.valueOf(order_id), String.valueOf(o.getStand_id())};
@@ -53,22 +53,16 @@ public class OrderProcessor {
         data.put("state_change", state);
         data.put("order", o);
         Event e = new Event(data, order_channel);
-        System.out.println(e.getOrderData());
         String jsonString = objectMapper.writeValueAsString(e);
-
-        RestTemplate restTemplate = new RestTemplate();
-        HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.add("Authorization", "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJPcmRlck1hbmFnZXIiLCJyb2xlcyI6WyJST0xFX0FQUExJQ0FUSU9OIl0sImlhdCI6MTU4NDkxMTY3MSwiZXhwIjoxNzQyNTkxNjcxfQ.VmujsURhZaXRp5FQJXzmQMB-e6QSNF-OyPLeMEMOVvI");
         String uri = "http://cobol.idlab.ugent.be:8092/publishEvent";
-        HttpEntity<String> request = new HttpEntity<String>(jsonString, headers);
-
-        restTemplate.postForObject(uri, request, String.class);
-
+        entity = new HttpEntity<String>(jsonString, headers);
+        restTemplate.postForObject(uri, entity, String.class);
         if (state == Order.status.DECLINED) {
             running_orders.remove(order_id);
         }
-    }*/
+        entity = new HttpEntity(headers); //remove jsonstring for further use
+    }
 
     public void pollEvents() throws JsonProcessingException {
         String uri = "http://cobol.idlab.ugent.be:8092/events";
@@ -83,6 +77,12 @@ public class OrderProcessor {
 
     public void addOrder(Order o) {
         this.running_orders.put(o.getId(), o);
+
+        String uri = "http://cobol.idlab.ugent.be:8092/registerSubscriber/toChannel";
+        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(uri)
+                .queryParam("id", this.subscriberId)
+                .queryParam("type", o.getId());
+        ResponseEntity<String> response = this.restTemplate.exchange(builder.toUriString(), HttpMethod.GET, this.entity, String.class);
     }
 
     public Order getOrder(int order_id) {
