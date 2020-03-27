@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 public class Order {
@@ -22,7 +23,8 @@ public class Order {
     private int id;
 
     // Remaining time in seconds
-    private int remainingTimeSec;
+    private Calendar startTime;
+    private Calendar expectedTime;
     private status orderStatus;
     private int standId;
     private String brandName;
@@ -61,7 +63,14 @@ public class Order {
         // TODO needs to be fetched from database or something else
         this.id=orderCounter;
         this.orderStatus=status.PENDING;
-        this.remainingTimeSec=900; // 15 min
+
+        // set time
+        // TODO needs to be asked from StandManager
+        this.startTime=Calendar.getInstance();
+        this.expectedTime=Calendar.getInstance();
+        expectedTime.setTime(startTime.getTime());
+        expectedTime.add(Calendar.MINUTE, 15);
+
         // Update ID counter
         orderCounter++;
     }
@@ -86,7 +95,6 @@ public class Order {
     }
 
     public Order() {
-        this.remainingTimeSec=-1;
         this.id=-1;
     }
 
@@ -115,12 +123,14 @@ public class Order {
 
     // TODO: these 2 functions only temporary for remaining time
     //  (think this should be through event channel)
-    public int getRemtime() {
-        return this.remainingTimeSec;
+    public int getRemainingTime() {
+        return (int) (expectedTime.getTimeInMillis() - Calendar.getInstance().getTimeInMillis());
     }
 
-    public void setRemtime(int i) {
-        this.remainingTimeSec = i;
+    // Will only have to be called once (when the standmanager accepts the order)
+    public void setRemtime(int remtime) {
+        expectedTime.setTime(startTime.getTime());
+        expectedTime.add(Calendar.MILLISECOND, remtime);
     }
 
     public int getId() {
@@ -155,7 +165,7 @@ public class Order {
     public String toString() {
         return "Order{" +
                 "id=" + id +
-                ", remainingTimeSec=" + remainingTimeSec +
+                ", remainingTimeSec=" + getRemainingTime() +
                 ", orderStatus=" + orderStatus +
                 ", orderItems=" + orderItems +
                 ", latitude=" + latitude +
