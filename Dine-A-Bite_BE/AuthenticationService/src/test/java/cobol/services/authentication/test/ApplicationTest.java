@@ -2,6 +2,7 @@ package cobol.services.authentication.test;
 
 import cobol.services.authentication.domain.entity.User;
 import cobol.services.authentication.domain.repository.UserRepository;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.json.JSONObject;
 import org.junit.After;
@@ -49,31 +50,11 @@ public class ApplicationTest {
                 .build();
     }
 
-    @Before
-    public void saveTestUsers() {
-        users.saveAndFlush(
-                User.builder()
-                        .username("admin")
-                        .password(passwordEncoder.encode("admin"))
-                        .role(Arrays.asList("ROLE_USER", "ROLE_ADMIN"))
-                        .build()
-        );
-
-        users.saveAndFlush(
-                User.builder()
-                        .username("user")
-                        .password(passwordEncoder.encode("user"))
-                        .role(Arrays.asList("ROLE_USER"))
-                        .build()
-        );
-    }
-
     @Test
     public void pingTest() throws Exception {
         this.mockMvc
                 .perform(
                         get("/pingAS")
-                                //.accept(MediaType.APPLICATION_JSON)
                 )
                 .andExpect(status().isOk());
     }
@@ -88,18 +69,19 @@ public class ApplicationTest {
     }
 
     @Test
-    public void performAuthenticateTestUserTest() throws Exception {
-        authenticateTestUser();
+    public void createUserTest() throws Exception {
+        createUser("test");
     }
 
     @Test
-    public void performAuthenticateTestAdminTest() throws Exception {
-        authenticateTestAdmin();
+    public void authenticateUserTest() throws Exception {
+        createUser("test");
+        authenticateUser("test");
     }
 
     @Test
     public void userRoleAuthenticationTest() throws Exception {
-        String token = authenticateTestUser();
+        String token = authenticateUser("user");
         this.mockMvc
                 .perform(
                         get("/user")
@@ -116,8 +98,8 @@ public class ApplicationTest {
     }
 
     @Test
-    public void userAdminAuthenticationTest() throws Exception {
-        String token = authenticateTestAdmin();
+    public void adminRoleAuthenticationTest() throws Exception {
+        String token = authenticateUser("admin");
         this.mockMvc
                 .perform(
                         get("/user")
@@ -133,59 +115,30 @@ public class ApplicationTest {
                 .andExpect(status().isOk());
     }
 
-    @Test
-    public void createUserTest() throws Exception {
+    private void createUser(String user) throws Exception {
         this.mockMvc
                 .perform(
                         post("/authenticate")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsBytes(
-                                        User.builder().username("test").password("test").build()
+                                        User.builder().username(user).password(user).build()
                                 ))
                 )
                 .andExpect(status().isOk());
     }
 
-    @After
-    public void removeTestUsers() throws Exception {
-        users.deleteAll(Arrays.asList(
-                users.findById("admin").get(),
-                users.findById("user").get()
-        ));
-    }
-
-
-    private String authenticateTestUser() throws Exception {
+    private String authenticateUser(String user) throws Exception {
         JSONObject response = new JSONObject(this.mockMvc
                 .perform(
                         post("/authenticate")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsBytes(
-                                        User.builder().username("user").password("user").build()
+                                        User.builder().username(user).password(user).build()
                                 ))
                 )
                 .andExpect(status().isOk()).andReturn().getResponse().getContentAsString()
         );
         return (String) response.getJSONObject("details").get("token");
     }
-
-
-    private String authenticateTestAdmin() throws Exception {
-        JSONObject response = new JSONObject(this.mockMvc
-                .perform(
-                        post("/authenticate")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsBytes(
-                                        User.builder().username("admin").password("admin").build()
-                                ))
-                )
-                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString()
-        );
-        return (String) response.getJSONObject("details").get("token");
-    }
-
-
-
-
 
 }
