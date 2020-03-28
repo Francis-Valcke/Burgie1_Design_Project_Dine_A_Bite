@@ -24,15 +24,15 @@ public class EventSubscriber {
     /**
      * lets the stub subscribe to the appropriate channels
      */
-    void subscribe(EventSubscriber this) {
+    void subscribe() {
         EventBroker broker = EventBroker.getInstance();
         broker.subscribe(this, this.types);
     }
 
     /**
      * @param e the event
-     *
-     * add the event to the unhandled event list
+     *          <p>
+     *          add the event to the unhandled event list
      */
     void handleEvent(Event e) {
         unhandledEvents.add(e);
