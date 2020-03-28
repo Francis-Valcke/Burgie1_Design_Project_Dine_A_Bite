@@ -235,8 +235,8 @@ public class CartActivity extends AppCompatActivity {
 
         // Instantiate the RequestQueue
         RequestQueue queue = Volley.newRequestQueue(this);
-        String url = "http://10.0.2.2:8081/placeOrder";
-        // String url = "http://cobol.idlab.ugent.be:8091/placeOrder";
+        //String url = "http://10.0.2.2:8081/placeOrder";
+        String url = "http://cobol.idlab.ugent.be:8091/placeOrder";
 
 
         // Request recommendation from server for sent order (both in JSON)
