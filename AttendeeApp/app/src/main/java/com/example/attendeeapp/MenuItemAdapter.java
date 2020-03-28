@@ -21,6 +21,7 @@ public class MenuItemAdapter extends BaseAdapter {
     private ArrayList<MenuItem> list = new ArrayList<MenuItem>();
     private Context context;
     private OnCartChangeListener cartListener;
+    private MenuBottomSheetDialog bottomSheet;
 
     public MenuItemAdapter(ArrayList<MenuItem> list,Context context) {
         this.list = list;
@@ -65,7 +66,8 @@ public class MenuItemAdapter extends BaseAdapter {
         reLay.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v) {
-                MenuBottomSheetDialog bottomSheet = new MenuBottomSheetDialog(list.get(position));
+                if(bottomSheet != null) bottomSheet.dismiss();
+                bottomSheet = new MenuBottomSheetDialog(list.get(position));
                 bottomSheet.setCartChangeListener(cartListener);
                 bottomSheet.show(((AppCompatActivity) context).getSupportFragmentManager(),
                         "bottomSheet");
