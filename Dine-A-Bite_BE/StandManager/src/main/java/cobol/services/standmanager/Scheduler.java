@@ -28,13 +28,15 @@ public class Scheduler extends Thread {
         this.brand = brand;
     }
 
-    public int getPreptime(String foodname) {
-        for (MenuItem m : menu) {
-            if (m.getFoodName().equals(foodname)) return m.getPreptime();
-        }
-        return -1;
+
+
+    public double getLon(){
+        return this.lon;
     }
 
+    public double getLat(){
+        return this.lat;
+    }
 
     public void setLon(double l){
         this.lon = l;
@@ -44,7 +46,7 @@ public class Scheduler extends Thread {
         this.lat = l;
     }
 
-    public Map<String, int[]> getMenu(){
+    public ArrayList<MenuItem> getMenu(){
         return this.menu;
     }
 
@@ -60,11 +62,16 @@ public class Scheduler extends Thread {
         return this.brand;
     }
 
-    public Scheduler(Map<String, int[]> menu, String standname, int id, String brand){
-        this.menu=menu;
-        this.standname=standname;
-        this.id = id;
-        this.brand = brand;
+    /**
+     * gives preptime of item in scheduler
+     * @param foodname name of item
+     * @return preptime
+     */
+    public int getPreptime(String foodname) {
+        for (MenuItem m : menu) {
+            if (m.getFoodName().equals(foodname)) return m.getPreptime();
+        }
+        return -1;
     }
 
     /**
@@ -139,39 +146,5 @@ public class Scheduler extends Thread {
     }
 
 
-    public int getPreptime(String foodname){
-        return menu.get(foodname)[1];
-    }
-    public double getLon(){
-        return this.lon;
-    }
-
-    public double getLat(){
-        return this.lat;
-    }
-
-    public void setLon(double l){
-        this.lon = l;
-    }
-
-    public void setLat(double l){
-        this.lat = l;
-    }
-
-    public Map<String, int[]> getMenu(){
-        return this.menu;
-    }
-
-    public int getStandId(){
-        return this.id;
-    }
-
-    public String getStandName(){
-        return this.standname;
-    }
-
-    public String getBrand(){
-        return this.brand;
-    }
 
 }

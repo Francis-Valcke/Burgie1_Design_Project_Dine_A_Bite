@@ -84,7 +84,7 @@ public class OrderManagerController {
      */
     @PostConstruct
     @RequestMapping("/updateOM")
-    public String index() {
+    public String update() throws JsonProcessingException {
         List<String> stands = mh.update();
         if (stands.size()==0) {
             return "No stands in database";
