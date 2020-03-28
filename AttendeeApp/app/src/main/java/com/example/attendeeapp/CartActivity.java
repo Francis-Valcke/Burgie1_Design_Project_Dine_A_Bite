@@ -54,10 +54,12 @@ import java.util.Map;
  */
 public class CartActivity extends AppCompatActivity {
 
-    ArrayList<MenuItem> ordered;
     private FusedLocationProviderClient fusedLocationClient;
     private Location lastLocation;
+    private CartItemAdapter cartAdapter;
     private Toast mToast;
+    private Intent returnIntent;
+    private BigDecimal totalPrice = new BigDecimal(0);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,23 +78,27 @@ public class CartActivity extends AppCompatActivity {
         ab.setDisplayHomeAsUpEnabled(true);
 
         // Get the ordered items from the cart in the menu view
-        ordered = (ArrayList<MenuItem>) getIntent().getSerializableExtra("cartList");
+        ArrayList<MenuItem> ordered = (ArrayList<MenuItem>) getIntent().getSerializableExtra("cartList");
 
-        // Instantiates cart item list
+        // Instantiates cart item list, get the cartCount from menuActivity
         ListView lView = (ListView)findViewById(R.id.cart_list);
-        CartItemAdapter cartAdapter = new CartItemAdapter(ordered, this);
+        cartAdapter = new CartItemAdapter(ordered, this);
+        cartAdapter.setCartCount(getIntent().getIntExtra("cartCount", 0));
         lView.setAdapter(cartAdapter);
 
+        // Set up the returning possible edited cart list and count
+        returnIntent = new Intent();
+        returnIntent.putExtra("cartList", cartAdapter.getCartList());
+        returnIntent.putExtra("cartCount", cartAdapter.getCartCount());
+        setResult(RESULT_OK, returnIntent);
+
+
         // Handle TextView to display total cart amount (price)
-        TextView total = (TextView)findViewById(R.id.cart_total_price);
         BigDecimal amount = new BigDecimal(0).setScale(2, RoundingMode.HALF_UP);
         for(MenuItem i : ordered) {
             amount = amount.add(i.getPrice().multiply(new BigDecimal((i.getCount()))));
         }
-        NumberFormat euro = NumberFormat.getCurrencyInstance(Locale.FRANCE);
-        euro.setMinimumFractionDigits(2);
-        String symbol = euro.getCurrency().getSymbol();
-        total.setText(symbol + amount);
+        updatePrice(amount);
 
         // Handle clickable TextView to confirm order
         // Only if there are items in the cart, the order can continue
@@ -102,7 +108,7 @@ public class CartActivity extends AppCompatActivity {
             public void onClick(View v) {
                 // confirm order -> go to order view (test view for now)
                 // Send order with JSON + location
-                if (ordered.size() > 0) {
+                if (cartAdapter.getCartList().size() > 0) {
                     checkLocationPermission();
                     requestOrderRecommend();
                     Intent intent = new Intent(CartActivity.this, OrderActivity.class);
@@ -126,6 +132,13 @@ public class CartActivity extends AppCompatActivity {
         super.onStart();
         // Ask for location permission
         checkLocationPermission();
+    }
+
+    @Override
+    public void onBackPressed() {
+        returnIntent.putExtra("cartList", cartAdapter.getCartList());
+        returnIntent.putExtra("cartCount", cartAdapter.getCartCount());
+        super.onBackPressed();
     }
 
     /**
@@ -194,6 +207,19 @@ public class CartActivity extends AppCompatActivity {
             // other 'case' lines to check for other
             // permissions this app might request.
         }
+    }
+
+    /**
+     * Function to handle price updates when the cart updates its items
+     * @param amount: amount to be added, can be positive or negative
+     */
+    public void updatePrice(BigDecimal amount) {
+        TextView total = (TextView)findViewById(R.id.cart_total_price);
+        NumberFormat euro = NumberFormat.getCurrencyInstance(Locale.FRANCE);
+        euro.setMinimumFractionDigits(2);
+        String symbol = euro.getCurrency().getSymbol();
+        totalPrice = totalPrice.add(amount);
+        total.setText(symbol + totalPrice);
     }
 
 
@@ -297,7 +323,7 @@ public class CartActivity extends AppCompatActivity {
             case android.R.id.home:
                 // This takes the user 'back', as if they pressed the left-facing triangle icon
                 // on the main android toolbar.
-                super.onBackPressed();
+                onBackPressed();
                 return true;
             case R.id.orders_action:
                 // User chooses the "My Orders" item

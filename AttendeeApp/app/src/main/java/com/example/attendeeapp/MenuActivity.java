@@ -76,9 +76,24 @@ public class MenuActivity extends AppCompatActivity implements OnCartChangeListe
             public void onClick(View v) {
                 Intent intent = new Intent(MenuActivity.this, CartActivity.class);
                 intent.putExtra("cartList", cartList);
-                startActivity(intent);
+                intent.putExtra("cartCount", cartCount);
+                startActivityForResult(intent, 1);
             }
         });
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == 1) {
+            if(resultCode == RESULT_OK) {
+                cartList = (ArrayList<MenuItem>) data.getSerializableExtra("cartList");
+                cartCount = data.getIntExtra("cartCount", 0);
+                TextView totalCount = (TextView)findViewById(R.id.cart_count);
+                totalCount.setText("" + cartCount);
+            }
+
+        }
     }
 
     /**
@@ -88,6 +103,7 @@ public class MenuActivity extends AppCompatActivity implements OnCartChangeListe
      * If the cart is full (>= MAX_CART_ITEM) or the item has reached it maximum,
      * the item is not added or counted
      * @param cartItem: item to add to the cart with a unique item name
+     * @return the (updated) cartCount
      * TODO: enforce unique name when creating menu items
      */
     public int onCartChangedAdd(MenuItem cartItem) {
@@ -96,16 +112,18 @@ public class MenuActivity extends AppCompatActivity implements OnCartChangeListe
                 boolean contains = false;
                 for (MenuItem i : cartList) {
                     if (i.getFoodName().equals(cartItem.getFoodName()) &&
-                            i.getStandName().equals(cartItem.getStandName())) {
-                        // cartItems have a unique (foodName, standName)
+                            i.getStandName().equals(cartItem.getStandName()) &&
+                            i.getBrandName().equals(cartItem.getBrandName())) {
+                        // cartItems have a unique ((foodName, brandName), standName)
                         i.increaseCount();
                         contains = true;
                         break;
                     }
                 }
                 if(!contains){
-                    cartItem.increaseCount();
-                    cartList.add(cartItem);
+                    MenuItem newItem = new MenuItem(cartItem);
+                    newItem.increaseCount();
+                    cartList.add(newItem);
                 }
                 cartCount++;
                 TextView totalCount = (TextView)findViewById(R.id.cart_count);
@@ -132,6 +150,7 @@ public class MenuActivity extends AppCompatActivity implements OnCartChangeListe
      * else if the cart contains it one time, remove the item
      * If the cart is empty the item is not removed and a toast message is shown
      * @param cartItem: item to remove from the cart with a unique item name
+     * @return the (updated) cartCount
      * TODO: enforce unique name when creating menu items
      */
     public int onCartChangedRemove(MenuItem cartItem) {
@@ -140,8 +159,9 @@ public class MenuActivity extends AppCompatActivity implements OnCartChangeListe
                 boolean contains = false;
                 for (MenuItem i : cartList) {
                     if (i.getFoodName().equals(cartItem.getFoodName()) &&
-                            i.getStandName().equals(cartItem.getStandName())) {
-                        // cartItems have a unique (foodName, standName)
+                            i.getStandName().equals(cartItem.getStandName()) &&
+                            i.getBrandName().equals(cartItem.getBrandName())) {
+                        // cartItems have a unique ((foodName, brandName), standName)
                         i.decreaseCount();
                         if (i.getCount() == 0){
                             cartList.remove(i);
