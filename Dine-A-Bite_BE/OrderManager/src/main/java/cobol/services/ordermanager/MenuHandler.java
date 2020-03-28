@@ -241,14 +241,9 @@ public class MenuHandler {
                         for (int p = 0; p < cat.size(); p++) food.addCategory(cat.get(p));
                     }
                 }
-                if (price.compareTo(BigDecimal.ZERO) > 0) ;
-                else food.setPrice(price);
-                if (preptime < 0) ;
-                else {
-                    food.setPreptime(preptime);
-                }
-                if (desc == "") ;
-                else food.setDescription(desc);
+                if (price.compareTo(BigDecimal.ZERO) >= 0) food.setPrice(price);
+                if (preptime >= 0) food.setPreptime(preptime);
+                if (!(desc.equals("")))food.setDescription(desc);
             } else {
                 food.setPrice(price);
                 food.setPreptime(preptime);
