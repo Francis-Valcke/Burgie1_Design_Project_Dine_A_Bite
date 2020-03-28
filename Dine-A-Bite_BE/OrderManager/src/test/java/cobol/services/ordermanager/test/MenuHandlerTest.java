@@ -2,16 +2,12 @@ package cobol.services.ordermanager.test;
 
 import cobol.commons.MenuItem;
 import cobol.commons.StandInfo;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -21,7 +17,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.web.context.WebApplicationContext;
 
-import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.util.*;
@@ -73,6 +68,7 @@ public class MenuHandlerTest {
 
     /**
      * setup stands for testing
+     *
      * @throws Exception
      */
     @Before
@@ -126,12 +122,13 @@ public class MenuHandlerTest {
             for (String key : stands.keySet()) {
                 if (stands.get(key).contains(i)) {
                     assertTrue(mi.getFoodName().equals(foodnames.get(i)));
-                    assertTrue(mi.getPreptime()==preptimes.get(i));
+                    assertTrue(mi.getPreptime() == preptimes.get(i));
                     assertTrue(mi.getPrice().round(new MathContext(2)).equals(prices.get(i).round(new MathContext(2))));
                     if (descriptions.get(i).equals("")) assertTrue(mi.getDescription() == null);
                     else assertTrue(descriptions.get(i).equals(mi.getDescription()));
-                    if (mi.getCategory()==null||mi.getCategory().size()==0)assertTrue(categories.get(i).equals(""));
-                    else{
+                    if (mi.getCategory() == null || mi.getCategory().size() == 0)
+                        assertTrue(categories.get(i).equals(""));
+                    else {
                         boolean catOk = false;
 
                         for (String cat : mi.getCategory()) {
@@ -148,33 +145,34 @@ public class MenuHandlerTest {
     public void getStandmenusTest() throws Exception {
         for (String key : stands.keySet()) { //check for every standmenu
             MvcResult result = this.mockMvc.perform(get(String.format("/standmenu?standname=%s", key)).contentType(MediaType.APPLICATION_JSON)
-                .header("Authorization", token))
-                .andReturn();
+                    .header("Authorization", token))
+                    .andReturn();
             String json = result.getResponse().getContentAsString();
             JSONParser parser = new JSONParser();
             JSONArray menu = (JSONArray) parser.parse(json);
             for (int j = 0; j < menu.size(); j++) { //check through entire menu if every item is present and has right attributes
                 MenuItem mi = objectMapper.readValue(menu.get(j).toString(), MenuItem.class);
                 int i = foodnames.indexOf(mi.getFoodName());
-                assertFalse(i==-1);
-                    assertTrue(mi.getFoodName().equals(foodnames.get(i)));
-                    assertTrue(mi.getPreptime()==preptimes.get(i));
-                    assertTrue(mi.getPrice().round(new MathContext(2)).equals(prices.get(i).round(new MathContext(2))));
-                    if (descriptions.get(i).equals("")) assertTrue(mi.getDescription() == null);
-                    else assertTrue(descriptions.get(i).equals(mi.getDescription()));
-                    if (mi.getCategory()==null||mi.getCategory().size()==0)assertTrue(categories.get(i).equals(""));
-                    else{
-                        boolean catOk = false;
+                assertFalse(i == -1);
+                assertTrue(mi.getFoodName().equals(foodnames.get(i)));
+                assertTrue(mi.getPreptime() == preptimes.get(i));
+                assertTrue(mi.getPrice().round(new MathContext(2)).equals(prices.get(i).round(new MathContext(2))));
+                if (descriptions.get(i).equals("")) assertTrue(mi.getDescription() == null);
+                else assertTrue(descriptions.get(i).equals(mi.getDescription()));
+                if (mi.getCategory() == null || mi.getCategory().size() == 0) assertTrue(categories.get(i).equals(""));
+                else {
+                    boolean catOk = false;
 
-                        for (String cat : mi.getCategory()) {
-                            if (cat.equals(categories.get(i))) catOk = true;
-                        }
-                        assertTrue(catOk);
+                    for (String cat : mi.getCategory()) {
+                        if (cat.equals(categories.get(i))) catOk = true;
                     }
+                    assertTrue(catOk);
+                }
 
             }
         }
     }
+
     @Test
     public void alterMenus() throws Exception {
         Map<String, StandInfo> standInfos = new HashMap<>();
@@ -220,34 +218,35 @@ public class MenuHandlerTest {
             MenuItem mi = objectMapper.readValue(menu.get(j).toString(), MenuItem.class);
             int i = foodnames2.indexOf(mi.getFoodName());
             int k = foodnames.indexOf(mi.getFoodName());
-            if (i==-1) assertTrue(i==k); //if a food item in menu isnt part of new test lists, it shouldnt be part of old test lists (if it was in old lists and not in new list, it should be removed from menu)
+            if (i == -1)
+                assertTrue(i == k); //if a food item in menu isnt part of new test lists, it shouldnt be part of old test lists (if it was in old lists and not in new list, it should be removed from menu)
             for (String key : stands.keySet()) {
                 if (stands.get(key).contains(i)) {
                     assertTrue(mi.getFoodName().equals(foodnames2.get(i)));
-                    if (preptimes2.get(i)<0) assertTrue(mi.getPreptime()==preptimes.get(i));
-                    else assertTrue(mi.getPreptime()==preptimes2.get(i));
-                    if (prices2.get(i).compareTo(BigDecimal.ZERO)>0)assertTrue(mi.getPrice().round(new MathContext(2)).equals(prices.get(i).round(new MathContext(2))));
-                    else assertTrue(mi.getPrice().round(new MathContext(2)).equals(prices2.get(i).round(new MathContext(2))));
+                    if (preptimes2.get(i) < 0) assertTrue(mi.getPreptime() == preptimes.get(i));
+                    else assertTrue(mi.getPreptime() == preptimes2.get(i));
+                    if (prices2.get(i).compareTo(BigDecimal.ZERO) > 0)
+                        assertTrue(mi.getPrice().round(new MathContext(2)).equals(prices.get(i).round(new MathContext(2))));
+                    else
+                        assertTrue(mi.getPrice().round(new MathContext(2)).equals(prices2.get(i).round(new MathContext(2))));
                     if (descriptions2.get(i).equals("")) {
                         if (descriptions.get(i).equals("")) assertTrue(mi.getDescription() == null);
                         else assertTrue(descriptions.get(i).equals(mi.getDescription()));
 
-                    }
-                    else assertTrue(descriptions2.get(i).equals(mi.getDescription()));
+                    } else assertTrue(descriptions2.get(i).equals(mi.getDescription()));
 
-                    if (mi.getCategory()==null||mi.getCategory().size()==0){
+                    if (mi.getCategory() == null || mi.getCategory().size() == 0) {
                         assertTrue(categories.get(i).equals(""));
                         assertTrue(categories2.get(i).equals(""));
-                    }
-                    else{
+                    } else {
                         boolean catOk = false;
                         boolean cat2Ok = false;
                         for (String cat : mi.getCategory()) {
                             if (cat.equals(categories.get(i))) catOk = true;
                             if (cat.equals(categories2.get(i))) cat2Ok = true;
                         }
-                        if (!categories.get(i).equals(""))assertTrue(catOk);
-                        if (!categories2.get(i).equals(""))assertTrue(cat2Ok);
+                        if (!categories.get(i).equals("")) assertTrue(catOk);
+                        if (!categories2.get(i).equals("")) assertTrue(cat2Ok);
 
                     }
 
@@ -257,8 +256,10 @@ public class MenuHandlerTest {
 
 
     }
+
     /**
      * delete the tested stands
+     *
      * @throws Exception
      */
     @After
