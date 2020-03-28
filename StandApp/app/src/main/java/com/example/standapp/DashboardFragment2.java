@@ -37,21 +37,28 @@ public class DashboardFragment2 extends Fragment {
 
     @Nullable
     @Override
-    public View onCreateView(@NonNull final LayoutInflater inflater, @Nullable final ViewGroup container, @Nullable Bundle savedInstanceState) {
+    public View onCreateView(@NonNull final LayoutInflater inflater,
+                             @Nullable final ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
 
-        View view = inflater.inflate(R.layout.activity_dashboard_fragment2, container, false);
+        View view = inflater.inflate(R.layout.activity_dashboard_fragment, container, false);
         Button submitButton = view.findViewById(R.id.submit_menu_button);
         Button addButton = view.findViewById(R.id.add_menu_item_button);
         ListView menuList = view.findViewById(R.id.menu_list);
 
-        // temporary hard coded
-        final String standName = "Levis Burgers";
-        final String brandName = "Levis Burgers";
+        // temporarily hard coded
+        //final String standName = "Levis Burgers";
+        //final String brandName = "Levis Burgers";
 
-        Bundle bundle = this.getArguments();
+        final Bundle bundle = this.getArguments();
+        String standName = "";
+        String brandName = "";
         if (bundle != null) {
-            Toast testToast = Toast.makeText(getContext(), bundle.getString("standName"), Toast.LENGTH_LONG);
-            testToast.show();
+            if (Utils.isLoggedIn(this.getContext(), bundle)) {
+                standName = bundle.getString("standName");
+                brandName = bundle.getString("brandName");
+                Toast.makeText(getContext(), standName, Toast.LENGTH_SHORT).show();
+            }
         }
 
         final DashboardListViewAdapter adapter = new DashboardListViewAdapter(Objects.requireNonNull(this.getActivity()), items);
@@ -96,94 +103,100 @@ public class DashboardFragment2 extends Fragment {
             }
         });
 
+        final String finalBrandName = brandName;
+        final String finalStandName = standName;
         submitButton.setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View v) {
-                // Create JSON Object to send to the server
-                final JSONObject js = new JSONObject();
-                JSONArray js_value = new JSONArray();
-                double longitude = 360.0;
-                double latitude = 360.0;
+                if (bundle != null && Utils.isLoggedIn(getContext(), bundle)) {
+                    // Create JSON Object to send to the server
+                    final JSONObject js = new JSONObject();
+                    JSONArray js_value = new JSONArray();
+                    double longitude = 360.0;
+                    double latitude = 360.0;
 
-                try {
-                    // first the brandname is added, after that the two coordinates are added in the next lines
-                    js_value.put(brandName);
-                    js_value.put(longitude); //longitude -> TODO: hardcoded currently, fix later
-                    js_value.put(latitude); //latitude -> TODO: hardcoded currently, fix later
-                    js.put(standName, js_value);
+                    try {
+                        // first the brandname is added, after that the two coordinates are added in the next lines
+                        js_value.put(finalBrandName);
+                        js_value.put(longitude); //longitude -> TODO: hardcoded currently, fix later
+                        js_value.put(latitude); //latitude -> TODO: hardcoded currently, fix later
+                        js.put(finalStandName, js_value);
 
-                    for (DashboardItem i: items) {
-                        int new_count = Integer.parseInt(i.getCount());
-                        // if there are 0 items in stock, then no need to send it to the server
-                        if (new_count == 0) continue;
-                        int prep_time = Integer.parseInt(i.getPrep_time());
-                        float price = Float.parseFloat(i.getPrice());
+                        for (DashboardItem i : items) {
+                            int new_count = Integer.parseInt(i.getCount());
+                            // if there are 0 items in stock, then no need to send it to the server
+                            if (new_count == 0) continue;
+                            int prep_time = Integer.parseInt(i.getPrep_time());
+                            float price = Float.parseFloat(i.getPrice());
 
-                        JSONArray js_item_values = new JSONArray();
-                        js_item_values.put(price);
-                        js_item_values.put(prep_time);
-                        js_item_values.put(new_count);
-                        js_item_values.put(i.getCategory());
-                        js_item_values.put(i.getDescription());
+                            JSONArray js_item_values = new JSONArray();
+                            js_item_values.put(price);
+                            js_item_values.put(prep_time);
+                            js_item_values.put(new_count);
+                            js_item_values.put(i.getCategory());
+                            js_item_values.put(i.getDescription());
 
-                        js.put(i.getTitle(), js_item_values);
-                        //i.setCount("0");
+                            js.put(i.getTitle(), js_item_values);
+                            //i.setCount("0");
+                        }
+                        adapter.notifyDataSetChanged();
+                        // if no items were added, then don't send anything
+                        if (js.length() == 1) {
+                            Toast mToast = Toast.makeText(getContext(), "Nothing to send!", Toast.LENGTH_SHORT);
+                            mToast.show();
+                            return;
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
                     }
-                    adapter.notifyDataSetChanged();
-                    // if no items were added, then don't send anything
-                    if (js.length() == 1) {
-                        Toast mToast = Toast.makeText(getContext(), "Nothing to send!", Toast.LENGTH_SHORT);
-                        mToast.show();
-                        return;
-                    }
-                } catch (JSONException e) {
-                    e.printStackTrace();
+
+                    // Instantiate the RequestQueue
+                    RequestQueue queue = Volley.newRequestQueue(Objects.requireNonNull(getContext()));
+                    String url = "http://cobol.idlab.ugent.be:8091/addstand";
+
+                    // POST
+                    StringRequest jsonRequest = new StringRequest(Request.Method.POST, url, new Response.Listener<String>() {
+                        @Override
+                        public void onResponse(String response) {
+                            Toast mToast = Toast.makeText(getContext(), response, Toast.LENGTH_SHORT);
+                            mToast.show();
+                        }
+                    }, new Response.ErrorListener() {
+                        @Override
+                        public void onErrorResponse(VolleyError error) {
+                            error.printStackTrace();
+                            Toast mToast = Toast.makeText(getContext(), error.toString(), Toast.LENGTH_SHORT);
+                            mToast.show();
+                        }
+                    }) {
+                        @Override
+                        public byte[] getBody() {
+                            return js.toString().getBytes();
+                        }
+
+                        @Override
+                        public String getBodyContentType() {
+                            return "application/json";
+                        }
+
+                        @Override
+                        public Map<String, String> getHeaders() {
+                            HashMap<String, String> headers = new HashMap<>();
+                            headers.put("Content-Type", "application/json");
+                            headers.put("Authorization", "Bearer" + " " + "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJmcmFuY2lzIiwicm9sZXMiOlsiUk9MRV9VU0VSIiwiUk9MRV9BRE1JTiJdLCJpYXQiOjE1ODQ2MTAwMTcsImV4cCI6MTc0MjI5MDAxN30.5UNYM5Qtc4anyHrJXIuK0OUlsbAPNyS9_vr-1QcOWnQ");
+                            return headers;
+                        }
+                    };
+
+                    //Add the request to the RequestQueue
+                    queue.add(jsonRequest);
+                    System.out.println(js);
                 }
-
-                // Instantiate the RequestQueue
-                RequestQueue queue = Volley.newRequestQueue(Objects.requireNonNull(getContext()));
-                String url = "http://cobol.idlab.ugent.be:8091/addstand";
-
-                // POST
-                StringRequest jsonRequest = new StringRequest(Request.Method.POST, url, new Response.Listener<String>() {
-                    @Override
-                    public void onResponse(String response) {
-                        Toast mToast = Toast.makeText(getContext(), response, Toast.LENGTH_SHORT);
-                        mToast.show();
-                    }
-                }, new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        error.printStackTrace();
-                        Toast mToast = Toast.makeText(getContext(), error.toString(), Toast.LENGTH_SHORT);
-                        mToast.show();
-                    }
-                }) {
-                    @Override
-                    public byte[] getBody() {
-                        return js.toString().getBytes();
-                    }
-
-                    @Override
-                    public String getBodyContentType() {
-                        return "application/json";
-                    }
-
-                    @Override
-                    public Map<String, String> getHeaders() {
-                        HashMap<String, String> headers = new HashMap<>();
-                        headers.put("Content-Type", "application/json");
-                        headers.put("Authorization", "Bearer" + " " + "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJmcmFuY2lzIiwicm9sZXMiOlsiUk9MRV9VU0VSIiwiUk9MRV9BRE1JTiJdLCJpYXQiOjE1ODQ2MTAwMTcsImV4cCI6MTc0MjI5MDAxN30.5UNYM5Qtc4anyHrJXIuK0OUlsbAPNyS9_vr-1QcOWnQ");
-                        return headers;
-                    }
-                };
-
-                //Add the request to the RequestQueue
-                queue.add(jsonRequest);
-                System.out.println(js);
             }
         });
+
+        Utils.isConnected(this.getContext());
 
         return view;
     }

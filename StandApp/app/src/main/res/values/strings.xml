@@ -32,6 +32,12 @@
     <string name="added_stock">Added stock</string>
     <string name="account_information">Account information</string>
     <string name="brand_name">Brand name</string>
+    <string name="menu_item_name">Menu item name</string>
+    <string name="euro_sign">€</string>
+    <string name="menu_item_price">Menu item price</string>
+    <string name="in_stock">In stock:</string>
+    <string name="amount_in_stock_of_menu_item">Amount in stock of menu item</string>
+    <string name="hash_tag">#</string>
     <string-array name="snacks">
         <item>Burger</item>
         <item>Doughnut</item>

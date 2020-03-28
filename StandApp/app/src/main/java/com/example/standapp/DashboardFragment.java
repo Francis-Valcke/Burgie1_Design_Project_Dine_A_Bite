@@ -36,6 +36,8 @@ import java.util.HashMap;
 
 public class DashboardFragment extends Fragment {
 
+    // This class is not used any more
+
     private ListView listView;
     private ArrayList<DashboardItem> items = new ArrayList<DashboardItem>();
     private DashboardListViewAdapter adapter;
