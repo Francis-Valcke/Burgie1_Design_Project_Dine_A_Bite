@@ -5,7 +5,9 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 
@@ -13,22 +15,36 @@ import java.util.ArrayList;
  * Handles all the cart items in the cart list
  */
 public class CartItemAdapter  extends BaseAdapter {
-    private ArrayList<MenuItem> list = new ArrayList<MenuItem>();
+    private ArrayList<MenuItem> cartList = new ArrayList<MenuItem>();
+    private int cartCount;
     private Context context;
+    private Toast mToast = null;
 
     public CartItemAdapter(ArrayList<MenuItem> list,Context context) {
-        this.list = list;
+        this.cartList = list;
         this.context = context;
+    }
+
+    public void setCartCount(int cartCount) {
+        this.cartCount = cartCount;
+    }
+
+    public int getCartCount() {
+        return cartCount;
+    }
+
+    public ArrayList<MenuItem> getCartList() {
+        return cartList;
     }
 
     @Override
     public int getCount() {
-        return list.size();
+        return cartList.size();
     }
 
     @Override
     public Object getItem(int pos) {
-        return list.get(pos);
+        return cartList.get(pos);
     }
 
     @Override
@@ -47,18 +63,65 @@ public class CartItemAdapter  extends BaseAdapter {
 
         //Handle TextView to display one cart item name, if this name has a stand, display it too
         TextView listItemText = (TextView)view.findViewById(R.id.cart_item);
-        String name = list.get(position).getFoodName();
-        if(!list.get(position).getStandName().equals("")) name += " (" + list.get(position)
+        String name = cartList.get(position).getFoodName();
+        if(!cartList.get(position).getStandName().equals("")) name += " (" + cartList.get(position)
                                                                         .getStandName() + ")";
         listItemText.setText(name);
 
         //Handle TextView to display one cart item price
         TextView listItemPrice = (TextView)view.findViewById(R.id.cart_item_price);
-        listItemPrice.setText(list.get(position).getPriceEuro());
+        listItemPrice.setText(cartList.get(position).getPriceEuro());
+
+        //Handle TextView to display one cart item brand
+        TextView listItemBrand = (TextView)view.findViewById(R.id.cart_brandName);
+        listItemBrand.setText(String.valueOf(cartList.get(position).getBrandName()));
 
         //Handle TextView to display one cart item count
         TextView listItemCount = (TextView)view.findViewById(R.id.cart_item_count);
-        listItemCount.setText(String.valueOf(list.get(position).getCount()));
+        listItemCount.setText(String.valueOf(cartList.get(position).getCount()));
+
+        final View v = view;
+        // Handle plus and minus Buttons and add onClickListeners for one menu item
+        Button plusBtn = (Button)view.findViewById(R.id.cart_plus);
+        plusBtn.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v) {
+                if(cartCount < 25) {
+                    try {
+                        cartList.get(position).increaseCount();
+                        cartCount++;
+                        // Add the itemPrice to the total price
+                        ((CartActivity) context).updatePrice(cartList.get(position).getPrice());
+                        notifyDataSetChanged();
+
+                    } catch (ArithmeticException e) {
+                        if (mToast != null) mToast.cancel();
+                        mToast = Toast.makeText(v.getContext(),"No more than 10 items",
+                                Toast.LENGTH_SHORT);
+                        mToast.show();
+                    }
+                } else {
+                    if (mToast != null) mToast.cancel();
+                    mToast = Toast.makeText(v.getContext(),"No more than 25 in total",
+                            Toast.LENGTH_SHORT);
+                    mToast.show();
+                }
+
+            }
+        });
+
+        Button minusBtn = (Button)view.findViewById(R.id.cart_minus);
+        minusBtn.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v) {
+                cartList.get(position).decreaseCount();
+                cartCount--;
+                // Add the negative of the itemPrice to the total price
+                ((CartActivity) context).updatePrice(cartList.get(position).getPrice().negate());
+                if(cartList.get(position).getCount() == 0) cartList.remove(cartList.get(position));
+                notifyDataSetChanged();
+            }
+        });
 
 
         return view;

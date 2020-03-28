@@ -87,6 +87,9 @@ project(':Commons'){
 
     dependencies {
         //-----PRODUCTION-----
+        //Mysql jdbc driver
+        implementation group: 'mysql', name: 'mysql-connector-java', version: '8.0.19'
+
         //Spring related imports
         implementation group: 'org.springframework.boot', name: 'spring-boot-starter-security', version: '2.2.5.RELEASE'
         implementation group: 'org.springframework.boot', name: 'spring-boot-starter-web', version: '2.2.5.RELEASE'
@@ -109,9 +112,6 @@ project(':AuthenticationService'){
         implementation project(':Commons')
 
         //-----PRODUCTION-----
-
-        //Mysql jdbc driver
-        implementation group: 'mysql', name: 'mysql-connector-java', version: '8.0.19'
 
         //Spring related imports
         implementation group: 'org.springframework.boot', name: 'spring-boot-starter-data-jpa', version: '2.2.5.RELEASE'

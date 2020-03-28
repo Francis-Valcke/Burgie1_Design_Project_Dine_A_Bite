@@ -48,11 +48,11 @@ public class MenuBottomSheetDialog extends BottomSheetDialogFragment {
         // Handle TextView to display the description
         TextView listItemDescr = (TextView)view.findViewById(R.id.description_bottom);
         listItemDescr.setText(item.getDescription());
+        if (item.getDescription().equals("")) listItemDescr.setVisibility(View.GONE);
 
         // Handle plus and minus Buttons and add onClickListeners for one menu item
         Button plusBtn = (Button)view.findViewById(R.id.bottom_sheet_plus);
         plusBtn.setOnClickListener(new View.OnClickListener(){
-            // Handle Button and add onClickListeners for one menu item
             @Override
             public void onClick(View v) {
                 // Pass menu item to the cart to (try) to be added
