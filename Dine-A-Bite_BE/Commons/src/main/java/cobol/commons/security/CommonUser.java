@@ -9,6 +9,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
 
@@ -21,11 +22,20 @@ import static java.util.stream.Collectors.toList;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class CommonUser implements UserDetails {
+public class CommonUser implements UserDetails, Serializable {
 
     String username;
-    String password;
     List<String> role;
+
+    public CommonUser(String username, List<String> role) {
+        this.username = username;
+        this.role = role;
+    }
+
+    @Override
+    public String getPassword() {
+        return null;
+    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -51,4 +61,6 @@ public class CommonUser implements UserDetails {
     public boolean isEnabled() {
         return true;
     }
+
+
 }
