@@ -201,9 +201,9 @@ public class MenuHandler {
         standRepository.save(n);
         si.setId(n.getId());
         List<Stock> items = stockRepository.findStockByStand(n.getId());
-        List<Food> foodInStand=null;
+        List<Food> foodInStand = null;
         //current items in menu
-        if (!newstand){
+        if (!newstand) {
             foodInStand = food_Repository.findByStand(standname);
         }
         //Add/edit menu
@@ -260,7 +260,7 @@ public class MenuHandler {
                 else food.setBrandname(brandname);
             }
             food_Repository.save(food);
-            if (!newstand)foodInStand.remove(food);
+            if (!newstand) foodInStand.remove(food);
 
             int count = mi.getStock();
             Stock s = null;
@@ -283,8 +283,8 @@ public class MenuHandler {
             stockRepository.save(s);
         }
         //delete items removed from menu
-        if (!newstand){
-            for (Food food : foodInStand){
+        if (!newstand) {
+            for (Food food : foodInStand) {
                 stockRepository.delete(stockRepository.findStock(food.getId(), n.getId()));
                 food_Repository.deleteById(food.getId());
             }
