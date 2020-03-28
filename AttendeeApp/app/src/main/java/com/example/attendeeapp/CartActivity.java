@@ -28,7 +28,9 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import com.example.attendeeapp.order.CommonOrder;
+import com.example.attendeeapp.order.Recommendation;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
@@ -43,6 +45,7 @@ import java.math.RoundingMode;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
@@ -233,6 +236,7 @@ public class CartActivity extends AppCompatActivity {
         // Instantiate the RequestQueue
         RequestQueue queue = Volley.newRequestQueue(this);
         String url = "http://10.0.2.2:8081/placeOrder";
+        // String url = "http://cobol.idlab.ugent.be:8091/placeOrder";
 
 
         // Request recommendation from server for sent order (both in JSON)
@@ -242,6 +246,18 @@ public class CartActivity extends AppCompatActivity {
             public void onResponse(JSONObject response) {
                 Toast mToast = Toast.makeText(CartActivity.this, "Ordering successful!",
                                                 Toast.LENGTH_SHORT);
+
+                ObjectMapper mapper= new ObjectMapper();
+                try {
+                    List<Recommendation> recommendations= mapper.readValue(response.get("recommendations").toString(), new TypeReference<List<Recommendation>>() {});
+                    CommonOrder order= mapper.readValue(response.get("order").toString(), CommonOrder.class);
+
+                } catch (JsonProcessingException e) {
+                    e.printStackTrace();
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
                 mToast.show();
             }
         }, new Response.ErrorListener() {
