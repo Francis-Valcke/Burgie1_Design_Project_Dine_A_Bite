@@ -27,7 +27,7 @@ public class OrderProcessor {
         return ourInstance;
     }
 
-    private OrderProcessor() {};
+    private OrderProcessor() {}
 
 
     //TODO: Orderprocessor needs to listen the the right channels to receive notifications of the stands (DECLINED, etc)

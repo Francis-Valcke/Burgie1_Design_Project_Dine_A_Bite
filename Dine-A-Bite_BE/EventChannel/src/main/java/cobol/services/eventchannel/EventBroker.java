@@ -42,9 +42,7 @@ public class EventBroker implements Runnable {
                 typeSet.add(subscriber);
                 subscriberMap.put(type, typeSet);
             } else {
-                if (!typeSet.contains(subscriber)) {
-                    typeSet.add(subscriber);
-                }
+                typeSet.add(subscriber);
             }
         }
     }

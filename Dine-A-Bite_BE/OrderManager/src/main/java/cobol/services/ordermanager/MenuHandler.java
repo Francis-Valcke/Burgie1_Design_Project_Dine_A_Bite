@@ -196,7 +196,7 @@ public class MenuHandler {
         }
         //Add/edit menu
 
-        List<Food> f = (List<Food>) food_Repository.findByBrand(brandname);
+        List<Food> f = food_Repository.findByBrand(brandname);
         for (String key : keys) {
             //Look for menu items in JSON file
 
@@ -226,7 +226,7 @@ public class MenuHandler {
             Float d = ((Number) a.get(0)).floatValue();
             int preptime =(int) a.get(1);
             String desc = (String) a.get(4);
-            List<String> cat = Arrays.asList(new String[]{(String) a.get(3)});
+            List<String> cat = Arrays.asList((String) a.get(3));
             if (b) {
                 System.out.println(cat);
                 System.out.println(fp.getCategory());
@@ -282,7 +282,7 @@ public class MenuHandler {
             }
             stockRepository.save(s);
             if (newstand){
-                si.addMenuItem(fp.getName(),(double)fp.getPrice(),fp.getPreptime());
+                si.addMenuItem(fp.getName(), fp.getPrice(),fp.getPreptime());
             }
         }
 
