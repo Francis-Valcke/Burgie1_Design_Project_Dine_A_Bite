@@ -1,11 +1,9 @@
 package cobol.services.ordermanager.dbmenu;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.hibernate.annotations.Type;
 import org.json.simple.JSONObject;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
@@ -23,9 +21,8 @@ public class Order implements Serializable {
     //----- Backend Information -----//
 
     // unique id for this order
+    @JsonIgnore
     @Id
-    @NotNull
-    @Column
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
@@ -43,7 +40,12 @@ public class Order implements Serializable {
     private String standName;
 
     //----- Request ------//
-    @OneToMany(mappedBy = "itemId")
+    @OneToMany(
+            targetEntity = OrderItem.class,
+            mappedBy = "order",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
     private List<OrderItem> orderItems;
 
     // Coordinates Attendee on moment that order was mad
@@ -71,8 +73,10 @@ public class Order implements Serializable {
 
         this.latitude = temp.getLatitude();
         this.longitude= temp.getLongitude();
-        this.orderItems= new ArrayList<>(temp.getOrderItems());
-
+        this.orderItems=new ArrayList<>();
+        for (OrderItem orderItem : temp.getOrderItems()) {
+            this.addOrderItem(orderItem);
+        }
         // Add new information
         this.startTime=Calendar.getInstance();
         this.expectedTime=Calendar.getInstance();
@@ -83,11 +87,22 @@ public class Order implements Serializable {
 
 
     public Order() {
-        this.id=-1;
     }
 
 
     // ---- Getters and Setters ----- //
+
+    public void addOrderItem(OrderItem item){
+        orderItems.add(item);
+        item.setOrder(this);
+    }
+
+
+
+    public void removeOrderItem(OrderItem item){
+        orderItems.remove(item);
+        item.setOrder(this);
+    }
 
     public String getBrandName() {
         return brandName;
@@ -121,6 +136,12 @@ public class Order implements Serializable {
         expectedTime.add(Calendar.MILLISECOND, remtime);
     }
 
+    public void setOrderItems(List<OrderItem> orderItems) {
+        this.orderItems = orderItems;
+    }
+    public void setId(int id){
+        this.id=id;
+    }
     public int getId() {
         return id;
     }

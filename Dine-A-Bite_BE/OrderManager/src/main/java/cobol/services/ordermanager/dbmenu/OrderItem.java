@@ -1,5 +1,9 @@
 package cobol.services.ordermanager.dbmenu;
 
+
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import javax.persistence.*;
 import java.io.Serializable;
 
@@ -7,13 +11,13 @@ import java.io.Serializable;
 @Table(name="orderitem")
 public class OrderItem implements Serializable {
 
-    @ManyToOne
-    @JoinColumn(name="id", nullable=false)
+    @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name="id")
     private Order order;
 
     @Id
-    @Column
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int itemId;
 
     @Column
@@ -29,6 +33,13 @@ public class OrderItem implements Serializable {
     public OrderItem(String foodname, int amount) {
         this.foodname = foodname;
         this.amount = amount;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof OrderItem )) return false;
+        return itemId!=0 && itemId==(((OrderItem) o).getItemId());
     }
 
     public Order getOrder() {

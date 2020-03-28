@@ -4,6 +4,7 @@ import cobol.commons.Event;
 import cobol.services.ordermanager.dbmenu.Order;
 import cobol.commons.ResponseModel;
 import cobol.commons.security.CommonUser;
+import cobol.services.ordermanager.dbmenu.OrderItem;
 import cobol.services.ordermanager.dbmenu.OrderRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -154,9 +155,9 @@ public class OrderManagerController {
         newOrder.setRemtime(remainingtimemillis);
         newOrder.setStandId(standId);
         newOrder.setStandName(standname);
-        
-        orders.save(newOrder);
-        orders.flush();
+        newOrder.setState(Order.status.PENDING);
+        orders.saveAndFlush(newOrder);
+
         // return recommendation to attendee application
         response.put("order_id", newOrder.getId());
         return response;
