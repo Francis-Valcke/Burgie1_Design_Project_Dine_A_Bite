@@ -1,17 +1,14 @@
 package cobol.services.authentication.domain.entity;
 
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import cobol.commons.security.CommonUser;
+import lombok.*;
+import lombok.experimental.SuperBuilder;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -24,25 +21,31 @@ import static java.util.stream.Collectors.toList;
  */
 @Entity
 @Table(name = "user")
-@Builder
+@SuperBuilder
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
-public class User implements Serializable, UserDetails {
+@AllArgsConstructor
+@EqualsAndHashCode(callSuper=true)
+public class User extends CommonUser {
 
     @Id
     @NotNull
     @Column
     private String username;
+
     @NotNull
     @Column
     private String password;
+
     @Column
     private String email;
+
     @Column
     private String surname;
+
     @Column
     private String name;
+
     @ElementCollection(fetch = FetchType.EAGER)
     @Builder.Default
     @Column(name = "role_role")
