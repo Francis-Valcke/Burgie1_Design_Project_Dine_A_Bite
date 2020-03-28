@@ -93,16 +93,19 @@ public class OrderManagerController {
     }
 
     @RequestMapping("/getOrderInfo")
-    public JSONObject getOrderInfo(@RequestParam(name="orderId") int orderId){
-
+    public JSONObject getOrderInfo(@RequestParam(name="orderId") int orderId) throws JsonProcessingException {
         // retrieve order from database
-        JSONObject response= null;
-
-
-        
-
-
-        return response;
+        Order requestedOrder= orders.findById(orderId).get();
+        ObjectMapper mapper= new ObjectMapper();
+        String jsonString= mapper.writeValueAsString(requestedOrder);
+        JSONParser parser= new JSONParser();
+        JSONObject orderResponse=new JSONObject();
+        try {
+            orderResponse = (JSONObject) parser.parse(jsonString);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return orderResponse;
     }
 
     /**
