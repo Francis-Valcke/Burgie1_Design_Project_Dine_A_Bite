@@ -9,6 +9,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.omg.Messaging.SYNC_WITH_TRANSPORT;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
@@ -123,6 +124,11 @@ public class MenuHandlerTest {
                 if (stands.get(key).contains(i)) {
                     assertTrue(mi.getFoodName().equals(foodnames.get(i)));
                     assertTrue(mi.getPreptime() == preptimes.get(i));
+                    if(!(mi.getPrice().round(new MathContext(2)).equals(prices.get(i).round(new MathContext(2))))){
+                        System.out.println(mi.getPrice());
+                        System.out.println(prices.get(i));
+                    }
+
                     assertTrue(mi.getPrice().round(new MathContext(2)).equals(prices.get(i).round(new MathContext(2))));
                     if (descriptions.get(i).equals("")) assertTrue(mi.getDescription() == null);
                     else assertTrue(descriptions.get(i).equals(mi.getDescription()));
@@ -226,9 +232,9 @@ public class MenuHandlerTest {
                     if (preptimes2.get(i) < 0) assertTrue(mi.getPreptime() == preptimes.get(i));
                     else assertTrue(mi.getPreptime() == preptimes2.get(i));
                     if (prices2.get(i).compareTo(BigDecimal.ZERO) > 0)
-                        assertTrue(mi.getPrice().round(new MathContext(2)).equals(prices.get(i).round(new MathContext(2))));
-                    else
                         assertTrue(mi.getPrice().round(new MathContext(2)).equals(prices2.get(i).round(new MathContext(2))));
+                    else
+                        assertTrue(mi.getPrice().round(new MathContext(2)).equals(prices.get(i).round(new MathContext(2))));
                     if (descriptions2.get(i).equals("")) {
                         if (descriptions.get(i).equals("")) assertTrue(mi.getDescription() == null);
                         else assertTrue(descriptions.get(i).equals(mi.getDescription()));
