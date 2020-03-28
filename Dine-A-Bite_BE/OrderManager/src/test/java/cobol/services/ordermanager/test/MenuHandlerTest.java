@@ -124,11 +124,6 @@ public class MenuHandlerTest {
                 if (stands.get(key).contains(i)) {
                     assertTrue(mi.getFoodName().equals(foodnames.get(i)));
                     assertTrue(mi.getPreptime() == preptimes.get(i));
-                    if(!(mi.getPrice().round(new MathContext(2)).equals(prices.get(i).round(new MathContext(2))))){
-                        System.out.println(mi.getPrice());
-                        System.out.println(prices.get(i));
-                    }
-
                     assertTrue(mi.getPrice().round(new MathContext(2)).equals(prices.get(i).round(new MathContext(2))));
                     if (descriptions.get(i).equals("")) assertTrue(mi.getDescription() == null);
                     else assertTrue(descriptions.get(i).equals(mi.getDescription()));
