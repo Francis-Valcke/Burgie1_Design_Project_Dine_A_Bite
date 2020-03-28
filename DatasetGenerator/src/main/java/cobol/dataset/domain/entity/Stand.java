@@ -7,7 +7,9 @@ import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Data
 @Entity
@@ -17,22 +19,34 @@ import java.util.List;
 public class Stand {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
     private String name;
-
-    private String brandName;
 
     private double longitude;
 
     private double latitude;
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @ManyToOne()
+    @JoinColumn(name = "brand_id")
+    private Brand brand;
+
     @Builder.Default
-    @JoinTable(name = "stand_food")
-    @JoinColumn(name = "food_id")
-    private List<Food> food = new ArrayList<>();
+    @ManyToMany(mappedBy = "standList")
+    private List<Food> foodList = new ArrayList<>();
+
+
+    public void addBrand(Brand brand) {
+        this.brand = brand;
+        brand.getStandList().add(this);
+    }
+
+    public void addFood(Food food) {
+        foodList.add(food);
+        food.getStandList().add(this);
+    }
+
 }
 
 
