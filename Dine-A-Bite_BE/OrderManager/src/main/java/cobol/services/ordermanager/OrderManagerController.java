@@ -9,6 +9,8 @@ import cobol.services.ordermanager.dbmenu.OrderRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -124,7 +126,9 @@ public class OrderManagerController {
 
 
         // Put order in json to send to standmanager (as commonOrder object)
-        String jsonString = mapper.writeValueAsString(newOrder);
+        String jsonString = null;
+        jsonString = mapper.writeValueAsString(newOrder);
+
 
         // Ask standmanager for recommendation
         RestTemplate template = new RestTemplate();
@@ -158,9 +162,21 @@ public class OrderManagerController {
         newOrder.setState(Order.status.PENDING);
         orders.saveAndFlush(newOrder);
 
+
+        String orderConfirmation = null;
+        orderConfirmation = mapper.writeValueAsString(newOrder);
+
+        JSONParser parser= new JSONParser();
+        JSONObject orderConfirmationResponse=new JSONObject();
+        try {
+            orderConfirmationResponse = (JSONObject) parser.parse(orderConfirmation);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+
         // return recommendation to attendee application
-        response.put("order_id", newOrder.getId());
-        return response;
+        // response.put("order_id", newOrder.getId());
+        return orderConfirmationResponse;
     }
 
 

@@ -56,7 +56,7 @@ public class Scheduler extends Thread {
     public int timeSum(){
         int s=0;
         for (int i=0;i<inc.size();i++){
-            s+=inc.get(i).getRemainingTime();
+            s+=inc.get(i).computeRemainingTime();
         }
         System.out.println(s);
         return s;
@@ -85,7 +85,7 @@ public class Scheduler extends Thread {
             return;
         }
         else {
-            if (inc.get(0).getRemainingTime() < 0) {
+            if (inc.get(0).computeRemainingTime() < 0) {
                 if (inc.size() == 0) return;
                 orderDone();
             }

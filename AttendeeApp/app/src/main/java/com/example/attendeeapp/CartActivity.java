@@ -1,12 +1,5 @@
 package com.example.attendeeapp;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -20,6 +13,13 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+
 import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -27,7 +27,7 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
-import com.example.attendeeapp.order.Order;
+import com.example.attendeeapp.order.CommonOrder;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -35,7 +35,6 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -212,7 +211,7 @@ public class CartActivity extends AppCompatActivity {
         }
 
         // Make JSON Object with ordered items and location
-        Order order = new Order(ordered, ordered.get(0).getStandName(), ordered.get(0).getBrandName(), latitude, longitude);
+        CommonOrder order = new CommonOrder(ordered, ordered.get(0).getStandName(), ordered.get(0).getBrandName(), latitude, longitude);
         JSONObject jsonOrder = null;
         try {
             ObjectMapper mapper = new ObjectMapper();
@@ -223,9 +222,18 @@ public class CartActivity extends AppCompatActivity {
             Log.v("JsonException in cart", e.toString());
         }
 
+        // remove unnecessary initial values, this will be set by server
+        jsonOrder.remove("id");
+        jsonOrder.remove("startTime");
+        jsonOrder.remove("expectedTime");
+        jsonOrder.remove("standId");
+
+
+
         // Instantiate the RequestQueue
         RequestQueue queue = Volley.newRequestQueue(this);
-        String url = "http://cobol.idlab.ugent.be:8091/placeOrder";
+        String url = "http://10.0.2.2:8081/placeOrder";
+
 
         // Request recommendation from server for sent order (both in JSON)
         JsonObjectRequest jsonRequest = new JsonObjectRequest(Request.Method.POST, url, jsonOrder,

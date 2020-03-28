@@ -1,5 +1,8 @@
-package cobol.commons.order;
+package com.example.attendeeapp.order;
 
+import com.example.attendeeapp.MenuItem;
+
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
@@ -31,6 +34,26 @@ public class CommonOrder {
         CONFIRMED,
         READY
     }
+
+    public CommonOrder(List<MenuItem> menuItems, String standName, String brandName, double latitude, double longitude){
+        this.id=0;
+        this.latitude=latitude;
+        this.longitude=longitude;
+
+        this.standName=standName;
+        this.brandName=brandName;
+
+        this.startTime=Calendar.getInstance();
+        this.expectedTime=Calendar.getInstance();
+
+        this.orderStatus=status.SEND;
+
+        this.orderItems=new ArrayList<>();
+        for (MenuItem menuItem : menuItems) {
+            orderItems.add(new CommonOrderItem(menuItem.getFoodName(), menuItem.getCount()));
+        }
+    }
+
 
     public int getId() {
         return id;
@@ -67,4 +90,8 @@ public class CommonOrder {
     public double getLongitude() {
         return longitude;
     }
+
+
+
+
 }

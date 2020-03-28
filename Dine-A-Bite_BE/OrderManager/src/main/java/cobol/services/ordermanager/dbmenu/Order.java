@@ -5,7 +5,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.json.simple.JSONObject;
 import javax.persistence.*;
-import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.util.*;
 
@@ -21,7 +20,6 @@ public class Order implements Serializable {
     //----- Backend Information -----//
 
     // unique id for this order
-    @JsonIgnore
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
@@ -126,7 +124,7 @@ public class Order implements Serializable {
 
     // TODO: these 2 functions only temporary for remaining time
     //  (think this should be through event channel)
-    public int getRemainingTime() {
+    public int computeRemainingTime() {
         return (int) (expectedTime.getTimeInMillis() - Calendar.getInstance().getTimeInMillis());
     }
 
@@ -174,7 +172,7 @@ public class Order implements Serializable {
     public String toString() {
         return "Order{" +
                 "id=" + id +
-                ", remainingTimeSec=" + this.getRemainingTime() +
+                ", remainingTimeSec=" + this.computeRemainingTime() +
                 ", orderStatus=" + orderStatus +
                 ", orderItems=" + orderItems +
                 ", latitude=" + latitude +
