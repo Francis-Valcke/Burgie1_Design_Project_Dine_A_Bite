@@ -1,6 +1,8 @@
 package cobol.services.standmanager;
 
+import cobol.commons.MenuItem;
 import cobol.commons.Order;
+import cobol.commons.StandInfo;
 import org.springframework.web.bind.annotation.*;
 
 
@@ -8,6 +10,7 @@ import cobol.commons.ResponseModel;
 import org.springframework.http.ResponseEntity;
 import org.json.simple.JSONObject;
 
+import java.math.BigDecimal;
 import java.util.*;
 
 import static cobol.commons.ResponseModel.status.OK;
@@ -46,9 +49,9 @@ public class StandManagerController {
          * Initialize stand menus and schedulers
          */
         System.out.println("TESTTEST");
-        Map<String, int[]> menu = new HashMap<>();
-        int[] prijsenpreptime = {2,3};
-        menu.put("burger", prijsenpreptime);
+        ArrayList<MenuItem> menu= new ArrayList<>();
+        MenuItem mi = new MenuItem("burger", BigDecimal.valueOf(3.0), 4,20, "mcdo", "", null);
+        menu.add(mi);
         Scheduler a = new Scheduler(menu, "food1", 1, "mcdo");
         Scheduler b = new Scheduler(menu, "food2",2, "burgerking");
 
@@ -62,7 +65,13 @@ public class StandManagerController {
         }
 
     }
-
+    @RequestMapping("delete")
+    public JSONObject deleteSchedulers(){
+        schedulers.clear();
+        JSONObject obj = new JSONObject();
+        obj.put("del",true);
+        return obj;
+    }
     /**
      *
      * @param info class object StandInfo which is used to start a scheduler for stand added in order manager

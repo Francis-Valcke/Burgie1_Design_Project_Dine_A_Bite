@@ -5,6 +5,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+
+import cobol.commons.MenuItem;
 import cobol.commons.Order;
 
 /**
@@ -16,14 +18,17 @@ import cobol.commons.Order;
  */
 public class Scheduler extends Thread {
     private List<Order> inc = new ArrayList<Order>();
-    private Map<String, int[]> menu;
+    private ArrayList<MenuItem> menu;
     private String standname;
     private int id;
     private double lon;
     private double lat;
     private String brand;
     public int getPreptime(String foodname){
-        return menu.get(foodname)[1];
+        for (MenuItem m : menu){
+            if (m.getFoodName().equals(foodname))return m.getPreptime();
+        }
+        return -1;
     }
     public double getLon(){
         return this.lon;
@@ -41,7 +46,7 @@ public class Scheduler extends Thread {
         this.lat = l;
     }
 
-    public Map<String, int[]> getMenu(){
+    public ArrayList<MenuItem> getMenu(){
         return this.menu;
     }
 
@@ -57,7 +62,7 @@ public class Scheduler extends Thread {
         return this.brand;
     }
 
-    public Scheduler(Map<String, int[]> menu, String standname, int id, String brand){
+    public Scheduler(ArrayList<MenuItem> menu, String standname, int id, String brand){
         this.menu=menu;
         this.standname=standname;
         this.id = id;
@@ -98,8 +103,8 @@ public class Scheduler extends Thread {
      * @return true/false
      */
     public boolean checkType(String type){
-        for (String food : menu.keySet()){
-            if (food == type){
+        for (MenuItem mi : menu){
+            if (mi.getFoodName().equals(type)){
                 return true;
             }
         }
