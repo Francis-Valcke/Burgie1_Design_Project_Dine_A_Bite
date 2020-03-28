@@ -67,6 +67,22 @@ subprojects {
     }
 }
 
+sonarqube {
+    //Process process = Runtime.getRuntime().exec( "git rev-parse --abbrev-ref HEAD" );
+    Process process = Runtime.getRuntime().exec("git name-rev --name-only HEAD");
+    process.waitFor();
+    BufferedReader reader = new BufferedReader(new InputStreamReader( process.getInputStream() ) );
+    String branchName = reader.readLine();
+    String component = "BackEnd"
+    String name = component + ":" + branchName;
+    properties {
+        property 'sonar.host.url', 'http://cobol.idlab.ugent.be:9090'
+        property 'sonar.login', 'a180680e1095eaed6d64c453314116eebc6e758a'
+        property 'sonar.projectName', name
+        property 'sonar.projectKey' , name
+    }
+}
+
 project(':Commons'){
 
     dependencies {
