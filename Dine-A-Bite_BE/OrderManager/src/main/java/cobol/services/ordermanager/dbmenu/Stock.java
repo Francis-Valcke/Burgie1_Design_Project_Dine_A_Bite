@@ -5,12 +5,13 @@ import javax.persistence.Id;
 import javax.persistence.IdClass;
 import java.io.Serializable;
 
-class StockId implements Serializable{
+class StockId implements Serializable {
     int stand_id;
     int food_id;
 }
 
-@Entity @IdClass(StockId.class)
+@Entity
+@IdClass(StockId.class)
 public class Stock {
     @Id
     private int stand_id;

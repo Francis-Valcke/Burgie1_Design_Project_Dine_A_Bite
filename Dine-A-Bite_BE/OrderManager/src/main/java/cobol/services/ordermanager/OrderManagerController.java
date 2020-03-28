@@ -31,7 +31,7 @@ import static cobol.commons.ResponseModel.status.OK;
 @RestController
 public class OrderManagerController {
     @Autowired // This means to get the bean called standRepository
-    private MenuHandler mh=new MenuHandler();
+    private MenuHandler mh = new MenuHandler();
 
     /**
      * API endpoint to test if the server is still alive.
@@ -47,14 +47,16 @@ public class OrderManagerController {
                         .build().generateResponse()
         );
     }
+
     @GetMapping("/SMswitch")
-    public void SMswitch(@RequestParam(name = "on") boolean sm){
+    public void SMswitch(@RequestParam(name = "on") boolean sm) {
         this.mh.SmSwitch(sm);
     }
 
 
     /**
      * will clear database and OM
+     *
      * @return confirmation of deletion
      */
     @RequestMapping("/delete")
@@ -65,25 +67,23 @@ public class OrderManagerController {
 
     /**
      * Will check if there are already stands in database that are not in OM and add them to OM
+     *
      * @return tells u if there are already stands in DB
      */
     @PostConstruct
     @RequestMapping("/updateOM")
     public String index() throws JsonProcessingException {
         List<String> s = mh.update();
-        if (s.size()==0) return "No stands in database";
-        String l ="Stands already in database: \n";
-        for (int i=0;i<s.size();i++)l+= s.get(i)+"\n";
+        if (s.size() == 0) return "No stands in database";
+        String l = "Stands already in database: \n";
+        for (int i = 0; i < s.size(); i++) l += s.get(i) + "\n";
         return l;
     }
 
     /**
-     *
      * @param order_object the order recieved from the attendee app
      * @return the order id, along with the json with recommended stands
-     * @throws JsonProcessingException
-     *
-     * Add the order to the order processor, gets a recommendation from the scheduler and forwards it to the attendee app.
+     * @throws JsonProcessingException Add the order to the order processor, gets a recommendation from the scheduler and forwards it to the attendee app.
      */
     @PostMapping(value = "/placeOrder", consumes = "application/json", produces = "application/json")
     public JSONObject placeOrder(@RequestBody JSONObject order_object) throws JsonProcessingException {
@@ -104,7 +104,7 @@ public class OrderManagerController {
         //Look if standname in JSON file
 
         for (String key : keys) {
-            System.out.println("order recommender for: "+(key));
+            System.out.println("order recommender for: " + (key));
         }
 
 
@@ -122,15 +122,14 @@ public class OrderManagerController {
 
 
     /**
-     *
      * @param order_id
      * @param stand_id id of the chosen stand
-     *
-     * Sets the order id parameter of order. Adds the order to the stand channel.
+     *                 <p>
+     *                 Sets the order id parameter of order. Adds the order to the stand channel.
      */
     @RequestMapping(value = "/confirmStand", method = RequestMethod.GET)
     @ResponseBody
-    public void confirmStand(@RequestParam(name = "order_id") int order_id, @RequestParam(name = "stand_id") int stand_id) throws JsonProcessingException{
+    public void confirmStand(@RequestParam(name = "order_id") int order_id, @RequestParam(name = "stand_id") int stand_id) throws JsonProcessingException {
         OrderProcessor processor = OrderProcessor.getOrderProcessor();
         Order order = processor.getOrder(order_id);
         order.setStand_id(stand_id);
@@ -162,6 +161,7 @@ public class OrderManagerController {
     String addStand(@RequestBody JSONObject menu) throws JsonProcessingException {
         return mh.addStand(menu);
     }
+
     /**
      * @return global menu in JSON format
      * sent request to localhost:8080/menu
@@ -175,6 +175,7 @@ public class OrderManagerController {
         System.out.println("request total menu");
         return mh.getTotalmenu();
     }
+
     /**
      * @return specific stand menu in JSON format
      * sent POST request to localhost:8080/standmenu
@@ -186,23 +187,24 @@ public class OrderManagerController {
      * and puts the menu items in a JSON file with their price.
      * In the JSON file the keys are the menu item names and the values are the prices
      */
-    @RequestMapping(value ="/standmenu", method = RequestMethod.GET)
+    @RequestMapping(value = "/standmenu", method = RequestMethod.GET)
     @ResponseBody
     public JSONArray requestStandMenu(@RequestParam() String standname) {
         System.out.println("request menu of stand " + standname);
         return mh.getStandMenu(standname);
     }
-    @RequestMapping(value ="/deleteStand", method = RequestMethod.GET)
+
+    @RequestMapping(value = "/deleteStand", method = RequestMethod.GET)
     @ResponseBody
     public String deleteStand(@RequestParam() String standname) {
         System.out.println("delete stand: " + standname);
-        boolean b =mh.deleteStand(standname);
+        boolean b = mh.deleteStand(standname);
         if (b) return "Stand " + standname + " deleted.";
         else return "No stand by that name exists";
 
     }
+
     /**
-     *
      * @return names of all stands:
      * key = number in list
      * value = standname

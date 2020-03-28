@@ -23,23 +23,24 @@ public class OrderProcessor {
 
     private Map<Integer, Order> running_orders = new HashMap<>();
 
+    private OrderProcessor() {
+    }
+
     public static OrderProcessor getOrderProcessor() {
         return ourInstance;
     }
 
-    private OrderProcessor() {};
+    ;
 
 
     //TODO: Orderprocessor needs to listen the the right channels to receive notifications of the stands (DECLINED, etc)
+
     /**
-     *
      * @param order_id the id of the order whose state has changed
-     * @param state new state of the order
-     * @throws JsonProcessingException
-     *
-     * This method changes the state of an order an sends an event to the channel of this order
+     * @param state    new state of the order
+     * @throws JsonProcessingException This method changes the state of an order an sends an event to the channel of this order
      */
-    public void publishStateChange(int order_id, Order.status state) throws JsonProcessingException{
+    public void publishStateChange(int order_id, Order.status state) throws JsonProcessingException {
         Order o = running_orders.get(order_id);
         o.setState(state);
         String[] order_channel = {String.valueOf(order_id), String.valueOf(o.getStand_id())};
