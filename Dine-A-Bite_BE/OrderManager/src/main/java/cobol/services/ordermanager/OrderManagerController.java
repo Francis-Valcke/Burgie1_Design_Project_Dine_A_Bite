@@ -1,13 +1,16 @@
 package cobol.services.ordermanager;
 
 import cobol.commons.Event;
+import cobol.commons.order.Recommendation;
 import cobol.services.ordermanager.dbmenu.Order;
 import cobol.commons.ResponseModel;
 import cobol.commons.security.CommonUser;
 import cobol.services.ordermanager.dbmenu.OrderItem;
 import cobol.services.ordermanager.dbmenu.OrderRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -129,8 +132,7 @@ public class OrderManagerController {
 
 
         // Put order in json to send to standmanager (as commonOrder object)
-        String jsonString = null;
-        jsonString = mapper.writeValueAsString(newOrder);
+        String jsonString = mapper.writeValueAsString(newOrder);
 
 
         // Ask standmanager for recommendation
@@ -140,46 +142,44 @@ public class OrderManagerController {
         String uri = OrderManager.SMURL+"/getRecommendation";
         headers.add("Authorization", "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJPcmRlck1hbmFnZXIiLCJyb2xlcyI6WyJST0xFX0FQUExJQ0FUSU9OIl0sImlhdCI6MTU4NDkxMTY3MSwiZXhwIjoxNzQyNTkxNjcxfQ.VmujsURhZaXRp5FQJXzmQMB-e6QSNF-OyPLeMEMOVvI");
         HttpEntity<String> request = new HttpEntity<>(jsonString, headers);
-
         JSONObject response = template.postForObject(uri, request, JSONObject.class);
-        Set<String> keys = response.keySet(); //emptys keyset
 
-        System.out.println(response.toJSONString());
+        List<Recommendation> recommendations= mapper.readValue(response.get("recommendations").toString(), new TypeReference<List<Recommendation>>() {});
 
-        int remainingtimemillis=0;
-        int standId=0;
-        String standname="";
-        //Look if standname in JSON file
-        for (String key : keys) {
-            System.out.println("order recommender for: "+(key));
-            LinkedHashMap specs= (LinkedHashMap) response.get(key);
-            remainingtimemillis= (int) specs.get("time_estimate")*60000;
-            standId=(int) specs.get("stand_id");
-            standname=key;
-        }
-
-
-        newOrder.setRemtime(remainingtimemillis);
-        newOrder.setStandId(standId);
-        newOrder.setStandName(standname);
+        // update order and save to database
+        newOrder.setRemtime(0);
+        newOrder.setStandId(-1);
+        newOrder.setStandName("notset");
         newOrder.setState(Order.status.PENDING);
         orders.saveAndFlush(newOrder);
 
+        // send updated order and recommendation
+        JSONObject completeResponse= new JSONObject();
 
-        String orderConfirmation = null;
-        orderConfirmation = mapper.writeValueAsString(newOrder);
-
+        // add updated order
+        String updateOrder = null;
+        updateOrder = mapper.writeValueAsString(newOrder);
         JSONParser parser= new JSONParser();
-        JSONObject orderConfirmationResponse=new JSONObject();
+        JSONObject updateOrderJson=new JSONObject();
         try {
-            orderConfirmationResponse = (JSONObject) parser.parse(orderConfirmation);
+            updateOrderJson = (JSONObject) parser.parse(updateOrder);
         } catch (ParseException e) {
             e.printStackTrace();
         }
 
-        // return recommendation to attendee application
-        // response.put("order_id", newOrder.getId());
-        return orderConfirmationResponse;
+        completeResponse.put("order", updateOrderJson);
+
+        // add recommendations
+        String recommendationsResponse=mapper.writeValueAsString(recommendations);
+        JSONArray recomResponseJson= new JSONArray();
+        try {
+            recomResponseJson=(JSONArray) parser.parse(recommendationsResponse);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+
+        completeResponse.put("recommendations", recomResponseJson);
+        return completeResponse;
     }
 
 

@@ -2,6 +2,11 @@ package cobol.services.standmanager;
 
 import cobol.commons.order.CommonOrder;
 import cobol.commons.order.CommonOrderItem;
+import cobol.commons.order.Recommendation;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.springframework.web.bind.annotation.*;
 
 
@@ -99,7 +104,7 @@ public class StandManagerController {
      */
     @RequestMapping(value = "/getRecommendation", consumes = "application/json")
     @ResponseBody
-    public JSONObject postCommonOrder(@RequestBody() CommonOrder order) {
+    public JSONObject postCommonOrder(@RequestBody() CommonOrder order) throws JsonProcessingException {
         System.out.println("User requested recommended stand for " + order.getId());
         return recommend(order);
     }
@@ -147,7 +152,7 @@ public class StandManagerController {
      * @param order is the order for which the recommended stands are required
      * @return JSON with a certain amount of recommended stands (currently based on lowest queue time only)
      */
-    public JSONObject recommend(CommonOrder order) {
+    public JSONObject recommend(CommonOrder order) throws JsonProcessingException {
         /* choose how many recommends you want */
         int amountOfRecommends = 3;
 
@@ -171,19 +176,24 @@ public class StandManagerController {
         }
 
         /* put everything into a JSON file to give as return value */
-        JSONObject obj = new JSONObject();
+        List<Recommendation> recommendations=new ArrayList<>();
+
         for (int i = 0 ; i < amountOfRecommends ; i++){
-            JSONObject add = new JSONObject();
             Scheduler curScheduler = goodSchedulers.get(i);
             System.out.println(curScheduler.getStandName());
             SchedulerComparatorDistance sc = new SchedulerComparatorDistance(curScheduler.getLat(),curScheduler.getLon());
             SchedulerComparatorTime st = new SchedulerComparatorTime(new ArrayList<>(order.getOrderItems()));
-            add.put("stand_id", curScheduler.getStandId());
-            add.put("distance", sc.getDistance(order.getLatitude(),order.getLongitude()));
-            add.put("time_estimate", st.getTimesum(curScheduler));
+
+            recommendations.add(new Recommendation(curScheduler.getStandId(), curScheduler.getStandName(), sc.getDistance(order.getLatitude(), order.getLongitude()), st.getTimesum(curScheduler)));
             System.out.println(st.getTimesum(curScheduler));
-            obj.put(curScheduler.getStandName(), add);
         }
+
+        // Arraylist recommendations to jsonobject
+        ObjectMapper mapper=new ObjectMapper();
+        String jsonString=mapper.writeValueAsString(recommendations);
+        JSONObject obj= new JSONObject();
+        obj.put("recommendations", jsonString);
+
         return obj;
     }
 
