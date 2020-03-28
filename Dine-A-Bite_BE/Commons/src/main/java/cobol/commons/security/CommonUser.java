@@ -27,11 +27,6 @@ public class CommonUser implements UserDetails, Serializable {
     String username;
     List<String> role;
 
-    public CommonUser(String username, List<String> role) {
-        this.username = username;
-        this.role = role;
-    }
-
     @Override
     public String getPassword() {
         return null;
