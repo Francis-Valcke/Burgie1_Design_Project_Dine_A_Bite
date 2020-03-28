@@ -36,7 +36,15 @@ public class MenuItem implements Serializable {
         this.description=desc;
         this.category=category;
     }
-
+    public MenuItem(MenuItem copy) {
+        this.foodName = copy.foodName;
+        this.price = copy.getPrice();
+        this.count = copy.count;
+        this.standName = copy.standName;
+        this.brandName = copy.brandName;
+        this.category = new ArrayList<String>(copy.category);
+        this.description = copy.description;
+    }
     public String getFoodName() {
         return foodName;
     }
