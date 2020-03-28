@@ -1,7 +1,7 @@
 package cobol.services.ordermanager;
 
 import cobol.commons.Event;
-import cobol.commons.Order;
+import cobol.services.ordermanager.dbmenu.Order;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.json.simple.JSONObject;
@@ -42,7 +42,7 @@ public class OrderProcessor {
     public void publishStateChange(int order_id, Order.status state) throws JsonProcessingException{
         Order o = running_orders.get(order_id);
         o.setState(state);
-        String[] order_channel = {String.valueOf(order_id), String.valueOf(o.getStand_id())};
+        String[] order_channel = {String.valueOf(order_id), String.valueOf(o.getStandId())};
         JSONObject data = new JSONObject();
         data.put("order_id", o.getId());
         data.put("state_change", state);
@@ -56,7 +56,7 @@ public class OrderProcessor {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.add("Authorization", "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJPcmRlck1hbmFnZXIiLCJyb2xlcyI6WyJST0xFX0FQUExJQ0FUSU9OIl0sImlhdCI6MTU4NDkxMTY3MSwiZXhwIjoxNzQyNTkxNjcxfQ.VmujsURhZaXRp5FQJXzmQMB-e6QSNF-OyPLeMEMOVvI");
-        String uri = "http://cobol.idlab.ugent.be:8092/publishEvent";
+        String uri = OrderManager.ECURL+"/publishEvent";
         HttpEntity<String> request = new HttpEntity<String>(jsonString, headers);
 
         restTemplate.postForObject(uri, request, String.class);

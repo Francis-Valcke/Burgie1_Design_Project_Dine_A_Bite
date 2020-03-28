@@ -1,12 +1,5 @@
 package com.example.attendeeapp;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -20,6 +13,13 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+
 import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -27,12 +27,16 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
+import com.example.attendeeapp.order.CommonOrder;
+import com.example.attendeeapp.order.Recommendation;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -41,6 +45,7 @@ import java.math.RoundingMode;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
@@ -221,49 +226,64 @@ public class CartActivity extends AppCompatActivity {
     /**
      * Sends order of user to the server in JSON to request a recommendation
      * Send a JSON object with ordered items and user location
-     * Format: "location" (latitude, longitude), "order" (item1, ...)
-     * Format or order: ("itemName_brandName": [count, "standName1], ...)
+     * Format: Order converted to JSON
      * Location is (360, 360) when user location is unknown
      */
     private void requestOrderRecommend() {
 
-        // Make JSON Object with ordered items and location
-        JSONObject js = new JSONObject();
-        JSONObject js_items = new JSONObject();
-        JSONObject js_location = new JSONObject();
-        try {
-            for(MenuItem i : cartAdapter.getCartList()) {
-                    JSONArray js_array = new JSONArray();
-                    js_array.put(i.getCount());
-                    js_array.put(i.getStandName());
-                    String key = i.getFoodName() + "_" + i.getBrandName();
-                    js_items.put(key, js_array);
-            }
-
-            if(lastLocation != null) {
-                js_location.put("latitude", lastLocation.getLatitude());
-                js_location.put("longitude", lastLocation.getLongitude());
-            } else { //360 is value for location unknown
-                js_location.put("latitude", 360);
-                js_location.put("longitude", 360);
-            }
-            js.put("location", js_location);
-            js.put("order", js_items);
-
-        } catch (JSONException e){
-            Log.v("JSONException in cart", e.toString());
+        //360 is value for location unknown
+        double latitude = 360;
+        double longitude = 360;
+        if(lastLocation != null) {
+            latitude = lastLocation.getLatitude();
+            longitude = lastLocation.getLongitude();
         }
+
+        // Make JSON Object with ordered items and location
+        CommonOrder order = new CommonOrder(cartAdapter.getCartList(), cartAdapter.getCartList().get(0).getStandName(), cartAdapter.getCartList().get(0).getBrandName(), latitude, longitude);
+        JSONObject jsonOrder = null;
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            String jsonOrderString = mapper.writeValueAsString(order);
+            jsonOrder = new JSONObject(jsonOrderString);
+
+        } catch (JsonProcessingException | JSONException e) {
+            Log.v("JsonException in cart", e.toString());
+        }
+
+        // remove unnecessary initial values, this will be set by server
+        jsonOrder.remove("id");
+        jsonOrder.remove("startTime");
+        jsonOrder.remove("expectedTime");
+        jsonOrder.remove("standId");
+
+
+
         // Instantiate the RequestQueue
         RequestQueue queue = Volley.newRequestQueue(this);
+        //String url = "http://10.0.2.2:8081/placeOrder";
         String url = "http://cobol.idlab.ugent.be:8091/placeOrder";
 
+
         // Request recommendation from server for sent order (both in JSON)
-        JsonObjectRequest jsonRequest = new JsonObjectRequest(Request.Method.POST, url, js,
+        JsonObjectRequest jsonRequest = new JsonObjectRequest(Request.Method.POST, url, jsonOrder,
                                                             new Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject response) {
-                Toast mToast = Toast.makeText(CartActivity.this, "Ordering succesful!",
+                Toast mToast = Toast.makeText(CartActivity.this, "Ordering successful!",
                                                 Toast.LENGTH_SHORT);
+
+                ObjectMapper mapper= new ObjectMapper();
+                try {
+                    List<Recommendation> recommendations= mapper.readValue(response.get("recommendations").toString(), new TypeReference<List<Recommendation>>() {});
+                    CommonOrder order= mapper.readValue(response.get("order").toString(), CommonOrder.class);
+
+                } catch (JsonProcessingException e) {
+                    e.printStackTrace();
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
                 mToast.show();
             }
         }, new Response.ErrorListener() {

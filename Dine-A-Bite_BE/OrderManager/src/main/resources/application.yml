@@ -1,2 +1,21 @@
 server:
   port: 8081
+
+
+spring:
+  datasource:
+    url: jdbc:mysql://cobol.idlab.ugent.be:3306/menu?useLegacyDatetimeCode=false&serverTimezone=UTC
+    username: www
+    password: cobol2020
+
+  jpa:
+    show_sql: true
+    generate-ddl: true
+
+logging:
+  level:
+    org.springframework.web: INFO
+    org.springframework.security: DEBUG
+    cobol: DEBUG
+  file:
+    name: app.log

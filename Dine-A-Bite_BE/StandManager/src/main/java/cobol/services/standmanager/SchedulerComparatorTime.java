@@ -1,30 +1,37 @@
 package cobol.services.standmanager;
 
+
+import cobol.commons.order.CommonOrderItem;
+import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.Map;
 
 /**
  * this class is used to compare and sort Stands (so schedulers) based on their remaining queuetime
  */
 public class SchedulerComparatorTime implements Comparator<Scheduler> {
-    private Map<String, Integer> orders;
-    public SchedulerComparatorTime(Map<String,Integer> orders){
-        this.orders=orders;
+    private ArrayList<CommonOrderItem> orderItems;
+    public SchedulerComparatorTime(ArrayList<CommonOrderItem> orderItems){
+        this.orderItems=orderItems;
     }
+
+
     @Override
     public int compare(Scheduler o1, Scheduler o2) {
         int time1=0;
         int time2=0;
-        for (String key : orders.keySet()){
-            time1+=o1.getPreptime(key)*orders.get(key);
-            time2+=o2.getPreptime(key)*orders.get(key);
+        for (CommonOrderItem orderItem : orderItems) {
+            String foodName= orderItem.getFoodname();
+            time1+=o1.getPreptime(foodName)*orderItem.getAmount();
+            time2+=o2.getPreptime(foodName)*orderItem.getAmount();
         }
         return Long.compare(o1.timeSum()+time1, o2.timeSum()+time2);
     }
+
+
     public int getTimesum(Scheduler o){
         int time=0;
-        for (String key : orders.keySet()){
-            time+=o.getPreptime(key)*orders.get(key);
+        for (CommonOrderItem orderItem : orderItems) {
+            time+=o.getPreptime(orderItem.getFoodname())*orderItem.getAmount();
         }
         return o.timeSum()+time;
     }
