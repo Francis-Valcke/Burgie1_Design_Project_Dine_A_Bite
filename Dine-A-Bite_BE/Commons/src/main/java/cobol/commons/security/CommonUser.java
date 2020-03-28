@@ -19,7 +19,7 @@ import static java.util.stream.Collectors.toList;
  * The non entity version of the User class that is used across all modules to represent users.
  */
 @Data
-@Builder
+@SuperBuilder
 @AllArgsConstructor
 @NoArgsConstructor
 public class CommonUser implements UserDetails, Serializable {
