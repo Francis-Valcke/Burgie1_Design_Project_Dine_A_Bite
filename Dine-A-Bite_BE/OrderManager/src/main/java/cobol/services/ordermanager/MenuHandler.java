@@ -209,7 +209,7 @@ public class MenuHandler {
         //Add/edit menu
         List<Food> brandfood = food_Repository.findByBrand(brandname);
         for (MenuItem mi : si.getMenu()) {
-
+            mi.setBrandName(brandname);
             //check if food item already part of brand
 
             boolean existsInBrand = false;
