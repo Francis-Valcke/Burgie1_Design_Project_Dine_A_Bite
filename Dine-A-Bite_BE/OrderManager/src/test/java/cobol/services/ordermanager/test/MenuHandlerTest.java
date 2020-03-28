@@ -65,7 +65,7 @@ public class MenuHandlerTest {
     private ArrayList<BigDecimal> prices = new ArrayList<BigDecimal>(Arrays.asList(new BigDecimal[]{BigDecimal.valueOf(10.0), BigDecimal.valueOf(11.0), BigDecimal.valueOf(12.0), BigDecimal.valueOf(13.0), BigDecimal.valueOf(2.5), BigDecimal.valueOf(4.0)}));
     private ArrayList<Integer> preptimes = new ArrayList<Integer>(Arrays.asList(new Integer[]{10, 11, 12, 13, 2, 4}));
     private ArrayList<String> categories = new ArrayList<String>(Arrays.asList(new String[]{"burger", "", "pizza", "pizza", "drink", "fries"}));
-    private ArrayList<String> descriptions = new ArrayList<String>(Arrays.asList(new String[]{"burger with bacon", "burger with cheese", "pizza with salami", "pizza with pineapple", "", ""}));
+    private ArrayList<String> descriptions = new ArrayList<String>(Arrays.asList(new String[]{"burger with bacon", "burger with cheese", "pizza with salami", "pizza with pineapple", "", "with frietsauce"}));
 
     /**
      * setup stands for testing

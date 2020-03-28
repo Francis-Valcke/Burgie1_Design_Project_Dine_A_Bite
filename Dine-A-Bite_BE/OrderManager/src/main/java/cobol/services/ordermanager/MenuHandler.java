@@ -63,7 +63,7 @@ public class MenuHandler {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         //String uri = "http://localhost:8082/delete";
-        String uri = "http://cobol.idlab.ugent.be:8092/delete";
+        String uri = OrderManager.SMURL+"/delete";
         headers.add("Authorization", "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJPcmRlck1hbmFnZXIiLCJyb2xlcyI6WyJST0xFX0FQUExJQ0FUSU9OIl0sImlhdCI6MTU4NDkxMTY3MSwiZXhwIjoxNzQyNTkxNjcxfQ.VmujsURhZaXRp5FQJXzmQMB-e6QSNF-OyPLeMEMOVvI");
         HttpEntity<String> request = new HttpEntity<>(headers);
         boolean delschedulers = (boolean) template.postForObject(uri, request, JSONObject.class).get("del");
