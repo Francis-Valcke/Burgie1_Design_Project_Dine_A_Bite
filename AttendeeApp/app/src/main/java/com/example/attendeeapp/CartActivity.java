@@ -240,7 +240,7 @@ public class CartActivity extends AppCompatActivity {
         }
 
         // Make JSON Object with ordered items and location
-        CommonOrder order = new CommonOrder(ordered, ordered.get(0).getStandName(), ordered.get(0).getBrandName(), latitude, longitude);
+        CommonOrder order = new CommonOrder(cartAdapter.getCartList(), cartAdapter.getCartList().get(0).getStandName(), cartAdapter.getCartList().get(0).getBrandName(), latitude, longitude);
         JSONObject jsonOrder = null;
         try {
             ObjectMapper mapper = new ObjectMapper();
