@@ -24,7 +24,7 @@ public class SchedulerComparatorTime implements Comparator<Scheduler> {
             time1+=o1.getPreptime(foodName)*orderItem.getAmount();
             time2+=o2.getPreptime(foodName)*orderItem.getAmount();
         }
-        return Long.compare(o1.timeSum()+time1, o2.timeSum()+time2);
+        return Long.compare(o1.timeSum() + time1, o2.timeSum() + time2);
     }
 
 
@@ -33,6 +33,6 @@ public class SchedulerComparatorTime implements Comparator<Scheduler> {
         for (CommonOrderItem orderItem : orderItems) {
             time+=o.getPreptime(orderItem.getFoodname())*orderItem.getAmount();
         }
-        return o.timeSum()+time;
+        return o.timeSum() + time;
     }
 }

@@ -1,32 +1,34 @@
 package cobol.services.ordermanager.dbmenu;
 
 import javax.persistence.*;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
 public class Food {
     @Id
-    @GeneratedValue(strategy=GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private int id;
-    private float price;
+    private BigDecimal price;
     private int preptime;
     private String name;
     private String description;
     private String brandname;
-    @ElementCollection(fetch=FetchType.EAGER)
+    @ElementCollection(fetch = FetchType.EAGER)
     @Column(name = "category_category")
     private List<String> category = new ArrayList<>();
+
     public int getId() {
         return id;
     }
 
 
-    public float getPrice() {
+    public BigDecimal getPrice() {
         return price;
     }
 
-    public void setPrice(float price) {
+    public void setPrice(BigDecimal price) {
         this.price = price;
     }
 
@@ -69,7 +71,8 @@ public class Food {
     public void setCategory(List<String> category) {
         this.category = category;
     }
-    public void addCategory(String category){
+
+    public void addCategory(String category) {
         this.category.add(category);
     }
 }

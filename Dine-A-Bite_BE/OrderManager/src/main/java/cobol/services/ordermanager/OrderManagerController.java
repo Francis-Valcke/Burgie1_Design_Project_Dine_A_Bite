@@ -39,6 +39,8 @@ import static cobol.commons.ResponseModel.status.OK;
 
 @RestController
 public class OrderManagerController {
+    @Autowired // This means to get the bean called standRepository
+    private MenuHandler mh = new MenuHandler();
 
     @Autowired
     OrderRepository orders;
@@ -57,12 +59,16 @@ public class OrderManagerController {
                         .build().generateResponse()
         );
     }
-    
-    @Autowired // This means to get the bean called standRepository
-    private MenuHandler mh=new MenuHandler();
+
+    @GetMapping("/SMswitch")
+    public void SMswitch(@RequestParam(name = "on") boolean sm) {
+        this.mh.SmSwitch(sm);
+    }
+
 
     /**
      * will clear database and OM
+     *
      * @return confirmation of deletion
      */
     @RequestMapping("/delete")
@@ -73,11 +79,12 @@ public class OrderManagerController {
 
     /**
      * Will check if there are already stands in database that are not in OM and add them to OM
+     *
      * @return tells u if there are already stands in DB
      */
     @PostConstruct
     @RequestMapping("/updateOM")
-    public String index() {
+    public String update() throws JsonProcessingException {
         List<String> stands = mh.update();
         if (stands.size()==0) {
             return "No stands in database";
@@ -237,10 +244,11 @@ public class OrderManagerController {
      */
     @RequestMapping("/menu")
     @ResponseBody
-    public JSONObject requestTotalMenu() { //start with id=1 (temporary)
+    public JSONArray requestTotalMenu() { //start with id=1 (temporary)
         System.out.println("request total menu");
         return mh.getTotalmenu();
     }
+
     /**
      * @return specific stand menu in JSON format
      * sent POST request to localhost:8080/standmenu
@@ -252,15 +260,24 @@ public class OrderManagerController {
      * and puts the menu items in a JSON file with their price.
      * In the JSON file the keys are the menu item names and the values are the prices
      */
-    @RequestMapping(value ="/standmenu", method = RequestMethod.GET)
+    @RequestMapping(value = "/standmenu", method = RequestMethod.GET)
     @ResponseBody
-    public JSONObject requestStandMenu(@RequestParam() String standname) {
+    public JSONArray requestStandMenu(@RequestParam() String standname) {
         System.out.println("request menu of stand " + standname);
         return mh.getStandMenu(standname);
     }
 
+    @RequestMapping(value = "/deleteStand", method = RequestMethod.GET)
+    @ResponseBody
+    public String deleteStand(@RequestParam() String standname) {
+        System.out.println("delete stand: " + standname);
+        boolean b = mh.deleteStand(standname);
+        if (b) return "Stand " + standname + " deleted.";
+        else return "No stand by that name exists";
+
+    }
+
     /**
-     *
      * @return names of all stands:
      * key = number in list
      * value = standname
