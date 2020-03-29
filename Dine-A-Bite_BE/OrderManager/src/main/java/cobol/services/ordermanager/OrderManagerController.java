@@ -42,8 +42,6 @@ public class OrderManagerController {
     private RestTemplate restTemplate;
     private HttpHeaders headers;
     private HttpEntity<String> entity;
-    @Autowired // This means to get the bean called standRepository
-    private MenuHandler mh=new MenuHandler();
     @Autowired
     private ObjectMapper objectMapper;
     @Autowired
