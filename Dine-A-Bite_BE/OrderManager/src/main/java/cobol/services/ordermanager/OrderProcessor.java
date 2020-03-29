@@ -3,6 +3,8 @@ package cobol.services.ordermanager;
 import cobol.commons.Event;
 import cobol.services.ordermanager.dbmenu.Order;
 import cobol.services.ordermanager.dbmenu.OrderRepository;
+import cobol.services.ordermanager.dbmenu.Stand;
+import cobol.services.ordermanager.dbmenu.StandRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.json.simple.JSONObject;
@@ -29,6 +31,9 @@ public class OrderProcessor {
 
     @Autowired
     OrderRepository orders;
+
+    @Autowired
+    StandRepository stands;
 
     private Map<Integer, Order> runningOrders = new HashMap<>();
 
@@ -106,10 +111,16 @@ public class OrderProcessor {
 
     public Order confirmStand(int orderId, int standId) {
         Order updatedOrder=this.getOrder(orderId);
-        updatedOrder.setStandId(standId);
-        updatedOrder.setState(Order.status.PENDING);
 
-        orders.saveAndFlush(updatedOrder);
+        if(updatedOrder.getStandId()==-1){
+            Stand stand= stands.findById(standId).get();
+            updatedOrder.setStandId(standId);
+            updatedOrder.setState(Order.status.PENDING);
+            updatedOrder.setBrandName(stand.getBrandname());
+            updatedOrder.setStandName(stand.getFull_name());
+            orders.saveAndFlush(updatedOrder);
+        }
+
         return updatedOrder;
     }
 }
