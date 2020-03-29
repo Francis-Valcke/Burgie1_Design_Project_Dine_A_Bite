@@ -24,8 +24,7 @@ import java.math.MathContext;
 import java.sql.Timestamp;
 import java.util.*;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -59,16 +58,16 @@ public class MenuHandlerTest {
     ObjectMapper objectMapper;
     private MockMvc mockMvc;
     private String token = "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJmcmFuY2lzIiwicm9sZXMiOlsiUk9MRV9VU0VSIiwiUk9MRV9BRE1JTiJdLCJpYXQiOjE1ODQ2MTAwMTcsImV4cCI6MTc0MjI5MDAxN30.5UNYM5Qtc4anyHrJXIuK0OUlsbAPNyS9_vr-1QcOWnQ";
-    private ArrayList<String> foodnames = new ArrayList<String>(Arrays.asList(new String[]{"burger1", "burger2", "pizza1", "pizza2", "cola", "fries"}));
+    private ArrayList<String> foodnames = new ArrayList<String>(Arrays.asList("burger1", "burger2", "pizza1", "pizza2", "cola", "fries"));
     private Map<String, List<Integer>> stands = new HashMap<String, List<Integer>>() {{
-        put("burgerstand-1", Arrays.asList(new Integer[]{0, 4, 5}));
-        put("burgerstand-2", Arrays.asList(new Integer[]{1, 4, 5}));
-        put("pizzastand-1", Arrays.asList(new Integer[]{2, 3, 4}));
+        put("burgerstand-1", Arrays.asList(0, 4, 5));
+        put("burgerstand-2", Arrays.asList(1, 4, 5));
+        put("pizzastand-1", Arrays.asList(2, 3, 4));
     }};
-    private ArrayList<BigDecimal> prices = new ArrayList<BigDecimal>(Arrays.asList(new BigDecimal[]{BigDecimal.valueOf(10.0), BigDecimal.valueOf(11.0), BigDecimal.valueOf(12.0), BigDecimal.valueOf(13.0), BigDecimal.valueOf(2.5), BigDecimal.valueOf(4.0)}));
-    private ArrayList<Integer> preptimes = new ArrayList<Integer>(Arrays.asList(new Integer[]{10, 11, 12, 13, 2, 4}));
-    private ArrayList<String> categories = new ArrayList<String>(Arrays.asList(new String[]{"burger", "", "pizza", "pizza", "drink", "fries"}));
-    private ArrayList<String> descriptions = new ArrayList<String>(Arrays.asList(new String[]{"burger with bacon", "burger with cheese", "pizza with salami", "pizza with pineapple", "", "with frietsauce"}));
+    private ArrayList<BigDecimal> prices = new ArrayList<BigDecimal>(Arrays.asList(BigDecimal.valueOf(10.0), BigDecimal.valueOf(11.0), BigDecimal.valueOf(12.0), BigDecimal.valueOf(13.0), BigDecimal.valueOf(2.5), BigDecimal.valueOf(4.0)));
+    private ArrayList<Integer> preptimes = new ArrayList<Integer>(Arrays.asList(10, 11, 12, 13, 2, 4));
+    private ArrayList<String> categories = new ArrayList<String>(Arrays.asList("burger", "", "pizza", "pizza", "drink", "fries"));
+    private ArrayList<String> descriptions = new ArrayList<String>(Arrays.asList("burger with bacon", "burger with cheese", "pizza with salami", "pizza with pineapple", "", "with frietsauce"));
     private String time;
     /**
      * setup stands for testing
@@ -77,17 +76,20 @@ public class MenuHandlerTest {
      */
     @Before
     public void setup() throws Exception {
+        //setup mockmvc of OrderManager application
         this.mockMvc = webAppContextSetup(this.applicationContext)
                 .apply(springSecurity())
                 .build();
+        //disable sending stands to Stand Manager for these tests
         this.mockMvc.perform(get("/SMswitch?on=false").contentType(MediaType.APPLICATION_JSON)
                 .header("Authorization", token));
+        //create a unique
         Timestamp timestamp = new Timestamp(System.currentTimeMillis());
         time=timestamp.toString();
         Map<String, StandInfo> standInfos = new HashMap<>();
         int n = 0;
         for (String key : stands.keySet()) {
-            StandInfo si = new StandInfo(key.concat(time), key.split("-")[0].concat(time), (long) 0.0 + n * 10, (long) 0.0 - n * 10);
+            StandInfo si = new StandInfo(key.concat(time), key.split("-")[0].concat(time), (long) n * 10, (long) -n * 10);
             standInfos.put(key, si);
             n++;
         }
@@ -107,7 +109,7 @@ public class MenuHandlerTest {
             MvcResult result = this.mockMvc.perform(post("/addstand").contentType(MediaType.APPLICATION_JSON)
                     .header("Authorization", token).content(objectMapper.writeValueAsString(standInfos.get(key)))).andReturn();
             String ret = result.getResponse().getContentAsString();
-            assertTrue(ret.equals("Saved"));
+            assertEquals("Saved", ret);
         }
 
 
@@ -127,13 +129,13 @@ public class MenuHandlerTest {
             int i = foodnames.indexOf(mi.getFoodName());
             for (String key : stands.keySet()) {
                 if (stands.get(key).contains(i)) {
-                    assertTrue(mi.getFoodName().equals(foodnames.get(i)));
-                    assertTrue(mi.getPreptime() == preptimes.get(i));
-                    assertTrue(mi.getPrice().round(new MathContext(2)).equals(prices.get(i).round(new MathContext(2))));
-                    if (descriptions.get(i).equals("")) assertTrue(mi.getDescription() == null);
-                    else assertTrue(descriptions.get(i).equals(mi.getDescription()));
+                    assertEquals(mi.getFoodName(), foodnames.get(i));
+                    assertEquals(mi.getPreptime(), (int) preptimes.get(i));
+                    assertEquals(mi.getPrice().round(new MathContext(2)), prices.get(i).round(new MathContext(2)));
+                    if (descriptions.get(i).equals("")) assertNull(mi.getDescription());
+                    else assertEquals(descriptions.get(i), mi.getDescription());
                     if (mi.getCategory() == null || mi.getCategory().size() == 0)
-                        assertTrue(categories.get(i).equals(""));
+                        assertEquals("", categories.get(i));
                     else {
                         boolean catOk = false;
 
@@ -159,13 +161,13 @@ public class MenuHandlerTest {
             for (int j = 0; j < menu.size(); j++) { //check through entire menu if every item is present and has right attributes
                 MenuItem mi = objectMapper.readValue(menu.get(j).toString(), MenuItem.class);
                 int i = foodnames.indexOf(mi.getFoodName());
-                assertFalse(i == -1);
-                assertTrue(mi.getFoodName().equals(foodnames.get(i)));
-                assertTrue(mi.getPreptime() == preptimes.get(i));
-                assertTrue(mi.getPrice().round(new MathContext(2)).equals(prices.get(i).round(new MathContext(2))));
-                if (descriptions.get(i).equals("")) assertTrue(mi.getDescription() == null);
-                else assertTrue(descriptions.get(i).equals(mi.getDescription()));
-                if (mi.getCategory() == null || mi.getCategory().size() == 0) assertTrue(categories.get(i).equals(""));
+                assertNotEquals(i, -1);
+                assertEquals(mi.getFoodName(), foodnames.get(i));
+                assertEquals(mi.getPreptime(), (int) preptimes.get(i));
+                assertEquals(mi.getPrice().round(new MathContext(2)), prices.get(i).round(new MathContext(2)));
+                if (descriptions.get(i).equals("")) assertNull(mi.getDescription());
+                else assertEquals(descriptions.get(i), mi.getDescription());
+                if (mi.getCategory() == null || mi.getCategory().size() == 0) assertEquals("", categories.get(i));
                 else {
                     boolean catOk = false;
 
@@ -182,16 +184,16 @@ public class MenuHandlerTest {
     @Test
     public void alterMenus() throws Exception {
         Map<String, StandInfo> standInfos = new HashMap<>();
-        ArrayList<String> foodnames2 = new ArrayList<String>(Arrays.asList(new String[]{"burger1", "burger2", "pizza3", "pizza2", "cola", "fries"}));
+        ArrayList<String> foodnames2 = new ArrayList<String>(Arrays.asList("burger1", "burger2", "pizza3", "pizza2", "cola", "fries"));
 
-        ArrayList<BigDecimal> prices2 = new ArrayList<BigDecimal>(Arrays.asList(new BigDecimal[]{BigDecimal.valueOf(100.0), BigDecimal.valueOf(-1.0), BigDecimal.valueOf(12.0), BigDecimal.valueOf(13.0), BigDecimal.valueOf(2.5), BigDecimal.valueOf(4.0)}));
-        ArrayList<Integer> preptimes2 = new ArrayList<Integer>(Arrays.asList(new Integer[]{-1, 11, 12, 13, 2, 40}));
-        ArrayList<String> categories2 = new ArrayList<String>(Arrays.asList(new String[]{"bacon", "", "pizza", "pizza", "drink", ""}));
-        ArrayList<String> descriptions2 = new ArrayList<String>(Arrays.asList(new String[]{"burger with bacon", "", "pizza with salami", "pizza with extra pineapple", "", "with ketchup"}));
+        ArrayList<BigDecimal> prices2 = new ArrayList<BigDecimal>(Arrays.asList(BigDecimal.valueOf(100.0), BigDecimal.valueOf(-1.0), BigDecimal.valueOf(12.0), BigDecimal.valueOf(13.0), BigDecimal.valueOf(2.5), BigDecimal.valueOf(4.0)));
+        ArrayList<Integer> preptimes2 = new ArrayList<Integer>(Arrays.asList(-1, 11, 12, 13, 2, 40));
+        ArrayList<String> categories2 = new ArrayList<String>(Arrays.asList("bacon", "", "pizza", "pizza", "drink", ""));
+        ArrayList<String> descriptions2 = new ArrayList<String>(Arrays.asList("burger with bacon", "", "pizza with salami", "pizza with extra pineapple", "", "with ketchup"));
 
         int n = 2;
         for (String key : stands.keySet()) {
-            StandInfo si = new StandInfo(key.concat(time), key.split("-")[0].concat(time), (long) 0.0 + n * 10, (long) 0.0 - n * 10);
+            StandInfo si = new StandInfo(key.concat(time), key.split("-")[0].concat(time), (long) n * 10, (long) -n * 10);
             standInfos.put(key, si);
             n++;
         }
@@ -225,25 +227,25 @@ public class MenuHandlerTest {
             int i = foodnames2.indexOf(mi.getFoodName());
             int k = foodnames.indexOf(mi.getFoodName());
             if (i == -1)
-                assertTrue(i == k); //if a food item in menu isnt part of new test lists, it shouldnt be part of old test lists (if it was in old lists and not in new list, it should be removed from menu)
+                assertEquals(i, k); //if a food item in menu isnt part of new test lists, it shouldnt be part of old test lists (if it was in old lists and not in new list, it should be removed from menu)
             for (String key : stands.keySet()) {
                 if (stands.get(key).contains(i)) {
-                    assertTrue(mi.getFoodName().equals(foodnames2.get(i)));
-                    if (preptimes2.get(i) < 0) assertTrue(mi.getPreptime() == preptimes.get(i));
-                    else assertTrue(mi.getPreptime() == preptimes2.get(i));
+                    assertEquals(mi.getFoodName(), foodnames2.get(i));
+                    if (preptimes2.get(i) < 0) assertEquals(mi.getPreptime(), (int) preptimes.get(i));
+                    else assertEquals(mi.getPreptime(), (int) preptimes2.get(i));
                     if (prices2.get(i).compareTo(BigDecimal.ZERO) > 0)
-                        assertTrue(mi.getPrice().round(new MathContext(2)).equals(prices2.get(i).round(new MathContext(2))));
+                        assertEquals(mi.getPrice().round(new MathContext(2)), prices2.get(i).round(new MathContext(2)));
                     else
-                        assertTrue(mi.getPrice().round(new MathContext(2)).equals(prices.get(i).round(new MathContext(2))));
+                        assertEquals(mi.getPrice().round(new MathContext(2)), prices.get(i).round(new MathContext(2)));
                     if (descriptions2.get(i).equals("")) {
-                        if (descriptions.get(i).equals("")) assertTrue(mi.getDescription() == null);
-                        else assertTrue(descriptions.get(i).equals(mi.getDescription()));
+                        if (descriptions.get(i).equals("")) assertNull(mi.getDescription());
+                        else assertEquals(descriptions.get(i), mi.getDescription());
 
-                    } else assertTrue(descriptions2.get(i).equals(mi.getDescription()));
+                    } else assertEquals(descriptions2.get(i), mi.getDescription());
 
                     if (mi.getCategory() == null || mi.getCategory().size() == 0) {
-                        assertTrue(categories.get(i).equals(""));
-                        assertTrue(categories2.get(i).equals(""));
+                        assertEquals("", categories.get(i));
+                        assertEquals("", categories2.get(i));
                     } else {
                         boolean catOk = false;
                         boolean cat2Ok = false;
@@ -274,7 +276,7 @@ public class MenuHandlerTest {
             MvcResult result = this.mockMvc.perform(get(String.format("/deleteStand?standname=%s", key.concat(time))).contentType(MediaType.APPLICATION_JSON)
                     .header("Authorization", token)).andReturn();
             String ret1 = result.getResponse().getContentAsString();
-            assertTrue(ret1.equals("Stand " + key.concat(time) + " deleted."));
+            assertEquals(ret1, "Stand " + key.concat(time) + " deleted.");
         }
     }
 

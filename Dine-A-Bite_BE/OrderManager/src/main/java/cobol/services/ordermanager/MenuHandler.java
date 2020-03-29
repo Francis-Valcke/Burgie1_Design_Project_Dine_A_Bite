@@ -139,8 +139,8 @@ public class MenuHandler {
         for (int j = 0; j < menu.size(); j++) {
             MenuItem mi = new MenuItem(menu.get(j).getName(), menu.get(j).getPrice(), menu.get(j).getPreptime(), -1, menu.get(j).getBrandname(), menu.get(j).getDescription(), menu.get(j).getCategory());
             ObjectMapper om = new ObjectMapper();
-            String jsonstring = om.writeValueAsString(mi);
-            obj.add(jsonstring);
+            //String jsonstring = om.writeValueAsString(mi);
+            obj.add(mi);
         }
         return obj;
     }
