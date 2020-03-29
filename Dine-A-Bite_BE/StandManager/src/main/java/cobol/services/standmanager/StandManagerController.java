@@ -77,7 +77,7 @@ public class StandManagerController {
      * @param standinfos
      * @throws JsonProcessingException when wrong input param
      */
-    @PostMapping("update")
+    @PostMapping("/update")
     public void update(@RequestBody String[] standinfos) throws JsonProcessingException {
         schedulers.clear();
         ObjectMapper objectMapper = new ObjectMapper();
@@ -90,7 +90,7 @@ public class StandManagerController {
             s.start();
         }
     }
-    @PostMapping("delete")
+    @PostMapping("/delete")
     public JSONObject deleteSchedulers() {
         schedulers.clear();
         JSONObject obj = new JSONObject();
