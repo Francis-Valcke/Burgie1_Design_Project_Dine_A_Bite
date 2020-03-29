@@ -19,21 +19,21 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textfield.TextInputEditText;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
 public class DashboardFragment2 extends Fragment {
 
-    private ArrayList<DashboardItem> items = new ArrayList<>();
+    private ArrayList<MenuItem> items = new ArrayList<>();
 
     @Nullable
     @Override
@@ -73,16 +73,11 @@ public class DashboardFragment2 extends Fragment {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         String name = Objects.requireNonNull(nameInput.getText()).toString();
-                        String price = Objects.requireNonNull(priceInput.getText()).toString();
-                        String stock = Objects.requireNonNull(stockInput.getText()).toString();
-                        DashboardItem item = new DashboardItem(
-                                R.drawable.burger,
-                                name,
-                                price,
-                                "150",
-                                stock,
-                                "",
-                                "");
+                        BigDecimal price = new BigDecimal(Objects.requireNonNull(priceInput.getText()).toString());
+                        int stock = Integer.parseInt(Objects.requireNonNull(stockInput.getText()).toString());
+                        List<String> category = new ArrayList<>();
+                        category.add("");
+                        MenuItem item = new MenuItem(name, price, 150, stock, "", "", category);
                         items.add(item);
                         adapter.notifyDataSetChanged();
                         nameInput.setText("");
@@ -116,46 +111,20 @@ public class DashboardFragment2 extends Fragment {
             @Override
             public void onClick(View v) {
                 if (bundle != null && Utils.isLoggedIn(getContext(), bundle)) {
-                    // Create JSON Object to send to the server
-                    final JSONObject js = new JSONObject();
-                    JSONArray js_value = new JSONArray();
-                    double longitude = 360.0;
-                    double latitude = 360.0;
 
+                    for (MenuItem item : items) {
+                        item.setBrandName(finalBrandName);
+                    }
+
+                    // create JSON string containing the information of the menu and the stand
+                    long lat = 360L; // temporary
+                    long lon = 360L; // temporary
+                    StandInfo standInfo = new StandInfo(finalStandName, finalBrandName, lat, lon, items);
+                    ObjectMapper mapper = new ObjectMapper();
+                    String jsonString = "";
                     try {
-                        // first the brandname is added,
-                        // after that the two coordinates are added in the next lines
-                        js_value.put(finalBrandName);
-                        js_value.put(longitude); //longitude -> TODO: hardcoded currently, fix later
-                        js_value.put(latitude); //latitude -> TODO: hardcoded currently, fix later
-                        js.put(finalStandName, js_value);
-
-                        for (DashboardItem i : items) {
-                            int new_count = Integer.parseInt(i.getCount());
-                            // if there are 0 items in stock, then no need to send it to the server
-                            if (new_count == 0) continue;
-                            int prep_time = Integer.parseInt(i.getPrep_time());
-                            float price = Float.parseFloat(i.getPrice());
-
-                            JSONArray js_item_values = new JSONArray();
-                            js_item_values.put(price);
-                            js_item_values.put(prep_time);
-                            js_item_values.put(new_count);
-                            js_item_values.put(i.getCategory());
-                            js_item_values.put(i.getDescription());
-
-                            js.put(i.getTitle(), js_item_values);
-                            //i.setCount("0");
-                        }
-                        adapter.notifyDataSetChanged();
-                        // if no items were added, then don't send anything
-                        if (js.length() == 1) {
-                            Toast mToast = Toast.makeText(getContext(), "Nothing to send!",
-                                    Toast.LENGTH_SHORT);
-                            mToast.show();
-                            return;
-                        }
-                    } catch (JSONException e) {
+                        jsonString = mapper.writeValueAsString(standInfo);
+                    } catch (JsonProcessingException e) {
                         e.printStackTrace();
                     }
 
@@ -163,7 +132,8 @@ public class DashboardFragment2 extends Fragment {
                     RequestQueue queue = Volley.newRequestQueue(Objects.requireNonNull(getContext()));
                     String url = "http://cobol.idlab.ugent.be:8091/addstand";
 
-                    // POST
+                    // POST to server
+                    final String finalJsonString = jsonString;
                     StringRequest jsonRequest = new StringRequest(Request.Method.POST, url, new Response.Listener<String>() {
                         @Override
                         public void onResponse(String response) {
@@ -180,7 +150,7 @@ public class DashboardFragment2 extends Fragment {
                     }) {
                         @Override
                         public byte[] getBody() {
-                            return js.toString().getBytes();
+                            return finalJsonString.getBytes();
                         }
 
                         @Override
@@ -197,9 +167,9 @@ public class DashboardFragment2 extends Fragment {
                         }
                     };
 
-                    //Add the request to the RequestQueue
+                    // Add the request to the RequestQueue
                     queue.add(jsonRequest);
-                    System.out.println(js);
+                    System.out.println(jsonString);
                 }
             }
         });

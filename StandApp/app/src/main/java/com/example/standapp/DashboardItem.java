@@ -1,5 +1,7 @@
 package com.example.standapp;
 
+// this class is not used anymore
+
 /**
  * The Dashboard item is a class consisting of the icon,
  * title and price of the snack within in the menu (e.g., Pizza with price of 3 euros etc.)

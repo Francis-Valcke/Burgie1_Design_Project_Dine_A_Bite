@@ -65,8 +65,8 @@ public class DashboardFragment extends Fragment {
 
         listView = view.findViewById(R.id.listView_dashboard);
 
-        adapter = new DashboardListViewAdapter(getActivity(), items);
-        listView.setAdapter(adapter);
+        //adapter = new DashboardListViewAdapter(getActivity(), items);
+        //listView.setAdapter(adapter);
         initHash();
 
         // When you click on the Add button, this will add the chosen snack in the dashboard

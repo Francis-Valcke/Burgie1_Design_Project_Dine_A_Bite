@@ -1,5 +1,6 @@
 package com.example.standapp;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
@@ -14,15 +15,16 @@ import android.widget.TextView;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textfield.TextInputEditText;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Objects;
 
 public class DashboardListViewAdapter extends BaseAdapter {
 
     private LayoutInflater inflater;
-    private List<DashboardItem> items;
+    private List<MenuItem> items;
 
-    DashboardListViewAdapter(Activity context, List<DashboardItem> items) {
+    DashboardListViewAdapter(Activity context, List<MenuItem> items) {
         super();
         this.items = items;
         this.inflater = (LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -43,9 +45,10 @@ public class DashboardListViewAdapter extends BaseAdapter {
         return 0;
     }
 
+    @SuppressLint("SetTextI18n")
     @Override
     public View getView(final int position, View convertView, ViewGroup parent) {
-        final DashboardItem  item = items.get(position);
+        final MenuItem item = items.get(position);
         View view = convertView;
 
         if (convertView == null) view = inflater.inflate(R.layout.menu_item, parent, false);
@@ -53,9 +56,9 @@ public class DashboardListViewAdapter extends BaseAdapter {
         TextView name = view.findViewById(R.id.menu_item_name);
         TextView price = view.findViewById(R.id.menu_item_price);
         TextView stock = view.findViewById(R.id.menu_item_stock);
-        name.setText(item.getTitle());
-        price.setText(item.getPrice());
-        stock.setText(item.getCount());
+        name.setText(item.getFoodName());
+        price.setText(item.getPrice().toString());
+        stock.setText(Integer.toString(item.getStock()));
 
         // Editing or deleting an already existing menu item in the manager dashboard
         Button editButton = view.findViewById(R.id.edit_menu_item_button);
@@ -64,9 +67,9 @@ public class DashboardListViewAdapter extends BaseAdapter {
         final TextInputEditText nameInput = editDialogLayout.findViewById(R.id.menu_item_name);
         final TextInputEditText priceInput = editDialogLayout.findViewById(R.id.menu_item_price);
         final TextInputEditText stockInput = editDialogLayout.findViewById(R.id.menu_item_stock);
-        nameInput.setText(item.getTitle());
-        priceInput.setText(item.getPrice());
-        stockInput.setText(item.getCount());
+        nameInput.setText(item.getFoodName());
+        priceInput.setText(item.getPrice().toString());
+        stockInput.setText(Integer.toString(item.getStock()));
         editButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -76,11 +79,11 @@ public class DashboardListViewAdapter extends BaseAdapter {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                                 String name = Objects.requireNonNull(nameInput.getText()).toString();
-                                String price = Objects.requireNonNull(priceInput.getText()).toString();
-                                String stock = Objects.requireNonNull(stockInput.getText()).toString();
-                                if (!name.isEmpty()) item.setTitle(name);
-                                if (!price.isEmpty()) item.setPrice(price);
-                                if (!stock.isEmpty()) item.setCount(stock);
+                                BigDecimal price = new BigDecimal(Objects.requireNonNull(priceInput.getText()).toString());
+                                int stock = Integer.parseInt(Objects.requireNonNull(stockInput.getText()).toString());
+                                item.setFoodName(name);
+                                item.setPrice(price);
+                                item.setStock(stock);
                                 notifyDataSetChanged();
                                 ViewGroup parent = (ViewGroup) editDialogLayout.getParent();
                                 if (parent != null) parent.removeView(editDialogLayout);
