@@ -59,8 +59,6 @@ public class OrderProcessor {
         this.entity = new HttpEntity(headers);
         ResponseEntity<String> response = restTemplate.exchange(uri, HttpMethod.GET, entity, String.class);
         this.subscriberId = Integer.valueOf(response.getBody());
-        System.out.println("Response: " + response);
-        System.out.println("StubId: " + this.subscriberId);
     };
 
     /**
