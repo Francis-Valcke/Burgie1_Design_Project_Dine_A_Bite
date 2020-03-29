@@ -91,6 +91,10 @@ public class MenuHandler {
             standnames.add(stand.getFull_name());
             fetchStandMenu(stand.getFull_name());
             StandInfo si =new StandInfo(stand.getId(),stand.getFull_name(),stand.getBrandname(),(long)stand.getLocation_lat(),(long)stand.getLocation_lon());
+
+            for (Food f : food_Repository.findByStand(stand.getFull_name())){
+                si.addMenuItem(new MenuItem(f.getName(),f.getPrice(),f.getPreptime(),-1,f.getBrandname(),f.getDescription(),f.getCategory()));
+            }
             ObjectMapper mapper = new ObjectMapper();
             standInfos.add(mapper.writeValueAsString(si));
 
