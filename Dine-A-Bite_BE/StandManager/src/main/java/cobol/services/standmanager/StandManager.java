@@ -10,7 +10,6 @@ public class StandManager {
 
     public static void main(String[] args) throws InterruptedException, SQLException {
         SpringApplication.run(StandManager.class, args);
-
     }
 
 }

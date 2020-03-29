@@ -10,8 +10,8 @@ public class StandInfo implements Serializable {
     private int id;
     private String name;
     private String brand;
-    private Long lat;
-    private Long lon;
+    private long lat;
+    private long lon;
     public StandInfo(){
         super();//needed for ObjectMapper
     }

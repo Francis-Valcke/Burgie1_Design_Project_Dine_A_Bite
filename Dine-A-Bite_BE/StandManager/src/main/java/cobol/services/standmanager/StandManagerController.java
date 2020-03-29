@@ -18,10 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static cobol.commons.ResponseModel.status.OK;
 
@@ -29,11 +26,10 @@ import static cobol.commons.ResponseModel.status.OK;
 public class StandManagerController {
 
     /**
-     * The controller has a list of all schedulers.
+     * The controller has a map of all schedulers, key is the standID for the scheduler
      * More information on schedulers in class Scheduler
      */
-    private List<Scheduler> schedulers = new ArrayList<Scheduler>();
-
+    private Map<Integer, Scheduler> schedulerMap = new HashMap<>();
     /**
      * API endpoint to test if the server is still alive.
      *
@@ -62,18 +58,18 @@ public class StandManagerController {
         Scheduler a = new Scheduler(menu, "food1", 1, "mcdo");
         Scheduler b = new Scheduler(menu, "food2", 2, "burgerking");
 
-        schedulers.add(a);
-        schedulers.add(b);
+        schedulerMap.put(a.getStandId(), a);
+        schedulerMap.put(b.getStandId(), b);
         // start running schedulers
-        for (int i=0;i<schedulers.size();i++){
-            schedulers.get(i).start();
-        }
+
+        a.start();
+        b.start();
 
     }
 
     @RequestMapping("delete")
     public JSONObject deleteSchedulers() {
-        schedulers.clear();
+        schedulerMap.clear();
         JSONObject obj = new JSONObject();
         obj.put("del", true);
         return obj;
@@ -89,7 +85,7 @@ public class StandManagerController {
         Scheduler s = new Scheduler(info.getMenu(), info.getName(), info.getId(), info.getBrand());
         s.setLat(info.getLat());
         s.setLon(info.getLon());
-        schedulers.add(s);
+        schedulerMap.put(s.getStandId(), s);
         s.start();
         JSONObject obj = new JSONObject();
         obj.put("added", true);
@@ -103,7 +99,7 @@ public class StandManagerController {
      */
     @RequestMapping(value = "/placeOrder", consumes = "application/json")
     public void placeOrder(@RequestBody() CommonOrder order){
-        //add order to right scheduler
+        //place order
     }
 
 
@@ -131,10 +127,10 @@ public class StandManagerController {
         // group all stands (schedulers) with the correct type of food available
         ArrayList<Scheduler> goodSchedulers = new ArrayList<>();
 
-        for (int i = 0; i < schedulers.size(); i++) {
+        for (int i : schedulerMap.keySet()){
             boolean validStand = true;
 
-            Scheduler currentScheduler = schedulers.get(i);
+            Scheduler currentScheduler = schedulerMap.get(i);
 
             for (CommonOrderItem orderItem : orderItems) {
                 String food= orderItem.getFoodname();
