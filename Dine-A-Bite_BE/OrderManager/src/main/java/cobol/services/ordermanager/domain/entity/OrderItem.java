@@ -1,4 +1,4 @@
-package cobol.services.ordermanager.dbmenu;
+package cobol.services.ordermanager.domain.entity;
 
 
 

@@ -1,16 +1,11 @@
-import cobol.services.ordermanager.OrderManagerController;
-import cobol.services.ordermanager.dbmenu.Order;
-import cobol.services.ordermanager.dbmenu.OrderItemRepository;
-import cobol.services.ordermanager.dbmenu.OrderRepository;
+import cobol.services.ordermanager.domain.repository.OrderRepository;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
-import org.springframework.test.context.junit4.SpringRunner;
 
 import java.io.FileReader;
 import java.net.URL;

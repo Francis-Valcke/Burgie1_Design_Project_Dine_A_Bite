@@ -2,11 +2,10 @@ package cobol.services.ordermanager;
 
 import cobol.commons.Event;
 import cobol.commons.order.Recommendation;
-import cobol.services.ordermanager.dbmenu.Order;
+import cobol.services.ordermanager.domain.entity.Order;
 import cobol.commons.ResponseModel;
 import cobol.commons.security.CommonUser;
-import cobol.services.ordermanager.dbmenu.OrderItem;
-import cobol.services.ordermanager.dbmenu.OrderRepository;
+import cobol.services.ordermanager.domain.repository.OrderRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -24,9 +23,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.PostConstruct;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Set;
 
 import static cobol.commons.ResponseModel.status.OK;
 

@@ -1,7 +1,7 @@
 package cobol.services.ordermanager;
 
 import cobol.commons.Event;
-import cobol.services.ordermanager.dbmenu.Order;
+import cobol.services.ordermanager.domain.entity.Order;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.json.simple.JSONObject;

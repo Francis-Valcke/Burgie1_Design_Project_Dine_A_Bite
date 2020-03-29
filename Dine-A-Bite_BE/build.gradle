@@ -157,6 +157,10 @@ project(':OrderManager'){
         implementation group: 'org.springframework.boot', name: 'spring-boot-starter-security', version: '2.2.5.RELEASE'
         implementation group: 'org.springframework.boot', name: 'spring-boot-starter-web', version: '2.2.5.RELEASE'
 
+        compileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.12'
+        annotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.12'
+
+
         //For testing REST API
         testImplementation 'io.rest-assured:rest-assured:4.2.0'
         testImplementation 'io.rest-assured:json-schema-validator:4.3.0'

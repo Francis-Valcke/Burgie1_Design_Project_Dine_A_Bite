@@ -1,6 +1,5 @@
-package cobol.services.ordermanager.dbmenu;
+package cobol.services.ordermanager.domain.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.json.simple.JSONObject;
