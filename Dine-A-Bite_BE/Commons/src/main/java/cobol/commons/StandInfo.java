@@ -10,19 +10,19 @@ public class StandInfo implements Serializable {
     private int id;
     private String name;
     private String brand;
-    private Long lat;
-    private Long lon;
+    private long lat;
+    private long lon;
     public StandInfo(){
         super();//needed for ObjectMapper
     }
-    public StandInfo(int id, String name, String brand, Long lat, Long lon){
+    public StandInfo(int id, String name, String brand, long lat, long lon){
         this.id = id;
         this.name = name;
         this.brand = brand;
         this.lat = lat;
         this.lon = lon;
     }
-    public StandInfo(String name, String brand, Long lat, Long lon, ArrayList<MenuItem> menu){
+    public StandInfo(String name, String brand, long lat, long lon, ArrayList<MenuItem> menu){
         this.id = 0;
         this.name = name;
         this.brand = brand;
@@ -31,7 +31,7 @@ public class StandInfo implements Serializable {
         this.menu=menu;
     }
 
-    public StandInfo(String name, String brand, Long lat, Long lon) {
+    public StandInfo(String name, String brand, long lat, long lon) {
         this.id = 0;
         this.name = name;
         this.brand = brand;
@@ -62,11 +62,11 @@ public class StandInfo implements Serializable {
         return this.brand;
     }
 
-    public Long getLon(){
+    public long getLon(){
         return this.lon;
     }
 
-    public Long getLat(){
+    public long getLat(){
         return this.lat;
     }
 }

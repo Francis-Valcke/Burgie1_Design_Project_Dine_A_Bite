@@ -144,9 +144,6 @@ public class MenuHandlerTest {
         for (MenuItem mi : mis) {
             Map<String, Integer> count = new HashMap<>();
             int i = foodnames.indexOf(mi.getFoodName());
-            if (mi.getFoodName().equals("cola")){
-                System.out.println(mi.getFoodName());
-            }
             for (String key : stands.keySet()) {
                 //check if item part of stand (check if brand and standname correct)
                 if (stands.get(key).contains(i) && (key.split("-")[0].concat(time).equals(mi.getBrandName()))) {

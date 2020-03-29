@@ -5,6 +5,7 @@ import cobol.commons.order.CommonOrderItem;
 import cobol.commons.order.Recommendation;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.json.simple.JSONArray;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.springframework.web.bind.annotation.*;
@@ -71,7 +72,25 @@ public class StandManagerController {
 
     }
 
-    @RequestMapping("delete")
+    /**
+     * adds schedulers to SM
+     * @param standinfos
+     * @throws JsonProcessingException when wrong input param
+     */
+    @PostMapping("update")
+    public void update(@RequestBody String[] standinfos) throws JsonProcessingException {
+        schedulers.clear();
+        ObjectMapper objectMapper = new ObjectMapper();
+        for (String standinfo : standinfos) {
+            StandInfo info = objectMapper.readValue(standinfo, StandInfo.class);
+            Scheduler s = new Scheduler(info.getMenu(), info.getName(), info.getId(), info.getBrand());
+            s.setLat(info.getLat());
+            s.setLon(info.getLon());
+            schedulers.add(s);
+            s.start();
+        }
+    }
+    @PostMapping("delete")
     public JSONObject deleteSchedulers() {
         schedulers.clear();
         JSONObject obj = new JSONObject();
@@ -84,7 +103,7 @@ public class StandManagerController {
      *             available at localhost:8081/newStand
      * @return true (if no errors)
      */
-    @RequestMapping(value = "/newStand", consumes = "application/json")
+    @PostMapping(value = "/newStand", consumes = "application/json")
     public JSONObject addNewStand(@RequestBody() StandInfo info) {
         Scheduler s = new Scheduler(info.getMenu(), info.getName(), info.getId(), info.getBrand());
         s.setLat(info.getLat());

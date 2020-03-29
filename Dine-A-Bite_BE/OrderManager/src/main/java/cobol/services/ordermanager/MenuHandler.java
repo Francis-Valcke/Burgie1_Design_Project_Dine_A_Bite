@@ -15,11 +15,9 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import javax.annotation.PostConstruct;
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 
 /**
@@ -37,10 +35,11 @@ public class MenuHandler {
     private Food_Repository food_Repository;
     @Autowired
     private StockRepository stockRepository;
-
+    private ArrayList<String> standInfos;
     private boolean sMon = true;
 
     public MenuHandler() {
+        standInfos=new ArrayList<>();
         standmenus = new HashMap<String, JSONArray>();
     }
     /**
@@ -65,11 +64,10 @@ public class MenuHandler {
         RestTemplate template = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        //String uri = "http://localhost:8082/delete";
         String uri = OrderManager.SMURL+"/delete";
         headers.add("Authorization", "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJPcmRlck1hbmFnZXIiLCJyb2xlcyI6WyJST0xFX0FQUExJQ0FUSU9OIl0sImlhdCI6MTU4NDkxMTY3MSwiZXhwIjoxNzQyNTkxNjcxfQ.VmujsURhZaXRp5FQJXzmQMB-e6QSNF-OyPLeMEMOVvI");
         HttpEntity<String> request = new HttpEntity<>(headers);
-        boolean delschedulers = (boolean) template.postForObject(uri, request, JSONObject.class).get("del");
+        boolean delschedulers = (boolean) Objects.requireNonNull(template.postForObject(uri, request, JSONObject.class)).get("del");
         if (delschedulers) System.out.println("deleted schedulers");
 
 
@@ -81,20 +79,37 @@ public class MenuHandler {
      * <p>
      * Will also delete duplicates
      */
+    @PostConstruct
     public List<String> update() throws JsonProcessingException {
         Stand[] s = standRepository.findStands().toArray(new Stand[standRepository.findStands().size()]);
         List<String> standnames = new ArrayList<>();
-        for (int i = 0; i < s.length; i++) {
-            if (standnames.contains(s[i].getFull_name())) {
-                standRepository.delete(s[i]);
+        for (Stand stand : s) {
+            if (standnames.contains(stand.getFull_name())) {
+                standRepository.delete(stand);
                 continue;
             }
-            standnames.add(s[i].getFull_name());
-            fetchStandMenu(s[i].getFull_name());
+            standnames.add(stand.getFull_name());
+            fetchStandMenu(stand.getFull_name());
+            StandInfo si =new StandInfo(stand.getId(),stand.getFull_name(),stand.getBrandname(),(long)stand.getLocation_lat(),(long)stand.getLocation_lon());
+            ObjectMapper mapper = new ObjectMapper();
+            standInfos.add(mapper.writeValueAsString(si));
 
         }
         fetchMenu();
         return standnames;
+    }
+    public void updateSM(){
+        if (sMon&&standInfos.size()>0){
+            JSONArray json = new JSONArray();
+            json.addAll(standInfos);
+            RestTemplate template = new RestTemplate();
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.add("Authorization", "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJPcmRlck1hbmFnZXIiLCJyb2xlcyI6WyJST0xFX0FQUExJQ0FUSU9OIl0sImlhdCI6MTU4NDkxMTY3MSwiZXhwIjoxNzQyNTkxNjcxfQ.VmujsURhZaXRp5FQJXzmQMB-e6QSNF-OyPLeMEMOVvI");
+            HttpEntity<String> request = new HttpEntity<>(json.toString(), headers);
+            String uri = OrderManager.SMURL+"/update";
+            template.postForObject(uri, request, JSONObject.class);
+        }
     }
 
     /**
@@ -103,8 +118,8 @@ public class MenuHandler {
     public JSONObject getStandnames() {
         JSONObject obj = new JSONObject();
         List<Stand> s = standRepository.findStands();
-        for (int i = 0; i < s.size(); i++) {
-            obj.put(s.get(i).getFull_name(), s.get(i).getBrandname());
+        for (Stand stand : s) {
+            obj.put(stand.getFull_name(), stand.getBrandname());
         }
         return obj;
     }
@@ -139,8 +154,8 @@ public class MenuHandler {
      * @throws JsonProcessingException
      */
     public JSONArray createMenuItems(List<Food> menu, JSONArray obj) throws JsonProcessingException {
-        for (int j = 0; j < menu.size(); j++) {
-            MenuItem mi = new MenuItem(menu.get(j).getName(), menu.get(j).getPrice(), menu.get(j).getPreptime(), -1, menu.get(j).getBrandname(), menu.get(j).getDescription(), menu.get(j).getCategory());
+        for (Food food : menu) {
+            MenuItem mi = new MenuItem(food.getName(), food.getPrice(), food.getPreptime(), -1, food.getBrandname(), food.getDescription(), food.getCategory());
             ObjectMapper om = new ObjectMapper();
             obj.add(mi);
         }
@@ -155,6 +170,7 @@ public class MenuHandler {
         List<String> brands = standRepository.findBrands();
         //List<Stand> stands = standRepository.findStands();
         for (int j = 0; j < brands.size(); j++) {
+
             List<Food> menu = food_Repository.findByBrand(brands.get(j));
             obj = createMenuItems(menu, obj);
         }
@@ -181,11 +197,11 @@ public class MenuHandler {
         Stand n = null;
         String standname = si.getName();
         String brandname = si.getBrand();
-        for (int i = 0; i < stands.size(); i++) {
-            if (stands.get(i).getFull_name().equals(si.getName())) {
-                if (brandname.equals(stands.get(i).getBrandname())) {
+        for (Stand stand : stands) {
+            if (stand.getFull_name().equals(si.getName())) {
+                if (brandname.equals(stand.getBrandname())) {
                     newstand = false;
-                    n = stands.get(i);
+                    n = stand;
                 } else return "stand name already taken";
 
             }
@@ -240,7 +256,7 @@ public class MenuHandler {
                     if (food.getCategory() == null) {
                         food.setCategory(cat);
                     } else if (!food.getCategory().containsAll(cat)){
-                        for (int p = 0; p < cat.size(); p++) food.addCategory(cat.get(p));
+                        for (String s : cat) food.addCategory(s);
                     }
                 }
 
@@ -263,15 +279,15 @@ public class MenuHandler {
             int count = mi.getStock();
             Stock s = null;
             boolean newitem = true;
-            for (int i = 0; i < items.size(); i++) {
-                if (items.get(i).getFood_id() == food.getId()) {
+            for (Stock item : items) {
+                if (item.getFood_id() == food.getId()) {
                     newitem = false;
+                    break;
                 }
             }
             if (!newitem) {
                 s = stockRepository.findStock(food.getId(), n.getId());
-                if (count < 0) ;
-                else s.setCount(count);
+                if (count >= 0) s.setCount(count);
             } else {
                 s = new Stock();
                 s.setCount(count);
@@ -291,15 +307,17 @@ public class MenuHandler {
         fetchStandMenu(standname);
         fetchMenu();
         if (newstand && sMon) {
+
             ObjectMapper mapper = new ObjectMapper();
             String jsonString = mapper.writeValueAsString(si);
+            standInfos.add(jsonString);
             RestTemplate template = new RestTemplate();
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
             String uri = OrderManager.SMURL+"/newStand";
             headers.add("Authorization", "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJPcmRlck1hbmFnZXIiLCJyb2xlcyI6WyJST0xFX0FQUExJQ0FUSU9OIl0sImlhdCI6MTU4NDkxMTY3MSwiZXhwIjoxNzQyNTkxNjcxfQ.VmujsURhZaXRp5FQJXzmQMB-e6QSNF-OyPLeMEMOVvI");
             HttpEntity<String> request = new HttpEntity<>(jsonString, headers);
-            boolean addinfo = (boolean) template.postForObject(uri, request, JSONObject.class).get("added");
+            boolean addinfo = (boolean) Objects.requireNonNull(template.postForObject(uri, request, JSONObject.class)).get("added");
             if (addinfo) System.out.println("Scheduler added");
 
 

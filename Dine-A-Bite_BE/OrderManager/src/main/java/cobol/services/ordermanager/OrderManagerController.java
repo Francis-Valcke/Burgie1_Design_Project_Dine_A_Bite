@@ -86,10 +86,10 @@ public class OrderManagerController {
      *
      * @return tells u if there are already stands in DB
      */
-    @PostConstruct
-    @RequestMapping("/updateOM")
+    @RequestMapping(value="/updateOM", method = RequestMethod.GET)
     public String update() throws JsonProcessingException {
         List<String> stands = mh.update();
+        mh.updateSM();
         if (stands.size()==0) {
             return "No stands in database";
         }
@@ -100,7 +100,6 @@ public class OrderManagerController {
             for (String s : stands) {
                 response.append(s).append("\n");
             }
-
             return response.toString();
         }
 
@@ -246,7 +245,7 @@ public class OrderManagerController {
      * and puts these in a JSON file with their price.
      * In the JSON file the keys are the menu item names and the values are the prices
      */
-    @RequestMapping("/menu")
+    @RequestMapping(value="/menu", method = RequestMethod.GET)
     @ResponseBody
     public JSONArray requestTotalMenu() { //start with id=1 (temporary)
         System.out.println("request total menu");
@@ -286,7 +285,7 @@ public class OrderManagerController {
      * key = number in list
      * value = standname
      */
-    @RequestMapping("/stands")
+    @RequestMapping(value="/stands", method = RequestMethod.GET)
     public JSONObject requestStandnames() { //start with id=1 (temporary)
         System.out.println("request stand names");
 
