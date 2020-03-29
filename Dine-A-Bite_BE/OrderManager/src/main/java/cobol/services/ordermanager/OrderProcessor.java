@@ -90,7 +90,7 @@ public class OrderProcessor {
     public void processEvents() {
         while (!eventQueue.isEmpty()) {
             Event e = eventQueue.poll();
-            if (e.getDataType().equals("Order")) {
+            if (e.getDataType().equals("OrderStatusUpdate")) {
                 JSONObject eventData = e.getEventData();
                 String newStatusString = (String) eventData.get("newStatus");
                 Order.status newStatus = Order.status.valueOf(newStatusString);
