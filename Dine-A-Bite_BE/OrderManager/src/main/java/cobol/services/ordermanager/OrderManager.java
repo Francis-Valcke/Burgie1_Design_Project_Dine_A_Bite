@@ -60,7 +60,8 @@ public class OrderManager {
         OrderProcessor processor = OrderProcessor.getOrderProcessor();
         ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
         SpringApplication.run(OrderManager.class, args);
-        executorService.scheduleAtFixedRate(processor::run, 0, 1, TimeUnit.SECONDS);
+        executorService.scheduleAtFixedRate(processor::pollEvents, 0, 2, TimeUnit.SECONDS);
+        executorService.scheduleAtFixedRate(processor::processEvents, 1, 2, TimeUnit.SECONDS);
     }
 
 }

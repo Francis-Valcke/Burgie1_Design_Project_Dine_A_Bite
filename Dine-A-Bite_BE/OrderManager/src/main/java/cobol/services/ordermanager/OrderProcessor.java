@@ -6,7 +6,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.json.simple.JSONObject;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -43,8 +42,7 @@ public class OrderProcessor {
     };
 
 
-    public void run() {
-        System.out.println("I got here");
+    public void pollEvents() {
         String uri = "http://localhost:8083/events";
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(uri)
                 .queryParam("id", this.subscriberId);
@@ -55,20 +53,22 @@ public class OrderProcessor {
             List<Event> eventList = objectMapper.readValue(details, new TypeReference<List<Event>>() {});
             eventQueue.addAll(eventList);
         } catch (JsonProcessingException e) {
+            System.err.println(e);
             e.printStackTrace();
         }
     }
 
-    public void processEvents() throws JsonProcessingException {
+    public void processEvents() {
         while (!eventQueue.isEmpty()) {
             Event e = eventQueue.poll();
             if (e.getDataType().equals("Order")) {
-                Order o = objectMapper.readValue(e.getOrderData().toString(), new TypeReference<Order>() {});
-                Order.status newStatus = o.getOrderStatus();
-                Order localOrder = running_orders.get(o.getId());
+                JSONObject eventData = e.getEventData();
+                Order.status newStatus = (Order.status) eventData.get("newStatus");
+                int orderId = (int) eventData.get("orderId");
+                Order localOrder = running_orders.get(orderId);
                 localOrder.setState(newStatus);
                 if (newStatus.equals(Order.status.DECLINED)) {
-                    running_orders.remove(o.getId());
+                    running_orders.remove(orderId);
                 }
             }
         }
@@ -84,8 +84,8 @@ public class OrderProcessor {
         ResponseEntity<String> response = this.restTemplate.exchange(builder.toUriString(), HttpMethod.GET, this.entity, String.class);
     }
 
-    public Order getOrder(int order_id) {
-        return running_orders.get(order_id);
+    public Order getOrder(int orderId) {
+        return running_orders.get(orderId);
     }
 
     public static OrderProcessor getOrderProcessor() {

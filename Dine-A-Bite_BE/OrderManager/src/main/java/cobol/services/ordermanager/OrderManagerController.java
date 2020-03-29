@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.PostConstruct;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -37,12 +38,14 @@ public class OrderManagerController {
     private MenuHandler mh=new MenuHandler();
     @Autowired
     private ObjectMapper objectMapper;
+    private OrderProcessor orderProcessor = null;
 
     OrderManagerController() {
         this.restTemplate = new RestTemplate();
         this.headers = new HttpHeaders();
         this.headers.setContentType(MediaType.APPLICATION_JSON);
         this.headers.add("Authorization", "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJPcmRlck1hbmFnZXIiLCJyb2xlcyI6WyJST0xFX0FQUExJQ0FUSU9OIl0sImlhdCI6MTU4NDkxMTY3MSwiZXhwIjoxNzQyNTkxNjcxfQ.VmujsURhZaXRp5FQJXzmQMB-e6QSNF-OyPLeMEMOVvI");
+        this.orderProcessor = OrderProcessor.getOrderProcessor();
     }
 
     /**
@@ -86,18 +89,17 @@ public class OrderManagerController {
 
     /**
      *
-     * @param order_object the order recieved from the attendee app
+     * @param orderObject the order recieved from the attendee app
      * @return the order id, along with the json with recommended stands
      * @throws JsonProcessingException
      *
      * Add the order to the order processor, gets a recommendation from the scheduler and forwards it to the attendee app.
      */
     @PostMapping(value = "/placeOrder", consumes = "application/json", produces = "application/json")
-    public JSONObject placeOrder(@RequestBody JSONObject order_object) throws JsonProcessingException {
-        Order new_order = new Order(order_object);
-        OrderProcessor processor = OrderProcessor.getOrderProcessor();
-        processor.addOrder(new_order);
-        String jsonString = objectMapper.writeValueAsString(new_order);
+    public JSONObject placeOrder(@RequestBody JSONObject orderObject) throws JsonProcessingException {
+        Order newOrder = new Order(orderObject);
+        orderProcessor.addOrder(newOrder);
+        String jsonString = objectMapper.writeValueAsString(newOrder);
         String uri = "http://cobol.idlab.ugent.be:8092/getRecommendation";
         headers.add("Authorization", "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJPcmRlck1hbmFnZXIiLCJyb2xlcyI6WyJST0xFX0FQUExJQ0FUSU9OIl0sImlhdCI6MTU4NDkxMTY3MSwiZXhwIjoxNzQyNTkxNjcxfQ.VmujsURhZaXRp5FQJXzmQMB-e6QSNF-OyPLeMEMOVvI");
         entity = new HttpEntity<>(jsonString, headers);
@@ -110,7 +112,7 @@ public class OrderManagerController {
         }
 
 
-        ret.put("order_id", new_order.getId());
+        ret.put("order_id", newOrder.getId());
 
         //The following is a hardcoded recommendation
         //JSONObject ret = new JSONObject();
@@ -125,22 +127,22 @@ public class OrderManagerController {
 
     /**
      *
-     * @param order_id
-     * @param stand_id id of the chosen stand
+     * @param orderId
+     * @param standId id of the chosen stand
      *
      * Sets the order id parameter of order. Adds the order to the stand channel.
      */
     @RequestMapping(value = "/confirmStand", method = RequestMethod.GET)
     @ResponseBody
-    public void confirmStand(@RequestParam(name = "order_id") int order_id, @RequestParam(name = "stand_id") int stand_id) throws JsonProcessingException{
-        OrderProcessor processor = OrderProcessor.getOrderProcessor();
-        Order order = processor.getOrder(order_id);
-        order.setStand_id(stand_id);
+    public void confirmStand(@RequestParam(name = "orderId") int orderId, @RequestParam(name = "stand_id") int standId) throws JsonProcessingException{
+        Order order = orderProcessor.getOrder(orderId);
+        order.setStand_id(standId);
 
-        JSONObject order_json = new JSONObject();
-        order_json.put("order", order);
-        String[] types = {String.valueOf(order_id), String.valueOf(stand_id)};
-        Event e = new Event(order_json, types, "Order");
+        JSONObject orderJson = new JSONObject();
+        orderJson.put("order", order);
+        List<String> types = new ArrayList<>();
+        types.add(String.valueOf(orderId));
+        Event e = new Event(orderJson, types, "Order");
 
         String jsonString = objectMapper.writeValueAsString(e);
         String uri = "http://cobol.idlab.ugent.be:8093/publishEvent";
