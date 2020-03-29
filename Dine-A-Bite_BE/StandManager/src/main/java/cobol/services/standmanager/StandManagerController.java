@@ -4,6 +4,7 @@ import cobol.commons.order.CommonOrder;
 import cobol.commons.order.CommonOrderItem;
 import cobol.commons.order.Recommendation;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.json.simple.JSONArray;
 import org.json.simple.parser.JSONParser;
@@ -81,6 +82,7 @@ public class StandManagerController {
     public void update(@RequestBody String[] standinfos) throws JsonProcessingException {
         schedulers.clear();
         ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
         for (String standinfo : standinfos) {
             StandInfo info = objectMapper.readValue(standinfo, StandInfo.class);
             Scheduler s = new Scheduler(info.getMenu(), info.getName(), info.getId(), info.getBrand());
