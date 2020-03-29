@@ -13,12 +13,13 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Scope;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -39,13 +40,15 @@ public class OrderProcessor {
 
     @Autowired
     StandRepository stands;
-    private Map<Integer, Order> running_orders = new HashMap<>();
+    private Map<Integer, Order> runningOrders = new HashMap<>();
     private int subscriberId;
     private volatile LinkedList<Event> eventQueue = new LinkedList<Event>();
     private RestTemplate restTemplate;
     private HttpHeaders headers;
     private HttpEntity entity;
     private ObjectMapper objectMapper;
+    // orderid - recommendations
+    ListMultimap<Integer, Recommendation> orderRecommendations= ArrayListMultimap.create();
 
     private OrderProcessor() {
         objectMapper = new ObjectMapper();
@@ -56,12 +59,14 @@ public class OrderProcessor {
         this.entity = new HttpEntity(headers);
         ResponseEntity<String> response = restTemplate.exchange(uri, HttpMethod.GET, entity, String.class);
         this.subscriberId = Integer.valueOf(response.getBody());
+        System.out.println("Response: " + response);
+        System.out.println("StubId: " + this.subscriberId);
     };
 
-    // orderid - recommendations
-    ListMultimap<Integer, Recommendation> orderRecommendations= ArrayListMultimap.create();
-
-    private Map<Integer, Order> runningOrders = new HashMap<>();
+    /**
+     * Function that is called regularly to get events from the EC.
+     */
+    @Scheduled(fixedDelay=500)
     public void pollEvents() {
         String uri = OrderManager.ECURL + "/events";
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(uri)
@@ -78,18 +83,23 @@ public class OrderProcessor {
         }
     }
 
+    /**
+     * Process events that were received.
+     */
+    @Scheduled(fixedDelay = 500)
     public void processEvents() {
         while (!eventQueue.isEmpty()) {
             Event e = eventQueue.poll();
             if (e.getDataType().equals("Order")) {
                 JSONObject eventData = e.getEventData();
-                String newStatus = (String) eventData.get("newStatus");
+                String newStatusString = (String) eventData.get("newStatus");
+                Order.status newStatus = Order.status.valueOf(newStatusString);
                 int orderId = (int) eventData.get("orderId");
                 System.out.println("Order " + orderId + " changed status to " + newStatus);
-                Order localOrder = running_orders.get(orderId);
-                //localOrder.setState(newStatus);
+                Order localOrder = runningOrders.get(orderId);
+                localOrder.setState(newStatus);
                 if (newStatus.equals(Order.status.DECLINED)) {
-                    running_orders.remove(orderId);
+                    runningOrders.remove(orderId);
                 }
             }
         }
@@ -110,7 +120,6 @@ public class OrderProcessor {
         this.runningOrders.put(newOrder.getId(), newOrder);
 
         // subscribe to the channel of the order
-        System.out.println(newOrder.getId());
         String uri = OrderManager.ECURL + "registerSubscriber/toChannel";
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(uri)
                 .queryParam("id", this.subscriberId)
@@ -163,10 +172,6 @@ public class OrderProcessor {
         for (Recommendation recommendation : recommendations) {
             orderRecommendations.put(id, recommendation);
         }
-    }
-
-    public static OrderProcessor getOrderProcessor() {
-        return new OrderProcessor();
     }
 }
 

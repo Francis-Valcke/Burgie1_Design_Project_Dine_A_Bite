@@ -1,24 +1,18 @@
 package cobol.services.ordermanager;
 
 import cobol.commons.Event;
-import cobol.commons.order.Recommendation;
-import cobol.services.ordermanager.dbmenu.Order;
 import cobol.commons.ResponseModel;
+import cobol.commons.order.Recommendation;
 import cobol.commons.security.CommonUser;
-import cobol.services.ordermanager.dbmenu.OrderItem;
-import cobol.services.ordermanager.dbmenu.OrderRepository;
+import cobol.services.ordermanager.dbmenu.Order;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.ListMultimap;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -30,7 +24,6 @@ import org.springframework.web.client.RestTemplate;
 import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 import static cobol.commons.ResponseModel.status.OK;
 

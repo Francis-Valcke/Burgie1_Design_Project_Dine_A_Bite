@@ -36,6 +36,7 @@ public class EventSubscriber {
      */
     void handleEvent(Event e) {
         unhandledEvents.add(e);
+        System.out.println("Received event" + e.getEventData());
     }
 
     public void addType(String type) {

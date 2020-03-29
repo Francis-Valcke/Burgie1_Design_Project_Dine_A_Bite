@@ -1,14 +1,8 @@
 package cobol.services.ordermanager;
-import cobol.services.ordermanager.dbmenu.Order;
-import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.annotation.Import;
-
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
  * Het maken van lokale database als je deze functionaliteit lokaal wilt testen:
@@ -57,6 +51,7 @@ import java.util.concurrent.TimeUnit;
  * ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
  */
 @SpringBootApplication
+@EnableScheduling
 public class OrderManager {
 
     public static boolean test= true;
@@ -71,12 +66,9 @@ public class OrderManager {
         OMURL= test ? "http://localhost:8081" : "http://cobol.idlab.ugent.be:8091";
         SMURL= test ? "http://localhost:8082" : "http://cobol.idlab.ugent.be:8092";
         ECURL= test ? "http://localhost:8083" : "http://cobol.idlab.ugent.be:8093";
-        OrderProcessor orderProcessor = OrderProcessor.getOrderProcessor();
 
-        ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
         SpringApplication.run(OrderManager.class, args);
-        executorService.scheduleAtFixedRate(orderProcessor::pollEvents, 0, 2, TimeUnit.SECONDS);
-        executorService.scheduleAtFixedRate(orderProcessor::processEvents, 1, 2, TimeUnit.SECONDS);
+
     }
 
 }

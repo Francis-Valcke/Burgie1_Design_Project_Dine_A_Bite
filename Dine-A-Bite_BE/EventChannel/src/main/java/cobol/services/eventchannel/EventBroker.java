@@ -89,8 +89,8 @@ public class EventBroker implements Runnable {
         for (String type : types) {
             HashSet<EventSubscriber> typeSet = subscriberMap.get(type);
             if (typeSet != null) {
-                System.out.println();
                 for (EventSubscriber s : typeSet) {
+                    System.out.println("An event was send to channel " + type + " to subscriber " + s.getId());
                     s.handleEvent(e);  //loops are possible
                 }
             }
