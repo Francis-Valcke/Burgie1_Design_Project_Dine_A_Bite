@@ -1,30 +1,52 @@
 package cobol.commons;
 
+import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-public class StandInfo {
-    private Map<String, double[]> menu = new HashMap<>();
+public class StandInfo implements Serializable {
+    private ArrayList<MenuItem> menu = new ArrayList<>();
     private int id;
     private String name;
     private String brand;
-    private Long lat;
-    private Long lon;
-
-    public StandInfo(int id, String name, String brand, Long lat, Long lon){
+    private long lat;
+    private long lon;
+    public StandInfo(){
+        super();//needed for ObjectMapper
+    }
+    public StandInfo(int id, String name, String brand, long lat, long lon){
         this.id = id;
         this.name = name;
         this.brand = brand;
         this.lat = lat;
         this.lon = lon;
     }
-
-    public void addMenuItem(String name, double price, int prepTime){
-        double [] info = {price, (double)prepTime};
-        menu.put(name, info);
+    public StandInfo(String name, String brand, long lat, long lon, ArrayList<MenuItem> menu){
+        this.id = 0;
+        this.name = name;
+        this.brand = brand;
+        this.lat = lat;
+        this.lon = lon;
+        this.menu=menu;
     }
 
-    public Map<String, double[]> getMenu(){
+    public StandInfo(String name, String brand, long lat, long lon) {
+        this.id = 0;
+        this.name = name;
+        this.brand = brand;
+        this.lat = lat;
+        this.lon = lon;
+    }
+
+    public void setId(int id){
+        this.id = id;
+    }
+    public void addMenuItem(MenuItem mi){
+        menu.add(mi);
+    }
+
+    public ArrayList<MenuItem> getMenu(){
         return this.menu;
     }
 
@@ -40,11 +62,11 @@ public class StandInfo {
         return this.brand;
     }
 
-    public Long getLon(){
+    public long getLon(){
         return this.lon;
     }
 
-    public Long getLat(){
+    public long getLat(){
         return this.lat;
     }
 }

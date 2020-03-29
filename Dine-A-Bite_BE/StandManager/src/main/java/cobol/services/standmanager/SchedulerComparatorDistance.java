@@ -1,8 +1,6 @@
 package cobol.services.standmanager;
 
 import java.util.Comparator;
-import cobol.services.standmanager.SchedulerComparator;
-
 
 
 /**
@@ -15,7 +13,7 @@ public class SchedulerComparatorDistance implements Comparator<Scheduler> {
     /*
     constructor where the arguments are the coordinates for the order (so the place where the person is when he orders)
      */
-    public SchedulerComparatorDistance(double lat, double lon){
+    public SchedulerComparatorDistance(double lat, double lon) {
         this.lat = lat;
         this.lon = lon;
     }
@@ -32,16 +30,15 @@ public class SchedulerComparatorDistance implements Comparator<Scheduler> {
     }
 
     /**
-     *
      * @param lat1 lat coords for first point
      * @param lon1 lon coords for first point
-     * lat: lat coords for this scheduler
-     * lon: lon coords for this scheduler
+     *             lat: lat coords for this scheduler
+     *             lon: lon coords for this scheduler
      * @return the distance between the 2 points
      */
-    public double getDistance(double lat1, double lon1){
-        double xdiff = Math.pow(lat - lat1,2);
-        double ydiff = Math.pow(lon - lon1,2);
+    public double getDistance(double lat1, double lon1) {
+        double xdiff = Math.pow(lat - lat1, 2);
+        double ydiff = Math.pow(lon - lon1, 2);
         double distance = Math.sqrt(xdiff + ydiff);
         return distance;
     }
