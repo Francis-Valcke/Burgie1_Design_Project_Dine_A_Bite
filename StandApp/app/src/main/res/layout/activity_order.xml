@@ -9,16 +9,15 @@
     tools:context=".MainActivity">
 
 
-    <!--<Button
-        android:id="@+id/button_dashboard"
+    <Button
+        android:id="@+id/refresh"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="232dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="16dp"
+        android:layout_marginTop="50dp"
         android:layout_marginBottom="570dp"
         android:backgroundTint="#4CAF50"
-        android:text="@string/manager_dashboard" /> -->
+        android:text="Refresh" />
 
     <TextView
         android:id="@+id/textView4"
