@@ -4,6 +4,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -14,6 +15,9 @@ import java.util.List;
 public interface StandRepository extends CrudRepository<Stand, Integer> {
     @Query("select s from Stand s")
     List<Stand> findStands();
-    @Query("select s.full_name from Stand s where s.id=?1")
-    Stand findStandById(int id);
+    @Query("select distinct s.brandname from Stand s")
+    ArrayList<String > findBrands();
+    @Query("select s from Stand s where s.full_name=?1")
+    Stand findStandByName(String name);
+
 }

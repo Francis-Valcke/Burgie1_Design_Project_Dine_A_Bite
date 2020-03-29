@@ -4,22 +4,37 @@ import cobol.commons.order.CommonOrder;
 import cobol.commons.order.CommonOrderItem;
 import cobol.commons.order.Recommendation;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.json.simple.JSONArray;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.springframework.web.bind.annotation.*;
 
 
+import cobol.commons.MenuItem;
 import cobol.commons.ResponseModel;
-import org.springframework.http.ResponseEntity;
+import cobol.commons.StandInfo;
 import org.json.simple.JSONObject;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
-import java.util.*;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 import static cobol.commons.ResponseModel.status.OK;
 
 @RestController
 public class StandManagerController {
+
+    /**
+     * The controller has a list of all schedulers.
+     * More information on schedulers in class Scheduler
+     */
+    private List<Scheduler> schedulers = new ArrayList<Scheduler>();
 
     /**
      * API endpoint to test if the server is still alive.
@@ -37,24 +52,17 @@ public class StandManagerController {
     }
 
     /**
-     * The controller has a list of all schedulers.
-     * More information on schedulers in class Scheduler
-     */
-    private List<Scheduler> schedulers = new ArrayList<Scheduler>();
-
-
-    /**
      * just a function for testing and starting some schedulers for practice
      */
     @RequestMapping("/start")
     public void start(){
         // Initialize stand menus and schedulers
         System.out.println("TESTTEST");
-        Map<String, int[]> menu = new HashMap<>();
-        int[] prijsenpreptime = {2,3};
-        menu.put("burger", prijsenpreptime);
+        ArrayList<MenuItem> menu = new ArrayList<>();
+        MenuItem mi = new MenuItem("burger", BigDecimal.valueOf(3.0), 4, 20, "mcdo", "", null);
+        menu.add(mi);
         Scheduler a = new Scheduler(menu, "food1", 1, "mcdo");
-        Scheduler b = new Scheduler(menu, "food2",2, "burgerking");
+        Scheduler b = new Scheduler(menu, "food2", 2, "burgerking");
 
         schedulers.add(a);
         schedulers.add(b);
@@ -66,29 +74,53 @@ public class StandManagerController {
     }
 
     /**
-     *
+     * adds schedulers to SM
+     * @param standinfos
+     * @throws JsonProcessingException when wrong input param
+     */
+    @PostMapping("/update")
+    public void update(@RequestBody String[] standinfos) throws JsonProcessingException {
+        schedulers.clear();
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+        for (String standinfo : standinfos) {
+            StandInfo info = objectMapper.readValue(standinfo, StandInfo.class);
+            Scheduler s = new Scheduler(info.getMenu(), info.getName(), info.getId(), info.getBrand());
+            s.setLat(info.getLat());
+            s.setLon(info.getLon());
+            schedulers.add(s);
+            s.start();
+        }
+    }
+    @PostMapping("/delete")
+    public JSONObject deleteSchedulers() {
+        schedulers.clear();
+        JSONObject obj = new JSONObject();
+        obj.put("del", true);
+        return obj;
+    }
+
+    /**
      * @param info class object StandInfo which is used to start a scheduler for stand added in order manager
-     * available at localhost:8081/newStand
+     *             available at localhost:8081/newStand
      * @return true (if no errors)
      */
-    @RequestMapping(value = "/newStand", consumes = "application/json")
-    public JSONObject addNewStand(@RequestBody() StandInfo info){
+    @PostMapping(value = "/newStand", consumes = "application/json")
+    public JSONObject addNewStand(@RequestBody() StandInfo info) {
         Scheduler s = new Scheduler(info.getMenu(), info.getName(), info.getId(), info.getBrand());
         s.setLat(info.getLat());
         s.setLon(info.getLon());
         schedulers.add(s);
         s.start();
-        System.out.println("lol");
         JSONObject obj = new JSONObject();
-        obj.put("added",true);
+        obj.put("added", true);
         return obj;
     }
 
 
     /**
-     *
      * @param order order which wants to be placed
-     * TODO: really implement this
+     *              TODO: really implement this
      */
     @RequestMapping(value = "/placeOrder", consumes = "application/json")
     public void placeOrder(@RequestBody() CommonOrder order){
@@ -96,9 +128,7 @@ public class StandManagerController {
     }
 
 
-
     /**
-     *
      * @param order order object for which the Order Manager wants a recommendation
      * @return recommendation in JSON format
      */
@@ -111,7 +141,6 @@ public class StandManagerController {
 
 
     /**
-     *
      * @param order the order for which you want to find corresponding stands
      * @return list of schedulers (so the stands) which offer the correct food to complete the order
      */
@@ -132,8 +161,7 @@ public class StandManagerController {
                 String food= orderItem.getFoodname();
                 if (currentScheduler.checkType(food)) {
                     validStand = true;
-                }
-                else{
+                } else {
                     validStand = false;
                     break;
                 }
@@ -148,7 +176,6 @@ public class StandManagerController {
 
 
     /**
-     *
      * @param order is the order for which the recommended stands are required
      * @return JSON with a certain amount of recommended stands (currently based on lowest queue time only)
      */
@@ -171,7 +198,7 @@ public class StandManagerController {
         //Collections.sort(goodSchedulers, new SchedulerComparator(order.getLat(), order.getLon(), weight);
 
         /* check if you have enough stands (for amount of recommendations you want) */
-        if (goodSchedulers.size() < amountOfRecommends){
+        if (goodSchedulers.size() < amountOfRecommends) {
             amountOfRecommends = goodSchedulers.size();
         }
 

@@ -61,6 +61,7 @@ public class OrderProcessor {
         this.subscriberId = Integer.valueOf(response.getBody());
     };
 
+
     /**
      * Function that is called regularly to get events from the EC.
      */

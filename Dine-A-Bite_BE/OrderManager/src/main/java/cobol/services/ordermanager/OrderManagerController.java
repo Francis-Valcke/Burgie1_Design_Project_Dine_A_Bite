@@ -36,6 +36,8 @@ import static cobol.commons.ResponseModel.status.OK;
 
 @RestController
 public class OrderManagerController {
+    @Autowired // This means to get the bean called standRepository
+    private MenuHandler mh = new MenuHandler();
 
     private RestTemplate restTemplate;
     private HttpHeaders headers;
@@ -70,7 +72,18 @@ public class OrderManagerController {
     }
 
     /**
+     * this method will change wether stands are added as schedulers in Stand Manager
+     * @param sm: if true, then stands will be added as schedulers
+     */
+    @GetMapping("/SMswitch")
+    public void sMswitch(@RequestParam(name = "on") boolean sm) {
+        this.mh.smSwitch(sm);
+    }
+
+
+    /**
      * will clear database and OM
+     *
      * @return confirmation of deletion
      */
     @RequestMapping("/delete")
@@ -81,12 +94,13 @@ public class OrderManagerController {
 
     /**
      * Will check if there are already stands in database that are not in OM and add them to OM
+     *
      * @return tells u if there are already stands in DB
      */
-    @PostConstruct
-    @RequestMapping("/updateOM")
-    public String index() {
+    @RequestMapping(value="/updateOM", method = RequestMethod.GET)
+    public String update() throws JsonProcessingException {
         List<String> stands = mh.update();
+        mh.updateSM();
         if (stands.size()==0) {
             return "No stands in database";
         }
@@ -97,7 +111,6 @@ public class OrderManagerController {
             for (String s : stands) {
                 response.append(s).append("\n");
             }
-
             return response.toString();
         }
 
@@ -234,12 +247,13 @@ public class OrderManagerController {
      * and puts these in a JSON file with their price.
      * In the JSON file the keys are the menu item names and the values are the prices
      */
-    @RequestMapping("/menu")
+    @RequestMapping(value="/menu", method = RequestMethod.GET)
     @ResponseBody
-    public JSONObject requestTotalMenu() { //start with id=1 (temporary)
+    public JSONArray requestTotalMenu() { //start with id=1 (temporary)
         System.out.println("request total menu");
         return mh.getTotalmenu();
     }
+
     /**
      * @return specific stand menu in JSON format
      * sent POST request to localhost:8080/standmenu
@@ -251,20 +265,29 @@ public class OrderManagerController {
      * and puts the menu items in a JSON file with their price.
      * In the JSON file the keys are the menu item names and the values are the prices
      */
-    @RequestMapping(value ="/standmenu", method = RequestMethod.GET)
+    @RequestMapping(value = "/standmenu", method = RequestMethod.GET)
     @ResponseBody
-    public JSONObject requestStandMenu(@RequestParam() String standname) {
+    public JSONArray requestStandMenu(@RequestParam() String standname) {
         System.out.println("request menu of stand " + standname);
         return mh.getStandMenu(standname);
     }
 
+    @RequestMapping(value = "/deleteStand", method = RequestMethod.GET)
+    @ResponseBody
+    public String deleteStand(@RequestParam() String standname) {
+        System.out.println("delete stand: " + standname);
+        boolean b = mh.deleteStand(standname);
+        if (b) return "Stand " + standname + " deleted.";
+        else return "No stand by that name exists";
+
+    }
+
     /**
-     *
      * @return names of all stands:
      * key = number in list
      * value = standname
      */
-    @RequestMapping("/stands")
+    @RequestMapping(value="/stands", method = RequestMethod.GET)
     public JSONObject requestStandnames() { //start with id=1 (temporary)
         System.out.println("request stand names");
 
