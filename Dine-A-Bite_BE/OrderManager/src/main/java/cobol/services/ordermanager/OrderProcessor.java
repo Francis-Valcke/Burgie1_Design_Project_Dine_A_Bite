@@ -95,11 +95,15 @@ public class OrderProcessor {
                 String newStatusString = (String) eventData.get("newStatus");
                 Order.status newStatus = Order.status.valueOf(newStatusString);
                 int orderId = (int) eventData.get("orderId");
-                System.out.println("Order " + orderId + " changed status to " + newStatus);
                 Order localOrder = runningOrders.get(orderId);
                 localOrder.setState(newStatus);
                 if (newStatus.equals(Order.status.DECLINED)) {
                     runningOrders.remove(orderId);
+                    String uri = OrderManager.ECURL + "/deregisterSubscriber";
+                    UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(uri)
+                            .queryParam("id", this.subscriberId)
+                            .queryParam("type", orderId);
+                    ResponseEntity<String> response = this.restTemplate.exchange(builder.toUriString(), HttpMethod.GET, this.entity, String.class);
                 }
             }
         }

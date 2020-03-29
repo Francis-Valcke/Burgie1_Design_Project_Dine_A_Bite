@@ -27,9 +27,8 @@ public class EventBroker implements Runnable {
     /**
      * @param subscriber The entity that wants to subscribe to a channel
      * @param typeArray  An array of strings, defining the channels to subscribe to
-     *                   <p>
-     *                   <p>
-     *                   This function adds a subscriber to the event channels it wants to listen to.
+     *
+     * This function adds a subscriber to the event channels it wants to listen to.
      */
     public void subscribe(EventSubscriber subscriber, List<String> typeArray) {
         for (String type : typeArray) {
@@ -45,17 +44,17 @@ public class EventBroker implements Runnable {
                 typeSet.add(subscriber);
             }
         }
-        System.out.println(subscriber.getId() + " is subscribed to channel " + subscriber.getTypes());
     }
 
     /**
      * @param subscriber The entity that wants to unsubscribe to a channel
      * @param typeArray  An array of strings, defining the channels to unsubscribe to
-     *                   <p>
-     *                   This functions removes a subscriber from channels it does not want to listen to anymore.
+     *
+     * This functions removes a subscriber from channels it does not want to listen to anymore.
      */
     public void unSubscribe(EventSubscriber subscriber, List<String> typeArray) {
         for (String type : typeArray) {
+            subscriber.removeType(type);
             HashSet<EventSubscriber> typeSet = subscriberMap.get(type);
             if (typeSet == null) {
                 continue; //silently discard wrong type, should we define an exception for this?
@@ -67,8 +66,8 @@ public class EventBroker implements Runnable {
 
     /**
      * @param e the event
-     *          <p>
-     *          Calls the process function.
+     *
+     * Calls the process function.
      */
     protected void addEvent(Event e) {
         if (!stop) {
@@ -81,8 +80,8 @@ public class EventBroker implements Runnable {
 
     /**
      * @param e the event
-     *          <p>
-     *          Sends the event to every subscriber listening to the channels the event is sent to.
+     *
+     * Sends the event to every subscriber listening to the channels the event is sent to.
      */
     private void process(Event e) {
         List<String> types = e.getTypes();
@@ -90,7 +89,6 @@ public class EventBroker implements Runnable {
             HashSet<EventSubscriber> typeSet = subscriberMap.get(type);
             if (typeSet != null) {
                 for (EventSubscriber s : typeSet) {
-                    System.out.println("An event was send to channel " + type + " to subscriber " + s.getId());
                     s.handleEvent(e);  //loops are possible
                 }
             }

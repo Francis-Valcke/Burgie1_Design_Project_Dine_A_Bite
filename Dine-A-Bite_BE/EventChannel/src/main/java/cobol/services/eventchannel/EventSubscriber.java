@@ -31,16 +31,19 @@ public class EventSubscriber {
 
     /**
      * @param e the event
-     *          <p>
-     *          add the event to the unhandled event list
+     *
+     * add the event to the unhandled event list
      */
     void handleEvent(Event e) {
         unhandledEvents.add(e);
-        System.out.println("Received event" + e.getEventData());
     }
 
     public void addType(String type) {
         this.types.add(type);
+    }
+
+    public void removeType(String type) {
+        this.types.remove(type);
     }
 
     public List<String> getTypes() {

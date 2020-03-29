@@ -66,7 +66,9 @@ public class EventController {
         EventBroker broker = EventBroker.getInstance();
         EventSubscriber subscriber = broker.getSubscriberStub(stubId);
         subscriber.addType(type);
-        broker.subscribe(subscriber, subscriber.getTypes());
+        List<String> newTypes = new ArrayList<>();
+        newTypes.add(type);
+        broker.subscribe(subscriber, newTypes);
     }
 
     /**
