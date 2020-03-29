@@ -47,10 +47,10 @@ public class EventBroker implements Runnable {
     }
 
     /**
+     * This functions removes a subscriber from channels it does not want to listen to anymore.
+     *
      * @param subscriber The entity that wants to unsubscribe to a channel
      * @param typeArray  An array of strings, defining the channels to unsubscribe to
-     *
-     * This functions removes a subscriber from channels it does not want to listen to anymore.
      */
     public void unSubscribe(EventSubscriber subscriber, List<String> typeArray) {
         for (String type : typeArray) {
@@ -65,9 +65,9 @@ public class EventBroker implements Runnable {
     }
 
     /**
-     * @param e the event
-     *
      * Calls the process function.
+     *
+     * @param e the event
      */
     protected void addEvent(Event e) {
         if (!stop) {
@@ -79,9 +79,9 @@ public class EventBroker implements Runnable {
     }
 
     /**
-     * @param e the event
-     *
      * Sends the event to every subscriber listening to the channels the event is sent to.
+     *
+     * @param e the event
      */
     private void process(Event e) {
         List<String> types = e.getTypes();

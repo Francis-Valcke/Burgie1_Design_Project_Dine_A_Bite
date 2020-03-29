@@ -30,9 +30,9 @@ public class EventSubscriber {
     }
 
     /**
-     * @param e the event
-     *
      * add the event to the unhandled event list
+     * 
+     * @param e the event
      */
     void handleEvent(Event e) {
         unhandledEvents.add(e);
