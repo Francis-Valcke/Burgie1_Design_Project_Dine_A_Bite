@@ -31,6 +31,7 @@ import com.example.attendeeapp.order.CommonOrder;
 import com.example.attendeeapp.order.Recommendation;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
@@ -274,9 +275,12 @@ public class CartActivity extends AppCompatActivity {
                                                 Toast.LENGTH_SHORT);
 
                 ObjectMapper mapper= new ObjectMapper();
+                //mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+                List<Recommendation> recommendations;
+                CommonOrder order = null;
                 try {
-                    List<Recommendation> recommendations= mapper.readValue(response.get("recommendations").toString(), new TypeReference<List<Recommendation>>() {});
-                    CommonOrder order= mapper.readValue(response.get("order").toString(), CommonOrder.class);
+                    recommendations= mapper.readValue(response.get("recommendations").toString(), new TypeReference<List<Recommendation>>() {});
+                    order= mapper.readValue(response.get("order").toString(), CommonOrder.class);
 
                 } catch (JsonProcessingException e) {
                     e.printStackTrace();

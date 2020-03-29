@@ -35,6 +35,8 @@ public class CommonOrder {
         READY
     }
 
+    public CommonOrder() {}
+
     public CommonOrder(List<MenuItem> menuItems, String standName, String brandName, double latitude, double longitude){
         this.id=0;
         this.latitude=latitude;

@@ -4,6 +4,7 @@ public class CommonOrderItem {
 
     private String foodname;
     private int amount;
+    private int itemId;
 
     public CommonOrderItem(){}
 
@@ -16,6 +17,9 @@ public class CommonOrderItem {
         return foodname;
     }
 
+    public int getItemId() {
+        return itemId;
+    }
 
     public int getAmount() {
         return amount;
