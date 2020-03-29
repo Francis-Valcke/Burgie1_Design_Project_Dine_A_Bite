@@ -233,14 +233,14 @@ public class MenuHandler {
             String desc = mi.getDescription();
             List<String> cat = mi.getCategory();
             if (existsInBrand) {
-                if (cat == null || food.getCategory().containsAll(cat) || cat.get(0).equals("")) ;
-                else {
+                if (!(cat == null || cat.get(0).equals(""))){
                     if (food.getCategory() == null) {
                         food.setCategory(cat);
-                    } else {
+                    } else if (!food.getCategory().containsAll(cat)){
                         for (int p = 0; p < cat.size(); p++) food.addCategory(cat.get(p));
                     }
                 }
+
                 if (price.compareTo(BigDecimal.ZERO) >= 0) food.setPrice(price);
                 if (preptime >= 0) food.setPreptime(preptime);
                 if (!(desc.equals("")))food.setDescription(desc);

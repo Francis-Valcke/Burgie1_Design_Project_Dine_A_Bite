@@ -16,10 +16,12 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 
 import java.math.BigDecimal;
 import java.math.MathContext;
+import java.sql.Timestamp;
 import java.util.*;
 
 import static org.junit.Assert.assertFalse;
@@ -49,6 +51,7 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest
+@Transactional
 public class MenuHandlerTest {
     @Autowired
     WebApplicationContext applicationContext;
@@ -66,7 +69,7 @@ public class MenuHandlerTest {
     private ArrayList<Integer> preptimes = new ArrayList<Integer>(Arrays.asList(new Integer[]{10, 11, 12, 13, 2, 4}));
     private ArrayList<String> categories = new ArrayList<String>(Arrays.asList(new String[]{"burger", "", "pizza", "pizza", "drink", "fries"}));
     private ArrayList<String> descriptions = new ArrayList<String>(Arrays.asList(new String[]{"burger with bacon", "burger with cheese", "pizza with salami", "pizza with pineapple", "", "with frietsauce"}));
-
+    private String time;
     /**
      * setup stands for testing
      *
@@ -79,10 +82,12 @@ public class MenuHandlerTest {
                 .build();
         this.mockMvc.perform(get("/SMswitch?on=false").contentType(MediaType.APPLICATION_JSON)
                 .header("Authorization", token));
+        Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+        time=timestamp.toString();
         Map<String, StandInfo> standInfos = new HashMap<>();
         int n = 0;
         for (String key : stands.keySet()) {
-            StandInfo si = new StandInfo(key, key.split("-")[0], (long) 0.0 + n * 10, (long) 0.0 - n * 10);
+            StandInfo si = new StandInfo(key.concat(time), key.split("-")[0].concat(time), (long) 0.0 + n * 10, (long) 0.0 - n * 10);
             standInfos.put(key, si);
             n++;
         }
@@ -145,7 +150,7 @@ public class MenuHandlerTest {
     @Test
     public void getStandmenusTest() throws Exception {
         for (String key : stands.keySet()) { //check for every standmenu
-            MvcResult result = this.mockMvc.perform(get(String.format("/standmenu?standname=%s", key)).contentType(MediaType.APPLICATION_JSON)
+            MvcResult result = this.mockMvc.perform(get(String.format("/standmenu?standname=%s", key.concat(time))).contentType(MediaType.APPLICATION_JSON)
                     .header("Authorization", token))
                     .andReturn();
             String json = result.getResponse().getContentAsString();
@@ -186,7 +191,7 @@ public class MenuHandlerTest {
 
         int n = 2;
         for (String key : stands.keySet()) {
-            StandInfo si = new StandInfo(key, key.split("-")[0], (long) 0.0 + n * 10, (long) 0.0 - n * 10);
+            StandInfo si = new StandInfo(key.concat(time), key.split("-")[0].concat(time), (long) 0.0 + n * 10, (long) 0.0 - n * 10);
             standInfos.put(key, si);
             n++;
         }
@@ -266,10 +271,10 @@ public class MenuHandlerTest {
     @After
     public void clearMenus() throws Exception {
         for (String key : stands.keySet()) {
-            MvcResult result = this.mockMvc.perform(get(String.format("/deleteStand?standname=%s", key)).contentType(MediaType.APPLICATION_JSON)
+            MvcResult result = this.mockMvc.perform(get(String.format("/deleteStand?standname=%s", key.concat(time))).contentType(MediaType.APPLICATION_JSON)
                     .header("Authorization", token)).andReturn();
             String ret1 = result.getResponse().getContentAsString();
-            assertTrue(ret1.equals("Stand " + key + " deleted."));
+            assertTrue(ret1.equals("Stand " + key.concat(time) + " deleted."));
         }
     }
 
