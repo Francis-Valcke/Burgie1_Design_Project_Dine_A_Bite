@@ -51,6 +51,8 @@ public class EventSubscriber {
     }
 
     public List<Event> getUnhandledEvents() {
-        return unhandledEvents;
+        List<Event> ret = unhandledEvents;
+        unhandledEvents = new ArrayList<>();
+        return ret;
     }
 }
