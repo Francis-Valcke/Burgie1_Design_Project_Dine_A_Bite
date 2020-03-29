@@ -32,7 +32,6 @@ public class EventBroker implements Runnable {
      *                   This function adds a subscriber to the event channels it wants to listen to.
      */
     public void subscribe(EventSubscriber subscriber, List<String> typeArray) {
-        System.out.println(subscriber.getId() + " subscribed to channel " + typeArray);
         for (String type : typeArray) {
             HashSet<EventSubscriber> typeSet = subscriberMap.get(type);
             if (!subscriberId.containsKey(subscriber.getId())) {
@@ -46,6 +45,7 @@ public class EventBroker implements Runnable {
                 typeSet.add(subscriber);
             }
         }
+        System.out.println(subscriber.getId() + " is subscribed to channel " + subscriber.getTypes());
     }
 
     /**
@@ -89,6 +89,7 @@ public class EventBroker implements Runnable {
         for (String type : types) {
             HashSet<EventSubscriber> typeSet = subscriberMap.get(type);
             if (typeSet != null) {
+                System.out.println();
                 for (EventSubscriber s : typeSet) {
                     s.handleEvent(e);  //loops are possible
                 }

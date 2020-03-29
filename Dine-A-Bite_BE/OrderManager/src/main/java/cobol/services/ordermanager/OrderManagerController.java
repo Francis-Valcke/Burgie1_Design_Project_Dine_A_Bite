@@ -28,6 +28,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.PostConstruct;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -50,14 +51,14 @@ public class OrderManagerController {
     private MenuHandler mh=new MenuHandler();
     @Autowired
     private ObjectMapper objectMapper;
-    private OrderProcessor orderProcessor = null;
+    @Autowired
+    OrderProcessor orderProcessor = null;
 
     OrderManagerController() {
         this.restTemplate = new RestTemplate();
         this.headers = new HttpHeaders();
         this.headers.setContentType(MediaType.APPLICATION_JSON);
         this.headers.add("Authorization", "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJPcmRlck1hbmFnZXIiLCJyb2xlcyI6WyJST0xFX0FQUExJQ0FUSU9OIl0sImlhdCI6MTU4NDkxMTY3MSwiZXhwIjoxNzQyNTkxNjcxfQ.VmujsURhZaXRp5FQJXzmQMB-e6QSNF-OyPLeMEMOVvI");
-        this.orderProcessor = OrderProcessor.getOrderProcessor();
     }
 
     /**
@@ -153,7 +154,7 @@ public class OrderManagerController {
         headers.setContentType(MediaType.APPLICATION_JSON);
         String uri = OrderManager.SMURL+"/getRecommendation";
         entity = new HttpEntity<>(jsonString, headers);
-        JSONObject response = template.postForObject(uri, entity, JSONObject.class);
+        JSONObject response = restTemplate.postForObject(uri, entity, JSONObject.class);
 
         List<Recommendation> recommendations= mapper.readValue(response.get("recommendations").toString(), new TypeReference<List<Recommendation>>() {});
         orderProcessor.addRecommendations(newOrder.getId(), recommendations);
@@ -203,7 +204,7 @@ public class OrderManagerController {
 
         // Make event for eventchannel (orderId, standId)
         JSONObject orderJson = new JSONObject();
-        orderJson.put("order", order);
+        orderJson.put("order", updatedOrder);
         List<String> types = new ArrayList<>();
         types.add(String.valueOf(orderId));
         Event e = new Event(orderJson, types, "Order");
@@ -214,7 +215,7 @@ public class OrderManagerController {
         String uri = OrderManager.ECURL+"/publishEvent";
 
         entity = new HttpEntity<>(jsonString, headers);
-        String response = template.postForObject(uri, entity, String.class);
+        String response = restTemplate.postForObject(uri, entity, String.class);
 
         System.out.println(response);
 

@@ -1,4 +1,6 @@
 package cobol.services.ordermanager;
+import cobol.services.ordermanager.dbmenu.Order;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Import;
@@ -69,12 +71,12 @@ public class OrderManager {
         OMURL= test ? "http://localhost:8081" : "http://cobol.idlab.ugent.be:8091";
         SMURL= test ? "http://localhost:8082" : "http://cobol.idlab.ugent.be:8092";
         ECURL= test ? "http://localhost:8083" : "http://cobol.idlab.ugent.be:8093";
+        OrderProcessor orderProcessor = OrderProcessor.getOrderProcessor();
 
-        OrderProcessor processor = OrderProcessor.getOrderProcessor();
         ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
         SpringApplication.run(OrderManager.class, args);
-        executorService.scheduleAtFixedRate(processor::pollEvents, 0, 2, TimeUnit.SECONDS);
-        executorService.scheduleAtFixedRate(processor::processEvents, 1, 2, TimeUnit.SECONDS);
+        executorService.scheduleAtFixedRate(orderProcessor::pollEvents, 0, 2, TimeUnit.SECONDS);
+        executorService.scheduleAtFixedRate(orderProcessor::processEvents, 1, 2, TimeUnit.SECONDS);
     }
 
 }

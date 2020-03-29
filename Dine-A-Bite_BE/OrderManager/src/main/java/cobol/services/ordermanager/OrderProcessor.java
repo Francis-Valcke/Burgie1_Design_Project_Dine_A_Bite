@@ -15,13 +15,12 @@ import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Scope;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
+import org.springframework.http.*;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -53,7 +52,7 @@ public class OrderProcessor {
         this.restTemplate = new RestTemplate();
         this.headers = new HttpHeaders();
         this.headers.add("Authorization", "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJPcmRlck1hbmFnZXIiLCJyb2xlcyI6WyJST0xFX0FQUExJQ0FUSU9OIl0sImlhdCI6MTU4NDkxMTY3MSwiZXhwIjoxNzQyNTkxNjcxfQ.VmujsURhZaXRp5FQJXzmQMB-e6QSNF-OyPLeMEMOVvI");
-        String uri = "http://localhost:8083/registerSubscriber";
+        String uri = OrderManager.ECURL + "/registerSubscriber";
         this.entity = new HttpEntity(headers);
         ResponseEntity<String> response = restTemplate.exchange(uri, HttpMethod.GET, entity, String.class);
         this.subscriberId = Integer.valueOf(response.getBody());
@@ -64,7 +63,7 @@ public class OrderProcessor {
 
     private Map<Integer, Order> runningOrders = new HashMap<>();
     public void pollEvents() {
-        String uri = "http://localhost:8083/events";
+        String uri = OrderManager.ECURL + "/events";
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(uri)
                 .queryParam("id", this.subscriberId);
         ResponseEntity<String> response = this.restTemplate.exchange(builder.toUriString(), HttpMethod.GET, this.entity, String.class);
@@ -84,10 +83,11 @@ public class OrderProcessor {
             Event e = eventQueue.poll();
             if (e.getDataType().equals("Order")) {
                 JSONObject eventData = e.getEventData();
-                Order.status newStatus = (Order.status) eventData.get("newStatus");
+                String newStatus = (String) eventData.get("newStatus");
                 int orderId = (int) eventData.get("orderId");
+                System.out.println("Order " + orderId + " changed status to " + newStatus);
                 Order localOrder = running_orders.get(orderId);
-                localOrder.setState(newStatus);
+                //localOrder.setState(newStatus);
                 if (newStatus.equals(Order.status.DECLINED)) {
                     running_orders.remove(orderId);
                 }
@@ -108,6 +108,14 @@ public class OrderProcessor {
         newOrder.setState(Order.status.PENDING);
         orders.saveAndFlush(newOrder);
         this.runningOrders.put(newOrder.getId(), newOrder);
+
+        // subscribe to the channel of the order
+        System.out.println(newOrder.getId());
+        String uri = OrderManager.ECURL + "registerSubscriber/toChannel";
+        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(uri)
+                .queryParam("id", this.subscriberId)
+                .queryParam("type", newOrder.getId());
+        ResponseEntity<String> responseEntity = this.restTemplate.exchange(builder.toUriString(), HttpMethod.GET, this.entity, String.class);
         return newOrder;
     }
 
@@ -155,6 +163,10 @@ public class OrderProcessor {
         for (Recommendation recommendation : recommendations) {
             orderRecommendations.put(id, recommendation);
         }
+    }
+
+    public static OrderProcessor getOrderProcessor() {
+        return new OrderProcessor();
     }
 }
 
