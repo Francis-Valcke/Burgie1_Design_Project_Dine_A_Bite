@@ -28,7 +28,7 @@ public class SchedulerComparatorTime implements Comparator<Scheduler> {
     }
 
 
-    public int getTimesum(Scheduler o){
+    public long getTimesum(Scheduler o){
         int time=0;
         for (CommonOrderItem orderItem : orderItems) {
             time+=o.getPreptime(orderItem.getFoodname())*orderItem.getAmount();

@@ -94,13 +94,17 @@ public class Scheduler extends Thread {
      *
      * @return this time
      */
-    public int timeSum(){
-        int s=0;
-        for (int i=0;i<inc.size();i++){
-            s+=inc.get(i).computeRemainingTime();
+    public long timeSum(){
+        CommonOrder latestOrder = inc.stream().max(Comparator.comparing(CommonOrder::getExpectedTime)).get();
+        if (latestOrder.equals(null)){
+            return 0;
         }
-        System.out.println(s);
-        return s;
+        else{
+            long endTime = latestOrder.getExpectedTime().getTimeInMillis();
+            long currentTime = Calendar.getInstance().getTimeInMillis();
+            long timeEstimate = endTime - currentTime;
+            return timeEstimate;
+        }
     }
 
     /**

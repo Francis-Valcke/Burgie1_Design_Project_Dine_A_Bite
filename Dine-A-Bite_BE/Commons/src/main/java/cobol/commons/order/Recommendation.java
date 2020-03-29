@@ -10,13 +10,13 @@ public class Recommendation {
     // meters
     private double distance;
     // milliseconds
-    private int timeEstimate;
+    private long timeEstimate;
 
 
     public Recommendation() {
     }
 
-    public Recommendation(int standId,String standName, double distance, int timeEstimate) {
+    public Recommendation(int standId,String standName, double distance, long timeEstimate) {
         this.standId = standId;
         this.standName=standName;
         this.distance = distance;
@@ -47,7 +47,7 @@ public class Recommendation {
         this.distance = distance;
     }
 
-    public int getTimeEstimate() {
+    public long getTimeEstimate() {
         return timeEstimate;
     }
 

@@ -37,7 +37,7 @@ public class CommonOrder {
     }
 
     public int computeRemainingTime(){
-        return (int) (expectedTime.getTimeInMillis()-startTime.getTimeInMillis());
+        return (int) (expectedTime.getTimeInMillis() - Calendar.getInstance().getTimeInMillis());
     }
 
     public status getOrderStatus() {
@@ -67,4 +67,6 @@ public class CommonOrder {
     public double getLongitude() {
         return longitude;
     }
+
+    public Calendar getExpectedTime() { return expectedTime ;}
 }
