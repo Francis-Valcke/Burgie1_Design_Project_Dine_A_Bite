@@ -37,7 +37,7 @@ import static cobol.commons.ResponseModel.status.OK;
 @RestController
 public class OrderManagerController {
     @Autowired // This means to get the bean called standRepository
-    private MenuHandler mh = new MenuHandler();
+    private MenuHandler mh;
 
     private RestTemplate restTemplate;
     private HttpHeaders headers;
