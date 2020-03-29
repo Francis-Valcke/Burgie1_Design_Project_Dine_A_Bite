@@ -15,7 +15,6 @@
         android:usesCleartextTraffic="true">
         <activity android:name=".DashboardFragment2"
             android:parentActivityName=".MainActivity"/>
-        <activity android:name=".DashboardFragment" />
         <activity android:name=".SplashScreenActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
