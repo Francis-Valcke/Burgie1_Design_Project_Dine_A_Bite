@@ -38,14 +38,17 @@ public class MenuHandler {
     @Autowired
     private StockRepository stockRepository;
 
-    private boolean SMon = true;
+    private boolean sMon = true;
 
     public MenuHandler() {
         standmenus = new HashMap<String, JSONArray>();
     }
-
-    public void SmSwitch(boolean b) {
-        this.SMon = b;
+    /**
+     * this method will change wether stands are added as schedulers in Stand Manager
+     * @param b: if true, then stands will be added as schedulers
+     */
+    public void smSwitch(boolean b) {
+        this.sMon = b;
     }
 
     /**
@@ -149,9 +152,10 @@ public class MenuHandler {
      */
     public void fetchMenu() throws JsonProcessingException {
         JSONArray obj = new JSONArray();
-        List<Stand> stands = standRepository.findStands();
-        for (int j = 0; j < stands.size(); j++) {
-            List<Food> menu = food_Repository.findByStand(stands.get(j).getFull_name());
+        List<String> brands = standRepository.findBrands();
+        //List<Stand> stands = standRepository.findStands();
+        for (int j = 0; j < brands.size(); j++) {
+            List<Food> menu = food_Repository.findByBrand(brands.get(j));
             obj = createMenuItems(menu, obj);
         }
         this.totalmenu = obj;
@@ -286,7 +290,7 @@ public class MenuHandler {
 
         fetchStandMenu(standname);
         fetchMenu();
-        if (newstand && SMon) {
+        if (newstand && sMon) {
             ObjectMapper mapper = new ObjectMapper();
             String jsonString = mapper.writeValueAsString(si);
             RestTemplate template = new RestTemplate();

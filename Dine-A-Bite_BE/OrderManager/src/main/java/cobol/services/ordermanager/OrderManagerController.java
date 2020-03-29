@@ -60,9 +60,13 @@ public class OrderManagerController {
         );
     }
 
+    /**
+     * this method will change wether stands are added as schedulers in Stand Manager
+     * @param sm: if true, then stands will be added as schedulers
+     */
     @GetMapping("/SMswitch")
-    public void SMswitch(@RequestParam(name = "on") boolean sm) {
-        this.mh.SmSwitch(sm);
+    public void sMswitch(@RequestParam(name = "on") boolean sm) {
+        this.mh.smSwitch(sm);
     }
 
 
