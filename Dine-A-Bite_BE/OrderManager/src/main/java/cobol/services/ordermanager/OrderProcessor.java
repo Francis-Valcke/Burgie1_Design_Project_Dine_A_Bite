@@ -104,5 +104,13 @@ public class OrderProcessor {
         return requestedOrder;
     }
 
+    public Order confirmStand(int orderId, int standId) {
+        Order updatedOrder=this.getOrder(orderId);
+        updatedOrder.setStandId(standId);
+        updatedOrder.setState(Order.status.PENDING);
+
+        orders.saveAndFlush(updatedOrder);
+        return updatedOrder;
+    }
 }
 

@@ -190,12 +190,11 @@ public class OrderManagerController {
     @ResponseBody
     public void confirmStand(@RequestParam(name = "order_id") int orderId, @RequestParam(name = "stand_id") int standId) throws JsonProcessingException{
         // Update order, confirm stand
-        Order order = orderProcessor.getOrder(orderId);
-        order.setStandId(standId);
+        Order updatedOrder=orderProcessor.confirmStand(orderId, standId);
 
         // Make event for eventchannel (orderId, standId)
         JSONObject orderJson = new JSONObject();
-        orderJson.put("order", order);
+        orderJson.put("order",updatedOrder);
         String[] types = {String.valueOf(orderId), String.valueOf(standId)};
         Event e = new Event(orderJson, types);
 
@@ -210,6 +209,10 @@ public class OrderManagerController {
 
         HttpEntity<String> request = new HttpEntity<>(jsonString, headers);
         String response = template.postForObject(uri, request, String.class);
+
+        System.out.println(response);
+
+
     }
 
 
