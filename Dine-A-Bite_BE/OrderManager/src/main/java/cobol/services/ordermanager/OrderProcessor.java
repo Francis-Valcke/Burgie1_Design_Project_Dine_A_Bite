@@ -2,12 +2,18 @@ package cobol.services.ordermanager;
 
 import cobol.commons.Event;
 import cobol.services.ordermanager.dbmenu.Order;
+import cobol.services.ordermanager.dbmenu.OrderRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.json.simple.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Scope;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.HashMap;
@@ -17,18 +23,16 @@ import java.util.Map;
 /**
  * This is a Singleton
  */
+@Component
+@Scope(value="singleton")
 public class OrderProcessor {
 
-    private final static OrderProcessor ourInstance = new OrderProcessor();
+    @Autowired
+    OrderRepository orders;
 
-    private Map<Integer, Order> running_orders = new HashMap<>();
-
-    public static OrderProcessor getOrderProcessor() {
-        return ourInstance;
-    }
+    private Map<Integer, Order> runningOrders = new HashMap<>();
 
     private OrderProcessor() {}
-
 
     //TODO: Orderprocessor needs to listen the the right channels to receive notifications of the stands (DECLINED, etc)
     /**
@@ -40,7 +44,7 @@ public class OrderProcessor {
      * This method changes the state of an order an sends an event to the channel of this order
      */
     public void publishStateChange(int order_id, Order.status state) throws JsonProcessingException{
-        Order o = running_orders.get(order_id);
+        Order o = runningOrders.get(order_id);
         o.setState(state);
         String[] order_channel = {String.valueOf(order_id), String.valueOf(o.getStandId())};
         JSONObject data = new JSONObject();
@@ -62,16 +66,43 @@ public class OrderProcessor {
         restTemplate.postForObject(uri, request, String.class);
 
         if (state == Order.status.DECLINED) {
-            running_orders.remove(order_id);
+            runningOrders.remove(order_id);
         }
     }
 
-    public void addOrder(Order o) {
-        this.running_orders.put(o.getId(), o);
+    /**
+     * Add a new incoming order
+     * @param newOrder: order just received from attendee app
+     * @return Order: persisted Order object
+     */
+    public Order addNewOrder(Order newOrder) {
+        // update order and save to database
+        newOrder.setRemtime(0);
+        newOrder.setStandId(-1);
+        newOrder.setStandName("notset");
+        newOrder.setState(Order.status.PENDING);
+        orders.saveAndFlush(newOrder);
+        this.runningOrders.put(newOrder.getId(), newOrder);
+        return newOrder;
     }
 
-    public Order getOrder(int order_id) {
-        return running_orders.get(order_id);
+    /**
+     * Add an already existing order (for example from database)
+      * @param o: order that is already running but OrderProcessor lost track of
+     */
+    public void addOrder(Order o){
+       runningOrders.put(o.getId(), o);
     }
+
+    public Order getOrder(int orderId) {
+        // look in running orders hashmap
+        Order requestedOrder= runningOrders.getOrDefault(orderId,null);
+        if(requestedOrder==null){
+           requestedOrder=orders.findById(orderId).get();
+           this.addOrder(requestedOrder);
+        }
+        return requestedOrder;
+    }
+
 }
 

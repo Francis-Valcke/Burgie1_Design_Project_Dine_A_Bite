@@ -1,6 +1,7 @@
 package cobol.services.ordermanager;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.Import;
 
 /**
  * Het maken van lokale database als je deze functionaliteit lokaal wilt testen:
@@ -51,7 +52,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 public class OrderManager {
 
-    public static boolean test= false;
+    public static boolean test= true;
 
     public static String ACURL;
     public static String SMURL;

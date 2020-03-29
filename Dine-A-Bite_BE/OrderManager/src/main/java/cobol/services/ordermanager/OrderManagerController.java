@@ -15,6 +15,8 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -41,7 +43,7 @@ import static cobol.commons.ResponseModel.status.OK;
 public class OrderManagerController {
 
     @Autowired
-    OrderRepository orders;
+    private OrderProcessor orderProcessor=null;
 
     /**
      * API endpoint to test if the server is still alive.
@@ -97,10 +99,13 @@ public class OrderManagerController {
 
     @RequestMapping("/getOrderInfo")
     public JSONObject getOrderInfo(@RequestParam(name="orderId") int orderId) throws JsonProcessingException {
-        // retrieve order from database
-        Order requestedOrder= orders.findById(orderId).get();
+
+        // retrieve order
+        Order order= orderProcessor.getOrder(orderId);
+
+        // write order to json
         ObjectMapper mapper= new ObjectMapper();
-        String jsonString= mapper.writeValueAsString(requestedOrder);
+        String jsonString= mapper.writeValueAsString(order);
         JSONParser parser= new JSONParser();
         JSONObject orderResponse=new JSONObject();
         try {
@@ -114,24 +119,21 @@ public class OrderManagerController {
     /**
      * Add the order to the order processor, gets a recommendation from the scheduler and forwards it to the attendee app.
      *
-     * @param order_object the order recieved from the attendee app
+     * @param orderObject the order recieved from the attendee app
      * @return the order id, along with the json with recommended stands
      * @throws JsonProcessingException
      *
      */
     @PostMapping(value = "/placeOrder", consumes = "application/json", produces = "application/json")
-    public JSONObject placeOrder(@AuthenticationPrincipal CommonUser userDetails, @RequestBody JSONObject order_object) throws JsonProcessingException {
-        // Map json to new order
-        ObjectMapper mapper = new ObjectMapper();
-        Order newOrder= new Order(order_object);
-
+    public JSONObject placeOrder(@AuthenticationPrincipal CommonUser userDetails, @RequestBody JSONObject orderObject) throws JsonProcessingException {
 
         // Add order to the processor
-        OrderProcessor processor = OrderProcessor.getOrderProcessor();
-        processor.addOrder(newOrder);
+        Order newOrder= new Order(orderObject);
+        newOrder=orderProcessor.addNewOrder(newOrder);
 
 
         // Put order in json to send to standmanager (as commonOrder object)
+        ObjectMapper mapper = new ObjectMapper();
         String jsonString = mapper.writeValueAsString(newOrder);
 
 
@@ -146,19 +148,13 @@ public class OrderManagerController {
 
         List<Recommendation> recommendations= mapper.readValue(response.get("recommendations").toString(), new TypeReference<List<Recommendation>>() {});
 
-        // update order and save to database
-        newOrder.setRemtime(0);
-        newOrder.setStandId(-1);
-        newOrder.setStandName("notset");
-        newOrder.setState(Order.status.PENDING);
-        orders.saveAndFlush(newOrder);
 
         // send updated order and recommendation
         JSONObject completeResponse= new JSONObject();
 
-        // add updated order
-        String updateOrder = null;
-        updateOrder = mapper.writeValueAsString(newOrder);
+        // ---- add updated order
+        String updateOrder = mapper.writeValueAsString(newOrder);
+        // String to JSON
         JSONParser parser= new JSONParser();
         JSONObject updateOrderJson=new JSONObject();
         try {
@@ -167,9 +163,8 @@ public class OrderManagerController {
             e.printStackTrace();
         }
 
-        completeResponse.put("order", updateOrderJson);
 
-        // add recommendations
+        // ---- add recommendations
         String recommendationsResponse=mapper.writeValueAsString(recommendations);
         JSONArray recomResponseJson= new JSONArray();
         try {
@@ -178,6 +173,8 @@ public class OrderManagerController {
             e.printStackTrace();
         }
 
+        // Construct response
+        completeResponse.put("order", updateOrderJson);
         completeResponse.put("recommendations", recomResponseJson);
         return completeResponse;
     }
@@ -193,8 +190,7 @@ public class OrderManagerController {
     @ResponseBody
     public void confirmStand(@RequestParam(name = "order_id") int orderId, @RequestParam(name = "stand_id") int standId) throws JsonProcessingException{
         // Update order, confirm stand
-        OrderProcessor processor = OrderProcessor.getOrderProcessor();
-        Order order = processor.getOrder(orderId);
+        Order order = orderProcessor.getOrder(orderId);
         order.setStandId(standId);
 
         // Make event for eventchannel (orderId, standId)
