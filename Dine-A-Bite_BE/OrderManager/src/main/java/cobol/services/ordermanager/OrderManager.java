@@ -6,7 +6,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 public class OrderManager {
 
-    public static boolean test= true;
+    public static boolean test= false;
 
     public static String ACURL;
     public static String SMURL;
