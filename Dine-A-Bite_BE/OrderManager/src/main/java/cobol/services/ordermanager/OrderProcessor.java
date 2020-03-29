@@ -1,12 +1,15 @@
 package cobol.services.ordermanager;
 
 import cobol.commons.Event;
+import cobol.commons.order.Recommendation;
 import cobol.services.ordermanager.dbmenu.Order;
 import cobol.services.ordermanager.dbmenu.OrderRepository;
 import cobol.services.ordermanager.dbmenu.Stand;
 import cobol.services.ordermanager.dbmenu.StandRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ListMultimap;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -16,11 +19,11 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
-
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-
 
 /**
  * This is a Singleton
@@ -34,6 +37,10 @@ public class OrderProcessor {
 
     @Autowired
     StandRepository stands;
+
+
+    // orderid - recommendations
+    ListMultimap<Integer, Recommendation> orderRecommendations= ArrayListMultimap.create();
 
     private Map<Integer, Order> runningOrders = new HashMap<>();
 
@@ -118,10 +125,23 @@ public class OrderProcessor {
             updatedOrder.setState(Order.status.PENDING);
             updatedOrder.setBrandName(stand.getBrandname());
             updatedOrder.setStandName(stand.getFull_name());
+
+            Recommendation recommendation= orderRecommendations.get(orderId).stream()
+                    .filter(r -> r.getStandId() == standId)
+                    .findFirst().get();
+
+            updatedOrder.setRemtime(recommendation.getTimeEstimate()*1000);
+
             orders.saveAndFlush(updatedOrder);
         }
 
         return updatedOrder;
+    }
+
+    public void addRecommendations(int id, List<Recommendation> recommendations) {
+        for (Recommendation recommendation : recommendations) {
+            orderRecommendations.put(id, recommendation);
+        }
     }
 }
 

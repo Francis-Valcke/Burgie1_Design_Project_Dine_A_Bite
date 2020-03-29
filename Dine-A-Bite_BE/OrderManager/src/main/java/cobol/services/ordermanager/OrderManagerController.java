@@ -10,6 +10,8 @@ import cobol.services.ordermanager.dbmenu.OrderRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ListMultimap;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -44,6 +46,7 @@ public class OrderManagerController {
 
     @Autowired
     private OrderProcessor orderProcessor=null;
+
 
     /**
      * API endpoint to test if the server is still alive.
@@ -147,7 +150,7 @@ public class OrderManagerController {
         JSONObject response = template.postForObject(uri, request, JSONObject.class);
 
         List<Recommendation> recommendations= mapper.readValue(response.get("recommendations").toString(), new TypeReference<List<Recommendation>>() {});
-
+        orderProcessor.addRecommendations(newOrder.getId(), recommendations);
 
         // send updated order and recommendation
         JSONObject completeResponse= new JSONObject();
