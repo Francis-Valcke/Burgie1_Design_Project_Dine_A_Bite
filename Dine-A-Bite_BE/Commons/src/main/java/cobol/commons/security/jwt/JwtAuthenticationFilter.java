@@ -20,8 +20,7 @@ import java.io.IOException;
 @Component
 public class JwtAuthenticationFilter extends GenericFilterBean {
 
-    private JwtVerificationService jwtVerificationService;
-
+    private JwtConfig jwtConfig;
 
     /**
      * Custom filter to verify the provided JWT.
@@ -36,10 +35,9 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
     public void doFilter(ServletRequest req, ServletResponse res, FilterChain filterChain)
             throws IOException, ServletException {
 
-
-            String token = jwtVerificationService.resolveToken((HttpServletRequest) req);
-            if (token != null && jwtVerificationService.validateToken(token)) {
-                Authentication auth = jwtVerificationService.getAuthentication(token);
+            Jwt token = Jwt.resolveToken((HttpServletRequest) req, jwtConfig.getSecretKey());
+            if (token != null && token.validate()) {
+                Authentication auth = token.getAuthentication();
 
                 if (auth != null) {
                     SecurityContextHolder.getContext().setAuthentication(auth);
@@ -50,7 +48,7 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
     }
 
     @Autowired
-    public void setJwtVerificationService(JwtVerificationService jwtVerificationService) {
-        this.jwtVerificationService = jwtVerificationService;
+    public void setJwtConfig(JwtConfig jwtConfig) {
+        this.jwtConfig = jwtConfig;
     }
 }

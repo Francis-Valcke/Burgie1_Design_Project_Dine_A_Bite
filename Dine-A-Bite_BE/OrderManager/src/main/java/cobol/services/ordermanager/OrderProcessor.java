@@ -1,27 +1,45 @@
 package cobol.services.ordermanager;
 
 import cobol.commons.Event;
-import cobol.commons.Order;
+import cobol.commons.order.Recommendation;
+import cobol.services.ordermanager.dbmenu.Order;
+import cobol.services.ordermanager.dbmenu.OrderRepository;
+import cobol.services.ordermanager.dbmenu.Stand;
+import cobol.services.ordermanager.dbmenu.StandRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ListMultimap;
 import org.json.simple.JSONObject;
-import org.springframework.http.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Scope;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-
 /**
  * This is a Singleton
  */
+@Component
+@Scope(value="singleton")
 public class OrderProcessor {
 
-    private final static OrderProcessor ourInstance = new OrderProcessor();
+    @Autowired
+    OrderRepository orders;
+
+    @Autowired
+    StandRepository stands;
     private Map<Integer, Order> running_orders = new HashMap<>();
     private int subscriberId;
     private volatile LinkedList<Event> eventQueue = new LinkedList<Event>();
@@ -41,7 +59,10 @@ public class OrderProcessor {
         this.subscriberId = Integer.valueOf(response.getBody());
     };
 
+    // orderid - recommendations
+    ListMultimap<Integer, Recommendation> orderRecommendations= ArrayListMultimap.create();
 
+    private Map<Integer, Order> runningOrders = new HashMap<>();
     public void pollEvents() {
         String uri = "http://localhost:8083/events";
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(uri)
@@ -74,22 +95,66 @@ public class OrderProcessor {
         }
     }
 
-    public void addOrder(Order o) {
-        this.running_orders.put(o.getId(), o);
+    /**
+     * Add a new incoming order
+     * @param newOrder: order just received from attendee app
+     * @return Order: persisted Order object
+     */
+    public Order addNewOrder(Order newOrder) {
+        // update order and save to database
+        newOrder.setRemtime(0);
+        newOrder.setStandId(-1);
+        newOrder.setStandName("notset");
+        newOrder.setState(Order.status.PENDING);
+        orders.saveAndFlush(newOrder);
+        this.runningOrders.put(newOrder.getId(), newOrder);
+        return newOrder;
+    }
 
-        String uri = "http://cobol.idlab.ugent.be:8092/registerSubscriber/toChannel";
-        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(uri)
-                .queryParam("id", this.subscriberId)
-                .queryParam("type", o.getId());
-        ResponseEntity<String> response = this.restTemplate.exchange(builder.toUriString(), HttpMethod.GET, this.entity, String.class);
+    /**
+     * Add an already existing order (for example from database)
+      * @param o: order that is already running but OrderProcessor lost track of
+     */
+    public void addOrder(Order o){
+       runningOrders.put(o.getId(), o);
     }
 
     public Order getOrder(int orderId) {
-        return running_orders.get(orderId);
+        // look in running orders hashmap
+        Order requestedOrder= runningOrders.getOrDefault(orderId,null);
+        if(requestedOrder==null){
+           requestedOrder=orders.findById(orderId).get();
+           this.addOrder(requestedOrder);
+        }
+        return requestedOrder;
     }
 
-    public static OrderProcessor getOrderProcessor() {
-        return ourInstance;
+    public Order confirmStand(int orderId, int standId) {
+        Order updatedOrder=this.getOrder(orderId);
+
+        if(updatedOrder.getStandId()==-1){
+            Stand stand= stands.findById(standId).get();
+            updatedOrder.setStandId(standId);
+            updatedOrder.setState(Order.status.PENDING);
+            updatedOrder.setBrandName(stand.getBrandname());
+            updatedOrder.setStandName(stand.getFull_name());
+
+            Recommendation recommendation= orderRecommendations.get(orderId).stream()
+                    .filter(r -> r.getStandId() == standId)
+                    .findFirst().get();
+
+            updatedOrder.setRemtime(recommendation.getTimeEstimate()*1000);
+
+            orders.saveAndFlush(updatedOrder);
+        }
+
+        return updatedOrder;
+    }
+
+    public void addRecommendations(int id, List<Recommendation> recommendations) {
+        for (Recommendation recommendation : recommendations) {
+            orderRecommendations.put(id, recommendation);
+        }
     }
 }
 

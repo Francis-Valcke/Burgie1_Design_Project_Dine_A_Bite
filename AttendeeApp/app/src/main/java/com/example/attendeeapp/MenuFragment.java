@@ -19,6 +19,7 @@ import com.android.volley.toolbox.Volley;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -63,6 +64,8 @@ public abstract class MenuFragment extends Fragment {
             //url = "http://localhost:8080/standmenu?standname=" + standName;
             url = url + "standmenu?standname=" + standName;
         }
+        // Remove spaces from the url
+        url = url.replace(' ', '+');
 
         // Request the global/stand menu in JSON from the order manager
         // Handle no network connection or server not reachable
@@ -85,6 +88,16 @@ public abstract class MenuFragment extends Fragment {
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
+
+                /*
+                // Hardcoded test menuItem to add when server is unavailable
+                MenuItem item = new MenuItem("foodName", new BigDecimal(5.5), "brandName");
+                menuItems.add(item);
+                MenuItem item2 = new MenuItem("foody", new BigDecimal(6.11), "brand2");
+                menuItems.add(item2);
+                menuAdapter.putList(menuItems);
+                menuAdapter.notifyDataSetChanged();*/
+
                 // NoConnectionError = no network connection
                 // other = server not reachable
                 if (mToast != null) mToast.cancel();
