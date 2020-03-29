@@ -156,10 +156,9 @@ public class MenuHandlerTest {
                     .header("Authorization", token))
                     .andReturn();
             String json = result.getResponse().getContentAsString();
-            JSONParser parser = new JSONParser();
-            JSONArray menu = (JSONArray) parser.parse(json);
-            for (int j = 0; j < menu.size(); j++) { //check through entire menu if every item is present and has right attributes
-                MenuItem mi = objectMapper.readValue(menu.get(j).toString(), MenuItem.class);
+            MenuItem[] mis = objectMapper.readValue(json, MenuItem[].class);
+            for (int j = 0; j < mis.length; j++) { //check through entire menu if every item is present and has right attributes
+                MenuItem mi = mis[j];
                 int i = foodnames.indexOf(mi.getFoodName());
                 assertNotEquals(i, -1);
                 assertEquals(mi.getFoodName(), foodnames.get(i));
