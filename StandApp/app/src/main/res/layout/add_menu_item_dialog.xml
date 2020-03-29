@@ -11,7 +11,10 @@
         android:layout_height="wrap_content"
         app:helperText="Name of menu item"
         android:padding="10dp"
-        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+        android:maxLength="20"
+        app:counterEnabled="true"
+        app:errorEnabled="true">
 
         <com.google.android.material.textfield.TextInputEditText
             android:layout_width="match_parent"

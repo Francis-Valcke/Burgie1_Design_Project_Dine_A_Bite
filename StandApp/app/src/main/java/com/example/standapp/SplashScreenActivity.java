@@ -15,12 +15,8 @@ public class SplashScreenActivity extends AppCompatActivity {
         EasySplashScreen config = new EasySplashScreen(SplashScreenActivity.this)
                 .withFullScreen()
                 .withTargetActivity(MainActivity.class)
-                .withSplashTimeOut(5000)
-                .withBackgroundColor(android.R.color.holo_green_light)
-                .withHeaderText("Welcome")
-                .withFooterText("Copyright 2020")
-                .withAfterLogoText("Making sure your event runs smoothly")
-                .withLogo(R.mipmap.ic_launcher_round);
+                .withSplashTimeOut(2500)
+                .withLogo(R.mipmap.ic_launcher_foreground);
 
         View easySplashScreen = config.create();
         setContentView(easySplashScreen);

@@ -36,7 +36,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            style="@style/TextAppearance.MaterialComponents.Body2"
+            style="@style/TextAppearance.MaterialComponents.Body1"
             android:maxLength="20" />
 
         <com.google.android.material.button.MaterialButton
@@ -73,7 +73,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            style="@style/TextAppearance.MaterialComponents.Body2"
+            style="@style/TextAppearance.MaterialComponents.Body1"
             android:maxLength="20" />
 
         <com.google.android.material.button.MaterialButton

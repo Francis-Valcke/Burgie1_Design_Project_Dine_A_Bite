@@ -46,10 +46,7 @@ public class DashboardFragment2 extends Fragment {
         Button addButton = view.findViewById(R.id.add_menu_item_button);
         ListView menuList = view.findViewById(R.id.menu_list);
 
-        // temporarily hard coded
-        //final String standName = "Levis Burgers";
-        //final String brandName = "Levis Burgers";
-
+        // Getting the log in information
         final Bundle bundle = this.getArguments();
         String standName = "";
         String brandName = "";
@@ -69,6 +66,7 @@ public class DashboardFragment2 extends Fragment {
         final TextInputEditText priceInput = addDialogLayout.findViewById(R.id.menu_item_price);
         final TextInputEditText stockInput = addDialogLayout.findViewById(R.id.menu_item_stock);
 
+        // Adding a new menu item to the menu list of the stand
         final MaterialAlertDialogBuilder dialog = new MaterialAlertDialogBuilder(Objects.requireNonNull(this.getContext()))
                 .setView(addDialogLayout)
                 .setPositiveButton("Save", new DialogInterface.OnClickListener() {
@@ -77,7 +75,14 @@ public class DashboardFragment2 extends Fragment {
                         String name = Objects.requireNonNull(nameInput.getText()).toString();
                         String price = Objects.requireNonNull(priceInput.getText()).toString();
                         String stock = Objects.requireNonNull(stockInput.getText()).toString();
-                        DashboardItem item = new DashboardItem(R.drawable.burger, name, price, "150", stock, "", "");
+                        DashboardItem item = new DashboardItem(
+                                R.drawable.burger,
+                                name,
+                                price,
+                                "150",
+                                stock,
+                                "",
+                                "");
                         items.add(item);
                         adapter.notifyDataSetChanged();
                         nameInput.setText("");
@@ -103,6 +108,7 @@ public class DashboardFragment2 extends Fragment {
             }
         });
 
+        // Submit and send the new or changed menu list to the backend
         final String finalBrandName = brandName;
         final String finalStandName = standName;
         submitButton.setOnClickListener(new View.OnClickListener() {
@@ -117,7 +123,8 @@ public class DashboardFragment2 extends Fragment {
                     double latitude = 360.0;
 
                     try {
-                        // first the brandname is added, after that the two coordinates are added in the next lines
+                        // first the brandname is added,
+                        // after that the two coordinates are added in the next lines
                         js_value.put(finalBrandName);
                         js_value.put(longitude); //longitude -> TODO: hardcoded currently, fix later
                         js_value.put(latitude); //latitude -> TODO: hardcoded currently, fix later
@@ -143,7 +150,8 @@ public class DashboardFragment2 extends Fragment {
                         adapter.notifyDataSetChanged();
                         // if no items were added, then don't send anything
                         if (js.length() == 1) {
-                            Toast mToast = Toast.makeText(getContext(), "Nothing to send!", Toast.LENGTH_SHORT);
+                            Toast mToast = Toast.makeText(getContext(), "Nothing to send!",
+                                    Toast.LENGTH_SHORT);
                             mToast.show();
                             return;
                         }

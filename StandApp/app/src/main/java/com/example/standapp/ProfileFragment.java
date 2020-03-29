@@ -21,7 +21,8 @@ public class ProfileFragment extends Fragment {
 
     @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
         final View view = inflater.inflate(R.layout.activity_account, container, false);
         final TextView standName = view.findViewById(R.id.stand_name);
         final TextView brandName = view.findViewById(R.id.brand_name);
@@ -29,17 +30,21 @@ public class ProfileFragment extends Fragment {
         Button editBrandNameButton = view.findViewById(R.id.edit_brand_name_button);
 
         final Bundle bundle = this.getArguments();
+        if (bundle != null) standName.setText(bundle.getString("standName"));
+        if (bundle != null) brandName.setText(bundle.getString("brandName"));
 
         // Dialog for editing stand name
         final View inputStandNameLayout = inflater.inflate(R.layout.edit_name_dialog, null, false);
         final TextInputEditText editTextStandName = inputStandNameLayout.findViewById(R.id.edit_text_name);
-        final MaterialAlertDialogBuilder dialogStandName = new MaterialAlertDialogBuilder(Objects.requireNonNull(this.getContext()))
+        final MaterialAlertDialogBuilder dialogStandName =
+                new MaterialAlertDialogBuilder(Objects.requireNonNull(this.getContext()))
                 .setView(inputStandNameLayout)
                 .setPositiveButton("Save", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         standName.setText(editTextStandName.getText());
-                        if (bundle != null) bundle.putString("standName", Objects.requireNonNull(editTextStandName.getText()).toString());
+                        if (bundle != null) bundle.putString("standName",
+                                Objects.requireNonNull(editTextStandName.getText()).toString());
                         ViewGroup parent = (ViewGroup) inputStandNameLayout.getParent();
                         parent.removeView(inputStandNameLayout);
                     }
@@ -63,13 +68,15 @@ public class ProfileFragment extends Fragment {
         // Dialog for editing brand name
         final View inputBrandNameLayout = inflater.inflate(R.layout.edit_name_dialog, null, false);
         final TextInputEditText editTextBrandName = inputBrandNameLayout.findViewById(R.id.edit_text_name);
-        final MaterialAlertDialogBuilder dialogBrandName = new MaterialAlertDialogBuilder(Objects.requireNonNull(this.getContext()))
+        final MaterialAlertDialogBuilder dialogBrandName =
+                new MaterialAlertDialogBuilder(Objects.requireNonNull(this.getContext()))
                 .setView(inputBrandNameLayout)
                 .setPositiveButton("Save", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         brandName.setText(editTextBrandName.getText());
-                        if (bundle != null) bundle.putString("brandName", Objects.requireNonNull(editTextBrandName.getText()).toString());
+                        if (bundle != null) bundle.putString("brandName",
+                                Objects.requireNonNull(editTextBrandName.getText()).toString());
                         ViewGroup parent = (ViewGroup) inputBrandNameLayout.getParent();
                         parent.removeView(inputBrandNameLayout);
                     }

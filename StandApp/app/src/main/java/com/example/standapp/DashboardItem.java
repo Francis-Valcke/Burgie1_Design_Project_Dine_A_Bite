@@ -1,7 +1,8 @@
 package com.example.standapp;
 
 /**
- * The Dashboard item is a class consisting of the icon, title and price of the snack within in the menu (e.g., Pizza with price of 3 euros etc.)
+ * The Dashboard item is a class consisting of the icon,
+ * title and price of the snack within in the menu (e.g., Pizza with price of 3 euros etc.)
  */
 class DashboardItem {
     private int icon;
