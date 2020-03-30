@@ -1,45 +1,68 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:padding="?android:listPreferredItemPaddingLeft"
     android:background="@color/colorPrimary"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="wrap_content"
     android:paddingStart="30dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
 
     <TextView
         android:id="@+id/list_header"
-        android:layout_width="31dp"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
+        android:layout_weight="1.3"
+        android:layout_gravity="center"
         android:descendantFocusability="blocksDescendants"
         android:paddingStart="?android:attr/expandableListPreferredItemIndicatorLeft"
         android:text="@string/textview_order"
         android:textColor="@android:color/white"
         android:textSize="16sp" />
 
-    <Button
+    <com.google.android.material.button.MaterialButton
         android:focusable="false"
         android:id="@+id/button11"
-        android:layout_width="4dp"
-        android:layout_height="wrap_content"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
         android:layout_weight="1"
-        android:text="@string/button_start" />
+        android:layout_gravity="center"
+        android:layout_margin="1dp"
+        android:text="@string/button_start"
+        android:textColor="@color/colorPrimary"
+        android:backgroundTint="@android:color/white"
+        style="@style/Widget.MaterialComponents.Button" />
 
-    <Button
+    <com.google.android.material.button.MaterialButton
         android:focusable="false"
         android:id="@+id/button7"
-        android:layout_width="8dp"
-        android:layout_height="wrap_content"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
         android:layout_weight="1"
-        android:text="@string/button_done" />
+        android:layout_gravity="center"
+        android:layout_margin="1dp"
+        android:text="@string/button_done"
+        android:textColor="@color/colorPrimary"
+        android:backgroundTint="@android:color/white"
+        style="@style/Widget.MaterialComponents.Button" />
 
-    <Button
+    <com.google.android.material.button.MaterialButton
         android:focusable="false"
         android:id="@+id/button8"
-        android:layout_width="45dp"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:text="@string/button_picked_up" />
+        android:layout_weight="1.1"
+        android:layout_gravity="center"
+        android:layout_margin="1dp"
+        android:layout_marginEnd="5dp"
+        android:text="@string/button_picked_up"
+        android:textColor="@color/colorPrimary"
+        android:backgroundTint="@android:color/white"
+        style="@style/Widget.MaterialComponents.Button" />
+
+    </LinearLayout>
 
 </LinearLayout>

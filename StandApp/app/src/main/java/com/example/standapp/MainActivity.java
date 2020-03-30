@@ -38,7 +38,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private DrawerLayout drawer;
     private static ProfileFragment profile;
     private static OrderFragment order;
-    private static DashboardFragment dashboard;
+    private static DashboardFragment2 dashboard;
     private int standId = 100;
     private String subscriberId;
 
