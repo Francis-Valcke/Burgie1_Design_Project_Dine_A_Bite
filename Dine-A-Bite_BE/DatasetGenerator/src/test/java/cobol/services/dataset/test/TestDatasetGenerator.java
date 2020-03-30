@@ -32,11 +32,11 @@ public class TestDatasetGenerator {
     @Test
     public void load() throws Exception {
 
-        this.mockMvc
-                .perform(
-                        get("/clear")
-                )
-                .andExpect(status().isOk());
+        //this.mockMvc
+        //        .perform(
+        //                get("/clear")
+        //        )
+        //        .andExpect(status().isOk());
 
         this.mockMvc
                 .perform(

@@ -1,6 +1,7 @@
 package cobol.services.dataset.domain.entity;
 
-import lombok.AllArgsConstructor;
+import cobol.services.dataset.domain.json.BrandDeserializer;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -10,13 +11,15 @@ import org.hibernate.annotations.LazyCollectionOption;
 import javax.persistence.*;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
 @Builder
+@JsonDeserialize(using = BrandDeserializer.class)
 public class Brand implements Serializable {
 
     @Id
@@ -25,32 +28,26 @@ public class Brand implements Serializable {
     @Builder.Default
     @LazyCollection(LazyCollectionOption.FALSE)
     @OneToMany(mappedBy = "brand", cascade = CascadeType.ALL)
-    private List<Food> foodList = new ArrayList<>();
+    private Set<Food> food = new HashSet<>();
 
     @Builder.Default
     @LazyCollection(LazyCollectionOption.FALSE)
     @OneToMany(mappedBy = "brand", cascade = CascadeType.ALL)
-    private List<Stand> standList = new ArrayList<>();
+    private List<Stand> stand = new ArrayList<>();
 
     public Brand(String name) {
         this.name = name;
+        food = new HashSet<>();
+        stand = new ArrayList<>();
     }
 
-    public void addStand(Stand stand){
-        this.standList.add(stand);
-        stand.setBrand(this);
+    public Brand(String name, Set<Food> foodList, List<Stand> standList) {
+        this.name = name;
+        this.food = foodList;
+        this.stand = standList;
+
+        foodList.forEach(food -> food.setBrand(this));
+        standList.forEach(stand -> stand.setBrand(this));
     }
 
-    public void addStandList(List<Stand> standList){
-        standList.forEach(this::addStand);
-    }
-
-    public void addFood(Food food){
-        this.foodList.add(food);
-        food.setBrand(this);
-    }
-
-    public void addFoodList(List<Food> foodList){
-        foodList.forEach(this::addFood);
-    }
 }

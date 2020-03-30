@@ -1,20 +1,25 @@
 package cobol.services.dataset.domain.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
 @Entity
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Stand {
-
-    private static int idCounter = 1;
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class Stand implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -22,36 +27,34 @@ public class Stand {
 
     private String name;
 
-    //private String brandName;
-
+    @JsonProperty("lon")
     private double longitude;
 
+    @JsonProperty("lat")
     private double latitude;
-
-    //@Builder.Default
-    //@OneToMany(mappedBy = "stand")
-    //private List<Stock> stockList = new ArrayList<>();
 
     @ManyToOne()
     @JoinColumn(name = "brand_name")
     private Brand brand;
-    //
+
+    @Transient
+    List<Food> food = new ArrayList<>();
+
     //@Builder.Default
-    //@ManyToMany(mappedBy = "standList")
-    //private List<Food> foodList = new ArrayList<>();
+    //@OneToMany(mappedBy = "stand")
+    @Transient
+    private List<Stock> stock = new ArrayList<>();
 
-
-    public void addBrand(Brand brand) {
-        this.brand = brand;
-        brand.getStandList().add(this);
+    public Stand(String name, double longitude, double latitude, List<Stock> stockList) {
+        this.name = name;
+        this.longitude = longitude;
+        this.latitude = latitude;
+        //this.stockList = stockList;
+        //
+        //for (Food food : brand.getFoodList()) {
+        //
+        //}
     }
-
-
-    //public void addFood(Food food) {
-    //    foodList.add(food);
-    //    food.getStandList().add(this);
-    //}
-
 }
 
 

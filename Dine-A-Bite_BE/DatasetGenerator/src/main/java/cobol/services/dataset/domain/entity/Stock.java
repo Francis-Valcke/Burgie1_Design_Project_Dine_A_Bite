@@ -12,6 +12,7 @@ public class Stock {
 
     @Id
     private long standId;
+
     @Id
     private long foodId;
 
@@ -20,12 +21,14 @@ public class Stock {
     //@ManyToOne()
     //@JoinColumn(name = "id")
     //@MapsId(value = "foodId")
-    //private Food food;
-    //
+    @Transient
+    private Food food;
+
     //@ManyToOne()
     //@JoinColumn(name = "id")
     //@MapsId(value = "standId")
-    //private Stand stand;
+    @Transient
+    private Stand stand;
 
     public Stock() {
     }
@@ -36,11 +39,11 @@ public class Stock {
         this.count = count;
     }
 
-    //public Stock(Food food, Stand stand, int stock) {
-    //    this.food = food;
-    //    this.stand = stand;
-    //    this.stock = stock;
-    //}
+    public Stock(Food food, Stand stand, int count) {
+        this.count = count;
+        this.food = food;
+        this.stand = stand;
+    }
 
     public static class StockId implements Serializable {
 
