@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:background="@android:color/white"
+    android:paddingTop="15dp"
+    android:paddingBottom="5dp">
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:background="@color/grey_background"
+        android:padding="8dp">
+
+        <ImageView
+            android:id="@+id/group_indicator"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/group_indicator"
+            android:layout_gravity="center"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:layout_marginEnd="15dp"
+        android:text="@string/order_id"
+        android:textColor="#000"
+        android:textSize="20sp"
+        android:layout_gravity="center" />
+
+    <TextView
+        android:id="@+id/order_group_header_id"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="25dp"
+        android:text="#ID"
+        android:textColor="#000"
+        android:textSize="20sp"
+        android:layout_gravity="center"
+        android:layout_weight="1" />
+
+        <ImageView
+            android:id="@+id/order_group_priority"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/ic_priority_high_red_24dp"
+            android:layout_gravity="center" />
+
+    <TextView
+        android:id="@+id/order_group_header_count"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="15dp"
+        android:text="Count"
+        android:textColor="#000"
+        android:textSize="20sp"
+        android:layout_gravity="center" />
+
+    <TextView
+        android:id="@+id/order_group_header_price"
+        android:layout_width="105dp"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="15dp"
+        android:text="(Price)"
+        android:textColor="#000"
+        android:textSize="20sp"
+        android:layout_gravity="center"
+        android:gravity="end" />
+
+    </LinearLayout>
+
+</LinearLayout>

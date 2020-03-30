@@ -14,6 +14,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 
 /**
  * Handles the bottomSheet for a given menuItem that contains more details about the item
+ * TODO: handle runtime changes like rotating
  */
 public class MenuBottomSheetDialog extends BottomSheetDialogFragment {
 

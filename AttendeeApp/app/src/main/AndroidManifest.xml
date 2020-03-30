@@ -31,6 +31,14 @@
                 android:value=".MenuActivity" />
         </activity>
 
+        <activity android:name=".ConfirmActivity"
+            android:parentActivityName=".CartActivity" >
+            <!-- Parent activity meta-data to support 4.0 and lower -->
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".CartActivity" />
+        </activity>
+
         <activity android:name=".CartActivity"
             android:parentActivityName=".MenuActivity" >
             <!-- Parent activity meta-data to support 4.0 and lower -->

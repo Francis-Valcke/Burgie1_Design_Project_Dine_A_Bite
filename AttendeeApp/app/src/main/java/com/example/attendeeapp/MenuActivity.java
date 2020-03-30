@@ -199,6 +199,9 @@ public class MenuActivity extends AppCompatActivity implements OnCartChangeListe
         return true;
     }
 
+    // TODO:
+    //  -make toolbar generalized for all activities
+    //  -make Toast messages cancalable for all activities
     @Override
     public boolean onOptionsItemSelected(@NonNull android.view.MenuItem item) {
         switch (item.getItemId()) {

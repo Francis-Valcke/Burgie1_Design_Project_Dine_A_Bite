@@ -77,10 +77,11 @@ public abstract class MenuFragment extends Fragment {
                 try {
                     // Let fragments handle the response
                     updateMenu(response, standName);
-                } catch (Exception e) { // Catch all exceptions TODO: only specific ones
+
+                } catch (Exception e) { // Catch all exceptions TODO: only specific ones / better toast message
                     Log.v("Exception fetchMenu", e.toString());
                     if (mToast != null) mToast.cancel();
-                    mToast = Toast.makeText(getActivity(), "An error occurred when fetching the menu!",
+                    mToast = Toast.makeText(getActivity(), "A parsing error occurred when fetching the menu!",
                             Toast.LENGTH_LONG);
                     mToast.show();
                 }
@@ -89,14 +90,14 @@ public abstract class MenuFragment extends Fragment {
             @Override
             public void onErrorResponse(VolleyError error) {
 
-                /*
+
                 // Hardcoded test menuItem to add when server is unavailable
                 MenuItem item = new MenuItem("foodName", new BigDecimal(5.5), "brandName");
                 menuItems.add(item);
                 MenuItem item2 = new MenuItem("foody", new BigDecimal(6.11), "brand2");
                 menuItems.add(item2);
                 menuAdapter.putList(menuItems);
-                menuAdapter.notifyDataSetChanged();*/
+                menuAdapter.notifyDataSetChanged();
 
                 // NoConnectionError = no network connection
                 // other = server not reachable
@@ -106,7 +107,7 @@ public abstract class MenuFragment extends Fragment {
                                             Toast.LENGTH_LONG);
 
                 } else {
-                    mToast = Toast.makeText(getActivity(), "Server cannot be reached. Try again later.",
+                    mToast = Toast.makeText(getActivity(), "Server cannot be reached. No menu available.",
                                             Toast.LENGTH_LONG);
                 }
                 mToast.show();

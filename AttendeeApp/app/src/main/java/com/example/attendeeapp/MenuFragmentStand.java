@@ -40,7 +40,7 @@ import java.util.Map;
 public class MenuFragmentStand extends MenuFragment implements AdapterView.OnItemSelectedListener {
 
     private ArrayAdapter<String> standListAdapter;
-    // List of stand and brands: key = standName, value = brandName
+    // List of stand and brands: key = brandName, value = multiple standNames
     private HashMap<String, String> standList = new HashMap<String, String>();
 
     @Nullable
@@ -126,7 +126,7 @@ public class MenuFragmentStand extends MenuFragment implements AdapterView.OnIte
                         } catch (Exception e) { // Catch all exceptions TODO: only specific ones
                             Log.v("Exception fetchMenu", e.toString());
                             if (mToast != null) mToast.cancel();
-                            mToast = Toast.makeText(getActivity(), "An error occurred when fetching the menu!",
+                            mToast = Toast.makeText(getActivity(), "A parsing error occurred when fetching the stands!",
                                     Toast.LENGTH_LONG);
                             mToast.show();
                         }
@@ -142,7 +142,7 @@ public class MenuFragmentStand extends MenuFragment implements AdapterView.OnIte
                             Toast.LENGTH_LONG);
 
                 } else {
-                    mToast = Toast.makeText(getActivity(), "Server cannot be reached. Try again later.",
+                    mToast = Toast.makeText(getActivity(), "Server cannot be reached. No stands available.",
                             Toast.LENGTH_LONG);
                 }
                 mToast.show();
@@ -182,7 +182,7 @@ public class MenuFragmentStand extends MenuFragment implements AdapterView.OnIte
             JSONArray jsonArray = response.getJSONArray(foodName);
             String brandName = jsonArray.getString(0);
             double price = jsonArray.getDouble(1);
-            MenuItem item = new MenuItem(foodName, new BigDecimal(price), brandName);
+            MenuItem item = new MenuItem(foodName, BigDecimal.valueOf(price), brandName);
             item.setStandName(standName);
 
             // Add categories to the menuItem
