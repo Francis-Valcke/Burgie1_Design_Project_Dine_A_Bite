@@ -1,6 +1,5 @@
 package com.example.attendeeapp;
 
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Typeface;
 import android.location.Location;
@@ -17,7 +16,6 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
@@ -70,15 +68,14 @@ public class ConfirmActivity extends AppCompatActivity implements AdapterView.On
         requestOrderRecommend();
         fetchStandNames();
 
+        // Make distance and time of recommendation invisible until recommendation comes available
         TextView distanceText = findViewById(R.id.recommend_distance_text);
         distanceText.setVisibility(View.INVISIBLE);
-
         TextView distance = findViewById(R.id.recommend_distance);
         distance.setVisibility(View.INVISIBLE);
 
         /*TextView remainingTimeText = findViewById(R.id.recommend_time_text);
         remainingTimeText.setVisibility(View.INVISIBLE);
-
         TextView remainingTime = findViewById(R.id.recommend_time);
         remainingTime.setVisibility(View.INVISIBLE);*/
 
@@ -202,7 +199,7 @@ public class ConfirmActivity extends AppCompatActivity implements AdapterView.On
     /**
      * Sends order of user to the server in JSON to request a recommendation
      * Send a JSON object with ordered items and user location
-     * Format: Order converted to JSON
+     * Format: CommonOrder converted to JSON
      * Location is (360, 360) when user location is unknown
      */
     private void requestOrderRecommend() {
@@ -228,7 +225,7 @@ public class ConfirmActivity extends AppCompatActivity implements AdapterView.On
             Log.v("JsonException in cart", e.toString());
         }
 
-        // remove unnecessary initial values, this will be set by server
+        // Remove unnecessary initial values, this will be set by server
         jsonOrder.remove("id");
         jsonOrder.remove("startTime");
         jsonOrder.remove("expectedTime");
@@ -303,6 +300,7 @@ public class ConfirmActivity extends AppCompatActivity implements AdapterView.On
                                 String brandName = response.getString(standName);
                                 brandStandMap.put(brandName, standName);
                             }
+                            // Only stands of the brand selected in the order can be shown
                             for (String s : brandStandMap.get(ordered.get(0).getBrandName())) {
                                 standListAdapter.add(s);
                             }
@@ -349,7 +347,7 @@ public class ConfirmActivity extends AppCompatActivity implements AdapterView.On
     }
 
     /**
-     * Function that updates the textViews to show the received recommendation
+     * Function that updates the textViews to show the received recommendation info
      */
     public void showRecommendation() {
         if(recommendations != null) {

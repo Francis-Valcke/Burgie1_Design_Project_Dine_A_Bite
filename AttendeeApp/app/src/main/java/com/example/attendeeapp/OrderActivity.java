@@ -10,7 +10,6 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.widget.ExpandableListView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.volley.AuthFailureError;
@@ -26,7 +25,6 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -74,9 +72,7 @@ public class OrderActivity extends AppCompatActivity {
         adapter.setTotalPrice(amount);
         expandList.setAdapter(adapter);
 
-
-        // Request the order ID from the server and confirm the chosen stand.
-
+        // Send the order and chosen stand ID to the server and confirm the chosen stand
         // Instantiate the RequestQueue
         RequestQueue queue = Volley.newRequestQueue(this);
         String om_url = String.format("http://cobol.idlab.ugent.be:8091/confirmStand?order_id=%1$s&stand_id=%2$s", newOrder.getId(), stand);
@@ -119,6 +115,12 @@ public class OrderActivity extends AppCompatActivity {
     }
 
     @Override
+    public void onBackPressed() {
+        Intent intent = new Intent(OrderActivity.this, MenuActivity.class);
+        startActivity(intent);
+    }
+
+    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.main_menu, menu);
@@ -131,8 +133,7 @@ public class OrderActivity extends AppCompatActivity {
             case android.R.id.home:
                 // This takes the user 'back', as if they pressed the left-facing triangle icon
                 // on the main android toolbar.
-                Intent intent = new Intent(OrderActivity.this, MenuActivity.class);
-                startActivity(intent);
+                onBackPressed();
                 return true;
             case R.id.orders_action:
                 // User chooses the "My Orders" item

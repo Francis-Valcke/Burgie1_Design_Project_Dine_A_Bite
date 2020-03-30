@@ -86,6 +86,7 @@ public class OrderExpandableItemAdapter extends BaseExpandableListAdapter {
             view = inflater.inflate(R.layout.order_group_expandable,null);
         }
 
+        // Make a spinning exclamation mark to notify user of changes (not used yet)
         ImageView highPriority = (ImageView)view.findViewById(R.id.order_group_priority);
         Animation rotation = AnimationUtils.loadAnimation(context, R.anim.priority_high);
         rotation.setDuration(1000);
@@ -123,7 +124,7 @@ public class OrderExpandableItemAdapter extends BaseExpandableListAdapter {
             view = inflater.inflate(R.layout.order_item_expandable_header, null);
         }
 
-        // Here is the ListView of the ChildView
+        // Here is the ListView of the ChildView is handled
         if(childPos > 0 && childPos < getChildrenCount(groupPos))
         {
             // Handle one menuItem of the order being shown
