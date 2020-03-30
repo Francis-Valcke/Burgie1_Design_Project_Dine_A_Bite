@@ -22,14 +22,18 @@ import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.example.standapp.order.CommonOrder;
 import com.example.standapp.order.CommonOrderItem;
+import com.example.standapp.order.Event;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.DataInput;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -51,7 +55,8 @@ public class OrderFragment extends Fragment {
         View view = inflater.inflate(R.layout.activity_order, container, false);
 
         //the function below will subscribe to the Event Channel, so that we could receive the orders from it in the OrderFragment class
-        subscriberId = subscribeEC();
+        subscribeEC();
+
 
         refresh = view.findViewById(R.id.refresh);
         listView = view.findViewById(R.id.expandable_listview);
@@ -68,6 +73,7 @@ public class OrderFragment extends Fragment {
                 //Instantiate the RequestQueue
                 RequestQueue queue = Volley.newRequestQueue(getContext());
                 String url = "http://cobol.idlab.ugent.be:8093/events?id=" + subscriberId;
+                System.out.println("LINK: " + "http://cobol.idlab.ugent.be:8093/events?id=" + subscriberId);
 
                 //GET
                 final JsonObjectRequest jsonRequest = new JsonObjectRequest(Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
@@ -75,22 +81,29 @@ public class OrderFragment extends Fragment {
                     @Override
                     public void onResponse(JSONObject response) {
                         ObjectMapper mapper = new ObjectMapper();
-                        /*try {
-                            //List<Commons.> eventList = mapper.readValue(response.get("details").toString(), new TypeReference<List<Event>>() {});
-                            //CommonOrder order = mapper.readValue(eventList.get("order").toString(), CommonOrder.class);
+                        //mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
 
-                            String orderName = "Order#" + Integer.toString(order.getId());
-                            listDataHeader.add(orderName);
-                            List<String> order_details = new ArrayList<>();
-                            for (CommonOrderItem i: order.getOrderItems()) {
-                                String detail = Integer.toString(i.getAmount()) + " " + i.getFoodname();
-                                order_details.add(detail);
+                        try {
+                            //JSONObject response2 = mapper.readValue(response.toString(), JSONObject.class);
+                            String details = (String) response.get("details");
+                            List<Event> eventList = mapper.readValue(details, new TypeReference<List<Event>>() {});
+                            //Event[] eventList = mapper.readValue(details, Event[].class);
+                            //eventList.get(0).setEventData(response.get("details"));
+                            for (Event event: eventList) {
+                                CommonOrder order = mapper.readValue(event.getEventData().get("order").toString(), CommonOrder.class);
+                                String orderName = "Order#" + Integer.toString(order.getId());
+                                listDataHeader.add(orderName);
+                                List<String> order_details = new ArrayList<>();
+                                for (CommonOrderItem i: order.getOrderItems()) {
+                                    String detail = Integer.toString(i.getAmount()) + " " + i.getFoodname();
+                                    order_details.add(detail);
+                                }
+                                listHash.put(orderName, order_details);
                             }
-                            listHash.put(orderName, order_details);
                             listAdapter.notifyDataSetChanged();
-                        } catch (JsonProcessingException | JSONException e) {
+                        } catch (IOException | JSONException e) {
                             e.printStackTrace();
-                        }*/
+                        }
                     }
                 }, new Response.ErrorListener() {
                     @Override
@@ -119,11 +132,11 @@ public class OrderFragment extends Fragment {
     /**
      * This function will subscribe to the Event Channel
      */
-    public String subscribeEC() {
+    public void subscribeEC() {
         RequestQueue queue = Volley.newRequestQueue(getContext());
         //System.out.println("ENTER SUBSCRIBE FUNCTION");
-        String url = "http://cobol.idlab.ugent.be:8093/registerSubscriber?types=s100";
-        final String[] ret = new String[1];
+        String url = "http://cobol.idlab.ugent.be:8093/registerSubscriber?types=s4";
+        //final String[] ret = new String[1];
 
         //GET
         StringRequest request = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
@@ -133,7 +146,9 @@ public class OrderFragment extends Fragment {
                 //System.out.println("subscriberId within onResponse: " + response);
                 Toast mToast = Toast.makeText(getContext(), "SubscriberId: " + response, Toast.LENGTH_SHORT);
                 mToast.show();
-                ret[0] = response;
+                subscriberId = response;
+                System.out.println("SUBSCRIBEDID: " + subscriberId);
+                //ret[0] = response;
             }
         }, new Response.ErrorListener() {
             @Override
@@ -152,7 +167,7 @@ public class OrderFragment extends Fragment {
             }
         };
         queue.add(request);
-        return ret[0];
+        //return ret[0];
     }
 
     /*@Override
@@ -175,7 +190,7 @@ public class OrderFragment extends Fragment {
     }*/
 
     /**
-     * Initialize the orders, currently hardcoded, later this will be provided by the server
+     * Initialize the orders, later this will be provided by the server (this was the hardcoded version and is no longer used
      */
     private void initData() {
         listDataHeader = new ArrayList<>();
