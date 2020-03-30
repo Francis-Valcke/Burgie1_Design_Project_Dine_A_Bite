@@ -109,45 +109,4 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             super.onBackPressed();
         }
     }
-
-
-    /**
-     * This function will subscribe to the Event Channel
-     */
-    /*public String subscribeEC() {
-        RequestQueue queue = Volley.newRequestQueue(this);
-        //System.out.println("ENTER SUBSCRIBE FUNCTION");
-        String url = "http://cobol.idlab.ugent.be:8093/registerSubscriber?types=s100";
-        final String[] ret = new String[1];
-
-        //GET
-        StringRequest request = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
-            @Override
-            public void onResponse(String response) {
-                //System.out.println("ENTER ONRESPONSE FUNCTION");
-                //System.out.println("subscriberId within onResponse: " + response);
-                Toast mToast = Toast.makeText(MainActivity.this, "SubscriberId: " + response, Toast.LENGTH_SHORT);
-                mToast.show();
-                ret[0] = response;
-            }
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                error.printStackTrace();
-                Toast mToast = Toast.makeText(MainActivity.this, error.toString(), Toast.LENGTH_SHORT);
-                mToast.show();
-            }
-        }) {
-            @Override
-            public Map<String, String> getHeaders() {
-                HashMap<String, String> headers = new HashMap<>();
-                headers.put("Content-Type", "application/json");
-                headers.put("Authorization", "Bearer" + " " + "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJmcmFuY2lzIiwicm9sZXMiOlsiUk9MRV9VU0VSIiwiUk9MRV9BRE1JTiJdLCJpYXQiOjE1ODQ2MTAwMTcsImV4cCI6MTc0MjI5MDAxN30.5UNYM5Qtc4anyHrJXIuK0OUlsbAPNyS9_vr-1QcOWnQ");
-                return headers;
-            }
-        };
-        queue.add(request);
-        return ret[0];
-    }*/
-
 }

@@ -138,7 +138,7 @@ public class OrderFragment extends Fragment {
     public void subscribeEC() {
         RequestQueue queue = Volley.newRequestQueue(getContext());
         //System.out.println("ENTER SUBSCRIBE FUNCTION");
-        String url = "http://cobol.idlab.ugent.be:8093/registerSubscriber?types=s4";
+        String url = "http://cobol.idlab.ugent.be:8093/registerSubscriber?types=s4"; //TODO: Currently standId 4 is hardcoded, FIX THIS
         //final String[] ret = new String[1];
 
         //GET
@@ -173,24 +173,6 @@ public class OrderFragment extends Fragment {
         //return ret[0];
     }
 
-    /*@Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_order);
-
-        buttonDashboard = (Button)findViewById(R.id.button_dashboard);
-        buttonDashboard.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                openManagerDashboard();
-            }
-        });
-
-        listView = (ExpandableListView)findViewById(R.id.expandable_listview);
-        initData();
-        listAdapter = new ExpandableListAdapter(listDataHeader,listHash);
-        listView.setAdapter(listAdapter);
-    }*/
 
     /**
      * Initialize the orders, later this will be provided by the server (this was the hardcoded version and is no longer used
