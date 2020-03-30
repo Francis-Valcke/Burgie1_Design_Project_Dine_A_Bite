@@ -68,8 +68,7 @@ public class OrderProcessor {
      */
     @Scheduled(fixedDelay=500)
     public void pollEvents() {
-        String uri = "http://cobol.idlab.ugent.be:8093/registerSubscriber";
-        //String uri = OrderManager.ECURL + "/events";
+        String uri = OrderManager.ECURL + "/events";
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(uri)
                 .queryParam("id", this.subscriberId);
         ResponseEntity<String> response = this.restTemplate.exchange(builder.toUriString(), HttpMethod.GET, this.entity, String.class);

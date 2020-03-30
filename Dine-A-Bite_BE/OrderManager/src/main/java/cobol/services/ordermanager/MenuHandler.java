@@ -304,7 +304,8 @@ public class MenuHandler {
             if (preptime >= 0) food.setPreptime(preptime);
             //checkk if description empty
             if (!(desc.equals(""))) food.setDescription(desc);
-            publishMenuChange(mi, brandname);
+            if (sMon)publishMenuChange(mi, brandname);
+
 
         } else {
             food.setPrice(price);
