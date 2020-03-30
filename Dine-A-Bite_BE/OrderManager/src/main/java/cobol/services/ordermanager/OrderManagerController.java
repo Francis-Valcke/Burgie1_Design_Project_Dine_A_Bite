@@ -210,7 +210,8 @@ public class OrderManagerController {
         JSONObject orderJson = new JSONObject();
         orderJson.put("order", updatedOrder);
         List<String> types = new ArrayList<>();
-        types.add(String.valueOf(orderId));
+        types.add("o"+String.valueOf(orderId));
+        types.add("s"+String.valueOf(standId));
         Event e = new Event(orderJson, types, "Order");
 
         // Publish event to standmanager

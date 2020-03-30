@@ -100,9 +100,10 @@ public class OrderProcessor {
                 if (newStatus.equals(Order.status.DECLINED)) {
                     runningOrders.remove(orderId);
                     String uri = OrderManager.ECURL + "/deregisterSubscriber";
+                    String channelId = "o" + Integer.toString(orderId);
                     UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(uri)
                             .queryParam("id", this.subscriberId)
-                            .queryParam("type", orderId);
+                            .queryParam("type", channelId);
                     ResponseEntity<String> response = this.restTemplate.exchange(builder.toUriString(), HttpMethod.GET, this.entity, String.class);
                 }
             }
@@ -125,9 +126,10 @@ public class OrderProcessor {
 
         // subscribe to the channel of the order
         String uri = OrderManager.ECURL + "registerSubscriber/toChannel";
+        String channelId = "o" + Integer.toString(newOrder.getId());
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(uri)
                 .queryParam("id", this.subscriberId)
-                .queryParam("type", newOrder.getId());
+                .queryParam("type", channelId);
         ResponseEntity<String> responseEntity = this.restTemplate.exchange(builder.toUriString(), HttpMethod.GET, this.entity, String.class);
         return newOrder;
     }
