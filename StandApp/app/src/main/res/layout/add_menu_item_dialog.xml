@@ -9,7 +9,7 @@
     <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:helperText="Name of menu item"
+        app:helperText="@string/name_of_menu_item"
         android:padding="10dp"
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
         android:maxLength="20"
@@ -27,7 +27,7 @@
     <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:helperText="Price of menu item in €"
+        app:helperText="@string/price_of_menu_item_in_euro"
         android:padding="10dp"
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
@@ -42,7 +42,7 @@
     <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:helperText="Number of added items to the stock (not final)"
+        app:helperText="@string/added_stock_helper_text"
         android:padding="10dp"
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 

@@ -38,6 +38,9 @@
     <string name="in_stock">In stock:</string>
     <string name="amount_in_stock_of_menu_item">Amount in stock of menu item</string>
     <string name="hash_tag">#</string>
+    <string name="name_of_menu_item">Name of menu item</string>
+    <string name="price_of_menu_item_in_euro">Price of menu item in €</string>
+    <string name="added_stock_helper_text">Number of added items to the stock (not final)</string>
     <string-array name="snacks">
         <item>Burger</item>
         <item>Doughnut</item>
