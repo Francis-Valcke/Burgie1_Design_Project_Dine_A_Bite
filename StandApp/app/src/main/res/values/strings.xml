@@ -22,6 +22,25 @@
     <string name="done">Done</string>
     <string name="dine_a_bite_stands">Dine-A-Bite Stands</string>
     <string name="logo">Logo</string>
+    <string name="submit">Submit</string>
+    <string name="add">ADD</string>
+    <string name="add_menu_item">Add menu item</string>
+    <string name="submit_changes">Submit changes</string>
+    <string name="name">Name</string>
+    <string name="price_in_euro">Price in €</string>
+    <string name="stock">Stock</string>
+    <string name="added_stock">Added stock</string>
+    <string name="account_information">Account information</string>
+    <string name="brand_name">Brand name</string>
+    <string name="menu_item_name">Menu item name</string>
+    <string name="euro_sign">€</string>
+    <string name="menu_item_price">Menu item price</string>
+    <string name="in_stock">In stock:</string>
+    <string name="amount_in_stock_of_menu_item">Amount in stock of menu item</string>
+    <string name="hash_tag">#</string>
+    <string name="name_of_menu_item">Name of menu item</string>
+    <string name="price_of_menu_item_in_euro">Price of menu item in €</string>
+    <string name="added_stock_helper_text">Number of added items to the stock (not final)</string>
     <string-array name="snacks">
         <item>Burger</item>
         <item>Doughnut</item>
