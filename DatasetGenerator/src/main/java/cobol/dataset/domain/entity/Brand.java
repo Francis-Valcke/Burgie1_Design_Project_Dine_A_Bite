@@ -4,6 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.LazyCollection;
+import org.hibernate.annotations.LazyCollectionOption;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -19,18 +21,21 @@ import java.util.List;
 public class Brand implements Serializable {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
-
     private String name;
 
     @Builder.Default
+    @LazyCollection(LazyCollectionOption.FALSE)
     @OneToMany(mappedBy = "brand", cascade = CascadeType.ALL)
     private List<Food> foodList = new ArrayList<>();
 
     @Builder.Default
+    @LazyCollection(LazyCollectionOption.FALSE)
     @OneToMany(mappedBy = "brand", cascade = CascadeType.ALL)
     private List<Stand> standList = new ArrayList<>();
+
+    public Brand(String name) {
+        this.name = name;
+    }
 
     public void addStand(Stand stand){
         this.standList.add(stand);

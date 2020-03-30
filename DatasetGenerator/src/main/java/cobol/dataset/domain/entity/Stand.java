@@ -18,23 +18,31 @@ import java.util.Map;
 @AllArgsConstructor
 public class Stand {
 
+    private static int idCounter = 1;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
     private String name;
 
+    //private String brandName;
+
     private double longitude;
 
     private double latitude;
 
-    @ManyToOne()
-    @JoinColumn(name = "brand_id")
-    private Brand brand;
+    //@Builder.Default
+    //@OneToMany(mappedBy = "stand")
+    //private List<Stock> stockList = new ArrayList<>();
 
-    @Builder.Default
-    @ManyToMany(mappedBy = "standList")
-    private List<Food> foodList = new ArrayList<>();
+    @ManyToOne()
+    @JoinColumn(name = "brand_name")
+    private Brand brand;
+    //
+    //@Builder.Default
+    //@ManyToMany(mappedBy = "standList")
+    //private List<Food> foodList = new ArrayList<>();
 
 
     public void addBrand(Brand brand) {
@@ -42,10 +50,11 @@ public class Stand {
         brand.getStandList().add(this);
     }
 
-    public void addFood(Food food) {
-        foodList.add(food);
-        food.getStandList().add(this);
-    }
+
+    //public void addFood(Food food) {
+    //    foodList.add(food);
+    //    food.getStandList().add(this);
+    //}
 
 }
 

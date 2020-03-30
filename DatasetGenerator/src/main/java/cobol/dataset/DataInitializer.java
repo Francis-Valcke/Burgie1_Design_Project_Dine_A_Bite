@@ -7,6 +7,8 @@ import cobol.dataset.domain.entity.Stock;
 import cobol.dataset.domain.repository.BrandRepository;
 import cobol.dataset.domain.repository.FoodRepository;
 import cobol.dataset.domain.repository.StandRepository;
+import cobol.dataset.domain.repository.StockRepository;
+import javafx.util.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -16,8 +18,10 @@ import org.springframework.transaction.PlatformTransactionManager;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.PersistenceContext;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 /**
  * This class will be discovered by the component scanner and exposed as a bean on which the run method will be run.
@@ -32,6 +36,7 @@ public class DataInitializer implements CommandLineRunner {
     StandRepository standRepository;
     BrandRepository brandRepository;
     FoodRepository foodRepository;
+    StockRepository stockRepository;
     /**
      * Debug methods for placing some initial users into the database.
      * @param args runtime arguments
@@ -40,24 +45,33 @@ public class DataInitializer implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
 
-        Brand brand = Brand.builder().name("test").build();
-        Stand stand = Stand.builder().name("test").brand(brand).build();
-        Food food = Food.builder().name("test").brand(brand).build();
+        List<Brand> dataset = Dataset1.getDataset1();
 
-        brand.addStand(stand);
-        brand.addFood(food);
-        food.addStand(stand);
+        for (Brand brand : dataset) {
 
-        //Stock stock = new Stock(food, stand, 25);
-        //
-        //brand.getFoodList().get(0).getStockMap().put(stand, stock);
+            for (Food food : brand.getFoodList()) {
+                food.setBrand(brand);
+            }
 
-        brand = brandRepository.save(brand);
+            for (Stand stand : brand.getStandList()) {
+                stand.setBrand(brand);
+            }
+
+            brandRepository.saveAndFlush(brand);
+        }
+
+        List<Brand> brands = brandRepository.findAll();
+
+        for (Brand brand : brands) {
+            for (Stand stand : brand.getStandList()) {
+                for (Food food : brand.getFoodList()) {
+                    Stock stock = new Stock(food.getId(), stand.getId(), 25);
+                    stockRepository.saveAndFlush(stock);
+                }
+            }
+        }
 
 
-
-        //Brand newBrand = brandRepository.findAll().get(0);
-        //System.out.println();
     }
 
     @Autowired
@@ -73,6 +87,11 @@ public class DataInitializer implements CommandLineRunner {
     @Autowired
     public void setFoodRepository(FoodRepository foodRepository) {
         this.foodRepository = foodRepository;
+    }
+
+    @Autowired
+    public void setStockRepository(StockRepository stockRepository) {
+        this.stockRepository = stockRepository;
     }
 
     @Autowired
