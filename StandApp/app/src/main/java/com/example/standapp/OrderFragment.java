@@ -23,6 +23,7 @@ import com.android.volley.toolbox.Volley;
 import com.example.standapp.order.CommonOrder;
 import com.example.standapp.order.CommonOrderItem;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.json.JSONArray;
@@ -42,11 +43,15 @@ public class OrderFragment extends Fragment {
     private List<String> listDataHeader = new ArrayList<>();
     private HashMap<String,List<String>> listHash = new HashMap<>();
     //private int standId = 100;
+    private String subscriberId;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.activity_order, container, false);
+
+        //the function below will subscribe to the Event Channel, so that we could receive the orders from it in the OrderFragment class
+        subscriberId = subscribeEC();
 
         refresh = view.findViewById(R.id.refresh);
         listView = view.findViewById(R.id.expandable_listview);
@@ -62,22 +67,18 @@ public class OrderFragment extends Fragment {
 
                 //Instantiate the RequestQueue
                 RequestQueue queue = Volley.newRequestQueue(getContext());
-                String url = "http://cobol.idlab.ugent.be:8093/registerSubscriber"; // TODO: fix url
+                String url = "http://cobol.idlab.ugent.be:8093/events?id=" + subscriberId;
 
                 //GET
                 final JsonObjectRequest jsonRequest = new JsonObjectRequest(Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
 
                     @Override
                     public void onResponse(JSONObject response) {
-                        /*if (response == null) {
-                            Toast mToast = Toast.makeText(getContext(), "No new orders", Toast.LENGTH_SHORT);
-                            mToast.show();
-                            return;
-                        }*/
                         ObjectMapper mapper = new ObjectMapper();
-                        //Map<String, String> headers = jsonRequest.getHeaders();
-                        try {
-                            CommonOrder order = mapper.readValue(response.get("order").toString(), CommonOrder.class);
+                        /*try {
+                            //List<Commons.> eventList = mapper.readValue(response.get("details").toString(), new TypeReference<List<Event>>() {});
+                            //CommonOrder order = mapper.readValue(eventList.get("order").toString(), CommonOrder.class);
+
                             String orderName = "Order#" + Integer.toString(order.getId());
                             listDataHeader.add(orderName);
                             List<String> order_details = new ArrayList<>();
@@ -85,15 +86,11 @@ public class OrderFragment extends Fragment {
                                 String detail = Integer.toString(i.getAmount()) + " " + i.getFoodname();
                                 order_details.add(detail);
                             }
-                            //order_details.add("2 Fries");
-                            //order_details.add("3 Cheeseburgers");
-
                             listHash.put(orderName, order_details);
                             listAdapter.notifyDataSetChanged();
-
                         } catch (JsonProcessingException | JSONException e) {
                             e.printStackTrace();
-                        }
+                        }*/
                     }
                 }, new Response.ErrorListener() {
                     @Override
@@ -117,6 +114,45 @@ public class OrderFragment extends Fragment {
         });
 
         return view;
+    }
+
+    /**
+     * This function will subscribe to the Event Channel
+     */
+    public String subscribeEC() {
+        RequestQueue queue = Volley.newRequestQueue(getContext());
+        //System.out.println("ENTER SUBSCRIBE FUNCTION");
+        String url = "http://cobol.idlab.ugent.be:8093/registerSubscriber?types=s100";
+        final String[] ret = new String[1];
+
+        //GET
+        StringRequest request = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                //System.out.println("ENTER ONRESPONSE FUNCTION");
+                //System.out.println("subscriberId within onResponse: " + response);
+                Toast mToast = Toast.makeText(getContext(), "SubscriberId: " + response, Toast.LENGTH_SHORT);
+                mToast.show();
+                ret[0] = response;
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                error.printStackTrace();
+                Toast mToast = Toast.makeText(getContext(), error.toString(), Toast.LENGTH_SHORT);
+                mToast.show();
+            }
+        }) {
+            @Override
+            public Map<String, String> getHeaders() {
+                HashMap<String, String> headers = new HashMap<>();
+                headers.put("Content-Type", "application/json");
+                headers.put("Authorization", "Bearer" + " " + "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJmcmFuY2lzIiwicm9sZXMiOlsiUk9MRV9VU0VSIiwiUk9MRV9BRE1JTiJdLCJpYXQiOjE1ODQ2MTAwMTcsImV4cCI6MTc0MjI5MDAxN30.5UNYM5Qtc4anyHrJXIuK0OUlsbAPNyS9_vr-1QcOWnQ");
+                return headers;
+            }
+        };
+        queue.add(request);
+        return ret[0];
     }
 
     /*@Override

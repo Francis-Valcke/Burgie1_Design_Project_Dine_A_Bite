@@ -10,15 +10,37 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import android.view.MenuItem;
 
 import android.os.Bundle;
+import android.widget.Toast;
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
+import com.example.standapp.order.CommonOrder;
+import com.example.standapp.order.CommonOrderItem;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.android.material.navigation.NavigationView;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
     private DrawerLayout drawer;
-    private ProfileFragment profile;
-    private OrderFragment order;
-    private DashboardFragment2 dashboard;
+    private static ProfileFragment profile;
+    private static OrderFragment order;
+    private static DashboardFragment dashboard;
+    private int standId = 100;
+    private String subscriberId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,6 +72,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, profile).commit();
             navigationView.setCheckedItem(R.id.nav_profile);
         }
+
+        //the function below will subscribe to the Event Channel, so that we could receive the orders from it in the OrderFragment class
+        //subscriberId = subscribeEC();
     }
 
     /**
@@ -84,4 +109,45 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             super.onBackPressed();
         }
     }
+
+
+    /**
+     * This function will subscribe to the Event Channel
+     */
+    /*public String subscribeEC() {
+        RequestQueue queue = Volley.newRequestQueue(this);
+        //System.out.println("ENTER SUBSCRIBE FUNCTION");
+        String url = "http://cobol.idlab.ugent.be:8093/registerSubscriber?types=s100";
+        final String[] ret = new String[1];
+
+        //GET
+        StringRequest request = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                //System.out.println("ENTER ONRESPONSE FUNCTION");
+                //System.out.println("subscriberId within onResponse: " + response);
+                Toast mToast = Toast.makeText(MainActivity.this, "SubscriberId: " + response, Toast.LENGTH_SHORT);
+                mToast.show();
+                ret[0] = response;
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                error.printStackTrace();
+                Toast mToast = Toast.makeText(MainActivity.this, error.toString(), Toast.LENGTH_SHORT);
+                mToast.show();
+            }
+        }) {
+            @Override
+            public Map<String, String> getHeaders() {
+                HashMap<String, String> headers = new HashMap<>();
+                headers.put("Content-Type", "application/json");
+                headers.put("Authorization", "Bearer" + " " + "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJmcmFuY2lzIiwicm9sZXMiOlsiUk9MRV9VU0VSIiwiUk9MRV9BRE1JTiJdLCJpYXQiOjE1ODQ2MTAwMTcsImV4cCI6MTc0MjI5MDAxN30.5UNYM5Qtc4anyHrJXIuK0OUlsbAPNyS9_vr-1QcOWnQ");
+                return headers;
+            }
+        };
+        queue.add(request);
+        return ret[0];
+    }*/
+
 }
