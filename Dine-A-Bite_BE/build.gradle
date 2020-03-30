@@ -120,7 +120,6 @@ project(':AuthenticationService'){
 
         //Support for json web tokens in java
         implementation group: 'io.jsonwebtoken', name: 'jjwt', version: '0.9.1'
-
         //Library for removing lots of boilerplate code, use in combination with intellij plugin
         compileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.12'
         annotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.12'
@@ -156,7 +155,7 @@ project(':OrderManager'){
         //Spring related imports
         implementation group: 'org.springframework.boot', name: 'spring-boot-starter-security', version: '2.2.5.RELEASE'
         implementation group: 'org.springframework.boot', name: 'spring-boot-starter-web', version: '2.2.5.RELEASE'
-
+        implementation group: 'com.google.guava', name: 'guava', version: '23.5-jre'
         //For testing REST API
         testImplementation 'io.rest-assured:rest-assured:4.2.0'
         testImplementation 'io.rest-assured:json-schema-validator:4.3.0'

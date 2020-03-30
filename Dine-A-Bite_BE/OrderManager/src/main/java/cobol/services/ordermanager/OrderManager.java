@@ -1,12 +1,15 @@
 package cobol.services.ordermanager;
+
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 
 @SpringBootApplication
+@EnableScheduling
 public class OrderManager {
 
-    public static boolean test= false;
+    public static boolean test= true;
 
     public static String ACURL;
     public static String SMURL;

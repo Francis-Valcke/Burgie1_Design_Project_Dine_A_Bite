@@ -16,14 +16,15 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.context.WebApplicationContext;
 
-import java.util.ArrayList;;
+import java.util.ArrayList;
 import java.util.List;
 
-import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
+
+;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -56,10 +57,14 @@ public class EventChannelTest {
                     );
             JSONObject testData = new JSONObject();
             testData.put("data", "This is a test");
-            String[] typesOne = {"1", "2"};
-            Event eventOne = new Event(testData, typesOne);
-            String[] typesTwo = {"3", "4"};
-            Event eventTwo = new Event(testData, typesTwo);
+            List<String> typesOne = new ArrayList<>();
+            typesOne.add("1");
+            typesOne.add("2");
+            Event eventOne = new Event(testData, typesOne, "test");
+            List<String> typesTwo = new ArrayList<>();
+            typesTwo.add("3");
+            typesTwo.add("4");
+            Event eventTwo = new Event(testData, typesTwo, "test");
             eventList.add(eventOne);
             eventList.add(eventTwo);
             for (Event e : eventList) {
@@ -117,7 +122,6 @@ public class EventChannelTest {
                 )
                 .andExpect(status().isOk());
     }
-
     @Test
     public void testEventPolling() throws Exception {
         String data = this.mockMvc

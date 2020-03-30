@@ -1,12 +1,10 @@
 package cobol.services.ordermanager;
 
 import cobol.commons.Event;
-import cobol.commons.order.Recommendation;
-import cobol.services.ordermanager.dbmenu.Order;
 import cobol.commons.ResponseModel;
+import cobol.commons.order.Recommendation;
 import cobol.commons.security.CommonUser;
-import cobol.services.ordermanager.dbmenu.OrderItem;
-import cobol.services.ordermanager.dbmenu.OrderRepository;
+import cobol.services.ordermanager.dbmenu.Order;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -24,9 +22,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.PostConstruct;
-import java.util.LinkedHashMap;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 import static cobol.commons.ResponseModel.status.OK;
 
@@ -40,10 +37,22 @@ import static cobol.commons.ResponseModel.status.OK;
 @RestController
 public class OrderManagerController {
     @Autowired // This means to get the bean called standRepository
-    private MenuHandler mh = new MenuHandler();
+    private MenuHandler mh;
 
+    private RestTemplate restTemplate;
+    private HttpHeaders headers;
+    private HttpEntity<String> entity;
     @Autowired
-    OrderRepository orders;
+    private ObjectMapper objectMapper;
+    @Autowired
+    OrderProcessor orderProcessor = null;
+
+    OrderManagerController() {
+        this.restTemplate = new RestTemplate();
+        this.headers = new HttpHeaders();
+        this.headers.setContentType(MediaType.APPLICATION_JSON);
+        this.headers.add("Authorization", "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJPcmRlck1hbmFnZXIiLCJyb2xlcyI6WyJST0xFX0FQUExJQ0FUSU9OIl0sImlhdCI6MTU4NDkxMTY3MSwiZXhwIjoxNzQyNTkxNjcxfQ.VmujsURhZaXRp5FQJXzmQMB-e6QSNF-OyPLeMEMOVvI");
+    }
 
     /**
      * API endpoint to test if the server is still alive.
@@ -107,10 +116,13 @@ public class OrderManagerController {
 
     @RequestMapping("/getOrderInfo")
     public JSONObject getOrderInfo(@RequestParam(name="orderId") int orderId) throws JsonProcessingException {
-        // retrieve order from database
-        Order requestedOrder= orders.findById(orderId).get();
+
+        // retrieve order
+        Order order= orderProcessor.getOrder(orderId);
+
+        // write order to json
         ObjectMapper mapper= new ObjectMapper();
-        String jsonString= mapper.writeValueAsString(requestedOrder);
+        String jsonString= mapper.writeValueAsString(order);
         JSONParser parser= new JSONParser();
         JSONObject orderResponse=new JSONObject();
         try {
@@ -124,51 +136,39 @@ public class OrderManagerController {
     /**
      * Add the order to the order processor, gets a recommendation from the scheduler and forwards it to the attendee app.
      *
-     * @param order_object the order recieved from the attendee app
+     * @param orderObject the order recieved from the attendee app
      * @return the order id, along with the json with recommended stands
      * @throws JsonProcessingException
      *
      */
     @PostMapping(value = "/placeOrder", consumes = "application/json", produces = "application/json")
-    public JSONObject placeOrder(@AuthenticationPrincipal CommonUser userDetails, @RequestBody JSONObject order_object) throws JsonProcessingException {
-        // Map json to new order
-        ObjectMapper mapper = new ObjectMapper();
-        Order newOrder= new Order(order_object);
-
+    public JSONObject placeOrder(@AuthenticationPrincipal CommonUser userDetails, @RequestBody JSONObject orderObject) throws JsonProcessingException {
 
         // Add order to the processor
-        OrderProcessor processor = OrderProcessor.getOrderProcessor();
-        processor.addOrder(newOrder);
+        Order newOrder= new Order(orderObject);
+        newOrder=orderProcessor.addNewOrder(newOrder);
 
 
         // Put order in json to send to standmanager (as commonOrder object)
+        ObjectMapper mapper = new ObjectMapper();
         String jsonString = mapper.writeValueAsString(newOrder);
 
 
         // Ask standmanager for recommendation
-        RestTemplate template = new RestTemplate();
-        HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         String uri = OrderManager.SMURL+"/getRecommendation";
-        headers.add("Authorization", "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJPcmRlck1hbmFnZXIiLCJyb2xlcyI6WyJST0xFX0FQUExJQ0FUSU9OIl0sImlhdCI6MTU4NDkxMTY3MSwiZXhwIjoxNzQyNTkxNjcxfQ.VmujsURhZaXRp5FQJXzmQMB-e6QSNF-OyPLeMEMOVvI");
-        HttpEntity<String> request = new HttpEntity<>(jsonString, headers);
-        JSONObject response = template.postForObject(uri, request, JSONObject.class);
+        entity = new HttpEntity<>(jsonString, headers);
+        JSONObject response = restTemplate.postForObject(uri, entity, JSONObject.class);
 
         List<Recommendation> recommendations= mapper.readValue(response.get("recommendations").toString(), new TypeReference<List<Recommendation>>() {});
-
-        // update order and save to database
-        newOrder.setRemtime(0);
-        newOrder.setStandId(-1);
-        newOrder.setStandName("notset");
-        newOrder.setState(Order.status.PENDING);
-        orders.saveAndFlush(newOrder);
+        orderProcessor.addRecommendations(newOrder.getId(), recommendations);
 
         // send updated order and recommendation
         JSONObject completeResponse= new JSONObject();
 
-        // add updated order
-        String updateOrder = null;
-        updateOrder = mapper.writeValueAsString(newOrder);
+        // ---- add updated order
+        String updateOrder = mapper.writeValueAsString(newOrder);
+        // String to JSON
         JSONParser parser= new JSONParser();
         JSONObject updateOrderJson=new JSONObject();
         try {
@@ -177,9 +177,8 @@ public class OrderManagerController {
             e.printStackTrace();
         }
 
-        completeResponse.put("order", updateOrderJson);
 
-        // add recommendations
+        // ---- add recommendations
         String recommendationsResponse=mapper.writeValueAsString(recommendations);
         JSONArray recomResponseJson= new JSONArray();
         try {
@@ -188,6 +187,8 @@ public class OrderManagerController {
             e.printStackTrace();
         }
 
+        // Construct response
+        completeResponse.put("order", updateOrderJson);
         completeResponse.put("recommendations", recomResponseJson);
         return completeResponse;
     }
@@ -203,27 +204,26 @@ public class OrderManagerController {
     @ResponseBody
     public void confirmStand(@RequestParam(name = "order_id") int orderId, @RequestParam(name = "stand_id") int standId) throws JsonProcessingException{
         // Update order, confirm stand
-        OrderProcessor processor = OrderProcessor.getOrderProcessor();
-        Order order = processor.getOrder(orderId);
-        order.setStandId(standId);
+        Order updatedOrder=orderProcessor.confirmStand(orderId, standId);
 
         // Make event for eventchannel (orderId, standId)
         JSONObject orderJson = new JSONObject();
-        orderJson.put("order", order);
-        String[] types = {String.valueOf(orderId), String.valueOf(standId)};
-        Event e = new Event(orderJson, types);
+        orderJson.put("order", updatedOrder);
+        List<String> types = new ArrayList<>();
+        types.add(String.valueOf(orderId));
+        Event e = new Event(orderJson, types, "Order");
 
         // Publish event to standmanager
-        ObjectMapper mapper = new ObjectMapper();
-        String jsonString = mapper.writeValueAsString(e);
-        RestTemplate template = new RestTemplate();
-        HttpHeaders headers = new HttpHeaders();
+        String jsonString = objectMapper.writeValueAsString(e);
         headers.setContentType(MediaType.APPLICATION_JSON);
         String uri = OrderManager.ECURL+"/publishEvent";
-        headers.add("Authorization", "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJPcmRlck1hbmFnZXIiLCJyb2xlcyI6WyJST0xFX0FQUExJQ0FUSU9OIl0sImlhdCI6MTU4NDkxMTY3MSwiZXhwIjoxNzQyNTkxNjcxfQ.VmujsURhZaXRp5FQJXzmQMB-e6QSNF-OyPLeMEMOVvI");
 
-        HttpEntity<String> request = new HttpEntity<>(jsonString, headers);
-        String response = template.postForObject(uri, request, String.class);
+        entity = new HttpEntity<>(jsonString, headers);
+        String response = restTemplate.postForObject(uri, entity, String.class);
+
+        System.out.println(response);
+
+
     }
 
 

@@ -1,32 +1,34 @@
 package cobol.commons;
-
+import java.util.List;
 import org.json.simple.JSONObject;
 
 public class Event {
     private static int idCount = 0;
     private int myId;
-    protected JSONObject orderData;
-    private String[] types;
+    private String dataType;
+    protected JSONObject eventData;
+    private List<String> types;
 
     public Event() {
         myId = idCount;
         idCount++;
-        orderData = null;
+        eventData = null;
     }
 
 
-    public Event(JSONObject data, String[] types) {
+    public Event(JSONObject data, List<String> types, String dataType) {
         myId = idCount;
         idCount++;
-        orderData = data;
+        eventData = data;
         this.types = types;
+        this.dataType = dataType;
     }
 
-    public JSONObject getOrderData() {
-        return this.orderData;
+    public JSONObject getEventData() {
+        return this.eventData;
     }
 
-    public String[] getTypes() {
+    public List<String> getTypes() {
         return types;
     }
 
@@ -34,8 +36,12 @@ public class Event {
         return myId;
     }
 
-    public void setTypes(String[] newTypes) {
+    public void setTypes(List<String> newTypes) {
         types = newTypes;
+    }
+
+    public String getDataType() {
+        return dataType;
     }
 
 }
