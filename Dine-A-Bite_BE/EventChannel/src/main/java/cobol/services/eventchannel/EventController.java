@@ -31,10 +31,10 @@ public class EventController {
     }
 
     /**
+     * This is a test function
+     *
      * @param name test value
      * @return hello world
-     * <p>
-     * This is a test function
      */
     @GetMapping("/test")
     public String test(@RequestParam(value = "name", defaultValue = "World") String name) {
@@ -42,11 +42,11 @@ public class EventController {
     }
 
     /**
-     * @param types channels the caller wants to subscribe to, types are separated by ','.
-     * @return The unique id of the event subscriber stub
-     * <p>
      * The callee sends this request along with the channels it wants to subscribe to. A stub is created and gets a
      * unique id. This is returned to the callee.
+     *
+     * @param types channels the caller wants to subscribe to, types are separated by ','.
+     * @return The unique id of the event subscriber stub
      */
     @GetMapping("/registerSubscriber")
     public int register(@RequestParam(value = "types", defaultValue = "") String types) {
@@ -56,17 +56,19 @@ public class EventController {
     }
 
     /**
+     * This method allows subscribers to subscribe to channels they were previously not subscribed to.
+     *
      * @param stubId The id to identify the subscriberstub
      * @param type   the channels the stub has to subscribe to
-     *               <p>
-     *               This method allows subscribers to subscribe to channels they were previously not subscribed to.
      */
     @GetMapping("/registerSubscriber/toChannel")
     public void toChannel(@RequestParam(value = "id") int stubId, @RequestParam(value = "type", defaultValue = "") String type) {
         EventBroker broker = EventBroker.getInstance();
         EventSubscriber subscriber = broker.getSubscriberStub(stubId);
         subscriber.addType(type);
-        broker.subscribe(subscriber, subscriber.getTypes());
+        List<String> newTypes = new ArrayList<>();
+        newTypes.add(type);
+        broker.subscribe(subscriber, newTypes);
     }
 
     /**
@@ -91,9 +93,9 @@ public class EventController {
 
 
     /**
+     * Receives an event in JSON format, forwards it to the proper channels
+     *
      * @param e The event to publish
-     *          <p>
-     *          Receives an event in JSON format, forwards it to the proper channels
      */
     @PostMapping(value = "/publishEvent", consumes = "application/json")
     public void publish(@RequestBody Event e) {
