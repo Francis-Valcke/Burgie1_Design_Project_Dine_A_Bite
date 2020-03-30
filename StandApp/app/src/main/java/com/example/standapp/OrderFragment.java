@@ -84,18 +84,21 @@ public class OrderFragment extends Fragment {
                         //mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
 
                         try {
-                            //JSONObject response2 = mapper.readValue(response.toString(), JSONObject.class);
                             String details = (String) response.get("details");
-                            List<Event> eventList = mapper.readValue(details, new TypeReference<List<Event>>() {});
-                            //Event[] eventList = mapper.readValue(details, Event[].class);
-                            //eventList.get(0).setEventData(response.get("details"));
-                            for (Event event: eventList) {
-                                CommonOrder order = mapper.readValue(event.getEventData().get("order").toString(), CommonOrder.class);
+                            JSONArray detailsJSON= new JSONArray(details);
+
+                            for(int i =0 ; i<detailsJSON.length(); i++){
+                                JSONObject event= (JSONObject) detailsJSON.get(i);
+                                JSONObject eventData= (JSONObject) event.get("eventData");
+                                JSONObject orderJson= eventData.getJSONObject("order");
+                                CommonOrder order= mapper.readValue(orderJson.toString(), CommonOrder.class);
+                                System.out.println(order.toString());
+
                                 String orderName = "Order#" + Integer.toString(order.getId());
                                 listDataHeader.add(orderName);
                                 List<String> order_details = new ArrayList<>();
-                                for (CommonOrderItem i: order.getOrderItems()) {
-                                    String detail = Integer.toString(i.getAmount()) + " " + i.getFoodname();
+                                for (CommonOrderItem j: order.getOrderItems()) {
+                                    String detail = Integer.toString(j.getAmount()) + " " + j.getFoodname();
                                     order_details.add(detail);
                                 }
                                 listHash.put(orderName, order_details);

@@ -2,6 +2,7 @@ package com.example.standapp.order;
 
 public class CommonOrderItem {
 
+    private int itemId;
     private String foodname;
     private int amount;
 
@@ -10,6 +11,10 @@ public class CommonOrderItem {
     public CommonOrderItem(String foodname, int amount) {
         this.foodname = foodname;
         this.amount = amount;
+    }
+
+    public int getItemId() {
+        return itemId;
     }
 
     public String getFoodname() {
