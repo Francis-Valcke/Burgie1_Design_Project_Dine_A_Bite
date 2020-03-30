@@ -11,7 +11,6 @@ import android.view.MenuInflater;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -53,8 +52,10 @@ public class ConfirmActivity extends AppCompatActivity implements AdapterView.On
     private Location lastLocation;
     private Multimap<String, String> brandStandMap = ArrayListMultimap.create();
     private ArrayList<MenuItem> ordered;
+    private int cartCount;
     private List<Recommendation> recommendations = null;
-    private CommonOrder order;
+    private CommonOrder orderSent = null;
+    private CommonOrder orderReceived = null;
     private String chosenStand = null;
     private Toast mToast = null;
 
@@ -64,7 +65,7 @@ public class ConfirmActivity extends AppCompatActivity implements AdapterView.On
         setContentView(R.layout.activity_confirm);
 
         ordered = (ArrayList<MenuItem>) getIntent().getSerializableExtra("order");
-        Intent i = getIntent();
+        cartCount = getIntent().getIntExtra("cartCount", 0);
         lastLocation = (Location) getIntent().getParcelableExtra("location");
         requestOrderRecommend();
         fetchStandNames();
@@ -108,7 +109,11 @@ public class ConfirmActivity extends AppCompatActivity implements AdapterView.On
             @Override
             public void onClick(View v) {
                 if(chosenStand != null) {
-                    boolean noRecommend = true;
+                    if (mToast != null) mToast.cancel();
+                    mToast = Toast.makeText(ConfirmActivity.this, "This function is currently not supported yet",
+                            Toast.LENGTH_SHORT);
+                    mToast.show();
+                    /*boolean noRecommend = true;
                     if(recommendations != null) {
                         if (recommendations.size() > 0) {
                             noRecommend = false;
@@ -122,8 +127,10 @@ public class ConfirmActivity extends AppCompatActivity implements AdapterView.On
 
                                     // Continue to order overview with chosen stand
                                     Intent intent = new Intent(ConfirmActivity.this, OrderActivity.class);
-                                    //intent.putExtra("order", ordered);
-                                    //intent.putExtra("location", lastLocation);
+                                    intent.putExtra("order", orderReceived);
+                                    intent.putExtra("order_list", ordered);
+                                    intent.putExtra("stand", chosenStand);
+                                    intent.putExtra("cartCount", cartCount);
                                     startActivity(intent);
 
                                 }
@@ -145,10 +152,13 @@ public class ConfirmActivity extends AppCompatActivity implements AdapterView.On
                     if(noRecommend) {
                         // Continue to order overview with chosen stand
                         Intent intent = new Intent(ConfirmActivity.this, OrderActivity.class);
-                        //intent.putExtra("order", ordered);
-                        //intent.putExtra("location", lastLocation);
+                        // TODO: handle no order received back from server
+                        intent.putExtra("order", orderReceived);
+                        intent.putExtra("order_list", ordered);
+                        intent.putExtra("cartCount", cartCount);
+                        intent.putExtra("stand", chosenStand);
                         startActivity(intent);
-                    }
+                    }*/
 
 
                 } else {
@@ -170,8 +180,10 @@ public class ConfirmActivity extends AppCompatActivity implements AdapterView.On
                         noRecommend = false;
                         // Continue to order overview with recommended stand
                         Intent intent = new Intent(ConfirmActivity.this, OrderActivity.class);
-                        //intent.putExtra("order", ordered);
-                        //intent.putExtra("location", lastLocation);
+                        intent.putExtra("order", orderReceived);
+                        intent.putExtra("order_list", ordered);
+                        intent.putExtra("cartCount", cartCount);
+                        intent.putExtra("standID", recommendations.get(0).getStandId());
                         startActivity(intent);
                     }
                 }
@@ -204,7 +216,7 @@ public class ConfirmActivity extends AppCompatActivity implements AdapterView.On
         }
 
         // Make JSON Object with ordered items and location
-        CommonOrder orderSent = new CommonOrder(ordered, ordered.get(0).getStandName(), ordered.get(0).getBrandName(), latitude, longitude);
+        orderSent = new CommonOrder(ordered, ordered.get(0).getStandName(), ordered.get(0).getBrandName(), latitude, longitude);
         JSONObject jsonOrder = null;
 
         try {
@@ -237,7 +249,7 @@ public class ConfirmActivity extends AppCompatActivity implements AdapterView.On
                         //mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
                         try {
                             recommendations= mapper.readValue(response.get("recommendations").toString(), new TypeReference<List<Recommendation>>() {});
-                            order= mapper.readValue(response.get("order").toString(), CommonOrder.class);
+                            orderReceived= mapper.readValue(response.get("order").toString(), CommonOrder.class);
                             showRecommendation();
 
                         } catch (JsonProcessingException | JSONException e) {
@@ -369,6 +381,31 @@ public class ConfirmActivity extends AppCompatActivity implements AdapterView.On
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.main_menu, menu);
         return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull android.view.MenuItem item) {
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                // This takes the user 'back', as if they pressed the left-facing triangle icon
+                // on the main android toolbar.
+                onBackPressed();
+                return true;
+            case R.id.orders_action:
+                // User chooses the "My Orders" item
+                Intent intent = new Intent(ConfirmActivity.this, OrderActivity.class);
+                startActivity(intent);
+                return true;
+            case R.id.account_action:
+                // User chooses the "Account" item
+                // TODO make account activity
+                return true;
+            case R.id.settings_action:
+                // User chooses the "Settings" item
+                // TODO make settings activity
+            default:
+                return super.onOptionsItemSelected(item);
+        }
     }
 
     @Override

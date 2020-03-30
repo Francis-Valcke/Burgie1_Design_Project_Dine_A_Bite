@@ -1,6 +1,8 @@
 package com.example.attendeeapp.order;
 
-public class CommonOrderItem {
+import java.io.Serializable;
+
+public class CommonOrderItem implements Serializable {
 
     private String foodname;
     private int amount;

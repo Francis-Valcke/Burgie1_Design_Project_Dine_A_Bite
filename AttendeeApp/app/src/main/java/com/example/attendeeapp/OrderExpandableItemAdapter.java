@@ -97,7 +97,7 @@ public class OrderExpandableItemAdapter extends BaseExpandableListAdapter {
         TextView textID = (TextView)view.findViewById(R.id.order_group_header_id);
         TextView textCount = (TextView)view.findViewById(R.id.order_group_header_count);
         TextView txtPrice = (TextView)view.findViewById(R.id.order_group_header_price);
-        textID.setText("" + orderId);
+        textID.setText("#" + orderId);
         textCount.setText("" + orderCount);
 
         NumberFormat euro = NumberFormat.getCurrencyInstance(Locale.FRANCE);

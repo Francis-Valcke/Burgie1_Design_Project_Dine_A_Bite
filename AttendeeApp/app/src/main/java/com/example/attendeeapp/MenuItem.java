@@ -123,7 +123,7 @@ public class MenuItem implements Serializable {
         NumberFormat euro = NumberFormat.getCurrencyInstance(Locale.FRANCE);
         euro.setMinimumFractionDigits(2);
         String symbol = euro.getCurrency().getSymbol();
-        return symbol + price.toString();
+        return symbol + " " + price.toString();
     }
 
     public int getCount(){

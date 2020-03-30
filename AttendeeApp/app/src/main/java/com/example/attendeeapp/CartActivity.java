@@ -96,6 +96,7 @@ public class CartActivity extends AppCompatActivity {
                     Intent intent = new Intent(CartActivity.this, ConfirmActivity.class);
                     intent.putExtra("order", ordered);
                     intent.putExtra("location", lastLocation);
+                    intent.putExtra("cartCount", cartAdapter.getCartCount());
                     startActivity(intent);
                 } else {
                     if (mToast != null) mToast.cancel();
