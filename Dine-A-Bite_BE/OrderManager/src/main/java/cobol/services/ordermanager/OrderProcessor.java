@@ -2,10 +2,7 @@ package cobol.services.ordermanager;
 
 import cobol.commons.Event;
 import cobol.commons.order.Recommendation;
-import cobol.services.ordermanager.dbmenu.Order;
-import cobol.services.ordermanager.dbmenu.OrderRepository;
-import cobol.services.ordermanager.dbmenu.Stand;
-import cobol.services.ordermanager.dbmenu.StandRepository;
+import cobol.services.ordermanager.dbmenu.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -97,14 +94,21 @@ public class OrderProcessor {
                 int orderId = (int) eventData.get("orderId");
                 Order localOrder = runningOrders.get(orderId);
                 localOrder.setState(newStatus);
-                if (newStatus.equals(Order.status.DECLINED)) {
-                    runningOrders.remove(orderId);
-                    String uri = OrderManager.ECURL + "/deregisterSubscriber";
-                    String channelId = "o" + Integer.toString(orderId);
-                    UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(uri)
-                            .queryParam("id", this.subscriberId)
-                            .queryParam("type", channelId);
-                    ResponseEntity<String> response = this.restTemplate.exchange(builder.toUriString(), HttpMethod.GET, this.entity, String.class);
+                switch (newStatus) {
+                    case DECLINED:
+                        runningOrders.remove(orderId);
+                        String uri = OrderManager.ECURL + "/deregisterSubscriber";
+                        String channelId = "o" + Integer.toString(orderId);
+                        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(uri)
+                                .queryParam("id", this.subscriberId)
+                                .queryParam("type", channelId);
+                        ResponseEntity<String> response = this.restTemplate.exchange(builder.toUriString(), HttpMethod.GET, this.entity, String.class);
+
+                    case READY:
+                        updatePreparationEstimate(localOrder);
+
+                    default:
+
                 }
             }
         }
@@ -172,6 +176,10 @@ public class OrderProcessor {
         }
 
         return updatedOrder;
+    }
+
+    private void updatePreparationEstimate(Order order) {
+        //TODO: logic
     }
 
     public void addRecommendations(int id, List<Recommendation> recommendations) {
