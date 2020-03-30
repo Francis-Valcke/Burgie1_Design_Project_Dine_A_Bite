@@ -20,10 +20,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * This is a Singleton
@@ -37,8 +34,13 @@ public class OrderProcessor {
 
     @Autowired
     StandRepository stands;
+
+    @Autowired
+    FoodRepository foodRepository;
+
     private Map<Integer, Order> runningOrders = new HashMap<>();
     private int subscriberId;
+    private double learningRate;
     private volatile LinkedList<Event> eventQueue = new LinkedList<Event>();
     private RestTemplate restTemplate;
     private HttpHeaders headers;
@@ -57,6 +59,9 @@ public class OrderProcessor {
         this.entity = new HttpEntity(headers);
         ResponseEntity<String> response = restTemplate.exchange(uri, HttpMethod.GET, entity, String.class);
         this.subscriberId = Integer.valueOf(response.getBody());
+
+        //set learning rate for the running averages
+        this.learningRate = 0.2;
     };
 
 
@@ -94,21 +99,17 @@ public class OrderProcessor {
                 int orderId = (int) eventData.get("orderId");
                 Order localOrder = runningOrders.get(orderId);
                 localOrder.setState(newStatus);
-                switch (newStatus) {
-                    case DECLINED:
-                        runningOrders.remove(orderId);
-                        String uri = OrderManager.ECURL + "/deregisterSubscriber";
-                        String channelId = "o" + Integer.toString(orderId);
-                        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(uri)
-                                .queryParam("id", this.subscriberId)
-                                .queryParam("type", channelId);
-                        ResponseEntity<String> response = this.restTemplate.exchange(builder.toUriString(), HttpMethod.GET, this.entity, String.class);
-
-                    case READY:
+                if (newStatus.equals(Order.status.DECLINED) || newStatus.equals(Order.status.READY)) {
+                    if (newStatus.equals(Order.status.READY)) {
                         updatePreparationEstimate(localOrder);
-
-                    default:
-
+                    }
+                    runningOrders.remove(orderId);
+                    String uri = OrderManager.ECURL + "/deregisterSubscriber";
+                    String channelId = "o" + Integer.toString(orderId);
+                    UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(uri)
+                            .queryParam("id", this.subscriberId)
+                            .queryParam("type", channelId);
+                    ResponseEntity<String> response = this.restTemplate.exchange(builder.toUriString(), HttpMethod.GET, this.entity, String.class);
                 }
             }
         }
@@ -179,7 +180,20 @@ public class OrderProcessor {
     }
 
     private void updatePreparationEstimate(Order order) {
-        //TODO: logic
+        Calendar actualTime =  Calendar.getInstance();
+        int actualPrepTime = (int) ((actualTime.getTime().getTime() - order.getStartTime().getTime().getTime())) / 1000;
+        String brandName = order.getBrandName();
+        int largestPreptime = 0;
+        Food foodToUpdate = null;
+        for (OrderItem item : order.getOrderItems()) {
+            Food food = foodRepository.findByNameAndBrand(item.getFoodname(), brandName);
+            if (food.getPreptime() > largestPreptime) {
+                foodToUpdate = food;
+                largestPreptime = food.getPreptime();
+            }
+        }
+        int updatedAverage = (int) (((1-this.learningRate) * largestPreptime) + (learningRate * actualPrepTime));
+        foodToUpdate.setPreptime(updatedAverage);
     }
 
     public void addRecommendations(int id, List<Recommendation> recommendations) {

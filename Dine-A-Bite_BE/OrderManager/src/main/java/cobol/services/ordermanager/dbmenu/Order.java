@@ -168,6 +168,10 @@ public class Order implements Serializable {
         this.standName = standName;
     }
 
+    public Calendar getStartTime() {
+        return this.startTime;
+    }
+
     @Override
     public String toString() {
         return "Order{" +
