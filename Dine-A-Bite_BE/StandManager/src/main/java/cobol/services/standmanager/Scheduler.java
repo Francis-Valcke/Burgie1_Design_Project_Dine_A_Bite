@@ -1,24 +1,43 @@
 package cobol.services.standmanager;
 
-import cobol.commons.order.CommonOrder;
+import cobol.commons.Event;
 import cobol.commons.MenuItem;
-import java.util.*;
+import cobol.commons.order.CommonOrder;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
+import org.springframework.http.*;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
+
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
  * schedulers all have:
- *  TODO: change "inc" to proper schedule
+ * TODO: change "inc" to proper schedule
  */
 public class Scheduler extends Thread {
     private List<CommonOrder> inc = new LinkedList<>();
     private ArrayList<MenuItem> menu;
     private String standname;
     private int id;
-
+    private ObjectMapper objectMapper;
+    private RestTemplate restTemplate;
+    private HttpHeaders headers;
+    private HttpEntity entity;
     // Coordinates of Stand
     private double lon;
     private double lat;
-
+    private int subscriberId;
     private String brand;
 
     public Scheduler(ArrayList<MenuItem> menu, String standname, int id, String brand) {
@@ -26,44 +45,108 @@ public class Scheduler extends Thread {
         this.standname = standname;
         this.id = id;
         this.brand = brand;
+        objectMapper = new ObjectMapper();
+        objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+        restTemplate = new RestTemplate();
+        headers = new HttpHeaders();
+        headers.add("Authorization", "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJPcmRlck1hbmFnZXIiLCJyb2xlcyI6WyJST0xFX0FQUExJQ0FUSU9OIl0sImlhdCI6MTU4NDkxMTY3MSwiZXhwIjoxNzQyNTkxNjcxfQ.VmujsURhZaXRp5FQJXzmQMB-e6QSNF-OyPLeMEMOVvI");
+        entity = new HttpEntity(headers);
+        // subscribe to the channel of the brand
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.add("Authorization", "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJTdGFuZE1hbmFnZXIiLCJyb2xlcyI6WyJST0xFX0FQUExJQ0FUSU9OIl0sImlhdCI6MTU4NDkxMTc0MywiZXhwIjoxNzQyNTkxNzQzfQ.tuteSFjRJdQDMja2ioV0eiHvuCu0lkuS94zyhw9ZLIk");
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+        String uri = StandManager.ECURL + "registerSubscriber";
+        ;
+        ResponseEntity<String> response = restTemplate.exchange(uri, HttpMethod.GET, entity, String.class);
+        this.subscriberId = Integer.valueOf(response.getBody());
+        String channelId = brand;
+        uri = StandManager.ECURL + "registerSubscriber/toChannel";
+        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(uri)
+                .queryParam("id", this.subscriberId)
+                .queryParam("type", channelId);
+
+        ResponseEntity<String> responseEntity = restTemplate.exchange(builder.toUriString(), HttpMethod.GET, entity, String.class);
+
     }
 
+    /**
+     * update menuItem
+     *
+     * @param mi  new item
+     * @param mi2 old item
+     */
+    static void updateItem(MenuItem mi, MenuItem mi2) {
+        if (mi.getFoodName().equals(mi2.getFoodName())) {
+            if (mi.getPreptime() >= 0) mi2.setPreptime(mi.getPreptime());
+            if (mi.getPrice().compareTo(BigDecimal.ZERO) >= 0) mi2.setPrice(mi.getPrice());
+            mi2.setStock(mi.getStock() + mi2.getStock());
+        }
+    }
 
+    public void pollEvents() {
+        String uri = StandManager.ECURL + "/events";
+        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(uri)
+                .queryParam("id", this.subscriberId);
+        ResponseEntity<String> response = this.restTemplate.exchange(builder.toUriString(), HttpMethod.GET, this.entity, String.class);
+        try {
+            JSONObject responseObject = this.objectMapper.readValue(response.getBody(), JSONObject.class);
+            String details = (String) responseObject.get("details");
+            JSONParser parser = new JSONParser();
+            JSONArray detailsJSON = (JSONArray) parser.parse(details);
+            List<Event> eventList = objectMapper.readValue(details, new TypeReference<List<Event>>() {
+            });
+            for (int i = 0; i < detailsJSON.size(); i++) {
+                JSONObject e = (JSONObject) detailsJSON.get(i);
 
-    public double getLon(){
+                JSONObject eventData = (JSONObject) e.get("eventData");
+                JSONObject menuchange = (JSONObject) eventData.get("menuItem");
+                MenuItem mi = objectMapper.readValue(menuchange.toString(), MenuItem.class);
+                for (MenuItem mi2 : menu) {
+                    updateItem(mi, mi2);
+
+                }
+            }
+        } catch (JsonProcessingException | ParseException e) {
+            System.err.println(e);
+            e.printStackTrace();
+        }
+    }
+
+    public double getLon() {
         return this.lon;
     }
 
-    public double getLat(){
-        return this.lat;
-    }
-
-    public void setLon(double l){
+    public void setLon(double l) {
         this.lon = l;
     }
 
-    public void setLat(double l){
+    public double getLat() {
+        return this.lat;
+    }
+
+    public void setLat(double l) {
         this.lat = l;
     }
 
-    public ArrayList<MenuItem> getMenu(){
+    public ArrayList<MenuItem> getMenu() {
         return this.menu;
     }
 
-    public int getStandId(){
+    public int getStandId() {
         return this.id;
     }
 
-    public String getStandName(){
+    public String getStandName() {
         return this.standname;
     }
 
-    public String getBrand(){
+    public String getBrand() {
         return this.brand;
     }
 
     /**
      * gives preptime of item in scheduler
+     *
      * @param foodname name of item
      * @return preptime
      */
@@ -77,7 +160,7 @@ public class Scheduler extends Thread {
     /**
      * schedules order: add new order to the end of schedule
      */
-    public void addOrder(CommonOrder o){
+    public void addOrder(CommonOrder o) {
         inc.add(o);
     }
 
@@ -94,10 +177,10 @@ public class Scheduler extends Thread {
      *
      * @return this time
      */
-    public int timeSum(){
-        int s=0;
-        for (int i=0;i<inc.size();i++){
-            s+=inc.get(i).computeRemainingTime();
+    public int timeSum() {
+        int s = 0;
+        for (int i = 0; i < inc.size(); i++) {
+            s += inc.get(i).computeRemainingTime();
         }
         System.out.println(s);
         return s;
@@ -125,8 +208,7 @@ public class Scheduler extends Thread {
     public void prepClock() {
         if (inc.size() == 0) {
             return;
-        }
-        else {
+        } else {
             if (inc.get(0).computeRemainingTime() < 0) {
                 if (inc.size() == 0) return;
                 orderDone();
@@ -134,17 +216,16 @@ public class Scheduler extends Thread {
         }
     }
 
-    public void run(){
-        while (true){
+    public void run() {
+        while (true) {
             try {
                 TimeUnit.MINUTES.sleep(1);
             } catch (InterruptedException e) {
-               e.printStackTrace();
+                e.printStackTrace();
             }
             prepClock();
         }
     }
-
 
 
 }
