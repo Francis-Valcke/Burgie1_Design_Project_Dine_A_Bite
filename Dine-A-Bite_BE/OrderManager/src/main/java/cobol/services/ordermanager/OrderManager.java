@@ -9,7 +9,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableScheduling
 public class OrderManager {
 
-    public static boolean test = true;
+    public static boolean test = false;
 
     public static String ACURL;
     public static String SMURL;

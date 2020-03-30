@@ -55,7 +55,8 @@ public class OrderProcessor {
         this.restTemplate = new RestTemplate();
         this.headers = new HttpHeaders();
         this.headers.add("Authorization", "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJPcmRlck1hbmFnZXIiLCJyb2xlcyI6WyJST0xFX0FQUExJQ0FUSU9OIl0sImlhdCI6MTU4NDkxMTY3MSwiZXhwIjoxNzQyNTkxNjcxfQ.VmujsURhZaXRp5FQJXzmQMB-e6QSNF-OyPLeMEMOVvI");
-        String uri = OrderManager.ECURL + "/registerSubscriber";
+        String uri = "http://cobol.idlab.ugent.be:8093/registerSubscriber";
+        //String uri = OrderManager.ECURL + "/registerSubscriber";
         this.entity = new HttpEntity(headers);
         ResponseEntity<String> response = restTemplate.exchange(uri, HttpMethod.GET, entity, String.class);
         this.subscriberId = Integer.valueOf(response.getBody());
@@ -67,7 +68,8 @@ public class OrderProcessor {
      */
     @Scheduled(fixedDelay=500)
     public void pollEvents() {
-        String uri = OrderManager.ECURL + "/events";
+        String uri = "http://cobol.idlab.ugent.be:8093/registerSubscriber";
+        //String uri = OrderManager.ECURL + "/events";
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(uri)
                 .queryParam("id", this.subscriberId);
         ResponseEntity<String> response = this.restTemplate.exchange(builder.toUriString(), HttpMethod.GET, this.entity, String.class);
