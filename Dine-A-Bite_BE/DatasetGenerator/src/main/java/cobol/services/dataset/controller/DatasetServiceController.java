@@ -1,15 +1,16 @@
 package cobol.services.dataset.controller;
 
-import cobol.commons.ResponseModel;
-import cobol.services.dataset.dataset.Dataset1;
 import cobol.services.dataset.domain.entity.Brand;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
+import cobol.services.dataset.domain.entity.Category;
+import cobol.services.dataset.domain.entity.Stand;
+import cobol.services.dataset.domain.repository.BrandRepository;
+import cobol.services.dataset.domain.repository.CategoryRepository;
+import cobol.services.dataset.domain.repository.FoodRepository;
+import cobol.services.dataset.domain.repository.StandRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -18,12 +19,26 @@ import java.util.List;
 public class DatasetServiceController {
 
     @Autowired
-    Dataset1 dataset1;
+    BrandRepository brandRepository;
+
+    @Autowired
+    StandRepository standRepository;
+
+    @Autowired
+    CategoryRepository categoryRepository;
+
+    @Autowired
+    FoodRepository foodRepository;
 
     @GetMapping("/load")
     public ResponseEntity load(@RequestBody List<Brand> data){
 
-        System.out.println("test");
+        data.forEach(brandRepository::saveAndFlush);
+
+        Category category = categoryRepository.findById("SNACK").get();
+
+
+        List<Stand> stand = standRepository.findAll();
 
         return null;
 
@@ -32,29 +47,7 @@ public class DatasetServiceController {
     @GetMapping("/clear")
     public ResponseEntity clear(){
 
-        //try {
-        //
-        //    dataset1.clear();
-        //
-        //    return ResponseEntity.ok(
-        //            ResponseModel.builder()
-        //                    .details("Dataset has been cleared")
-        //                    .status("OK")
-        //                    .build()
-        //                    .generateResponse()
-        //    );
-        //
-        //} catch (Exception e) {
-        //    e.printStackTrace();
-        //
-        //    return ResponseEntity.ok(
-        //            ResponseModel.builder()
-        //                    .details(e.getStackTrace())
-        //                    .status("ERROR")
-        //                    .build()
-        //                    .generateResponse()
-        //    );
-        //}
+        brandRepository.deleteAll();
 
         return null;
     }

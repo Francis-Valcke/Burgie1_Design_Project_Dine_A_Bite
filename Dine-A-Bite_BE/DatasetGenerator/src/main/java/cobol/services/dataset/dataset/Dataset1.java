@@ -1,13 +1,6 @@
 package cobol.services.dataset.dataset;
 
-import cobol.services.dataset.domain.entity.*;
-import cobol.services.dataset.domain.repository.BrandRepository;
-import cobol.services.dataset.domain.repository.CategoryRepository;
-import cobol.services.dataset.domain.repository.StockRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.*;
 
 @Component
 public class Dataset1 {

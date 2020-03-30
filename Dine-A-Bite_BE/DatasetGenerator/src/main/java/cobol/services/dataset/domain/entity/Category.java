@@ -1,6 +1,10 @@
 package cobol.services.dataset.domain.entity;
 
+import cobol.services.dataset.domain.json.BrandDeserializer;
+import cobol.services.dataset.domain.json.CategoryDeserializer;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -11,6 +15,7 @@ import java.util.Objects;
 
 @Data
 @Entity
+@JsonDeserialize(using = CategoryDeserializer.class)
 public class Category {
 
     @Id

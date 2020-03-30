@@ -15,9 +15,7 @@ import java.util.List;
 
 @Data
 @Entity
-@Builder
 @NoArgsConstructor
-@AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Stand implements Serializable {
 
@@ -37,24 +35,10 @@ public class Stand implements Serializable {
     @JoinColumn(name = "brand_name")
     private Brand brand;
 
-    @Transient
-    List<Food> food = new ArrayList<>();
+    @OneToMany(mappedBy = "stand", cascade = CascadeType.ALL)
+    @JsonProperty("food")
+    List<Food> foodList = new ArrayList<>();
 
-    //@Builder.Default
-    //@OneToMany(mappedBy = "stand")
-    @Transient
-    private List<Stock> stock = new ArrayList<>();
-
-    public Stand(String name, double longitude, double latitude, List<Stock> stockList) {
-        this.name = name;
-        this.longitude = longitude;
-        this.latitude = latitude;
-        //this.stockList = stockList;
-        //
-        //for (Food food : brand.getFoodList()) {
-        //
-        //}
-    }
 }
 
 

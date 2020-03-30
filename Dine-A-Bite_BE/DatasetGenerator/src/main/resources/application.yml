@@ -30,8 +30,8 @@ spring:
     show_sql: true
 #    openInView: false
     generate-ddl: true
-    hibernate:
-      ddl-auto: create #-drop
+#    hibernate:
+#      ddl-auto: create #-drop
 
 #  data:
 #    jpa:
