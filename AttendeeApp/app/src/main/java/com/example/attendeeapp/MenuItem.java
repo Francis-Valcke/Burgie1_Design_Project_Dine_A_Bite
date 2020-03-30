@@ -4,7 +4,8 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.NumberFormat;
-import java.util.HashSet;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
 /**
@@ -15,11 +16,16 @@ public class MenuItem implements Serializable {
     private String foodName;
     private BigDecimal price;
     private int count = 0;
-
+    private int preptime;
+    private int stock;
     private String standName = "";
     private String brandName;
-    HashSet<String> category = new HashSet<String>();
+
+    List<String> category = new ArrayList<String>();
     String description = "";
+
+    public MenuItem(){
+    }
 
     public MenuItem(String foodName, BigDecimal price, String brandName) {
         this.foodName = foodName;
@@ -34,8 +40,22 @@ public class MenuItem implements Serializable {
         this.count = copy.count;
         this.standName = copy.standName;
         this.brandName = copy.brandName;
-        this.category = new HashSet<String>(copy.category);
+        this.category = new ArrayList<>(copy.category);
         this.description = copy.description;
+        this.preptime = copy.preptime;
+        this.stock = copy.stock;
+    }
+
+
+    public MenuItem(String foodName, BigDecimal price, int preptime, int stock, String brandName, String desc, List<String> category) {
+        this.foodName = foodName;
+        this.price = price.setScale(2, RoundingMode.HALF_UP);
+        this.preptime = preptime;
+        this.stock = stock;
+        this.count = 0;
+        this.brandName = brandName;
+        this.description=desc;
+        this.category=category;
     }
 
     public String getFoodName() {
@@ -62,12 +82,12 @@ public class MenuItem implements Serializable {
         this.brandName = brandName;
     }
 
-    public HashSet<String> getCategory() {
+    public List<String> getCategory() {
         return category;
     }
 
     /**
-     * Will only add distinct categories (set)
+     * Should only add distinct categories (received)
      * @param cat: Category to add
      * @return: if the add was successful
      */
@@ -103,7 +123,7 @@ public class MenuItem implements Serializable {
         NumberFormat euro = NumberFormat.getCurrencyInstance(Locale.FRANCE);
         euro.setMinimumFractionDigits(2);
         String symbol = euro.getCurrency().getSymbol();
-        return symbol + " " + price.toString();
+        return symbol + price.toString();
     }
 
     public int getCount(){
@@ -131,4 +151,19 @@ public class MenuItem implements Serializable {
         this.count--;
     }
 
+    public int getPreptime() {
+        return preptime;
+    }
+
+    public void setPreptime(int preptime) {
+        this.preptime = preptime;
+    }
+
+    public int getStock() {
+        return stock;
+    }
+
+    public void setStock(int stock) {
+        this.stock = stock;
+    }
 }

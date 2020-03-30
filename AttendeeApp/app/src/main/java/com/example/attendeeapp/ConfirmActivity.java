@@ -291,8 +291,7 @@ public class ConfirmActivity extends AppCompatActivity implements AdapterView.On
                                 String brandName = response.getString(standName);
                                 brandStandMap.put(brandName, standName);
                             }
-                            String b = ordered.get(0).getBrandName();
-                            for (String s : brandStandMap.get("PizzaHut")) {
+                            for (String s : brandStandMap.get(ordered.get(0).getBrandName())) {
                                 standListAdapter.add(s);
                             }
 
@@ -351,7 +350,7 @@ public class ConfirmActivity extends AppCompatActivity implements AdapterView.On
                 distanceText.setVisibility(View.VISIBLE);
 
                 TextView distance = findViewById(R.id.recommend_distance);
-                distance.setText(recommendations.get(0).getDistance() + " meter");
+                distance.setText(Math.round(recommendations.get(0).getDistance()) + " meter");
                 distance.setVisibility(View.VISIBLE);
 
                 /*TextView remainingTimeText = findViewById(R.id.recommend_time_text);

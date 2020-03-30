@@ -24,11 +24,8 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 
-import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -164,40 +161,4 @@ public class MenuFragmentStand extends MenuFragment implements AdapterView.OnIte
         queue.add(jsonRequest);
     }
 
-    /**
-     * Updates a specific stand menu from the server response
-     * Error are handled in the fetchMenu (superclass) function
-     * @param response: the JSON response from the server
-     * @param standName: the requested menu standName, "" is global
-     * @throws JSONException
-     */
-    public void updateMenu(JSONObject response, String standName) throws JSONException {
-        // Renew the list
-        menuItems.clear();
-        //Log.v("response", "Response: " + response.toString());
-        for (Iterator<String> iter = response.keys(); iter.hasNext(); ) {
-            String foodName = iter.next();
-
-            // Create the menuItem with price, food and brandName
-            JSONArray jsonArray = response.getJSONArray(foodName);
-            String brandName = jsonArray.getString(0);
-            double price = jsonArray.getDouble(1);
-            MenuItem item = new MenuItem(foodName, BigDecimal.valueOf(price), brandName);
-            item.setStandName(standName);
-
-            // Add categories to the menuItem
-            JSONArray cat_array = jsonArray.getJSONArray(2);
-            for (int j = 0; j < cat_array.length(); j++) {
-                item.addCategory((String) cat_array.get(j));
-            }
-
-            // Add the description, if provided
-            String description = jsonArray.getString(3);
-            if (!description.equals("null")) item.setDescription(description);
-
-            menuItems.add(item);
-        }
-        menuAdapter.putList(menuItems);
-        menuAdapter.notifyDataSetChanged();
-    }
 }

@@ -13,14 +13,17 @@ import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.Volley;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
+import org.json.JSONArray;
 import org.json.JSONException;
-import org.json.JSONObject;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -37,12 +40,23 @@ public abstract class MenuFragment extends Fragment {
 
     /**
      * Updates the current global/stand menu with the updated version returned from the server
-     * The global and stand fragment handle the adding of the menu items themselves
+     * Error are handled in the fetchMenu function
      * @param response: the JSON response from the server
      * @param standName: the requested menu standName, "" is global
-     * @throws JSONException
+     * @throws JsonProcessingException
      */
-    public abstract void updateMenu(JSONObject response, String standName) throws JSONException;
+    public void updateMenu(JSONArray response, String standName) throws JsonProcessingException {
+        // Renew the list
+        menuItems.clear();
+
+        ObjectMapper mapper= new ObjectMapper();
+        mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+        MenuItem[] items = mapper.readValue(response.toString(), MenuItem[].class);
+        Collections.addAll(menuItems, items);
+
+        menuAdapter.putList(menuItems);
+        menuAdapter.notifyDataSetChanged();
+    }
 
     /**
      * Function to fetch the global or stand menu from the server in JSON
@@ -69,10 +83,10 @@ public abstract class MenuFragment extends Fragment {
 
         // Request the global/stand menu in JSON from the order manager
         // Handle no network connection or server not reachable
-        JsonObjectRequest jsonRequest = new JsonObjectRequest(req, url, null,
-                                                            new Response.Listener<JSONObject>() {
+        JsonArrayRequest jsonRequest = new JsonArrayRequest(req, url, null,
+                                                            new Response.Listener<JSONArray>() {
             @Override
-            public void onResponse(JSONObject response) {
+            public void onResponse(JSONArray response) {
 
                 try {
                     // Let fragments handle the response
@@ -92,12 +106,12 @@ public abstract class MenuFragment extends Fragment {
 
 
                 // Hardcoded test menuItem to add when server is unavailable
-                MenuItem item = new MenuItem("foodName", new BigDecimal(5.5), "brandName");
+                /*MenuItem item = new MenuItem("foodName", new BigDecimal(5.5), "brandName");
                 menuItems.add(item);
                 MenuItem item2 = new MenuItem("foody", new BigDecimal(6.11), "brand2");
                 menuItems.add(item2);
                 menuAdapter.putList(menuItems);
-                menuAdapter.notifyDataSetChanged();
+                menuAdapter.notifyDataSetChanged();*/
 
                 // NoConnectionError = no network connection
                 // other = server not reachable
