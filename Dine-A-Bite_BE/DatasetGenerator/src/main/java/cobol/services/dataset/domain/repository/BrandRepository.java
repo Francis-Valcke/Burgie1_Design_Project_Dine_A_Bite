@@ -1,6 +1,6 @@
-package cobol.dataset.domain.repository;
+package cobol.services.dataset.domain.repository;
 
-import cobol.dataset.domain.entity.Brand;
+import cobol.services.dataset.domain.entity.Brand;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

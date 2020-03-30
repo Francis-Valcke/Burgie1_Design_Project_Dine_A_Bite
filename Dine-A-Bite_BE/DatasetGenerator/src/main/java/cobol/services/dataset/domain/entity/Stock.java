@@ -1,8 +1,6 @@
-package cobol.dataset.domain.entity;
+package cobol.services.dataset.domain.entity;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 import java.io.Serializable;

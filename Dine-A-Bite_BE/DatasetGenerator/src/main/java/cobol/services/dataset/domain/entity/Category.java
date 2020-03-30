@@ -1,4 +1,4 @@
-package cobol.dataset.domain.entity;
+package cobol.services.dataset.domain.entity;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;

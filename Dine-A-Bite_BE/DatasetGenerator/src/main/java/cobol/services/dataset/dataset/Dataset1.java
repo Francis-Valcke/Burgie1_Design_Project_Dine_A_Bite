@@ -1,12 +1,25 @@
-package cobol.dataset;
+package cobol.services.dataset.dataset;
 
-import cobol.dataset.domain.entity.*;
-import javafx.util.Pair;
+import cobol.services.dataset.domain.entity.*;
+import cobol.services.dataset.domain.repository.BrandRepository;
+import cobol.services.dataset.domain.repository.CategoryRepository;
+import cobol.services.dataset.domain.repository.StockRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.*;
 
+@Component
 public class Dataset1 {
 
+    @Autowired
+    BrandRepository brandRepository;
+
+    @Autowired
+    StockRepository stockRepository;
+
+    @Autowired
+    CategoryRepository categoryRepository;
 
     private static Category SNACK = new Category("SNACK");
     private static Category VEGGIE = new Category("VEGGIE");
@@ -15,48 +28,77 @@ public class Dataset1 {
     private static Category FRIES = new Category("FRIES");
     private static Category PREPARATION = new Category("PREPARATION");
 
+    private static final double LAT_START = 51.031652;
+    private static final double LON_START = 3.782850;
+    private static final double SIZE = 0.006;
 
-    public static List<Brand> getDataset1() {
+    private static final Random random = new Random();
 
+    public void load() {
+
+        //Create and persist food categories
+        categoryRepository.saveAll(Arrays.asList(SNACK, VEGGIE, PIZZA, BURGER, FRIES, PREPARATION));
+
+        //Create brands
         List<Brand> brands = Arrays.asList(
                 getBallsAndGlory(),
                 getBurgerKing(),
                 getMcDonalds(),
                 getPizzaHut()
         );
+        //Link food and stands to brand from the other side
+        for (Brand brand : brands) {
 
-        return brands;
-    }
+            for (Food food : brand.getFoodList()) {
+                food.setBrand(brand);
+            }
 
+            for (Stand stand : brand.getStandList()) {
+                stand.setBrand(brand);
+            }
 
-    private static List<Location> getRandomLocations(int amount){
-        Random random = new Random();
-        List<Location> locations = new ArrayList<>();
-        double latStart = 51.031652;
-        double lonStart = 3.782850;
-        double size = 0.006;
-        for (int i = 0; i < amount; i++) {
-            locations.add(new Location(
-                    latStart+size* random.nextDouble(),
-                    lonStart+size*random.nextDouble()
-            ));
+            brandRepository.saveAndFlush(brand);
         }
-        return locations;
+
+        //Get brands back from the db with updated ID's
+        brands = brandRepository.findAll();
+
+        //Create stock with those ID's
+        for (Brand brand : brands) {
+            for (Stand stand : brand.getStandList()) {
+                for (Food food : brand.getFoodList()) {
+                    Stock stock = new Stock(food.getId(), stand.getId(), 25);
+                    stockRepository.saveAndFlush(stock);
+                }
+            }
+        }
+
     }
 
-    private static Location getRandomLocation(){
-        return getRandomLocations(1).get(0);
+    public void clear() {
+        brandRepository.deleteAll();
+        stockRepository.deleteAll();
+        categoryRepository.deleteAll();
     }
 
-    private static Brand getBallsAndGlory(){
+    private double getRandomLatitude(){
+        return LAT_START + SIZE * random.nextDouble();
+    }
+
+    private double getRandomLongitude(){
+        return  LON_START + SIZE * random.nextDouble();
+    }
+
+
+    private Brand getBallsAndGlory(){
 
         return Brand.builder()
                 .name("Balls & Glory")
                 .standList(
                        Arrays.asList(
-                               Stand.builder().name("Balls & Glory " + 1).latitude(getRandomLocation().getLat()).longitude(getRandomLocation().getLon()).build(),
-                               Stand.builder().name("Balls & Glory " + 2).latitude(getRandomLocation().getLat()).longitude(getRandomLocation().getLon()).build(),
-                               Stand.builder().name("Balls & Glory " + 3).latitude(getRandomLocation().getLat()).longitude(getRandomLocation().getLon()).build()
+                               Stand.builder().name("Balls & Glory " + 1).latitude(getRandomLatitude()).longitude(getRandomLongitude()).build(),
+                               Stand.builder().name("Balls & Glory " + 2).latitude(getRandomLatitude()).longitude(getRandomLongitude()).build(),
+                               Stand.builder().name("Balls & Glory " + 3).latitude(getRandomLatitude()).longitude(getRandomLongitude()).build()
                        )
                 )
                 .foodList(
@@ -71,17 +113,16 @@ public class Dataset1 {
                 .build();
     }
 
-    private static Brand getMcDonalds(){
-
+    private Brand getMcDonalds(){
 
         return Brand.builder()
                 .name("McDonalds")
                 .standList(
                         Arrays.asList(
-                                Stand.builder().name("McDonalds " + 1).latitude(getRandomLocation().getLat()).longitude(getRandomLocation().getLon()).build(),
-                                Stand.builder().name("McDonalds " + 2).latitude(getRandomLocation().getLat()).longitude(getRandomLocation().getLon()).build(),
-                                Stand.builder().name("McDonalds " + 3).latitude(getRandomLocation().getLat()).longitude(getRandomLocation().getLon()).build(),
-                                Stand.builder().name("McDonalds " + 4).latitude(getRandomLocation().getLat()).longitude(getRandomLocation().getLon()).build()
+                                Stand.builder().name("McDonalds " + 1).latitude(getRandomLatitude()).longitude(getRandomLongitude()).build(),
+                                Stand.builder().name("McDonalds " + 2).latitude(getRandomLatitude()).longitude(getRandomLongitude()).build(),
+                                Stand.builder().name("McDonalds " + 3).latitude(getRandomLatitude()).longitude(getRandomLongitude()).build(),
+                                Stand.builder().name("McDonalds " + 4).latitude(getRandomLatitude()).longitude(getRandomLongitude()).build()
                         )
                 )
                 .foodList(
@@ -99,16 +140,16 @@ public class Dataset1 {
 
     }
 
-    private static Brand getBurgerKing(){
+    private Brand getBurgerKing(){
 
         return Brand.builder()
                 .name("BurgerKing")
                 .standList(
                         Arrays.asList(
-                                Stand.builder().name("BurgerKing " + 1).latitude(getRandomLocation().getLat()).longitude(getRandomLocation().getLon()).build(),
-                                Stand.builder().name("BurgerKing " + 2).latitude(getRandomLocation().getLat()).longitude(getRandomLocation().getLon()).build(),
-                                Stand.builder().name("BurgerKing " + 3).latitude(getRandomLocation().getLat()).longitude(getRandomLocation().getLon()).build(),
-                                Stand.builder().name("BurgerKing " + 4).latitude(getRandomLocation().getLat()).longitude(getRandomLocation().getLon()).build()
+                                Stand.builder().name("BurgerKing " + 1).latitude(getRandomLatitude()).longitude(getRandomLongitude()).build(),
+                                Stand.builder().name("BurgerKing " + 2).latitude(getRandomLatitude()).longitude(getRandomLongitude()).build(),
+                                Stand.builder().name("BurgerKing " + 3).latitude(getRandomLatitude()).longitude(getRandomLongitude()).build(),
+                                Stand.builder().name("BurgerKing " + 4).latitude(getRandomLatitude()).longitude(getRandomLongitude()).build()
                         )
                 )
                 .foodList(
@@ -126,16 +167,16 @@ public class Dataset1 {
 
     }
 
-    private static Brand getPizzaHut(){
+    private Brand getPizzaHut(){
 
         return Brand.builder()
                 .name("PizzaHut")
                 .standList(
                         Arrays.asList(
-                                Stand.builder().name("PizzaHut " + 1).latitude(getRandomLocation().getLat()).longitude(getRandomLocation().getLon()).build(),
-                                Stand.builder().name("PizzaHut " + 2).latitude(getRandomLocation().getLat()).longitude(getRandomLocation().getLon()).build(),
-                                Stand.builder().name("PizzaHut " + 3).latitude(getRandomLocation().getLat()).longitude(getRandomLocation().getLon()).build(),
-                                Stand.builder().name("PizzaHut " + 4).latitude(getRandomLocation().getLat()).longitude(getRandomLocation().getLon()).build()
+                                Stand.builder().name("PizzaHut " + 1).latitude(getRandomLatitude()).longitude(getRandomLongitude()).build(),
+                                Stand.builder().name("PizzaHut " + 2).latitude(getRandomLatitude()).longitude(getRandomLongitude()).build(),
+                                Stand.builder().name("PizzaHut " + 3).latitude(getRandomLatitude()).longitude(getRandomLongitude()).build(),
+                                Stand.builder().name("PizzaHut " + 4).latitude(getRandomLatitude()).longitude(getRandomLongitude()).build()
                         )
                 )
                 .foodList(
@@ -151,24 +192,6 @@ public class Dataset1 {
                 )
                 .build();
 
-    }
-
-    private static class Location{
-        private double lon;
-        private double lat;
-
-        public Location( double lat, double lon) {
-            this.lon = lon;
-            this.lat = lat;
-        }
-
-        public double getLon() {
-            return lon;
-        }
-
-        public double getLat() {
-            return lat;
-        }
     }
 
 }

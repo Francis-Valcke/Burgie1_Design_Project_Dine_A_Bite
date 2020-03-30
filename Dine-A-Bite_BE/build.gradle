@@ -187,6 +187,10 @@ project(':StandManager'){
 project(':DatasetGenerator'){
 
     dependencies {
+        //-----INTERNAL-----
+        implementation project(':Commons')
+
+        //-----PRODUCTION-----
         //Mysql jdbc driver
         implementation group: 'mysql', name: 'mysql-connector-java', version: '8.0.19'
 
