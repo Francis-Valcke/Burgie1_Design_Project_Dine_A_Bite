@@ -1,30 +1,24 @@
 package cobol.services.dataset.domain.entity;
 
-import cobol.services.dataset.domain.json.BrandDeserializer;
-import cobol.services.dataset.domain.json.StandDeserializer;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.Generated;
 
 import javax.persistence.*;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Data
 @Entity
-@NoArgsConstructor
-//@JsonDeserialize(using = StandDeserializer.class)
 @JsonIgnoreProperties(ignoreUnknown = true)
-@EqualsAndHashCode
 public class Stand implements Serializable {
 
     @EmbeddedId
     private StandId standId;
-
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
 
     @JsonProperty("lon")
     private double longitude;
@@ -32,7 +26,7 @@ public class Stand implements Serializable {
     @JsonProperty("lat")
     private double latitude;
 
-    @OneToMany(mappedBy = "foodId.stand")
+    @OneToMany(mappedBy = "foodId.stand", cascade = CascadeType.ALL)
     @JsonProperty("food")
     List<Food> foodList = new ArrayList<>();
 
@@ -58,20 +52,49 @@ public class Stand implements Serializable {
         this.standId.brand = brand;
     }
 
+    public Stand() {
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Stand stand = (Stand) o;
+        return Objects.equals(standId, stand.standId);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(standId);
+    }
+
     @Embeddable
     @Data
-    @NoArgsConstructor
     @AllArgsConstructor
-    @EqualsAndHashCode
     public static class StandId implements Serializable{
 
         private String name;
 
-        @ManyToOne(cascade = CascadeType.DETACH)
+        @ManyToOne()
         @JoinColumn(name = "brand_name")
         private Brand brand;
 
+        public StandId() {
+        }
 
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            StandId standId = (StandId) o;
+            return Objects.equals(name, standId.name) &&
+                    Objects.equals(brand, standId.brand);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(name, brand);
+        }
     }
 }
 

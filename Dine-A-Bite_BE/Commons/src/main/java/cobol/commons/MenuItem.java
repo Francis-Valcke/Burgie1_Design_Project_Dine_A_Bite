@@ -23,9 +23,11 @@ public class MenuItem implements Serializable {
     private String brandName;
     List<String> category = new ArrayList<String>();
     String description = "";
-    public MenuItem(){
+
+    public MenuItem() {
         super();//needed for ObjectMapper
     }
+
     public MenuItem(String foodName, BigDecimal price, int preptime, int stock, String brandName, String desc, List<String> category) {
         this.foodName = foodName;
         this.price = price.setScale(2, RoundingMode.HALF_UP);
@@ -33,9 +35,10 @@ public class MenuItem implements Serializable {
         this.stock = stock;
         this.count = 0;
         this.brandName = brandName;
-        this.description=desc;
-        this.category=category;
+        this.description = desc;
+        this.category = category;
     }
+
     public MenuItem(MenuItem copy) {
         this.foodName = copy.foodName;
         this.price = copy.getPrice();
@@ -45,6 +48,7 @@ public class MenuItem implements Serializable {
         this.category = new ArrayList<String>(copy.category);
         this.description = copy.description;
     }
+
     public String getFoodName() {
         return foodName;
     }
@@ -75,6 +79,7 @@ public class MenuItem implements Serializable {
 
     /**
      * Will only add distinct categories (set)
+     *
      * @param cat: Category to add
      * @return: if the add was successful
      */
@@ -104,6 +109,7 @@ public class MenuItem implements Serializable {
 
     /**
      * Return the price of a menu item with the euro symbol
+     *
      * @return: String of euro symbol with price
      */
     public String getPriceEuro() {
@@ -113,7 +119,7 @@ public class MenuItem implements Serializable {
         return symbol + price.toString();
     }
 
-    public int getCount(){
+    public int getCount() {
         return count;
     }
 
@@ -133,8 +139,8 @@ public class MenuItem implements Serializable {
      * Decreases the number of times the item is in the cart
      * Throws ArithmeticException when this item has reached 0
      */
-    public void decreaseCount() throws ArithmeticException{
-        if(count == 0) throw new ArithmeticException("This menuItem cannot be decreased!");
+    public void decreaseCount() throws ArithmeticException {
+        if (count == 0) throw new ArithmeticException("This menuItem cannot be decreased!");
         this.count--;
     }
 

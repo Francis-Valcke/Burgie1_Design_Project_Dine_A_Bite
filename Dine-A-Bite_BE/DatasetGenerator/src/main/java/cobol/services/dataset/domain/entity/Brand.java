@@ -12,23 +12,38 @@ import javax.persistence.*;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Entity
 @Data
 @JsonDeserialize(using = BrandDeserializer.class)
-@NoArgsConstructor
 public class Brand implements Serializable {
 
     @Id
     private String name;
 
-    @OneToMany(mappedBy = "standId.brand", cascade = CascadeType.DETACH)
+    @OneToMany(mappedBy = "standId.brand", cascade = CascadeType.ALL)
     @JsonProperty("food")
     private List<Stand> standList = new ArrayList<>();
+
+    public Brand() {
+    }
 
     public Brand(String name) {
         this.name = name;
         standList = new ArrayList<>();
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Brand brand = (Brand) o;
+        return Objects.equals(name, brand.name);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(name);
+    }
 }

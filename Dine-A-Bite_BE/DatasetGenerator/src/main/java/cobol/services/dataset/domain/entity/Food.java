@@ -2,7 +2,11 @@ package cobol.services.dataset.domain.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import org.hibernate.annotations.Generated;
+import org.hibernate.annotations.GenerationTime;
+
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -13,16 +17,10 @@ import java.util.Objects;
 @Data
 @Entity
 @JsonIgnoreProperties(ignoreUnknown = true)
-@NoArgsConstructor
-@EqualsAndHashCode
 public class Food implements Serializable {
 
     @EmbeddedId
     private FoodId foodId;
-
-    //@Column(unique=true)
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
 
     private String description;
 
@@ -32,7 +30,7 @@ public class Food implements Serializable {
 
     private int stock;
 
-    @ManyToMany()
+    @ManyToMany(cascade = CascadeType.ALL)
     @JoinTable(name = "food_category",
             joinColumns = {
                 @JoinColumn(referencedColumnName = "name", name = "food_name"),
@@ -63,19 +61,50 @@ public class Food implements Serializable {
         this.foodId.stand = stand;
     }
 
+    public Food() {
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Food food = (Food) o;
+        return Objects.equals(foodId, food.foodId);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(foodId);
+    }
+
     @Data
-    @NoArgsConstructor
     @AllArgsConstructor
-    @EqualsAndHashCode
     @Embeddable
     public static class FoodId implements Serializable {
 
         private String name;
 
-        @ManyToOne(fetch = FetchType.EAGER)
+        @ManyToOne()
         @JoinColumn(referencedColumnName = "name", name = "stand_name")
         @JoinColumn(referencedColumnName = "brand_name",name = "brand_name")
         private Stand stand;
+
+        public FoodId() {
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            FoodId foodId = (FoodId) o;
+            return Objects.equals(name, foodId.name) &&
+                    Objects.equals(stand, foodId.stand);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(name, stand);
+        }
     }
 }
 

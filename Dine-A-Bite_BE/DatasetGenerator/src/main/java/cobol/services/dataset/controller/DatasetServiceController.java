@@ -33,11 +33,6 @@ public class DatasetServiceController {
     @GetMapping("/load")
     public ResponseEntity load(@RequestBody List<Brand> data){
 
-        Brand brand = new Brand("test");
-        //Stand stand =
-
-        brandRepository.saveAndFlush(brand);
-
         data.forEach(brandRepository::saveAndFlush);
 
         Category category = categoryRepository.findById("SNACK").get();
@@ -45,6 +40,8 @@ public class DatasetServiceController {
         List<Stand> stand = standRepository.findAll();
 
         return null;
+
+
 
     }
 
