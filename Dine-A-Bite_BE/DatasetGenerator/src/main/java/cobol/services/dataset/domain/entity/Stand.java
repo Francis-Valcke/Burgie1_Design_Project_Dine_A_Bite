@@ -20,6 +20,7 @@ public class Stand implements Serializable {
     @EmbeddedId
     private StandId standId;
 
+    @Column(unique=true)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 

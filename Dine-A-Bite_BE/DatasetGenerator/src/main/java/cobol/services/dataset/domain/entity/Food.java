@@ -20,6 +20,7 @@ public class Food implements Serializable {
     @EmbeddedId
     private FoodId foodId;
 
+    @Column(unique=true)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
