@@ -2,10 +2,7 @@ package cobol.services.dataset.domain.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -17,25 +14,15 @@ import java.util.Objects;
 @Entity
 @JsonIgnoreProperties(ignoreUnknown = true)
 @NoArgsConstructor
+@EqualsAndHashCode
 public class Food implements Serializable {
 
-    @Id
+
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    private String name;
-
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinTable(
-            name = "stand_food",
-            joinColumns = {
-                    @JoinColumn(name = "food_id")
-            },
-            inverseJoinColumns = {
-                    @JoinColumn(name = "stand_id")
-            }
-    )
-    private Stand stand;
+    @EmbeddedId
+    private FoodId foodId;
 
     private String description;
 
@@ -47,29 +34,36 @@ public class Food implements Serializable {
 
     @ManyToMany(cascade = CascadeType.ALL)
     @JoinTable(name = "food_category",
-        joinColumns = { @JoinColumn(name = "food_id") },
-            inverseJoinColumns = { @JoinColumn(name = "category_category") }
+            joinColumns = {
+                @JoinColumn(name = "food_id"),
+                @JoinColumn(name = "stand_id")
+            },
+            inverseJoinColumns = {@JoinColumn(name = "category_category")}
     )
     private List<Category> category = new ArrayList<>();
 
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @EqualsAndHashCode
+    @Embeddable
+    public static class FoodId implements Serializable {
 
+        private String name;
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Food food = (Food) o;
-        return id == food.id &&
-                Float.compare(food.price, price) == 0 &&
-                preparationTime == food.preparationTime &&
-                stock == food.stock &&
-                Objects.equals(name, food.name) &&
-                Objects.equals(description, food.description);
-    }
+        @ManyToOne(fetch = FetchType.EAGER)
+        //@JoinTable(
+        //        name = "stand_food",
+        //        joinColumns = {
+        //                @JoinColumn(name = "food_id")
+        //        },
+        //        inverseJoinColumns = {
+        //                @JoinColumn(name = "stand_id")
+        //        }
+        //)
+        @JoinColumn(name = "stand_id")
+        private Stand stand;
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, name, description, price, preparationTime, stock);
     }
 }
 

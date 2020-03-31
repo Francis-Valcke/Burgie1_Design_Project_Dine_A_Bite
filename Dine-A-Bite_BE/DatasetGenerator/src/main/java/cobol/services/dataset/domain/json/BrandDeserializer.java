@@ -38,7 +38,7 @@ public class BrandDeserializer extends JsonDeserializer<Brand> {
                 stand.setName(brand.getName() + " " + (standCounter++));
             }
 
-            stand.getFoodList().forEach(food -> food.setStand(stand));
+            //stand.getFoodList().forEach(food -> food.setStand(stand));
 
         }
 

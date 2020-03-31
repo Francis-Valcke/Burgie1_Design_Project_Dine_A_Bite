@@ -35,7 +35,7 @@ public class Stand implements Serializable {
     @JoinColumn(name = "brand_name")
     private Brand brand;
 
-    @OneToMany(mappedBy = "stand", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "foodId.stand", cascade = CascadeType.ALL)
     @JsonProperty("food")
     List<Food> foodList = new ArrayList<>();
 
