@@ -22,8 +22,7 @@ public class Brand implements Serializable {
     @Id
     private String name;
 
-    @LazyCollection(LazyCollectionOption.FALSE)
-    @OneToMany(mappedBy = "standId.brand", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "standId.brand", cascade = CascadeType.DETACH)
     @JsonProperty("food")
     private List<Stand> standList = new ArrayList<>();
 

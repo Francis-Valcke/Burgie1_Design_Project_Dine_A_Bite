@@ -20,7 +20,7 @@ public class Food implements Serializable {
     @EmbeddedId
     private FoodId foodId;
 
-    @Column(unique=true)
+    //@Column(unique=true)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
@@ -32,7 +32,7 @@ public class Food implements Serializable {
 
     private int stock;
 
-    @ManyToMany(cascade = CascadeType.ALL)
+    @ManyToMany()
     @JoinTable(name = "food_category",
             joinColumns = {
                 @JoinColumn(referencedColumnName = "name", name = "food_name"),
@@ -42,6 +42,26 @@ public class Food implements Serializable {
             inverseJoinColumns = {@JoinColumn(name = "category_category")}
     )
     private List<Category> category = new ArrayList<>();
+
+    public String getName() {
+        return foodId.name;
+    }
+
+    @JsonProperty("name")
+    public void setName(String name) {
+        foodId = (foodId == null) ? new Food.FoodId() : foodId;
+        this.foodId.name = name;
+    }
+
+    public Stand getStand() {
+        return foodId.stand;
+    }
+
+    @JsonProperty("standName")
+    public void setStand(Stand stand) {
+        foodId = (foodId == null) ? new Food.FoodId() : foodId;
+        this.foodId.stand = stand;
+    }
 
     @Data
     @NoArgsConstructor
@@ -56,7 +76,6 @@ public class Food implements Serializable {
         @JoinColumn(referencedColumnName = "name", name = "stand_name")
         @JoinColumn(referencedColumnName = "brand_name",name = "brand_name")
         private Stand stand;
-
     }
 }
 
