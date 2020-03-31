@@ -4,8 +4,14 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
+import android.app.ActivityManager;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -20,6 +26,7 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.example.attendeeapp.order.CommonOrder;
+import com.example.attendeeapp.polling.PollingService;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -31,6 +38,28 @@ import java.util.Map;
  * Activity to handle the show order overview
  */
 public class OrderActivity extends AppCompatActivity {
+
+    private int subscribeId;
+
+    // Receives the order updates from the polling service
+    private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            CommonOrder orderUpdate = (CommonOrder) intent.getSerializableExtra("orderUpdate");
+        }
+    };
+
+    private boolean isPollingServiceRunning(Class<?> serviceClass) {
+        ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if (serviceClass.getName().equals(PollingService.class.getName())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,6 +101,11 @@ public class OrderActivity extends AppCompatActivity {
         adapter.setTotalPrice(amount);
         expandList.setAdapter(adapter);
 
+        // Register as subscriber to the orderId event channel
+        if (!isPollingServiceRunning(PollingService.class)){
+            getSubscriberId(newOrder.getId());
+        }
+
         // Send the order and chosen stand ID to the server and confirm the chosen stand
         // Instantiate the RequestQueue
         RequestQueue queue = Volley.newRequestQueue(this);
@@ -93,6 +127,67 @@ public class OrderActivity extends AppCompatActivity {
                 Toast mToast = null;
                 if (mToast != null) mToast.cancel();
                 mToast = Toast.makeText(OrderActivity.this, "Your order could not be received",
+                        Toast.LENGTH_SHORT);
+                mToast.show();
+
+            }
+        }) {
+            // Add JSON headers
+            @Override
+            public @NonNull Map<String, String> getHeaders()  throws AuthFailureError {
+                Map<String, String> headers = new HashMap<String, String>();
+                headers.put("Authorization", "Bearer " + "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOi" +
+                        "JmcmFuY2lzIiwicm9sZXMiOlsiUk9MRV9VU0VSIiwiUk9MRV9BRE1JTiJdLCJpYX" +
+                        "QiOjE1ODQ2MTAwMTcsImV4cCI6MTc0MjI5MDAxN30.5UNYM5Qtc4anyHrJXIuK0O" +
+                        "UlsbAPNyS9_vr-1QcOWnQ");
+                return headers;
+            }
+        };
+
+        // Add the request to the RequestQueue
+        queue.add(stringRequest);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        // Register the listener for polling updates
+        LocalBroadcastManager.getInstance(this).registerReceiver(
+                mMessageReceiver, new IntentFilter("orderUpdate"));
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        // Unregister the listener
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(mMessageReceiver);
+    }
+
+    /**
+     * Subscribes to the server eventChannel for the given order
+     * and start polling for events in a polling service
+     */
+    public void getSubscriberId(int orderId) {
+        // Instantiate the RequestQueue
+        RequestQueue queue = Volley.newRequestQueue(this);
+        String url = "http://cobol.idlab.ugent.be:8093/registerSubscriber?types=o"+orderId;
+
+        // Request a string response from the provided URL
+        StringRequest stringRequest = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                subscribeId = Integer.parseInt(response);
+                // Start the polling service
+                Intent intent = new Intent(getApplicationContext(), PollingService.class);
+                intent.putExtra("subscribeId", subscribeId);
+                startService(intent);
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Toast mToast = null;
+                if (mToast != null) mToast.cancel();
+                mToast = Toast.makeText(OrderActivity.this, "Could not subscribe to order updates",
                         Toast.LENGTH_SHORT);
                 mToast.show();
 
