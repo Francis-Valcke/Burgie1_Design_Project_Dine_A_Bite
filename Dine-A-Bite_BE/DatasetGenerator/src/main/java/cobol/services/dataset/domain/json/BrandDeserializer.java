@@ -31,12 +31,12 @@ public class BrandDeserializer extends JsonDeserializer<Brand> {
         //Now do all the necessary internal linking to be able to persist into the database
         for (Stand stand : brand.getStandList()) {
             //Add this brand to the stand
-            stand.setBrand(brand);
-
-            //If the name of the stand is empty, use the name of the brand
-            if ((stand.getName() == null || stand.getName().equals(""))) {
-                stand.setName(brand.getName() + " " + (standCounter++));
-            }
+            //stand.setBrand(brand);
+            //
+            ////If the name of the stand is empty, use the name of the brand
+            //if ((stand.getName() == null || stand.getName().equals(""))) {
+            //    stand.setName(brand.getName() + " " + (standCounter++));
+            //}
 
             //stand.getFoodList().forEach(food -> food.setStand(stand));
 

@@ -17,12 +17,11 @@ import java.util.Objects;
 @EqualsAndHashCode
 public class Food implements Serializable {
 
+    @EmbeddedId
+    private FoodId foodId;
 
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
-
-    @EmbeddedId
-    private FoodId foodId;
 
     private String description;
 
@@ -35,8 +34,9 @@ public class Food implements Serializable {
     @ManyToMany(cascade = CascadeType.ALL)
     @JoinTable(name = "food_category",
             joinColumns = {
-                @JoinColumn(name = "food_id"),
-                @JoinColumn(name = "stand_id")
+                @JoinColumn(referencedColumnName = "name", name = "food_name"),
+                @JoinColumn(referencedColumnName = "stand_name", name = "stand_name"),
+                @JoinColumn(referencedColumnName = "brand_name", name = "brand_name")
             },
             inverseJoinColumns = {@JoinColumn(name = "category_category")}
     )
@@ -52,16 +52,8 @@ public class Food implements Serializable {
         private String name;
 
         @ManyToOne(fetch = FetchType.EAGER)
-        //@JoinTable(
-        //        name = "stand_food",
-        //        joinColumns = {
-        //                @JoinColumn(name = "food_id")
-        //        },
-        //        inverseJoinColumns = {
-        //                @JoinColumn(name = "stand_id")
-        //        }
-        //)
-        @JoinColumn(name = "stand_id")
+        @JoinColumn(referencedColumnName = "name", name = "stand_name")
+        @JoinColumn(referencedColumnName = "brand_name",name = "brand_name")
         private Stand stand;
 
     }

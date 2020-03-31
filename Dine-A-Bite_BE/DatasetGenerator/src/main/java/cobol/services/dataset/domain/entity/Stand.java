@@ -3,10 +3,7 @@ package cobol.services.dataset.domain.entity;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -17,13 +14,14 @@ import java.util.List;
 @Entity
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
+@EqualsAndHashCode
 public class Stand implements Serializable {
 
-    @Id
+    @EmbeddedId
+    private StandId standId;
+
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
-
-    private String name;
 
     @JsonProperty("lon")
     private double longitude;
@@ -31,14 +29,23 @@ public class Stand implements Serializable {
     @JsonProperty("lat")
     private double latitude;
 
-    @ManyToOne()
-    @JoinColumn(name = "brand_name")
-    private Brand brand;
-
     @OneToMany(mappedBy = "foodId.stand", cascade = CascadeType.ALL)
     @JsonProperty("food")
     List<Food> foodList = new ArrayList<>();
 
+    @Embeddable
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @EqualsAndHashCode
+    public static class StandId implements Serializable{
+
+        private String name;
+
+        @ManyToOne()
+        @JoinColumn(name = "brand_name")
+        private Brand brand;
+    }
 }
 
 
