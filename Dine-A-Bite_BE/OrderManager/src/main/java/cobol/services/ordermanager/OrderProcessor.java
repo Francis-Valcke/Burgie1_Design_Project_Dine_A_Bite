@@ -125,7 +125,7 @@ public class OrderProcessor {
         this.runningOrders.put(newOrder.getId(), newOrder);
 
         // subscribe to the channel of the order
-        String uri = OrderManager.ECURL + "registerSubscriber/toChannel";
+        String uri = OrderManager.ECURL + "/registerSubscriber/toChannel";
         String channelId = "o" + Integer.toString(newOrder.getId());
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(uri)
                 .queryParam("id", this.subscriberId)

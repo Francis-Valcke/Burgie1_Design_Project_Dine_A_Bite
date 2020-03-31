@@ -22,9 +22,6 @@ public class SchedulerHandler {
     }
 
 
-    public List<Scheduler> getSchedulers() {
-        return schedulers;
-    }
 
     public void clearSchedulers() {
         if (this.schedulers.size() == 0) return;
@@ -46,4 +43,8 @@ public class SchedulerHandler {
             s.pollEvents();
         }
     }
+    public List<Scheduler> getSchedulers() {
+        return schedulers;
+    }
+
 }

@@ -55,12 +55,11 @@ public class Scheduler extends Thread {
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.add("Authorization", "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJTdGFuZE1hbmFnZXIiLCJyb2xlcyI6WyJST0xFX0FQUExJQ0FUSU9OIl0sImlhdCI6MTU4NDkxMTc0MywiZXhwIjoxNzQyNTkxNzQzfQ.tuteSFjRJdQDMja2ioV0eiHvuCu0lkuS94zyhw9ZLIk");
         HttpEntity<String> entity = new HttpEntity<>(headers);
-        String uri = StandManager.ECURL + "registerSubscriber";
-        ;
+        String uri = StandManager.ECURL + "/registerSubscriber";
         ResponseEntity<String> response = restTemplate.exchange(uri, HttpMethod.GET, entity, String.class);
         this.subscriberId = Integer.valueOf(response.getBody());
         String channelId = brand;
-        uri = StandManager.ECURL + "registerSubscriber/toChannel";
+        uri = StandManager.ECURL + "/registerSubscriber/toChannel";
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(uri)
                 .queryParam("id", this.subscriberId)
                 .queryParam("type", channelId);
@@ -112,50 +111,7 @@ public class Scheduler extends Thread {
         }
     }
 
-    public double getLon() {
-        return this.lon;
-    }
 
-    public void setLon(double l) {
-        this.lon = l;
-    }
-
-    public double getLat() {
-        return this.lat;
-    }
-
-    public void setLat(double l) {
-        this.lat = l;
-    }
-
-    public ArrayList<MenuItem> getMenu() {
-        return this.menu;
-    }
-
-    public int getStandId() {
-        return this.id;
-    }
-
-    public String getStandName() {
-        return this.standname;
-    }
-
-    public String getBrand() {
-        return this.brand;
-    }
-
-    /**
-     * gives preptime of item in scheduler
-     *
-     * @param foodname name of item
-     * @return preptime
-     */
-    public int getPreptime(String foodname) {
-        for (MenuItem m : menu) {
-            if (m.getFoodName().equals(foodname)) return m.getPreptime();
-        }
-        return -1;
-    }
 
     /**
      * schedules order: add new order to the end of schedule
@@ -226,6 +182,49 @@ public class Scheduler extends Thread {
             prepClock();
         }
     }
+    public double getLon() {
+        return this.lon;
+    }
 
+    public void setLon(double l) {
+        this.lon = l;
+    }
+
+    public double getLat() {
+        return this.lat;
+    }
+
+    public void setLat(double l) {
+        this.lat = l;
+    }
+
+    public ArrayList<MenuItem> getMenu() {
+        return this.menu;
+    }
+
+    public int getStandId() {
+        return this.id;
+    }
+
+    public String getStandName() {
+        return this.standname;
+    }
+
+    public String getBrand() {
+        return this.brand;
+    }
+
+    /**
+     * gives preptime of item in scheduler
+     *
+     * @param foodname name of item
+     * @return preptime
+     */
+    public int getPreptime(String foodname) {
+        for (MenuItem m : menu) {
+            if (m.getFoodName().equals(foodname)) return m.getPreptime();
+        }
+        return -1;
+    }
 
 }
