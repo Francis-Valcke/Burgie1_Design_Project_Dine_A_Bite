@@ -215,8 +215,8 @@ public class MenuHandler {
         }
         //Save stand
 
-        long llon = si.getLon();
-        long llat = si.getLat();
+        double llon = si.getLon();
+        double llat = si.getLat();
         if (newstand) {
             n = new Stand();
             n.setBrandname(brandname);

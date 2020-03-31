@@ -15,6 +15,7 @@ import org.springframework.http.*;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.awt.*;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -70,16 +71,18 @@ public class Scheduler extends Thread {
 
     /**
      * update menuItem
-     *
-     * @param mi  new item
+     *  @param mi  new item
      * @param mi2 old item
+     * @return
      */
-    static void updateItem(MenuItem mi, MenuItem mi2) {
+    static boolean updateItem(MenuItem mi, MenuItem mi2) {
         if (mi.getFoodName().equals(mi2.getFoodName())) {
             if (mi.getPreptime() >= 0) mi2.setPreptime(mi.getPreptime());
             if (mi.getPrice().compareTo(BigDecimal.ZERO) >= 0) mi2.setPrice(mi.getPrice());
             mi2.setStock(mi.getStock() + mi2.getStock());
+            return true;
         }
+        else return false;
     }
 
     public void pollEvents() {
@@ -182,6 +185,21 @@ public class Scheduler extends Thread {
             prepClock();
         }
     }
+    /**
+     * gives preptime of item in scheduler
+     *
+     * @param foodname name of item
+     * @return preptime
+     */
+    public int getPreptime(String foodname) {
+        for (MenuItem m : menu) {
+            if (m.getFoodName().equals(foodname)) return m.getPreptime();
+        }
+        return -1;
+    }
+    public void removeItem(MenuItem mi){
+        this.menu.remove(mi);
+    }
     public double getLon() {
         return this.lon;
     }
@@ -214,17 +232,6 @@ public class Scheduler extends Thread {
         return this.brand;
     }
 
-    /**
-     * gives preptime of item in scheduler
-     *
-     * @param foodname name of item
-     * @return preptime
-     */
-    public int getPreptime(String foodname) {
-        for (MenuItem m : menu) {
-            if (m.getFoodName().equals(foodname)) return m.getPreptime();
-        }
-        return -1;
-    }
+
 
 }

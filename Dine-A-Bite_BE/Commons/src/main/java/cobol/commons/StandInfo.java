@@ -2,27 +2,25 @@ package cobol.commons;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 
 public class StandInfo implements Serializable {
     private ArrayList<MenuItem> menu = new ArrayList<>();
     private int id;
     private String name;
     private String brand;
-    private long lat;
-    private long lon;
+    private double lat;
+    private double lon;
     public StandInfo(){
         super();//needed for ObjectMapper
     }
-    public StandInfo(int id, String name, String brand, long lat, long lon){
+    public StandInfo(int id, String name, String brand, double lat, double lon){
         this.id = id;
         this.name = name;
         this.brand = brand;
         this.lat = lat;
         this.lon = lon;
     }
-    public StandInfo(String name, String brand, long lat, long lon, ArrayList<MenuItem> menu){
+    public StandInfo(String name, String brand, double lat, double lon, ArrayList<MenuItem> menu){
         this.id = 0;
         this.name = name;
         this.brand = brand;
@@ -31,7 +29,7 @@ public class StandInfo implements Serializable {
         this.menu=menu;
     }
 
-    public StandInfo(String name, String brand, long lat, long lon) {
+    public StandInfo(String name, String brand, double lat, double lon) {
         this.id = 0;
         this.name = name;
         this.brand = brand;
@@ -62,11 +60,11 @@ public class StandInfo implements Serializable {
         return this.brand;
     }
 
-    public long getLon(){
+    public double getLon(){
         return this.lon;
     }
 
-    public long getLat(){
+    public double getLat(){
         return this.lat;
     }
 }

@@ -87,12 +87,21 @@ public class StandManagerController {
 
                 //edit scheduler
                 else {
+                    ArrayList<String> l = new ArrayList<>();
                     for (MenuItem mi : info.getMenu()) {
+                        l.add(mi.getFoodName());
+                        boolean olditem=false;
                         for (MenuItem mi2 : s.getMenu()) {
-                            Scheduler.updateItem(mi, mi2);
+
+                            olditem = Scheduler.updateItem(mi, mi2);
 
                         }
-
+                        if (!olditem){
+                            s.getMenu().add(mi);
+                        }
+                    }
+                    for (MenuItem mi2 : s.getMenu()) {
+                        if (!l.contains(mi2.getFoodName()))s.removeItem(mi2);
                     }
                 }
                 newScheduler = false;

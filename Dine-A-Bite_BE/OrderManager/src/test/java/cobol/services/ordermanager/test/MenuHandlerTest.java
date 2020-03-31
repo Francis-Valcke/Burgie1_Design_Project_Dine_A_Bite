@@ -105,7 +105,7 @@ public class MenuHandlerTest {
         //initialise stands with some variation in coordinates
         int n = 0;
         for (String key : stands.keySet()) {
-            StandInfo si = new StandInfo(key.concat(time), key.split("-")[0].concat(time), (long) n * 10, (long) -n * 10);
+            StandInfo si = new StandInfo(key.concat(time), key.split("-")[0].concat(time), (double) n * 10, (double) -n * 10);
             standInfos.put(key, si);
             n++;
         }
@@ -242,7 +242,7 @@ public class MenuHandlerTest {
         //initialise stands with different variation in coordinates
         int n = 2;
         for (String key : stands.keySet()) {
-            StandInfo si = new StandInfo(key.concat(time), key.split("-")[0].concat(time), (long) n * 10, (long) -n * 10);
+            StandInfo si = new StandInfo(key.concat(time), key.split("-")[0].concat(time), (double) n * 10, (double) -n * 10);
             standInfos.put(key, si);
             n++;
         }
