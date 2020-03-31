@@ -102,7 +102,7 @@ public class Scheduler extends Thread {
         else{
             long endTime = latestOrder.getExpectedTime().getTimeInMillis();
             long currentTime = Calendar.getInstance().getTimeInMillis();
-            long timeEstimate = endTime - currentTime;
+            long timeEstimate = (endTime - currentTime)/1000;
             return timeEstimate;
         }
     }
