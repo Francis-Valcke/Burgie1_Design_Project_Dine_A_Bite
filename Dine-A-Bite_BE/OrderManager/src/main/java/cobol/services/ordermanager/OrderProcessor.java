@@ -6,12 +6,17 @@ import cobol.services.ordermanager.dbmenu.Order;
 import cobol.services.ordermanager.dbmenu.OrderRepository;
 import cobol.services.ordermanager.dbmenu.Stand;
 import cobol.services.ordermanager.dbmenu.StandRepository;
+import cobol.services.ordermanager.exception.AlreadySetException;
+import cobol.services.ordermanager.exception.MissingEntityException;
+import cobol.services.ordermanager.exception.MissingRunException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import org.json.simple.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.http.HttpEntity;
@@ -23,10 +28,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * This is a Singleton
@@ -43,12 +45,13 @@ public class OrderProcessor {
 
     private Map<Integer, Order> runningOrders = new HashMap<>();
     private int subscriberId;
-    private volatile LinkedList<Event> eventQueue = new LinkedList<Event>();
+    private LinkedList<Event> eventQueue = new LinkedList<Event>();
     private RestTemplate restTemplate;
     private HttpHeaders headers;
     private HttpEntity entity;
     private ObjectMapper objectMapper;
     ListMultimap<Integer, Recommendation> orderRecommendations= ArrayListMultimap.create();
+    private Logger logger = LoggerFactory.getLogger(OrderProcessor.class);
 
     private OrderProcessor() {
         objectMapper = new ObjectMapper();
@@ -78,8 +81,7 @@ public class OrderProcessor {
             List<Event> eventList = objectMapper.readValue(details, new TypeReference<List<Event>>() {});
             eventQueue.addAll(eventList);
         } catch (JsonProcessingException e) {
-            System.err.println(e);
-            e.printStackTrace();
+            logger.error("Exception occurred!", e);
         }
     }
 
@@ -142,33 +144,49 @@ public class OrderProcessor {
        runningOrders.put(o.getId(), o);
     }
 
-    public Order getOrder(int orderId) {
+    public Order getOrder(int orderId) throws MissingEntityException {
         // look in running orders hashmap
         Order requestedOrder= runningOrders.getOrDefault(orderId,null);
         if(requestedOrder==null){
-           requestedOrder=orders.findById(orderId).get();
-           this.addOrder(requestedOrder);
+            Optional<Order> optionalOrder = orders.findById(orderId);
+            if (optionalOrder.isPresent()) {
+                requestedOrder = optionalOrder.get();
+            } else {
+                throw new MissingEntityException("Order can't be found in database or running instances.");
+            }
         }
         return requestedOrder;
     }
 
-    public Order confirmStand(int orderId, int standId) {
+    public Order confirmStand(int orderId, int standId) throws MissingEntityException, AlreadySetException, MissingRunException {
         Order updatedOrder=this.getOrder(orderId);
 
-        if(updatedOrder.getStandId()==-1){
+        // If stand is not yet set, update stand
+        if(updatedOrder.getStandId()!=-1){
+            throw new AlreadySetException("Stand has already been confirmed for this order");
+        }
+        else if(stands.findById(standId).isPresent()){
             Stand stand= stands.findById(standId).get();
             updatedOrder.setStandId(standId);
             updatedOrder.setState(Order.status.PENDING);
             updatedOrder.setBrandName(stand.getBrandname());
             updatedOrder.setStandName(stand.getFull_name());
 
-            Recommendation recommendation= orderRecommendations.get(orderId).stream()
+            Optional<Recommendation> orderRecomOptional= orderRecommendations.get(orderId).stream()
                     .filter(r -> r.getStandId() == standId)
-                    .findFirst().get();
-
-            updatedOrder.setRemtime(recommendation.getTimeEstimate()*1000);
+                    .findFirst();
+            if(orderRecomOptional.isPresent()){
+                Recommendation recommendation= orderRecomOptional.get();
+                updatedOrder.setRemtime(recommendation.getTimeEstimate());
+            }
+            else{
+                throw new MissingRunException("No recommendations can be found, make sure you first place an order with this id");
+            }
 
             orders.saveAndFlush(updatedOrder);
+        }
+        else{
+            throw new MissingEntityException("Stand can not be found, so can't be assign to an order");
         }
 
         return updatedOrder;

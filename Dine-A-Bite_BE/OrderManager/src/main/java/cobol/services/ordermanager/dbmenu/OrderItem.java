@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.util.Objects;
 
 @Entity
 @Table(name="orderitem")
@@ -40,6 +41,11 @@ public class OrderItem implements Serializable {
         if (this == o) return true;
         if (!(o instanceof OrderItem )) return false;
         return itemId!=0 && itemId==(((OrderItem) o).getItemId());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(order, itemId, foodname, amount);
     }
 
     public Order getOrder() {

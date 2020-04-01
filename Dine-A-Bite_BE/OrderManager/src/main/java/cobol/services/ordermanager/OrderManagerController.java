@@ -5,6 +5,9 @@ import cobol.commons.ResponseModel;
 import cobol.commons.order.Recommendation;
 import cobol.commons.security.CommonUser;
 import cobol.services.ordermanager.dbmenu.Order;
+import cobol.services.ordermanager.exception.AlreadySetException;
+import cobol.services.ordermanager.exception.MissingEntityException;
+import cobol.services.ordermanager.exception.MissingRunException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -12,6 +15,7 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -23,6 +27,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
 import java.util.List;
+import org.slf4j.Logger;
 
 import static cobol.commons.ResponseModel.status.OK;
 
@@ -37,6 +42,7 @@ public class OrderManagerController {
     private RestTemplate restTemplate;
     private HttpHeaders headers;
     private HttpEntity<String> entity;
+    private Logger logger = LoggerFactory.getLogger(OrderManagerController.class);
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -114,7 +120,7 @@ public class OrderManagerController {
     }
 
     @GetMapping("/getOrderInfo")
-    public JSONObject getOrderInfo(@RequestParam(name="orderId") int orderId) throws JsonProcessingException {
+    public JSONObject getOrderInfo(@RequestParam(name="orderId") int orderId) throws JsonProcessingException, MissingEntityException {
 
         // retrieve order
         Order order= orderProcessor.getOrder(orderId);
@@ -126,7 +132,7 @@ public class OrderManagerController {
         try {
             orderResponse = (JSONObject) parser.parse(jsonString);
         } catch (ParseException e) {
-            e.printStackTrace();
+            logger.error("Exception occurred!", e);
         }
         return orderResponse;
     }
@@ -171,7 +177,7 @@ public class OrderManagerController {
         try {
             updateOrderJson = (JSONObject) parser.parse(updateOrder);
         } catch (ParseException e) {
-            e.printStackTrace();
+            logger.error("Exception occurred!", e);
         }
 
 
@@ -181,7 +187,7 @@ public class OrderManagerController {
         try {
             recomResponseJson=(JSONArray) parser.parse(recommendationsResponse);
         } catch (ParseException e) {
-            e.printStackTrace();
+            logger.error("Exception occurred!", e);
         }
 
         // Construct response
@@ -194,12 +200,12 @@ public class OrderManagerController {
     /**
      * Sets the order id parameter of order. Adds the order to the stand channel.
      *
-     * @param orderId
+     * @param orderId the id of the order for which the stand is to be confirmed
      * @param standId id of the chosen stand
      */
     @GetMapping("/confirmStand")
     @ResponseBody
-    public void confirmStand(@RequestParam(name = "order_id") int orderId, @RequestParam(name = "stand_id") int standId) throws JsonProcessingException{
+    public void confirmStand(@RequestParam(name = "order_id") int orderId, @RequestParam(name = "stand_id") int standId) throws JsonProcessingException, MissingEntityException, AlreadySetException, MissingRunException {
         // Update order, confirm stand
         Order updatedOrder = orderProcessor.confirmStand(orderId, standId);
 
