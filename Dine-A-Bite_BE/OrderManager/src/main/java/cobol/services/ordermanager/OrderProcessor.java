@@ -2,10 +2,10 @@ package cobol.services.ordermanager;
 
 import cobol.commons.Event;
 import cobol.commons.order.Recommendation;
-import cobol.services.ordermanager.dbmenu.Order;
-import cobol.services.ordermanager.dbmenu.OrderRepository;
 import cobol.services.ordermanager.dbmenu.Stand;
 import cobol.services.ordermanager.dbmenu.StandRepository;
+import cobol.services.ordermanager.domain.entity.Order;
+import cobol.services.ordermanager.domain.repository.OrderRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;

@@ -1,15 +1,12 @@
 package cobol.services.ordermanager.test;
 
-import cobol.commons.MenuItem;
-import cobol.commons.StandInfo;
+import cobol.commons.CommonFood;
+import cobol.commons.CommonStand;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.json.simple.JSONArray;
-import org.json.simple.parser.JSONParser;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.omg.Messaging.SYNC_WITH_TRANSPORT;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
@@ -19,7 +16,6 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 
-import javax.validation.constraints.AssertTrue;
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.sql.Timestamp;
@@ -97,11 +93,11 @@ public class MenuHandlerTest {
         //create a unique attachment so every test is unique in time: with this, 2 of the same tests cannot intefere if executed close (but not exact at same time) in time
         Timestamp timestamp = new Timestamp(System.currentTimeMillis());
         time=timestamp.toString();
-        Map<String, StandInfo> standInfos = new HashMap<>();
+        Map<String, CommonStand> standInfos = new HashMap<>();
         //initialise stands with some variation in coordinates
         int n = 0;
         for (String key : stands.keySet()) {
-            StandInfo si = new StandInfo(key.concat(time), key.split("-")[0].concat(time), (long) n * 10, (long) -n * 10);
+            CommonStand si = new CommonStand(key.concat(time), key.split("-")[0].concat(time), (long) n * 10, (long) -n * 10);
             standInfos.put(key, si);
             n++;
         }
@@ -111,7 +107,7 @@ public class MenuHandlerTest {
                 if (stands.get(key).contains(i)) {
                     List<String> cat = new ArrayList<>();
                     cat.add(categories.get(i));
-                    MenuItem mi = new MenuItem(foodnames.get(i), prices.get(i), preptimes.get(i), 20, key.split("-")[0].concat(time), descriptions.get(i), cat);
+                    CommonFood mi = new CommonFood(foodnames.get(i), prices.get(i), preptimes.get(i), 20, key.split("-")[0].concat(time), descriptions.get(i), cat);
                     standInfos.get(key).addMenuItem(mi);
                 }
             }
@@ -139,9 +135,9 @@ public class MenuHandlerTest {
                 .header("Authorization", token))
                 .andReturn();
         String json = result.getResponse().getContentAsString();
-        MenuItem[] mis = objectMapper.readValue(json, MenuItem[].class);
+        CommonFood[] mis = objectMapper.readValue(json, CommonFood[].class);
         //check through entire menu if every item is present and has right attributes
-        for (MenuItem mi : mis) {
+        for (CommonFood mi : mis) {
             Map<String, Integer> count = new HashMap<>();
             int i = foodnames.indexOf(mi.getFoodName());
             for (String key : stands.keySet()) {
@@ -189,9 +185,9 @@ public class MenuHandlerTest {
                     .header("Authorization", token))
                     .andReturn();
             String json = result.getResponse().getContentAsString();
-            MenuItem[] mis = objectMapper.readValue(json, MenuItem[].class);
+            CommonFood[] mis = objectMapper.readValue(json, CommonFood[].class);
             //check through entire menu if every item is present and has right attributes
-            for (MenuItem mi : mis) {
+            for (CommonFood mi : mis) {
                 int i = foodnames.indexOf(mi.getFoodName()); //returns -1 if not found
                 //check if no extra item added
                 assertNotEquals(i, -1);
@@ -230,11 +226,11 @@ public class MenuHandlerTest {
      */
     @Test
     public void alterMenus() throws Exception {
-        Map<String, StandInfo> standInfos = new HashMap<>();
+        Map<String, CommonStand> standInfos = new HashMap<>();
         //initialise stands with different variation in coordinates
         int n = 2;
         for (String key : stands.keySet()) {
-            StandInfo si = new StandInfo(key.concat(time), key.split("-")[0].concat(time), (long) n * 10, (long) -n * 10);
+            CommonStand si = new CommonStand(key.concat(time), key.split("-")[0].concat(time), (long) n * 10, (long) -n * 10);
             standInfos.put(key, si);
             n++;
         }
@@ -244,7 +240,7 @@ public class MenuHandlerTest {
                 if (stands.get(key).contains(i)) {
                     List<String> cat = new ArrayList<>();
                     cat.add(categories2.get(i));
-                    MenuItem mi = new MenuItem(foodnames2.get(i), prices2.get(i), preptimes2.get(i), 20, key.split("-")[0].concat(time), descriptions2.get(i), cat);
+                    CommonFood mi = new CommonFood(foodnames2.get(i), prices2.get(i), preptimes2.get(i), 20, key.split("-")[0].concat(time), descriptions2.get(i), cat);
                     standInfos.get(key).addMenuItem(mi);
                 }
             }
@@ -262,9 +258,9 @@ public class MenuHandlerTest {
                 .header("Authorization", token))
                 .andReturn();
         String json = result.getResponse().getContentAsString();
-        MenuItem[] mis = objectMapper.readValue(json, MenuItem[].class);
+        CommonFood[] mis = objectMapper.readValue(json, CommonFood[].class);
         //check through entire menu if every item is present and has right attributes
-        for (MenuItem mi : mis) {
+        for (CommonFood mi : mis) {
             int i = foodnames2.indexOf(mi.getFoodName());
             int k = foodnames.indexOf(mi.getFoodName());
             if (i == -1) {

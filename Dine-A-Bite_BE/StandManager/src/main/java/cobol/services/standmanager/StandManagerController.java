@@ -1,20 +1,14 @@
 package cobol.services.standmanager;
 
+import cobol.commons.CommonFood;
+import cobol.commons.ResponseModel;
+import cobol.commons.CommonStand;
 import cobol.commons.order.CommonOrder;
 import cobol.commons.order.CommonOrderItem;
 import cobol.commons.order.Recommendation;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.json.simple.JSONArray;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
-import org.springframework.web.bind.annotation.*;
-
-
-import cobol.commons.MenuItem;
-import cobol.commons.ResponseModel;
-import cobol.commons.StandInfo;
 import org.json.simple.JSONObject;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -23,7 +17,6 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 import static cobol.commons.ResponseModel.status.OK;
 
@@ -58,8 +51,8 @@ public class StandManagerController {
     public void start(){
         // Initialize stand menus and schedulers
         System.out.println("TESTTEST");
-        ArrayList<MenuItem> menu = new ArrayList<>();
-        MenuItem mi = new MenuItem("burger", BigDecimal.valueOf(3.0), 4, 20, "mcdo", "", null);
+        ArrayList<CommonFood> menu = new ArrayList<>();
+        CommonFood mi = new CommonFood("burger", BigDecimal.valueOf(3.0), 4, 20, "mcdo", "", null);
         menu.add(mi);
         Scheduler a = new Scheduler(menu, "food1", 1, "mcdo");
         Scheduler b = new Scheduler(menu, "food2", 2, "burgerking");
@@ -84,7 +77,7 @@ public class StandManagerController {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
         for (String standinfo : standinfos) {
-            StandInfo info = objectMapper.readValue(standinfo, StandInfo.class);
+            CommonStand info = objectMapper.readValue(standinfo, CommonStand.class);
             Scheduler s = new Scheduler(info.getMenu(), info.getName(), info.getId(), info.getBrand());
             s.setLat(info.getLat());
             s.setLon(info.getLon());
@@ -106,7 +99,7 @@ public class StandManagerController {
      * @return true (if no errors)
      */
     @PostMapping(value = "/newStand", consumes = "application/json")
-    public JSONObject addNewStand(@RequestBody() StandInfo info) {
+    public JSONObject addNewStand(@RequestBody() CommonStand info) {
         Scheduler s = new Scheduler(info.getMenu(), info.getName(), info.getId(), info.getBrand());
         s.setLat(info.getLat());
         s.setLon(info.getLon());

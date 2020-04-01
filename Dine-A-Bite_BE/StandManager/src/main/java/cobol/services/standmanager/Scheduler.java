@@ -1,7 +1,7 @@
 package cobol.services.standmanager;
 
 import cobol.commons.order.CommonOrder;
-import cobol.commons.MenuItem;
+import cobol.commons.CommonFood;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -11,7 +11,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class Scheduler extends Thread {
     private List<CommonOrder> inc = new LinkedList<>();
-    private ArrayList<MenuItem> menu;
+    private ArrayList<CommonFood> menu;
     private String standname;
     private int id;
 
@@ -21,7 +21,7 @@ public class Scheduler extends Thread {
 
     private String brand;
 
-    public Scheduler(ArrayList<MenuItem> menu, String standname, int id, String brand) {
+    public Scheduler(ArrayList<CommonFood> menu, String standname, int id, String brand) {
         this.menu = menu;
         this.standname = standname;
         this.id = id;
@@ -46,7 +46,7 @@ public class Scheduler extends Thread {
         this.lat = l;
     }
 
-    public ArrayList<MenuItem> getMenu(){
+    public ArrayList<CommonFood> getMenu(){
         return this.menu;
     }
 
@@ -68,7 +68,7 @@ public class Scheduler extends Thread {
      * @return preptime
      */
     public int getPreptime(String foodname) {
-        for (MenuItem m : menu) {
+        for (CommonFood m : menu) {
             if (m.getFoodName().equals(foodname)) return m.getPreptime();
         }
         return -1;
@@ -110,7 +110,7 @@ public class Scheduler extends Thread {
      * @return true/false
      */
     public boolean checkType(String type) {
-        for (MenuItem mi : menu) {
+        for (CommonFood mi : menu) {
             if (mi.getFoodName().equals(type)) {
                 return true;
             }

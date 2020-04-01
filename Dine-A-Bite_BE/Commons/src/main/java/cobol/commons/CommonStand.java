@@ -2,27 +2,25 @@ package cobol.commons;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 
-public class StandInfo implements Serializable {
-    private ArrayList<MenuItem> menu = new ArrayList<>();
+public class CommonStand implements Serializable {
+    private ArrayList<CommonFood> menu = new ArrayList<>();
     private int id;
     private String name;
     private String brand;
     private long lat;
     private long lon;
-    public StandInfo(){
+    public CommonStand(){
         super();//needed for ObjectMapper
     }
-    public StandInfo(int id, String name, String brand, long lat, long lon){
+    public CommonStand(int id, String name, String brand, long lat, long lon){
         this.id = id;
         this.name = name;
         this.brand = brand;
         this.lat = lat;
         this.lon = lon;
     }
-    public StandInfo(String name, String brand, long lat, long lon, ArrayList<MenuItem> menu){
+    public CommonStand(String name, String brand, long lat, long lon, ArrayList<CommonFood> menu){
         this.id = 0;
         this.name = name;
         this.brand = brand;
@@ -31,7 +29,7 @@ public class StandInfo implements Serializable {
         this.menu=menu;
     }
 
-    public StandInfo(String name, String brand, long lat, long lon) {
+    public CommonStand(String name, String brand, long lat, long lon) {
         this.id = 0;
         this.name = name;
         this.brand = brand;
@@ -42,11 +40,11 @@ public class StandInfo implements Serializable {
     public void setId(int id){
         this.id = id;
     }
-    public void addMenuItem(MenuItem mi){
+    public void addMenuItem(CommonFood mi){
         menu.add(mi);
     }
 
-    public ArrayList<MenuItem> getMenu(){
+    public ArrayList<CommonFood> getMenu(){
         return this.menu;
     }
 

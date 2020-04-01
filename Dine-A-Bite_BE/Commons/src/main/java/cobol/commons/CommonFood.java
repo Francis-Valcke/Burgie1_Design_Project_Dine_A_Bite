@@ -5,14 +5,13 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.NumberFormat;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 
 /**
  * Model for one menu item
  */
-public class MenuItem implements Serializable {
+public class CommonFood implements Serializable {
     private static final int MAX_ITEM = 10;
     private String foodName;
     private BigDecimal price;
@@ -24,11 +23,11 @@ public class MenuItem implements Serializable {
     List<String> category = new ArrayList<String>();
     String description = "";
 
-    public MenuItem() {
+    public CommonFood() {
         super();//needed for ObjectMapper
     }
 
-    public MenuItem(String foodName, BigDecimal price, int preptime, int stock, String brandName, String desc, List<String> category) {
+    public CommonFood(String foodName, BigDecimal price, int preptime, int stock, String brandName, String desc, List<String> category) {
         this.foodName = foodName;
         this.price = price.setScale(2, RoundingMode.HALF_UP);
         this.preptime = preptime;
@@ -39,7 +38,7 @@ public class MenuItem implements Serializable {
         this.category = category;
     }
 
-    public MenuItem(MenuItem copy) {
+    public CommonFood(CommonFood copy) {
         this.foodName = copy.foodName;
         this.price = copy.getPrice();
         this.count = copy.count;

@@ -1,8 +1,8 @@
-package cobol.services.dataset.domain.json;
+package cobol.services.ordermanager.domain.json;
 
-import cobol.services.dataset.domain.SpringContext;
-import cobol.services.dataset.domain.entity.Category;
-import cobol.services.dataset.domain.repository.CategoryRepository;
+import cobol.services.ordermanager.domain.SpringContext;
+import cobol.services.ordermanager.domain.entity.Category;
+import cobol.services.ordermanager.domain.repository.CategoryRepository;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationContext;

@@ -1,10 +1,13 @@
 package cobol.services.ordermanager;
 
+import cobol.commons.CommonStand;
 import cobol.commons.Event;
 import cobol.commons.ResponseModel;
 import cobol.commons.order.Recommendation;
 import cobol.commons.security.CommonUser;
-import cobol.services.ordermanager.dbmenu.Order;
+import cobol.services.ordermanager.domain.entity.Food;
+import cobol.services.ordermanager.domain.entity.Order;
+import cobol.services.ordermanager.domain.entity.Stand;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -21,9 +24,10 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
-import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import static cobol.commons.ResponseModel.status.OK;
 
@@ -36,8 +40,8 @@ import static cobol.commons.ResponseModel.status.OK;
 
 @RestController
 public class OrderManagerController {
-    @Autowired // This means to get the bean called standRepository
-    private MenuHandler mh;
+    @Autowired
+    private MenuHandler menuHandler;
 
     private RestTemplate restTemplate;
     private HttpHeaders headers;
@@ -75,7 +79,7 @@ public class OrderManagerController {
      */
     @GetMapping("/SMswitch")
     public void sMswitch(@RequestParam(name = "on") boolean sm) {
-        this.mh.smSwitch(sm);
+        this.menuHandler.smSwitch(sm);
     }
 
 
@@ -86,7 +90,7 @@ public class OrderManagerController {
      */
     @RequestMapping("/delete")
     public String delete() {
-        mh.deleteAll();
+        menuHandler.deleteAll();
         return "deleting stands from Order Manager";
     }
 
@@ -97,8 +101,8 @@ public class OrderManagerController {
      */
     @RequestMapping(value="/updateOM", method = RequestMethod.GET)
     public String update() throws JsonProcessingException {
-        List<String> stands = mh.update();
-        mh.updateSM();
+        menuHandler.refreshCache();
+        menuHandler.updateStandManager();
         if (stands.size()==0) {
             return "No stands in database";
         }
@@ -234,8 +238,8 @@ public class OrderManagerController {
      */
     @PostMapping(path = "/addstand") // Map ONLY POST Requests
     public @ResponseBody
-    String addStand(@RequestBody JSONObject menu) throws JsonProcessingException {
-        return mh.addStand(menu);
+    String addStand(@RequestBody CommonStand stand) throws JsonProcessingException {
+        return menuHandler.addStand(stand);
     }
 
 
@@ -250,7 +254,7 @@ public class OrderManagerController {
     @ResponseBody
     public JSONArray requestTotalMenu() { //start with id=1 (temporary)
         System.out.println("request total menu");
-        return mh.getTotalmenu();
+        return menuHandler.getTotalmenu();
     }
 
     /**
@@ -266,16 +270,15 @@ public class OrderManagerController {
      */
     @RequestMapping(value = "/standmenu", method = RequestMethod.GET)
     @ResponseBody
-    public JSONArray requestStandMenu(@RequestParam() String standname) {
-        System.out.println("request menu of stand " + standname);
-        return mh.getStandMenu(standname);
+    public ResponseEntity<List<Food>> requestStandMenu(@RequestParam String standName, @RequestParam String brandName) {
+        return ResponseEntity.ok(new ArrayList<>(menuHandler.getStandMenu(standName, brandName)));
     }
 
     @RequestMapping(value = "/deleteStand", method = RequestMethod.GET)
     @ResponseBody
     public String deleteStand(@RequestParam() String standname) {
         System.out.println("delete stand: " + standname);
-        boolean b = mh.deleteStand(standname);
+        boolean b = menuHandler.deleteStand(standname);
         if (b) return "Stand " + standname + " deleted.";
         else return "No stand by that name exists";
 
@@ -287,10 +290,9 @@ public class OrderManagerController {
      * value = standname
      */
     @RequestMapping(value="/stands", method = RequestMethod.GET)
-    public JSONObject requestStandnames() { //start with id=1 (temporary)
-        System.out.println("request stand names");
-
-        return mh.getStandnames();
+    public ResponseEntity<Map<String, String>> requestStandnames() {
+        return ResponseEntity.ok(menuHandler.getStands()
+                .stream().collect(Collectors.toMap(Stand::getName, stand -> stand.getBrand().getName())));
     }
 }
 
