@@ -29,7 +29,7 @@ public class Stand implements Serializable {
     @JsonProperty("lat")
     private double latitude;
 
-    @OneToMany(mappedBy = "foodId.stand", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "foodId.stand", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JsonProperty("food")
     List<Food> foodList = new ArrayList<>();
 
@@ -95,8 +95,12 @@ public class Stand implements Serializable {
         private String name;
 
         @JsonIgnore
-        @ManyToOne
-        @JoinColumn(name = "brand_name")
+        @ManyToOne(cascade = CascadeType.ALL)
+        @JoinColumns(
+                foreignKey = @ForeignKey(name = "stand_brand_fk"), value = {
+                @JoinColumn(referencedColumnName = "name", name = "brand_name")
+        }
+        )
         private Brand brand;
 
         public StandId() {

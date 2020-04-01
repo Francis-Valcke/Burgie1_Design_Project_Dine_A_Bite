@@ -91,7 +91,7 @@ public class MenuHandler {
     public void updateStandManager() throws JsonProcessingException {
         ObjectMapper mapper = new ObjectMapper();
         String json = mapper.writeValueAsString(stands);
-        sendRestCallToStandManager("/update", json);
+        //sendRestCallToStandManager("/update", json);
     }
 
     public List<Stand> getStands() {
@@ -196,7 +196,6 @@ public class MenuHandler {
             return "stand name already taken";
         }
 
-
         // get brand from commonstand
         Optional<Brand> brandOptional = brandRepository.findById(newCommonStand.getBrand());
         Brand brand = null;
@@ -204,7 +203,7 @@ public class MenuHandler {
 
         // create stand object
         Stand newStand = new Stand(newCommonStand, brand);
-        brandRepository.save(brand);
+        standRepository.save(newStand);
 
         refreshCache();
         updateGlobalMenu();

@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -40,16 +41,16 @@ import static cobol.commons.ResponseModel.status.OK;
 
 @RestController
 public class OrderManagerController {
+
     @Autowired
     private MenuHandler menuHandler;
-
-    private RestTemplate restTemplate;
-    private HttpHeaders headers;
-    private HttpEntity<String> entity;
     @Autowired
     private ObjectMapper objectMapper;
     @Autowired
-    OrderProcessor orderProcessor = null;
+    private OrderProcessor orderProcessor = null;
+
+    private RestTemplate restTemplate;
+    private HttpHeaders headers;
 
     OrderManagerController() {
         this.restTemplate = new RestTemplate();
@@ -64,7 +65,7 @@ public class OrderManagerController {
      * @return "OrderManager is alive!"
      */
     @GetMapping("/pingOM")
-    public ResponseEntity ping() {
+    public ResponseEntity<HashMap<Object, Object>> ping() {
         return ResponseEntity.ok(
                 ResponseModel.builder()
                         .status(OK.toString())
@@ -134,7 +135,7 @@ public class OrderManagerController {
      *
      * @param orderObject the order recieved from the attendee app
      * @return the order id, along with the json with recommended stands
-     * @throws JsonProcessingException
+     * @throws JsonProcessingException json error
      *
      */
     @PostMapping(value = "/placeOrder", consumes = "application/json", produces = "application/json")
@@ -205,7 +206,7 @@ public class OrderManagerController {
         JSONObject orderJson = new JSONObject();
         orderJson.put("order", updatedOrder);
         List<String> types = new ArrayList<>();
-        types.add("o"+String.valueOf(orderId));
+        types.add("o"+orderId);
         types.add("s_"+standName+"_"+brandName);
         Event e = new Event(orderJson, types, "Order");
 
@@ -214,7 +215,7 @@ public class OrderManagerController {
         headers.setContentType(MediaType.APPLICATION_JSON);
         String uri = OrderManager.ECURL+"/publishEvent";
 
-        entity = new HttpEntity<>(jsonString, headers);
+        HttpEntity<String> entity = new HttpEntity<>(jsonString, headers);
         String response = restTemplate.postForObject(uri, entity, String.class);
 
         System.out.println(response);
@@ -247,23 +248,19 @@ public class OrderManagerController {
     }
 
     /**
-     * @return specific stand menu in JSON format
-     * sent POST request to localhost:8080/standmenu
-     * @RequestParam() String standname: post the name of a stand
-     * (In Postman: Select POST, go to params, enter "standname" as KEY and enter the name of a stand as value)
-     * (ex:localhost:8080/standmenu?standname=food1)
-     * (in current test above: "food1" and "food2" are names of stands)
-     * This iterates menu of the named stand,
-     * and puts the menu items in a JSON file with their price.
-     * In the JSON file the keys are the menu item names and the values are the prices
+     * Rest call for retrieving standmenu
+     *
+     * @param standName name of stand
+     * @param brandName name of brand
+     * @return List of food items
      */
-    @RequestMapping(value = "/standmenu", method = RequestMethod.GET)
+    @GetMapping(value = "/standMenu")
     @ResponseBody
     public ResponseEntity<List<Food>> requestStandMenu(@RequestParam String standName, @RequestParam String brandName) {
         return ResponseEntity.ok(new ArrayList<>(menuHandler.getStandMenu(standName, brandName)));
     }
 
-    @RequestMapping(value = "/deleteStand", method = RequestMethod.GET)
+    @GetMapping(value = "/deleteStand")
     @ResponseBody
     public String deleteStand(@RequestParam() String standName, @RequestParam String brandName) {
         System.out.println("delete stand: " + standName);
@@ -274,11 +271,11 @@ public class OrderManagerController {
     }
 
     /**
-     * @return names of all stands:
-     * key = number in list
-     * value = standname
+     * This method will retrieve all standnames with corresponding brandnames
+     *
+     * @return hashmap of standname - brandname
      */
-    @RequestMapping(value="/stands", method = RequestMethod.GET)
+    @GetMapping(value="/stands")
     public ResponseEntity<Map<String, String>> requestStandnames() {
         return ResponseEntity.ok(menuHandler.getStands()
                 .stream().collect(Collectors.toMap(Stand::getName, stand -> stand.getBrand().getName())));

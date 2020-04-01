@@ -34,14 +34,16 @@ public class Food implements Serializable {
 
     private int stock;
 
-    @ManyToMany(cascade = CascadeType.MERGE)
+    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinTable(name = "food_category",
             joinColumns = {
-                @JoinColumn(referencedColumnName = "name", name = "food_name"),
-                @JoinColumn(referencedColumnName = "stand_name", name = "stand_name"),
-                @JoinColumn(referencedColumnName = "brand_name", name = "brand_name")
+                    @JoinColumn(referencedColumnName = "name", name = "food_name", foreignKey = @ForeignKey(name = "food_category_food_fk")),
+                    @JoinColumn(referencedColumnName = "stand_name", name = "stand_name", foreignKey = @ForeignKey(name = "food_category_food_fk")),
+                    @JoinColumn(referencedColumnName = "brand_name", name = "brand_name", foreignKey = @ForeignKey(name = "food_category_food_fk"))
             },
-            inverseJoinColumns = {@JoinColumn(name = "category_category")}
+            inverseJoinColumns = {
+                    @JoinColumn(referencedColumnName = "category", name = "category_category", foreignKey = @ForeignKey(name = "food_category_category_fk"))
+            }
     )
     private List<Category> category = new ArrayList<>();
 
@@ -135,9 +137,13 @@ public class Food implements Serializable {
 
         private String name;
 
-        @ManyToOne()
-        @JoinColumn(referencedColumnName = "name", name = "stand_name")
-        @JoinColumn(referencedColumnName = "brand_name",name = "brand_name")
+        @ManyToOne(cascade = CascadeType.ALL)
+        @JoinColumns(
+                foreignKey = @ForeignKey(name = "food_stand_fk"), value = {
+                @JoinColumn(referencedColumnName = "name", name = "stand_name"),
+                @JoinColumn(referencedColumnName = "brand_name",name = "brand_name")
+        }
+        )
         private Stand stand;
 
         public FoodId() {
