@@ -5,12 +5,10 @@ import cobol.services.ordermanager.domain.entity.Brand;
 import cobol.services.ordermanager.domain.entity.Food;
 import cobol.services.ordermanager.domain.entity.Stand;
 import cobol.services.ordermanager.domain.repository.BrandRepository;
-import cobol.services.ordermanager.domain.repository.CategoryRepository;
 import cobol.services.ordermanager.domain.repository.FoodRepository;
 import cobol.services.ordermanager.domain.repository.StandRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -20,8 +18,11 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.annotation.PostConstruct;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
@@ -45,8 +46,7 @@ public class MenuHandler {
     private FoodRepository foodRepository;
     @Autowired
     private BrandRepository brandRepository;
-    @Autowired
-    private CategoryRepository categoryRepository;
+
 
     public MenuHandler() {
         stands = new ArrayList<>();
@@ -55,7 +55,7 @@ public class MenuHandler {
     /**
      * this will clear the database and the cache files
      */
-    public void deleteAll() {
+    public void deleteAll() throws ParseException, JsonProcessingException {
 
         // Clear cache
         stands.clear();
@@ -63,16 +63,12 @@ public class MenuHandler {
         // Clear database
         brandRepository.deleteAll();
 
-        // Ask standmanager to delete cache
-        RestTemplate template = new RestTemplate();
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        String uri = OrderManager.SMURL + "/delete";
-        headers.add("Authorization", "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJPcmRlck1hbmFnZXIiLCJyb2xlcyI6WyJST0xFX0FQUExJQ0FUSU9OIl0sImlhdCI6MTU4NDkxMTY3MSwiZXhwIjoxNzQyNTkxNjcxfQ.VmujsURhZaXRp5FQJXzmQMB-e6QSNF-OyPLeMEMOVvI");
-        HttpEntity<String> request = new HttpEntity<>(headers);
+        String response= sendRestCallToStandManager("/delete", null,  null);
+        JSONParser parser= new JSONParser();
+        JSONObject responseObject=  (JSONObject) parser.parse(response);
 
         // Retrieve response
-        boolean delschedulers = (boolean) Objects.requireNonNull(template.postForObject(uri, request, JSONObject.class)).get("del");
+        boolean delschedulers = (boolean) Objects.requireNonNull(responseObject).get("del");
         if (delschedulers) System.out.println("deleted schedulers");
 
     }
@@ -91,7 +87,7 @@ public class MenuHandler {
     public void updateStandManager() throws JsonProcessingException {
         ObjectMapper mapper = new ObjectMapper();
         String json = mapper.writeValueAsString(stands);
-        //sendRestCallToStandManager("/update", json);
+        sendRestCallToStandManager("/update", json, null);
     }
 
     public List<Stand> getStands() {
@@ -133,6 +129,7 @@ public class MenuHandler {
      * This method will update the cache of Food objects
      */
     public void updateGlobalMenu() throws JsonProcessingException {
+        globalMenu.clear();
         List<Food> allFoodItems = foodRepository.findAll();
         Map<Object, Boolean> isDuplicate = allFoodItems.stream()
                 .collect(Collectors.toMap(f -> Arrays.asList(f.getName(), f.getStand().getBrand().getName()),
@@ -151,7 +148,7 @@ public class MenuHandler {
 
 
     public String updateStand(CommonStand commonStand) {
-        Optional<Stand> standOptional = getStand(commonStand.getName(), commonStand.getBrand());
+        Optional<Stand> standOptional = getStand(commonStand.getName(), commonStand.getBrandName());
         if (!standOptional.isPresent()) {
             return "stand does not exist";
         }
@@ -161,7 +158,7 @@ public class MenuHandler {
         stand.setFoodList(commonStand.getMenu().stream()
                 .map(cf -> {
                     Food food;
-                    Optional<Food> optionalFood = foodRepository.findById(new Food.FoodId(cf.getFoodName(), stand));
+                    Optional<Food> optionalFood = foodRepository.findById(new Food.FoodId(cf.getName(), stand));
                     if (optionalFood.isPresent()) {
                         optionalFood.get().update(cf);
                         food = optionalFood.get();
@@ -190,20 +187,20 @@ public class MenuHandler {
         refreshCache();
 
         // look if stands already exists
-        Optional<Stand> standOptional = getStand(newCommonStand.getName(), newCommonStand.getBrand());
+        Optional<Stand> standOptional = getStand(newCommonStand.getName(), newCommonStand.getBrandName());
 
         if (standOptional.isPresent()) {
             return "stand name already taken";
         }
 
         // get brand from commonstand
-        Optional<Brand> brandOptional = brandRepository.findById(newCommonStand.getBrand());
-        Brand brand = null;
-        brand = brandOptional.orElseGet(() -> new Brand(newCommonStand.getBrand()));
+        Optional<Brand> brandOptional = brandRepository.findById(newCommonStand.getBrandName());
+        Brand brand = brandOptional.orElseGet(() -> new Brand(newCommonStand.getBrandName()));
+
 
         // create stand object
         Stand newStand = new Stand(newCommonStand, brand);
-        standRepository.save(newStand);
+        brandRepository.save(brand);
 
         refreshCache();
         updateGlobalMenu();
@@ -211,7 +208,7 @@ public class MenuHandler {
 
         ObjectMapper mapper = new ObjectMapper();
         String jsonString = mapper.writeValueAsString(newStand);
-        String response = sendRestCallToStandManager("/newStand", jsonString);
+        String response = sendRestCallToStandManager("/newStand", jsonString, null);
 
         JSONParser parser = new JSONParser();
         JSONObject responseObject = (JSONObject) parser.parse(response);
@@ -220,12 +217,18 @@ public class MenuHandler {
         return "Saved";
     }
 
-    public boolean deleteStand(String standName, String brandName) {
+    public boolean deleteStand(String standName, String brandName) throws JsonProcessingException {
 
         Optional<Stand> standOptional = getStand(standName, brandName);
         if (standOptional.isPresent()) {
             standRepository.delete(standOptional.get());
             stands.remove(standOptional.get());
+            updateGlobalMenu();
+
+            Map <String, String> params= new HashMap<>();
+            params.put("standName", standName);
+            params.put("brandName", brandName);
+            sendRestCallToStandManager("/deleteScheduler", null, params);
             return true;
         } else {
             return false;
@@ -240,14 +243,27 @@ public class MenuHandler {
      * @param jsonObject JSONObject or JSONArray format
      * @return response as String
      */
-    public String sendRestCallToStandManager(String path, String jsonObject) {
+    public String sendRestCallToStandManager(String path, String jsonObject, Map<String, String> params) throws JsonProcessingException{
         RestTemplate template = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.add("Authorization", OrderManager.authToken);
+
         HttpEntity<String> request = new HttpEntity<>(jsonObject, headers);
         String uri = OrderManager.SMURL + path;
-        return template.postForObject(uri, request, String.class);
+
+        UriComponentsBuilder builder= UriComponentsBuilder.fromHttpUrl(uri);
+        if(params!=null) {
+            for (String s : params.keySet()) {
+                try {
+                    builder.queryParam(s, URLEncoder.encode(params.get(s), "UTF-8"));
+                } catch (UnsupportedEncodingException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        return template.postForObject(builder.toUriString(), request, String.class);
     }
 
 

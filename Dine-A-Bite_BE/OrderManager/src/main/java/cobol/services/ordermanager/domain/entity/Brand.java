@@ -46,4 +46,12 @@ public class Brand implements Serializable {
     public int hashCode() {
         return Objects.hash(name);
     }
+
+
+    @Override
+    public String toString() {
+        return "Brand{" +
+                "name='" + name +
+                '}';
+    }
 }

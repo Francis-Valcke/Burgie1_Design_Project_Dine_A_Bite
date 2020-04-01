@@ -13,10 +13,10 @@ import java.util.Locale;
  */
 public class CommonFood implements Serializable {
     private static final int MAX_ITEM = 10;
-    private String foodName;
+    private String name;
     private BigDecimal price;
     private int count = 0;
-    private int preptime;
+    private int preparationTime;
     private int stock;
     private String standName = "";
     private String brandName;
@@ -27,10 +27,10 @@ public class CommonFood implements Serializable {
         super();//needed for ObjectMapper
     }
 
-    public CommonFood(String foodName, BigDecimal price, int preptime, int stock, String brandName, String desc, List<String> category) {
-        this.foodName = foodName;
+    public CommonFood(String foodName, BigDecimal price, int preparationTime, int stock, String brandName, String desc, List<String> category) {
+        this.name = foodName;
         this.price = price.setScale(2, RoundingMode.HALF_UP);
-        this.preptime = preptime;
+        this.preparationTime = preparationTime;
         this.stock = stock;
         this.count = 0;
         this.brandName = brandName;
@@ -39,7 +39,7 @@ public class CommonFood implements Serializable {
     }
 
     public CommonFood(CommonFood copy) {
-        this.foodName = copy.foodName;
+        this.name = copy.name;
         this.price = copy.getPrice();
         this.count = copy.count;
         this.standName = copy.standName;
@@ -48,12 +48,12 @@ public class CommonFood implements Serializable {
         this.description = copy.description;
     }
 
-    public String getFoodName() {
-        return foodName;
+    public String getName() {
+        return name;
     }
 
-    public void setFoodName(String foodName) {
-        this.foodName = foodName;
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getStandName() {
@@ -143,12 +143,12 @@ public class CommonFood implements Serializable {
         this.count--;
     }
 
-    public int getPreptime() {
-        return preptime;
+    public int getPreparationTime() {
+        return preparationTime;
     }
 
-    public void setPreptime(int preptime) {
-        this.preptime = preptime;
+    public void setPreparationTime(int preparationTime) {
+        this.preparationTime = preparationTime;
     }
 
     public int getStock() {

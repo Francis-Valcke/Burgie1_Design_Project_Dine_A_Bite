@@ -12,23 +12,21 @@ import java.util.concurrent.TimeUnit;
 public class Scheduler extends Thread {
     private List<CommonOrder> inc = new LinkedList<>();
     private ArrayList<CommonFood> menu;
-    private String standname;
-    private int id;
+    private String standName;
 
     // Coordinates of Stand
     private double lon;
     private double lat;
 
-    private String brand;
+    private String brandName;
 
-    public Scheduler(ArrayList<CommonFood> menu, String standname, int id, String brand) {
+    public Scheduler(ArrayList<CommonFood> menu, String standName, String brandName, double lat, double lon) {
         this.menu = menu;
-        this.standname = standname;
-        this.id = id;
-        this.brand = brand;
+        this.standName = standName;
+        this.brandName = brandName;
+        this.lat= lat;
+        this.lon=lon;
     }
-
-
 
     public double getLon(){
         return this.lon;
@@ -50,16 +48,12 @@ public class Scheduler extends Thread {
         return this.menu;
     }
 
-    public int getStandId(){
-        return this.id;
-    }
-
     public String getStandName(){
-        return this.standname;
+        return this.standName;
     }
 
-    public String getBrand(){
-        return this.brand;
+    public String getBrandName(){
+        return this.brandName;
     }
 
     /**
@@ -69,7 +63,7 @@ public class Scheduler extends Thread {
      */
     public int getPreptime(String foodname) {
         for (CommonFood m : menu) {
-            if (m.getFoodName().equals(foodname)) return m.getPreptime();
+            if (m.getName().equals(foodname)) return m.getPreparationTime();
         }
         return -1;
     }
@@ -111,7 +105,7 @@ public class Scheduler extends Thread {
      */
     public boolean checkType(String type) {
         for (CommonFood mi : menu) {
-            if (mi.getFoodName().equals(type)) {
+            if (mi.getName().equals(type)) {
                 return true;
             }
         }

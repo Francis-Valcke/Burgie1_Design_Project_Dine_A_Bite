@@ -7,32 +7,32 @@ public class CommonStand implements Serializable {
     private ArrayList<CommonFood> menu = new ArrayList<>();
     private int id;
     private String name;
-    private String brand;
+    private String brandName;
     private long lat;
     private long lon;
     public CommonStand(){
         super();//needed for ObjectMapper
     }
-    public CommonStand(int id, String name, String brand, long lat, long lon){
+    public CommonStand(int id, String name, String brandName, long lat, long lon){
         this.id = id;
         this.name = name;
-        this.brand = brand;
+        this.brandName = brandName;
         this.lat = lat;
         this.lon = lon;
     }
-    public CommonStand(String name, String brand, long lat, long lon, ArrayList<CommonFood> menu){
+    public CommonStand(String name, String brandName, long lat, long lon, ArrayList<CommonFood> menu){
         this.id = 0;
         this.name = name;
-        this.brand = brand;
+        this.brandName = brandName;
         this.lat = lat;
         this.lon = lon;
         this.menu=menu;
     }
 
-    public CommonStand(String name, String brand, long lat, long lon) {
+    public CommonStand(String name, String brandName, long lat, long lon) {
         this.id = 0;
         this.name = name;
-        this.brand = brand;
+        this.brandName = brandName;
         this.lat = lat;
         this.lon = lon;
     }
@@ -56,8 +56,8 @@ public class CommonStand implements Serializable {
         return this.name;
     }
 
-    public String getBrand(){
-        return this.brand;
+    public String getBrandName(){
+        return this.brandName;
     }
 
     public long getLon(){

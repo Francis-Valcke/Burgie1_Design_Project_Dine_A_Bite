@@ -30,7 +30,7 @@ public class Stand implements Serializable {
     private double latitude;
 
     @OneToMany(mappedBy = "foodId.stand", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    @JsonProperty("food")
+    @JsonProperty("menu")
     List<Food> foodList = new ArrayList<>();
 
     @JsonProperty("name")
@@ -70,8 +70,6 @@ public class Stand implements Serializable {
         this.longitude=commonStand.getLon();
         Stand thisStand= this;
         this.foodList= commonStand.getMenu().stream().map(cf -> new Food(cf, thisStand)).collect(Collectors.toList());
-
-
     }
 
     @Override

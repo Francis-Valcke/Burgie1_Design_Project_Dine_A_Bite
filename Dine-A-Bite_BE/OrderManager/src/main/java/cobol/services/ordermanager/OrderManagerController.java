@@ -74,15 +74,13 @@ public class OrderManagerController {
         );
     }
 
-
-
     /**
      * will clear database and OM
      *
      * @return confirmation of deletion
      */
     @RequestMapping("/delete")
-    public String delete() {
+    public String delete() throws ParseException, JsonProcessingException {
         menuHandler.deleteAll();
         return "deleting stands from database and Order Manager";
     }
@@ -153,11 +151,9 @@ public class OrderManagerController {
 
 
         // Ask standmanager for recommendation
-        String responseString= menuHandler.sendRestCallToStandManager("/getRecommendation", jsonString);
+        String responseString= menuHandler.sendRestCallToStandManager("/getRecommendation", jsonString, null);
 
-        JSONParser parser= new JSONParser();
-        JSONObject response =  (JSONObject) parser.parse(responseString);
-        List<Recommendation> recommendations= mapper.readValue(response.get("recommendations").toString(), new TypeReference<List<Recommendation>>() {});
+        List<Recommendation> recommendations= mapper.readValue(responseString, new TypeReference<List<Recommendation>>() {});
         orderProcessor.addRecommendations(newOrder.getId(), recommendations);
 
         // send updated order and recommendation
@@ -167,6 +163,7 @@ public class OrderManagerController {
         String updateOrder = mapper.writeValueAsString(newOrder);
         // String to JSON
         JSONObject updateOrderJson=new JSONObject();
+        JSONParser parser= new JSONParser();
         try {
             updateOrderJson = (JSONObject) parser.parse(updateOrder);
         } catch (ParseException e) {
@@ -262,7 +259,7 @@ public class OrderManagerController {
 
     @GetMapping(value = "/deleteStand")
     @ResponseBody
-    public String deleteStand(@RequestParam() String standName, @RequestParam String brandName) {
+    public String deleteStand(@RequestParam() String standName, @RequestParam String brandName) throws JsonProcessingException {
         System.out.println("delete stand: " + standName);
         boolean b = menuHandler.deleteStand(standName, brandName);
         if (b) return "Stand " + standName + " deleted.";

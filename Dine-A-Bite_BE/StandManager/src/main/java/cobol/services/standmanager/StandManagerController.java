@@ -17,6 +17,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import static cobol.commons.ResponseModel.status.OK;
 
@@ -54,8 +55,8 @@ public class StandManagerController {
         ArrayList<CommonFood> menu = new ArrayList<>();
         CommonFood mi = new CommonFood("burger", BigDecimal.valueOf(3.0), 4, 20, "mcdo", "", null);
         menu.add(mi);
-        Scheduler a = new Scheduler(menu, "food1", 1, "mcdo");
-        Scheduler b = new Scheduler(menu, "food2", 2, "burgerking");
+        Scheduler a = new Scheduler(menu, "food1", "mcdo", 0.0, 0.0);
+        Scheduler b = new Scheduler(menu, "food2", "burgerking", 0.0,0.0);
 
         schedulers.add(a);
         schedulers.add(b);
@@ -68,23 +69,33 @@ public class StandManagerController {
 
     /**
      * adds schedulers to SM
-     * @param standinfos
+     * @param stands
      * @throws JsonProcessingException when wrong input param
      */
     @PostMapping("/update")
-    public void update(@RequestBody String[] standinfos) throws JsonProcessingException {
+    public void update(@RequestBody ArrayList<CommonStand> stands) throws JsonProcessingException {
         schedulers.clear();
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-        for (String standinfo : standinfos) {
-            CommonStand info = objectMapper.readValue(standinfo, CommonStand.class);
-            Scheduler s = new Scheduler(info.getMenu(), info.getName(), info.getId(), info.getBrand());
-            s.setLat(info.getLat());
-            s.setLon(info.getLon());
+        for (CommonStand stand : stands) {
+            Scheduler s = new Scheduler(stand.getMenu(), stand.getName(), stand.getBrandName(), stand.getLat(), stand.getLon());
             schedulers.add(s);
             s.start();
         }
     }
+
+    @PostMapping("/deleteScheduler")
+    public void deleteScheduler(@RequestParam String standName, @RequestParam String brandName){
+        Optional<Scheduler> schedulerOptional= schedulers.stream()
+                .filter(s -> s.getStandName().equals(standName) &&
+                        s.getBrandName().equals(brandName)).findAny();
+        if(schedulerOptional.isPresent()){
+            Scheduler scheduler= schedulerOptional.get();
+            schedulers.remove(scheduler);
+        }
+    }
+
+
     @PostMapping("/delete")
     public JSONObject deleteSchedulers() {
         schedulers.clear();
@@ -94,15 +105,13 @@ public class StandManagerController {
     }
 
     /**
-     * @param info class object StandInfo which is used to start a scheduler for stand added in order manager
+     * @param stand class object StandInfo which is used to start a scheduler for stand added in order manager
      *             available at localhost:8081/newStand
      * @return true (if no errors)
      */
     @PostMapping(value = "/newStand", consumes = "application/json")
-    public JSONObject addNewStand(@RequestBody() CommonStand info) {
-        Scheduler s = new Scheduler(info.getMenu(), info.getName(), info.getId(), info.getBrand());
-        s.setLat(info.getLat());
-        s.setLon(info.getLon());
+    public JSONObject addNewStand(@RequestBody() CommonStand stand) {
+        Scheduler s = new Scheduler(stand.getMenu(), stand.getName(), stand.getBrandName(), stand.getLat(), stand.getLon());
         schedulers.add(s);
         s.start();
         JSONObject obj = new JSONObject();
@@ -127,7 +136,7 @@ public class StandManagerController {
      */
     @RequestMapping(value = "/getRecommendation", consumes = "application/json")
     @ResponseBody
-    public JSONObject postCommonOrder(@RequestBody() CommonOrder order) throws JsonProcessingException {
+    public List<Recommendation> postCommonOrder(@RequestBody() CommonOrder order) throws JsonProcessingException {
         System.out.println("User requested recommended stand for " + order.getId());
         return recommend(order);
     }
@@ -172,7 +181,7 @@ public class StandManagerController {
      * @param order is the order for which the recommended stands are required
      * @return JSON with a certain amount of recommended stands (currently based on lowest queue time only)
      */
-    public JSONObject recommend(CommonOrder order) throws JsonProcessingException {
+    public List<Recommendation> recommend(CommonOrder order) throws JsonProcessingException {
         /* choose how many recommends you want */
         int amountOfRecommends = 3;
 
@@ -204,17 +213,13 @@ public class StandManagerController {
             SchedulerComparatorDistance sc = new SchedulerComparatorDistance(curScheduler.getLat(),curScheduler.getLon());
             SchedulerComparatorTime st = new SchedulerComparatorTime(new ArrayList<>(order.getOrderItems()));
 
-            recommendations.add(new Recommendation(curScheduler.getStandId(), curScheduler.getStandName(), sc.getDistance(order.getLatitude(), order.getLongitude()), st.getTimesum(curScheduler)));
+            recommendations.add(new Recommendation(curScheduler.getStandName(), curScheduler.getBrandName(), sc.getDistance(order.getLatitude(), order.getLongitude()), st.getTimesum(curScheduler)));
             System.out.println(st.getTimesum(curScheduler));
         }
 
-        // Arraylist recommendations to jsonobject
-        ObjectMapper mapper=new ObjectMapper();
-        String jsonString=mapper.writeValueAsString(recommendations);
-        JSONObject obj= new JSONObject();
-        obj.put("recommendations", jsonString);
 
-        return obj;
+
+        return recommendations;
     }
 
 }

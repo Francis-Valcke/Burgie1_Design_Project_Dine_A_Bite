@@ -139,15 +139,15 @@ public class MenuHandlerTest {
         //check through entire menu if every item is present and has right attributes
         for (CommonFood mi : mis) {
             Map<String, Integer> count = new HashMap<>();
-            int i = foodnames.indexOf(mi.getFoodName());
+            int i = foodnames.indexOf(mi.getName());
             for (String key : stands.keySet()) {
                 //check if item part of stand (check if brand and standname correct)
                 if (stands.get(key).contains(i) && (key.split("-")[0].concat(time).equals(mi.getBrandName()))) {
                     count.merge(key, 1, Integer::sum);
                     //check if foodname correct
-                    assertEquals(mi.getFoodName(), foodnames.get(i));
+                    assertEquals(mi.getName(), foodnames.get(i));
                     //check if preptime correct
-                    assertEquals(mi.getPreptime(), (int) preptimes.get(i));
+                    assertEquals(mi.getPreparationTime(), (int) preptimes.get(i));
                     //check if price correct
                     assertEquals(mi.getPrice().round(new MathContext(2)), prices.get(i).round(new MathContext(2)));
                     //check if description correct (empty description is not added)
@@ -188,15 +188,15 @@ public class MenuHandlerTest {
             CommonFood[] mis = objectMapper.readValue(json, CommonFood[].class);
             //check through entire menu if every item is present and has right attributes
             for (CommonFood mi : mis) {
-                int i = foodnames.indexOf(mi.getFoodName()); //returns -1 if not found
+                int i = foodnames.indexOf(mi.getName()); //returns -1 if not found
                 //check if no extra item added
                 assertNotEquals(i, -1);
                 //check if brandname correct
                 assertEquals(key.split("-")[0].concat(time), mi.getBrandName());
                 //check if foodname correct
-                assertEquals(mi.getFoodName(), foodnames.get(i));
+                assertEquals(mi.getName(), foodnames.get(i));
                 //check if preptime correct
-                assertEquals(mi.getPreptime(), (int) preptimes.get(i));
+                assertEquals(mi.getPreparationTime(), (int) preptimes.get(i));
                 //check if price correct
                 assertEquals(mi.getPrice().round(new MathContext(2)), prices.get(i).round(new MathContext(2)));
                 //check if description correct (empty description is not added -> then check if null)
@@ -261,8 +261,8 @@ public class MenuHandlerTest {
         CommonFood[] mis = objectMapper.readValue(json, CommonFood[].class);
         //check through entire menu if every item is present and has right attributes
         for (CommonFood mi : mis) {
-            int i = foodnames2.indexOf(mi.getFoodName());
-            int k = foodnames.indexOf(mi.getFoodName());
+            int i = foodnames2.indexOf(mi.getName());
+            int k = foodnames.indexOf(mi.getName());
             if (i == -1) {
                 //if a food item in menu isnt part of new test lists, it shouldnt be part of old test lists (if it was in old lists and not in new list, it should be removed from menu)
                 assertEquals(i, k);
@@ -272,10 +272,10 @@ public class MenuHandlerTest {
                 //check if item part of stand (check if brand and standname correct)
                 if (stands.get(key).contains(i) && (key.split("-")[0].concat(time).equals(mi.getBrandName()))) {
                     //check if foodname correct, foodnames should only be from second lists now
-                    assertEquals(mi.getFoodName(), foodnames2.get(i));
+                    assertEquals(mi.getName(), foodnames2.get(i));
                     //check if preptime correctly edited (only edited if positive)
-                    if (preptimes2.get(i) < 0) assertEquals(mi.getPreptime(), (int) preptimes.get(i));
-                    else assertEquals(mi.getPreptime(), (int) preptimes2.get(i));
+                    if (preptimes2.get(i) < 0) assertEquals(mi.getPreparationTime(), (int) preptimes.get(i));
+                    else assertEquals(mi.getPreparationTime(), (int) preptimes2.get(i));
                     //check if price correctly edited (only edited if positive)
                     if (prices2.get(i).compareTo(BigDecimal.ZERO) > 0)
                         assertEquals(mi.getPrice().round(new MathContext(2)), prices2.get(i).round(new MathContext(2)));

@@ -11,11 +11,9 @@ import lombok.Data;
 
 import javax.persistence.*;
 import java.io.Serializable;
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 
 @Data
 @Entity
@@ -51,9 +49,9 @@ public class Food implements Serializable {
         stand.getFoodList().add(this);
         this.description=cf.getDescription();
         this.price= cf.getPrice().floatValue();
-        this.preparationTime=cf.getPreptime();
+        this.preparationTime=cf.getPreparationTime();
         this.stock=cf.getStock();
-        this.foodId= new FoodId(cf.getFoodName(), stand);
+        this.foodId= new FoodId(cf.getName(), stand);
         this.category= new ArrayList<>();
         CategoryRepository categoryRepository=SpringContext.getBean(CategoryRepository.class);
         for (String s : cf.getCategory()) {
@@ -62,6 +60,17 @@ public class Food implements Serializable {
             cat.getFoodList().add(this);
         }
     }
+
+    @JsonProperty("category")
+    public List<String> getCategoriesByName(){
+        List<String> returnCategories=new ArrayList<>();
+        for (Category category1 : category) {
+           returnCategories.add(category1.getCategory());
+        }
+
+        return returnCategories;
+    }
+
 
     public String getName() {
         return foodId.name;
@@ -88,6 +97,11 @@ public class Food implements Serializable {
         this.foodId.stand = stand;
     }
 
+    @JsonProperty("brandName")
+    public String getBrandName(){
+        return this.foodId.getStand().getBrandName();
+    }
+
     public Food() {
     }
 
@@ -109,7 +123,7 @@ public class Food implements Serializable {
     public void update(CommonFood cf) {
         this.description=cf.getDescription();
         this.price= cf.getPrice().floatValue();
-        this.preparationTime=cf.getPreptime();
+        this.preparationTime=cf.getPreparationTime();
         this.stock=cf.getStock();
         this.category= new ArrayList<>();
         /*CategoryRepository categoryRepository=SpringContext.getBean(CategoryRepository.class);
