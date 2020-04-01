@@ -45,7 +45,7 @@ public class OrderProcessor {
 
     private Map<Integer, Order> runningOrders = new HashMap<>();
     private int subscriberId;
-    private LinkedList<Event> eventQueue = new LinkedList<Event>();
+    private LinkedList<Event> eventQueue = new LinkedList<>();
     private RestTemplate restTemplate;
     private HttpHeaders headers;
     private HttpEntity entity;
@@ -63,7 +63,7 @@ public class OrderProcessor {
         this.entity = new HttpEntity(headers);
         ResponseEntity<String> response = restTemplate.exchange(uri, HttpMethod.GET, entity, String.class);
         this.subscriberId = Integer.valueOf(response.getBody());
-    };
+    }
 
 
     /**
@@ -106,7 +106,7 @@ public class OrderProcessor {
                     UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(uri)
                             .queryParam("id", this.subscriberId)
                             .queryParam("type", channelId);
-                    ResponseEntity<String> response = this.restTemplate.exchange(builder.toUriString(), HttpMethod.GET, this.entity, String.class);
+                    this.restTemplate.exchange(builder.toUriString(), HttpMethod.GET, this.entity, String.class);
                 }
             }
         }
@@ -132,7 +132,7 @@ public class OrderProcessor {
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(uri)
                 .queryParam("id", this.subscriberId)
                 .queryParam("type", channelId);
-        ResponseEntity<String> responseEntity = this.restTemplate.exchange(builder.toUriString(), HttpMethod.GET, this.entity, String.class);
+        this.restTemplate.exchange(builder.toUriString(), HttpMethod.GET, this.entity, String.class);
         return newOrder;
     }
 

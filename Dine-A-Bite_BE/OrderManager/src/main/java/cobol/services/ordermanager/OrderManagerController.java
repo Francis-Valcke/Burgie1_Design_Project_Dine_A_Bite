@@ -104,7 +104,7 @@ public class OrderManagerController {
     public String update() throws JsonProcessingException {
         List<String> stands = mh.update();
         mh.updateSM();
-        if (stands.size()==0) {
+        if (stands.isEmpty()) {
             return "No stands in database";
         }
         else{
@@ -224,7 +224,7 @@ public class OrderManagerController {
         String uri = OrderManager.ECURL+"/publishEvent";
 
         entity = new HttpEntity<>(jsonString, headers);
-        String response = restTemplate.postForObject(uri, entity, String.class);
+        restTemplate.postForObject(uri, entity, String.class);
 
     }
 
@@ -267,7 +267,13 @@ public class OrderManagerController {
     @GetMapping("/standmenu")
     @ResponseBody
     public JSONArray requestStandMenu(@RequestParam(name = "standname") String standname) {
-        return mh.getStandMenu(standname);
+        JSONArray standMenu = null;
+        try {
+            standMenu =  mh.getStandMenu(standname);
+        } catch (MissingEntityException e) {
+            logger.error("Exception occurred!", e);
+        }
+        return standMenu;
     }
 
     /**
