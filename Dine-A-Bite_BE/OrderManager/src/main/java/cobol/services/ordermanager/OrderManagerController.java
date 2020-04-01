@@ -29,22 +29,22 @@ import static cobol.commons.ResponseModel.status.OK;
 /**
  * This class handles communication from standapplication: incoming changes to stand menus are registered in the menuhandler
  * This class also handles menurequests from the attendee applications, fetching the menus from the menuhandler
- * <p>
- * TODO: merge with code Wannes for Order functionality
  */
 
 @RestController
 public class OrderManagerController {
-    @Autowired // This means to get the bean called standRepository
-    private MenuHandler mh;
 
     private RestTemplate restTemplate;
     private HttpHeaders headers;
     private HttpEntity<String> entity;
+
     @Autowired
     private ObjectMapper objectMapper;
     @Autowired
     OrderProcessor orderProcessor = null;
+    @Autowired
+    private MenuHandler mh;
+
 
     OrderManagerController() {
         this.restTemplate = new RestTemplate();
@@ -83,7 +83,7 @@ public class OrderManagerController {
      *
      * @return confirmation of deletion
      */
-    @RequestMapping("/delete")
+    @GetMapping("/delete")
     public String delete() {
         mh.deleteAll();
         return "deleting stands from Order Manager";
@@ -94,7 +94,7 @@ public class OrderManagerController {
      *
      * @return tells u if there are already stands in DB
      */
-    @RequestMapping(value="/updateOM", method = RequestMethod.GET)
+    @GetMapping("/updateOM")
     public String update() throws JsonProcessingException {
         List<String> stands = mh.update();
         mh.updateSM();
@@ -113,17 +113,16 @@ public class OrderManagerController {
 
     }
 
-    @RequestMapping("/getOrderInfo")
+    @GetMapping("/getOrderInfo")
     public JSONObject getOrderInfo(@RequestParam(name="orderId") int orderId) throws JsonProcessingException {
 
         // retrieve order
         Order order= orderProcessor.getOrder(orderId);
 
         // write order to json
-        ObjectMapper mapper= new ObjectMapper();
-        String jsonString= mapper.writeValueAsString(order);
-        JSONParser parser= new JSONParser();
-        JSONObject orderResponse=new JSONObject();
+        String jsonString = objectMapper.writeValueAsString(order);
+        JSONParser parser = new JSONParser();
+        JSONObject orderResponse = new JSONObject();
         try {
             orderResponse = (JSONObject) parser.parse(jsonString);
         } catch (ParseException e) {
@@ -149,8 +148,7 @@ public class OrderManagerController {
 
 
         // Put order in json to send to standmanager (as commonOrder object)
-        ObjectMapper mapper = new ObjectMapper();
-        String jsonString = mapper.writeValueAsString(newOrder);
+        String jsonString = objectMapper.writeValueAsString(newOrder);
 
 
         // Ask standmanager for recommendation
@@ -159,14 +157,14 @@ public class OrderManagerController {
         entity = new HttpEntity<>(jsonString, headers);
         JSONObject response = restTemplate.postForObject(uri, entity, JSONObject.class);
 
-        List<Recommendation> recommendations= mapper.readValue(response.get("recommendations").toString(), new TypeReference<List<Recommendation>>() {});
+        List<Recommendation> recommendations= objectMapper.readValue(response.get("recommendations").toString(), new TypeReference<List<Recommendation>>() {});
         orderProcessor.addRecommendations(newOrder.getId(), recommendations);
 
         // send updated order and recommendation
         JSONObject completeResponse= new JSONObject();
 
         // ---- add updated order
-        String updateOrder = mapper.writeValueAsString(newOrder);
+        String updateOrder = objectMapper.writeValueAsString(newOrder);
         // String to JSON
         JSONParser parser= new JSONParser();
         JSONObject updateOrderJson=new JSONObject();
@@ -178,7 +176,7 @@ public class OrderManagerController {
 
 
         // ---- add recommendations
-        String recommendationsResponse=mapper.writeValueAsString(recommendations);
+        String recommendationsResponse=objectMapper.writeValueAsString(recommendations);
         JSONArray recomResponseJson= new JSONArray();
         try {
             recomResponseJson=(JSONArray) parser.parse(recommendationsResponse);
@@ -199,18 +197,19 @@ public class OrderManagerController {
      * @param orderId
      * @param standId id of the chosen stand
      */
-    @RequestMapping(value = "/confirmStand", method = RequestMethod.GET)
+    @GetMapping("/confirmStand")
     @ResponseBody
     public void confirmStand(@RequestParam(name = "order_id") int orderId, @RequestParam(name = "stand_id") int standId) throws JsonProcessingException{
         // Update order, confirm stand
-        Order updatedOrder=orderProcessor.confirmStand(orderId, standId);
+        Order updatedOrder = orderProcessor.confirmStand(orderId, standId);
 
         // Make event for eventchannel (orderId, standId)
+        String orderString = objectMapper.writeValueAsString(updatedOrder);
         JSONObject orderJson = new JSONObject();
-        orderJson.put("order", updatedOrder);
+        orderJson.put("order", orderString);
         List<String> types = new ArrayList<>();
-        types.add("o"+String.valueOf(orderId));
-        types.add("s"+String.valueOf(standId));
+        types.add("o"+orderId);
+        types.add("s"+standId);
         Event e = new Event(orderJson, types, "Order");
 
         // Publish event to standmanager
@@ -220,9 +219,6 @@ public class OrderManagerController {
 
         entity = new HttpEntity<>(jsonString, headers);
         String response = restTemplate.postForObject(uri, entity, String.class);
-
-        System.out.println(response);
-
 
     }
 
@@ -245,10 +241,9 @@ public class OrderManagerController {
      * and puts these in a JSON file with their price.
      * In the JSON file the keys are the menu item names and the values are the prices
      */
-    @RequestMapping(value="/menu", method = RequestMethod.GET)
+    @GetMapping("/menu")
     @ResponseBody
     public JSONArray requestTotalMenu() { //start with id=1 (temporary)
-        System.out.println("request total menu");
         return mh.getTotalmenu();
     }
 
@@ -263,10 +258,9 @@ public class OrderManagerController {
      * and puts the menu items in a JSON file with their price.
      * In the JSON file the keys are the menu item names and the values are the prices
      */
-    @RequestMapping(value = "/standmenu", method = RequestMethod.GET)
+    @GetMapping("/standmenu")
     @ResponseBody
-    public JSONArray requestStandMenu(@RequestParam() String standname) {
-        System.out.println("request menu of stand " + standname);
+    public JSONArray requestStandMenu(@RequestParam(name = "standname") String standname) {
         return mh.getStandMenu(standname);
     }
 
@@ -277,10 +271,9 @@ public class OrderManagerController {
      * @return message
      * @throws JsonProcessingException when mapper fails
      */
-    @RequestMapping(value = "/deleteStand", method = RequestMethod.GET)
+    @GetMapping("/deleteStand")
     @ResponseBody
-    public String deleteStand(@RequestParam() String standname) throws JsonProcessingException {
-        System.out.println("delete stand: " + standname);
+    public String deleteStand(@RequestParam(name = "standname") String standname) throws JsonProcessingException {
         boolean b = mh.deleteStand(standname);
         if (b) return "Stand " + standname + " deleted.";
         else return "No stand by that name exists";
@@ -292,10 +285,8 @@ public class OrderManagerController {
      * key = number in list
      * value = standname
      */
-    @RequestMapping(value="/stands", method = RequestMethod.GET)
+    @GetMapping("/stands")
     public JSONObject requestStandnames() { //start with id=1 (temporary)
-        System.out.println("request stand names");
-
         return mh.getStandnames();
     }
 }

@@ -40,6 +40,7 @@ public class OrderProcessor {
 
     @Autowired
     StandRepository stands;
+
     private Map<Integer, Order> runningOrders = new HashMap<>();
     private int subscriberId;
     private volatile LinkedList<Event> eventQueue = new LinkedList<Event>();
@@ -47,7 +48,6 @@ public class OrderProcessor {
     private HttpHeaders headers;
     private HttpEntity entity;
     private ObjectMapper objectMapper;
-    // orderid - recommendations
     ListMultimap<Integer, Recommendation> orderRecommendations= ArrayListMultimap.create();
 
     private OrderProcessor() {
@@ -100,7 +100,7 @@ public class OrderProcessor {
                 if (newStatus.equals(Order.status.DECLINED)) {
                     runningOrders.remove(orderId);
                     String uri = OrderManager.ECURL + "/deregisterSubscriber";
-                    String channelId = "o" + Integer.toString(orderId);
+                    String channelId = "o" + orderId;
                     UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(uri)
                             .queryParam("id", this.subscriberId)
                             .queryParam("type", channelId);
