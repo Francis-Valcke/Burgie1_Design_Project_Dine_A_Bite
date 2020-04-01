@@ -12,7 +12,8 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.shadows.ShadowIntent;
 import org.robolectric.shadows.ShadowLooper;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.robolectric.Shadows.shadowOf;
 
 @RunWith(RobolectricTestRunner.class)
