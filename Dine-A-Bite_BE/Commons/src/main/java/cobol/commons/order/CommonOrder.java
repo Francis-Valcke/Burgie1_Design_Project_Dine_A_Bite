@@ -1,8 +1,11 @@
 package cobol.commons.order;
 
+import lombok.Data;
+
 import java.util.Calendar;
 import java.util.List;
 
+@Data
 public class CommonOrder {
 
     // unique id for this order
@@ -10,10 +13,7 @@ public class CommonOrder {
 
     private Calendar startTime;
     private Calendar expectedTime;
-
-    private status orderStatus;
-
-    private int standId;
+    private State orderState;
     private String brandName;
     private String standName;
 
@@ -24,7 +24,19 @@ public class CommonOrder {
     private double latitude;
     private double longitude;
 
-    public enum status {
+    public CommonOrder(int id, Calendar startTime, Calendar expectedTime, State orderState, String brandName, String standName, List<CommonOrderItem> orderItems, double latitude, double longitude) {
+        this.id = id;
+        this.startTime = startTime;
+        this.expectedTime = expectedTime;
+        this.orderState = orderState;
+        this.brandName = brandName;
+        this.standName = standName;
+        this.orderItems = orderItems;
+        this.latitude = latitude;
+        this.longitude = longitude;
+    }
+
+    public enum State {
         SEND,
         PENDING,
         DECLINED,
@@ -32,39 +44,8 @@ public class CommonOrder {
         READY
     }
 
-    public int getId() {
-        return id;
-    }
-
     public int computeRemainingTime(){
         return (int) (expectedTime.getTimeInMillis()-startTime.getTimeInMillis());
     }
 
-    public status getOrderStatus() {
-        return orderStatus;
-    }
-
-    public int getStandId() {
-        return standId;
-    }
-
-    public String getBrandName() {
-        return brandName;
-    }
-
-    public String getStandName() {
-        return standName;
-    }
-
-    public List<CommonOrderItem> getOrderItems() {
-        return orderItems;
-    }
-
-    public double getLatitude() {
-        return latitude;
-    }
-
-    public double getLongitude() {
-        return longitude;
-    }
 }

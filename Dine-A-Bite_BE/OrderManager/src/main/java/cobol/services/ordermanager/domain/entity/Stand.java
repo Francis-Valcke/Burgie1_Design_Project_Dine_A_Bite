@@ -34,6 +34,10 @@ public class Stand implements Serializable {
     @JsonProperty("food")
     List<Food> foodList = new ArrayList<>();
 
+    @JsonIgnore
+    @OneToMany(mappedBy = "stand")
+    List<Order> orderList = new ArrayList<>();
+
     @JsonProperty("name")
     public String getName() {
         return standId.name;
@@ -117,6 +121,11 @@ public class Stand implements Serializable {
         @Override
         public int hashCode() {
             return Objects.hash(name, brand);
+        }
+
+        @Override
+        public String toString() {
+            return name + "_" + brand.getName();
         }
     }
 }

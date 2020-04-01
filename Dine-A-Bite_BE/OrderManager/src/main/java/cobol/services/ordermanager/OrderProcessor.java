@@ -158,7 +158,7 @@ public class OrderProcessor {
 
         if(updatedOrder.getStandName().equals("notset") || updatedOrder.getStandName().equals("")){
 
-            Optional<Stand> standOptional=menuHandler.getStand(standName, brandName);
+            Optional<Stand> standOptional=menuHandler.findStandById(standName, brandName);
             if(standOptional.isPresent()){
                 Stand foundStand= standOptional.get();
                updatedOrder.setStandName(foundStand.getName());

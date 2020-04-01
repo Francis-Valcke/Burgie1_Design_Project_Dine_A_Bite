@@ -8,8 +8,11 @@ import cobol.services.ordermanager.domain.entity.Stand;
 import cobol.services.ordermanager.domain.repository.BrandRepository;
 import cobol.services.ordermanager.domain.repository.FoodRepository;
 import cobol.services.ordermanager.domain.repository.StandRepository;
+import cobol.services.ordermanager.exception.DoesNotExistException;
+import cobol.services.ordermanager.exception.DuplicateStandException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.Getter;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -36,10 +39,11 @@ import java.util.stream.Collectors;
  * saving the menus as JSON files makes it so they dont have to be remade every call
  */
 @Service
+@Getter
 public class MenuHandler {
 
     private List<Stand> stands;
-    private List<CommonFood> globalMenu = new ArrayList<>();
+    private List<CommonFood> globalMenu;
 
     @Autowired
     private StandRepository standRepository;
@@ -48,25 +52,32 @@ public class MenuHandler {
     @Autowired
     private BrandRepository brandRepository;
 
-
     public MenuHandler() {
         stands = new ArrayList<>();
+        globalMenu = new ArrayList<>();
     }
 
     /**
-     * this will clear the database and the cache files
+     * This method will:
+     * - Clear database
+     * - Clear OrderManager cache
+     * - Request StandManager to clear cache
+     *
+     * @throws ParseException Json parsing error
+     * @throws JsonProcessingException Json processing error
      */
     public void deleteAll() throws ParseException, JsonProcessingException {
 
         // Clear cache
         stands.clear();
+        globalMenu.clear();
 
         // Clear database
         brandRepository.deleteAll();
 
-        String response= sendRestCallToStandManager("/delete", null,  null);
-        JSONParser parser= new JSONParser();
-        JSONObject responseObject=  (JSONObject) parser.parse(response);
+        String response = sendRestCallToStandManager("/delete", null, null);
+        JSONParser parser = new JSONParser();
+        JSONObject responseObject = (JSONObject) parser.parse(response);
 
         // Retrieve response
         boolean delschedulers = (boolean) Objects.requireNonNull(responseObject).get("del");
@@ -75,7 +86,9 @@ public class MenuHandler {
     }
 
     /**
-     * This method will sync cache with database and update global menu
+     * This method will refresh the cache based on the database contents
+     *
+     * @throws JsonProcessingException Json processing error
      */
     @PostConstruct
     public void refreshCache() throws JsonProcessingException {
@@ -85,18 +98,19 @@ public class MenuHandler {
         updateGlobalMenu();
     }
 
+    /**
+     * This method will refresh the cache of the StandManager based on the local cache
+     *
+     * @throws JsonProcessingException Json processing error
+     */
     public void updateStandManager() throws JsonProcessingException {
         ObjectMapper mapper = new ObjectMapper();
         String json = mapper.writeValueAsString(stands);
         sendRestCallToStandManager("/update", json, null);
     }
 
-    public List<Stand> getStands() {
-        return stands;
-    }
-
     public List<Food> getStandMenu(String standName, String brandName) {
-        Optional<Stand> standOptional = getStand(standName, brandName);
+        Optional<Stand> standOptional = findStandById(standName, brandName);
         return standOptional.map(Stand::getFoodList).orElse(null);
     }
 
@@ -108,7 +122,7 @@ public class MenuHandler {
      * @param brandName name of brand
      * @return optional stand
      */
-    public Optional<Stand> getStand(String standName, String brandName) {
+    public Optional<Stand> findStandById(String standName, String brandName) {
         Optional<Stand> standOptional = stands.stream()
                 .filter(s -> s.getName().equals(standName) && s.getBrand().getName().equals(brandName))
                 .findFirst();
@@ -127,7 +141,9 @@ public class MenuHandler {
     }
 
     /**
-     * This method will update the cache of Food objects
+     * Refresh the global menu cache based on the database contents.
+     *
+     * @throws JsonProcessingException Json processing error
      */
     public void updateGlobalMenu() throws JsonProcessingException {
         globalMenu.clear();
@@ -148,15 +164,26 @@ public class MenuHandler {
     }
 
 
-    public String updateStand(CommonStand commonStand) {
-        Optional<Stand> standOptional = getStand(commonStand.getName(), commonStand.getBrandName());
+    /**
+     * This method will update a existing stand in the database with updated information.
+     *
+     * @param commonStand Stand to be updated
+     * @return
+     */
+    public void updateStand(CommonStand commonStand) throws DoesNotExistException {
+        Optional<Stand> standOptional = findStandById(commonStand.getName(), commonStand.getBrandName());
         if (!standOptional.isPresent()) {
-            return "stand does not exist";
+            throw new DoesNotExistException("The stand to be updated does not yet exist, please create the stand first.");
         }
 
         Stand stand = standOptional.get();
 
         stand.setFoodList(commonStand.getMenu().stream()
+                /*
+                This will map a entry of common food to a food entity.
+                Already existing items will be updated, new ones will be created,
+                missing items will implicitly be discarded.
+                */
                 .map(cf -> {
                     Food food;
                     Optional<Food> optionalFood = foodRepository.findById(new Food.FoodId(cf.getName(), stand));
@@ -170,28 +197,28 @@ public class MenuHandler {
                 }).collect(Collectors.toList()));
 
         standRepository.save(stand);
-
-        return "Stand menu updated";
     }
 
 
     /**
-     * Add stand to database
-     * If a stand already has the chosen name isof same brand, the stand will be updated TODO: only correct standmanager can update stand
-     * If the stand belongs to a certain brand, food items with the same name as other food items of this brand will overwrite the previous food items!
+     * This method will create a stand entity based on a CommonStand object when such a stand is not yet in the system.
+     * This stand will be saved to the database, saved in the cache and sent to the StandManager.
      *
-     * @return "stand name already taken" if a stand tries to take a name of an existing stand of a different brand
+     * @param newCommonStand The stand that needs to be created
+     * @throws JsonProcessingException A json processing error
+     * @throws ParseException          A json parsing error
+     * @throws DuplicateStandException Duplicate stand detected
      */
-    public String addStand(CommonStand newCommonStand) throws JsonProcessingException, ParseException {
+    public void addStand(CommonStand newCommonStand) throws JsonProcessingException, ParseException, DuplicateStandException {
 
         // update list of stands from database
         refreshCache();
 
         // look if stands already exists
-        Optional<Stand> standOptional = getStand(newCommonStand.getName(), newCommonStand.getBrandName());
+        Optional<Stand> standOptional = findStandById(newCommonStand.getName(), newCommonStand.getBrandName());
 
         if (standOptional.isPresent()) {
-            return "stand name already taken";
+            throw new DuplicateStandException("The stand with id: " + standOptional.get().getStandId() + " already exists.");
         }
 
         // get brand from commonstand
@@ -206,7 +233,7 @@ public class MenuHandler {
         refreshCache();
         updateGlobalMenu();
 
-
+        // Also send the new stand to the StandManager
         ObjectMapper mapper = new ObjectMapper();
         String jsonString = mapper.writeValueAsString(newStand);
         String response = sendRestCallToStandManager("/newStand", jsonString, null);
@@ -215,36 +242,46 @@ public class MenuHandler {
         JSONObject responseObject = (JSONObject) parser.parse(response);
         boolean addinfo = (boolean) Objects.requireNonNull(responseObject).get("added");
         if (addinfo) System.out.println("Scheduler added");
-        return "Saved";
+
     }
 
-    public boolean deleteStand(String standName, String brandName) throws JsonProcessingException {
+    /**
+     * This method will delete a given stand by its id.
+     * This will also remove all linked food items.
+     * The method will also instruct StandManager to remove the corresponding Scheduler.
+     *
+     * @param standName Name of the stand
+     * @param brandName Name of the stand's brand
+     * @throws JsonProcessingException Json processing error
+     */
+    public void deleteStandById(String standName, String brandName) throws JsonProcessingException, DoesNotExistException {
 
-        Optional<Stand> standOptional = getStand(standName, brandName);
+        Optional<Stand> standOptional = findStandById(standName, brandName);
         if (standOptional.isPresent()) {
             standRepository.delete(standOptional.get());
             stands.remove(standOptional.get());
             updateGlobalMenu();
 
-            Map <String, String> params= new HashMap<>();
+            Map<String, String> params = new HashMap<>();
             params.put("standName", standName);
             params.put("brandName", brandName);
             sendRestCallToStandManager("/deleteScheduler", null, params);
-            return true;
         } else {
-            return false;
+            throw new DoesNotExistException("The stand can't be deleted when it does not exist.");
         }
     }
 
 
     /**
-     * This method will send rest call to standmanager
+     * This method will issue HTTP request to StandManager.
+     * Returns a String assuming the caller knows what to expect from the response.
+     * Ex. JSONArray or JSONObject
      *
-     * @param path       example: "/..."
+     * @param path Example: "/..."
      * @param jsonObject JSONObject or JSONArray format
      * @return response as String
      */
-    public String sendRestCallToStandManager(String path, String jsonObject, Map<String, String> params) throws JsonProcessingException{
+    public String sendRestCallToStandManager(String path, String jsonObject, Map<String, String> params) throws JsonProcessingException {
         RestTemplate template = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -253,8 +290,8 @@ public class MenuHandler {
         HttpEntity<String> request = new HttpEntity<>(jsonObject, headers);
         String uri = OrderManager.SMURL + path;
 
-        UriComponentsBuilder builder= UriComponentsBuilder.fromHttpUrl(uri);
-        if(params!=null) {
+        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(uri);
+        if (params != null) {
             for (String s : params.keySet()) {
                 try {
                     builder.queryParam(s, URLEncoder.encode(params.get(s), "UTF-8"));
@@ -265,17 +302,5 @@ public class MenuHandler {
         }
 
         return template.postForObject(builder.toUriString(), request, String.class);
-    }
-
-
-    public static <T> Predicate<T> distinctByKey(
-            Function<? super T, ?> keyExtractor) {
-
-        Map<Object, Boolean> seen = new ConcurrentHashMap<>();
-        return t -> seen.putIfAbsent(keyExtractor.apply(t), Boolean.TRUE) == null;
-    }
-
-    public List<CommonFood> getGlobalMenu() {
-        return globalMenu;
     }
 }

@@ -1,14 +1,17 @@
 package cobol.services.ordermanager.domain.entity;
 
+import cobol.commons.order.CommonOrder;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.json.simple.JSONObject;
+
 import javax.persistence.*;
 import java.io.Serializable;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Entity
-@Table(name="orders")
+@Table(name = "orders")
 public class Order implements Serializable {
 
     // Static counter that keeps track of number of order
@@ -28,11 +31,16 @@ public class Order implements Serializable {
     @Column(columnDefinition = "datetime")
     private Calendar expectedTime;
     @Column
-    private status orderStatus;
-    @Column
-    private String standName;
-    @Column
-    private String brandName;
+    private CommonOrder.State orderState;
+
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumns(
+            foreignKey = @ForeignKey(name = "order_stand_fk"), value = {
+            @JoinColumn(referencedColumnName = "name", name = "stand_name"),
+            @JoinColumn(referencedColumnName = "brand_name", name = "brand_name")
+    }
+    )
+    private Stand stand;
 
     //----- Request ------//
     @OneToMany(
@@ -54,27 +62,27 @@ public class Order implements Serializable {
      * Constructs an order object from a JSON file
      *
      * @param orderFile JSON file received from the attendee-app
-     *
-     * TODO:
-     *     - id needs to be updated with respect to database
-     *     - remainingTimeSec needs to be dynamic
-     *     - momenteel keys (en bij new food) gewoon vaste prijs en preptime
+     *                  <p>
+     *                  TODO:
+     *                  - id needs to be updated with respect to database
+     *                  - remainingTimeSec needs to be dynamic
+     *                  - momenteel keys (en bij new food) gewoon vaste prijs en preptime
      */
     public Order(JSONObject orderFile) throws JsonProcessingException {
 
         // Read in request
         ObjectMapper mapper = new ObjectMapper();
-        Order temp=mapper.readValue(orderFile.toJSONString(), Order.class);
+        Order temp = mapper.readValue(orderFile.toJSONString(), Order.class);
 
         this.latitude = temp.getLatitude();
-        this.longitude= temp.getLongitude();
-        this.orderItems=new ArrayList<>();
+        this.longitude = temp.getLongitude();
+        this.orderItems = new ArrayList<>();
         for (OrderItem orderItem : temp.getOrderItems()) {
             this.addOrderItem(orderItem);
         }
         // Add new information
-        this.startTime=Calendar.getInstance();
-        this.expectedTime=Calendar.getInstance();
+        this.startTime = Calendar.getInstance();
+        this.expectedTime = Calendar.getInstance();
         expectedTime.setTime(startTime.getTime());
         expectedTime.add(Calendar.MINUTE, 15);
 
@@ -84,17 +92,31 @@ public class Order implements Serializable {
     public Order() {
     }
 
+    public CommonOrder asCommonOrder() {
+        return new CommonOrder(
+                this.id,
+                this.startTime,
+                this.expectedTime,
+                this.orderState,
+                this.stand.getBrandName(),
+                this.stand.getStandId().getName(),
+                this.orderItems.stream().map(o -> o.asCommonOrderItem()).collect(Collectors.toList()),
+                this.latitude,
+                this.longitude
+        );
+
+
+    }
+
 
     // ---- Getters and Setters ----- //
 
-    public void addOrderItem(OrderItem item){
+    public void addOrderItem(OrderItem item) {
         orderItems.add(item);
         item.setOrder(this);
     }
 
-
-
-    public void removeOrderItem(OrderItem item){
+    public void removeOrderItem(OrderItem item) {
         orderItems.remove(item);
         item.setOrder(this);
     }
@@ -107,11 +129,11 @@ public class Order implements Serializable {
         this.brandName = brandName;
     }
 
-    public double getLatitude(){
+    public double getLatitude() {
         return this.latitude;
     }
 
-    public double getLongitude(){
+    public double getLongitude() {
         return this.longitude;
     }
 
@@ -134,19 +156,21 @@ public class Order implements Serializable {
     public void setOrderItems(List<OrderItem> orderItems) {
         this.orderItems = orderItems;
     }
-    public void setId(int id){
-        this.id=id;
+
+    public void setId(int id) {
+        this.id = id;
     }
+
     public int getId() {
         return id;
     }
 
-    public status getOrderStatus() {
-        return orderStatus;
+    public CommonOrder.State getOrderState() {
+        return orderState;
     }
 
-    public void setState(status state) {
-        this.orderStatus = state;
+    public void setState(CommonOrder.State state) {
+        this.orderState = state;
     }
 
     public String getStandName() {
@@ -161,18 +185,11 @@ public class Order implements Serializable {
     public String toString() {
         return "Order{" +
                 ", remainingTimeSec=" + this.computeRemainingTime() +
-                ", orderStatus=" + orderStatus +
+                ", orderStatus=" + orderState +
                 ", orderItems=" + orderItems +
                 ", latitude=" + latitude +
                 ", longitude=" + longitude +
                 '}';
     }
 
-    public enum status {
-        SEND,
-        PENDING,
-        DECLINED,
-        CONFIRMED,
-        READY
-    }
 }

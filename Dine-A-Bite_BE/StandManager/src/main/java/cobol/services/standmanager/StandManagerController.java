@@ -1,6 +1,5 @@
 package cobol.services.standmanager;
 
-import cobol.commons.CommonFood;
 import cobol.commons.ResponseModel;
 import cobol.commons.CommonStand;
 import cobol.commons.order.CommonOrder;
@@ -13,7 +12,6 @@ import org.json.simple.JSONObject;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -43,28 +41,6 @@ public class StandManagerController {
                         .details("StandManager is alive!")
                         .build().generateResponse()
         );
-    }
-
-    /**
-     * just a function for testing and starting some schedulers for practice
-     */
-    @RequestMapping("/start")
-    public void start(){
-        // Initialize stand menus and schedulers
-        System.out.println("TESTTEST");
-        ArrayList<CommonFood> menu = new ArrayList<>();
-        CommonFood mi = new CommonFood("burger", BigDecimal.valueOf(3.0), 4, 20, "mcdo", "", null);
-        menu.add(mi);
-        Scheduler a = new Scheduler(menu, "food1", "mcdo", 0.0, 0.0);
-        Scheduler b = new Scheduler(menu, "food2", "burgerking", 0.0,0.0);
-
-        schedulers.add(a);
-        schedulers.add(b);
-        // start running schedulers
-        for (int i=0;i<schedulers.size();i++){
-            schedulers.get(i).start();
-        }
-
     }
 
     /**
@@ -160,7 +136,7 @@ public class StandManagerController {
             Scheduler currentScheduler = schedulers.get(i);
 
             for (CommonOrderItem orderItem : orderItems) {
-                String food= orderItem.getFoodname();
+                String food= orderItem.getFoodName();
                 if (currentScheduler.checkType(food)) {
                     validStand = true;
                 } else {

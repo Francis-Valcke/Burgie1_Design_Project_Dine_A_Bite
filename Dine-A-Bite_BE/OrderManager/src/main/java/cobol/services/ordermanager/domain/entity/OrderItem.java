@@ -2,6 +2,7 @@ package cobol.services.ordermanager.domain.entity;
 
 
 
+import cobol.commons.order.CommonOrderItem;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import javax.persistence.*;
@@ -21,7 +22,7 @@ public class OrderItem implements Serializable {
     private int itemId;
 
     @Column
-    private String foodname;
+    private String foodName;
     @Column
     private int amount;
 
@@ -30,8 +31,8 @@ public class OrderItem implements Serializable {
 
     }
 
-    public OrderItem(String foodname, int amount) {
-        this.foodname = foodname;
+    public OrderItem(String foodName, int amount) {
+        this.foodName = foodName;
         this.amount = amount;
     }
 
@@ -58,12 +59,12 @@ public class OrderItem implements Serializable {
         this.itemId = itemId;
     }
 
-    public String getFoodname() {
-        return foodname;
+    public String getFoodName() {
+        return foodName;
     }
 
-    public void setFoodname(String foodname) {
-        this.foodname = foodname;
+    public void setFoodName(String foodname) {
+        this.foodName = foodname;
     }
 
     public int getAmount() {
@@ -77,8 +78,17 @@ public class OrderItem implements Serializable {
     @Override
     public String toString() {
         return "OrderItem{" +
-                "foodname='" + foodname + '\'' +
+                "foodName='" + foodName + '\'' +
                 ", amount=" + amount +
                 '}';
+    }
+
+    public CommonOrderItem asCommonOrderItem() {
+        CommonOrderItem commonOrderItem = new CommonOrderItem(
+                this.foodName,
+                this.amount
+        );
+
+        return commonOrderItem;
     }
 }
