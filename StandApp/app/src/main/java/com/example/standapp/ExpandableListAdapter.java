@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.List;
 
 public class ExpandableListAdapter extends BaseExpandableListAdapter {
+
     private List<String> listDataHeader;
     private HashMap<String,List<String>> listHashMap;
 
@@ -59,7 +60,7 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
         if (convertView == null) {
             convertView = LayoutInflater.from(parent.getContext()).inflate(R.layout.custom_expandable_list_group, parent, false);
         }
-        TextView listHeader = convertView.findViewById(R.id.list_header);
+        TextView listHeader = convertView.findViewById(R.id.order_number);
         listHeader.setText(headerTitle);
         return convertView;
     }

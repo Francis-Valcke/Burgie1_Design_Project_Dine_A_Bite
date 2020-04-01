@@ -12,7 +12,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
-import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
@@ -22,17 +21,12 @@ import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.example.standapp.order.CommonOrder;
 import com.example.standapp.order.CommonOrderItem;
-import com.example.standapp.order.Event;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.DataInput;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -41,32 +35,30 @@ import java.util.Map;
 
 public class OrderFragment extends Fragment {
 
-    private Button refresh;
-    private ExpandableListView listView;
     private ExpandableListAdapter listAdapter;
     private List<String> listDataHeader = new ArrayList<>();
     private HashMap<String,List<String>> listHash = new HashMap<>();
-    //private int standId = 100;
     private String subscriberId;
 
     @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
+
         View view = inflater.inflate(R.layout.activity_order, container, false);
 
-        //the function below will subscribe to the Event Channel, so that we could receive the orders from it in the OrderFragment class
+        // subscribe to the Event Channel
+        // so that orders can be received
         subscribeEC();
 
-
-        refresh = view.findViewById(R.id.refresh_button);
-        listView = view.findViewById(R.id.expandable_list_view);
-        //initData();
+        Button refreshButton = view.findViewById(R.id.refresh_button);
+        ExpandableListView listView = view.findViewById(R.id.expandable_list_view);
         listDataHeader = new ArrayList<>();
         listHash = new HashMap<>();
-        listAdapter = new ExpandableListAdapter(listDataHeader,listHash);
+        listAdapter = new ExpandableListAdapter(listDataHeader, listHash);
         listView.setAdapter(listAdapter);
 
-        refresh.setOnClickListener(new View.OnClickListener() {
+        refreshButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
@@ -151,7 +143,6 @@ public class OrderFragment extends Fragment {
                 mToast.show();
                 subscriberId = response;
                 System.out.println("SUBSCRIBEDID: " + subscriberId);
-                //ret[0] = response;
             }
         }, new Response.ErrorListener() {
             @Override
@@ -170,32 +161,6 @@ public class OrderFragment extends Fragment {
             }
         };
         queue.add(request);
-        //return ret[0];
-    }
-
-
-    /**
-     * Initialize the orders, later this will be provided by the server (this was the hardcoded version and is no longer used
-     */
-    private void initData() {
-        listDataHeader = new ArrayList<>();
-        listHash = new HashMap<>();
-
-        listDataHeader.add("Order#1");
-        listDataHeader.add("Order#2");
-
-        List<String> order1 = new ArrayList<>();
-        order1.add("2 Fries");
-        order1.add("3 Cheeseburgers");
-
-        listHash.put(listDataHeader.get(0), order1);
-
-        List<String> order2 = new ArrayList<>();
-        order2.add("22 Chickennuggets");
-        order2.add("5 Pizza Margheritta");
-        order2.add("1270 Fanta");
-
-        listHash.put(listDataHeader.get(1), order2);
     }
 
 }

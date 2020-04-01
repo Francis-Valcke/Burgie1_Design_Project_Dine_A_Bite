@@ -5,9 +5,8 @@
     <string name="order_text">Orders</string>
     <string name="order_1">Order #1</string>
     <string name="textview_order">TextView</string>
-    <string name="button_done">Done</string>
-    <string name="button_start">Start</string>
-    <string name="button_picked_up">picked up</string>
+    <string name="start">Start</string>
+    <string name="picked_up">Picked up</string>
     <string name="medium_fries">Medium Fries</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
@@ -46,5 +45,6 @@
     <string name="orders">Orders</string>
     <string name="refresh">Refresh</string>
     <string name="your_active_orders">Your active orders</string>
+    <string name="order_number">Order#</string>
 
 </resources>

@@ -64,7 +64,7 @@
             android:layout_height="wrap_content"
             android:paddingEnd="10dp"
             android:paddingStart="0dp"
-            android:text="@string/brand_name"
+            android:text="@string/brandname"
             android:textSize="18sp"
             style="@style/TextAppearance.MaterialComponents.Body1" />
 
