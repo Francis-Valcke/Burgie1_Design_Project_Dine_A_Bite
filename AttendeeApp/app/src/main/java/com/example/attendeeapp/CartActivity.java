@@ -95,6 +95,7 @@ public class CartActivity extends AppCompatActivity {
                         Intent intent = new Intent(CartActivity.this, ConfirmActivity.class);
                         intent.putExtra("order", ordered);
                         intent.putExtra("location", lastLocation);
+                        intent.putExtra("totalPrice", totalPrice);
                         intent.putExtra("cartCount", cartAdapter.getCartCount());
                         startActivity(intent);
                     /*} else {

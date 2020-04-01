@@ -10,35 +10,23 @@ import android.widget.BaseExpandableListAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.example.attendeeapp.order.CommonOrder;
+import com.example.attendeeapp.order.CommonOrderItem;
+
 import java.math.BigDecimal;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Locale;
 
-public class OrderExpandableItemAdapter extends BaseExpandableListAdapter {
+public class OrderItemExpandableAdapter extends BaseExpandableListAdapter {
 
     private Context context;
-    private ArrayList<ArrayList<MenuItem>> orders;
-    private BigDecimal totalPrice;
-    private int orderCount;
-    private int orderId;
+    private ArrayList<CommonOrder> orders;
 
-    public OrderExpandableItemAdapter(Context context, ArrayList<ArrayList<MenuItem>> orders)
+    public OrderItemExpandableAdapter(Context context, ArrayList<CommonOrder> orders)
     {
         this.context = context;
         this.orders = orders;
-    }
-
-    public void setTotalPrice(BigDecimal totalPrice) {
-        this.totalPrice = totalPrice;
-    }
-
-    public void setOrderCount(int orderCount) {
-        this.orderCount = orderCount;
-    }
-
-    public void setOrderId(int orderId) {
-        this.orderId = orderId;
     }
 
     @Override
@@ -49,17 +37,17 @@ public class OrderExpandableItemAdapter extends BaseExpandableListAdapter {
     @Override
     public int getChildrenCount(int i) {
         // Add 1 to childCount because of header
-        return orders.get(i).size() + 1;
+        return orders.get(i).getOrderItems().size() + 1;
     }
 
     @Override
-    public ArrayList<MenuItem> getGroup(int i) {
+    public CommonOrder getGroup(int i) {
         return orders.get(i);
     }
 
     @Override
-    public MenuItem getChild(int i, int i2) {
-        return orders.get(i).get(i2);
+    public CommonOrderItem getChild(int i, int i2) {
+        return orders.get(i).getOrderItems().get(i2);
     }
 
     @Override
@@ -79,7 +67,7 @@ public class OrderExpandableItemAdapter extends BaseExpandableListAdapter {
 
     @Override
     public View getGroupView(int i, boolean b, View view, ViewGroup viewGroup) {
-        ArrayList<MenuItem> currentOrder = orders.get(i);
+        CommonOrder currentOrder = orders.get(i);
         if(view == null)
         {
             LayoutInflater inflater =(LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -98,13 +86,9 @@ public class OrderExpandableItemAdapter extends BaseExpandableListAdapter {
         TextView textID = (TextView)view.findViewById(R.id.order_group_header_id);
         TextView textCount = (TextView)view.findViewById(R.id.order_group_header_count);
         TextView txtPrice = (TextView)view.findViewById(R.id.order_group_header_price);
-        textID.setText("#" + orderId);
-        textCount.setText("" + orderCount);
-
-        NumberFormat euro = NumberFormat.getCurrencyInstance(Locale.FRANCE);
-        euro.setMinimumFractionDigits(2);
-        String symbol = euro.getCurrency().getSymbol();
-        txtPrice.setText(symbol + " " + totalPrice);
+        textID.setText("#" + currentOrder.getId());
+        textCount.setText("" + currentOrder.getTotalCount());
+        txtPrice.setText(currentOrder.getTotalPriceEuro());
 
         // Set custom group indicator that can be in the center of the layout
         ImageView groupIndicator = (ImageView)view.findViewById(R.id.group_indicator);
@@ -115,7 +99,7 @@ public class OrderExpandableItemAdapter extends BaseExpandableListAdapter {
 
     @Override
     public View getChildView(int groupPos, int childPos, boolean b, View view, ViewGroup viewGroup) {
-        ArrayList<MenuItem> currentOrder = getGroup(groupPos);
+        CommonOrder currentOrder = getGroup(groupPos);
         LayoutInflater inflater = (LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
         // The first row is used as header
@@ -128,18 +112,18 @@ public class OrderExpandableItemAdapter extends BaseExpandableListAdapter {
         if(childPos > 0 && childPos < getChildrenCount(groupPos))
         {
             // Handle one menuItem of the order being shown
-            MenuItem currentItem = getChild(groupPos,childPos-1);
+            CommonOrderItem currentItem = getChild(groupPos,childPos-1);
             view = inflater.inflate(R.layout.order_item_expandable,null);
 
             TextView txtFoodName = (TextView)view.findViewById(R.id.order_item_name);
             TextView txtCount = (TextView)view.findViewById(R.id.order_item_count);
             TextView txtPrice = (TextView)view.findViewById(R.id.order_item_price);
-            txtFoodName.setText(currentItem.getFoodName());
-            txtCount.setText("" + currentItem.getCount());
+            txtFoodName.setText(currentItem.getFoodname());
+            txtCount.setText("" + currentItem.getAmount());
             txtPrice.setText(currentItem.getPriceEuro());
 
             // Set padding for the last child
-            if (childPos == currentOrder.size()) {
+            if (childPos == currentOrder.getOrderItems().size()) {
                 view.setPadding(0, 0, 0, 50);
             }
         }

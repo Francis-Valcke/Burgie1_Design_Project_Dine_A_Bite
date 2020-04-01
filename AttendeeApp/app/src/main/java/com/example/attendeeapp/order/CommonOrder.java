@@ -1,20 +1,35 @@
 package com.example.attendeeapp.order;
 
+import androidx.room.Entity;
+import androidx.room.Ignore;
+import androidx.room.PrimaryKey;
+import androidx.room.TypeConverters;
+
 import com.example.attendeeapp.MenuItem;
+import com.example.attendeeapp.roomDB.Converters;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
+import java.util.Locale;
 
+@Entity
 public class CommonOrder implements Serializable {
 
     // unique id for this order
+    @PrimaryKey
     private int id;
 
+    @TypeConverters(Converters.class)
     private Calendar startTime;
+    @TypeConverters(Converters.class)
     private Calendar expectedTime;
 
+    @TypeConverters(Converters.class)
     private status orderStatus;
 
     private int standId;
@@ -22,11 +37,19 @@ public class CommonOrder implements Serializable {
     private String standName;
 
     //----- Request ------//
+    @TypeConverters(Converters.class)
     private List<CommonOrderItem> orderItems;
 
-    // Coordinates Attendee on moment that order was mad
+    // Coordinates Attendee on moment that order was made
     private double latitude;
     private double longitude;
+
+    @JsonIgnore
+    @TypeConverters(Converters.class)
+    private BigDecimal totalPrice;
+
+    @JsonIgnore
+    private int totalCount;
 
     public enum status {
         SEND,
@@ -53,7 +76,7 @@ public class CommonOrder implements Serializable {
 
         this.orderItems=new ArrayList<>();
         for (MenuItem menuItem : menuItems) {
-            orderItems.add(new CommonOrderItem(menuItem.getFoodName(), menuItem.getCount()));
+            orderItems.add(new CommonOrderItem(menuItem.getFoodName(), menuItem.getCount(), menuItem.getPrice()));
         }
     }
 
@@ -94,7 +117,95 @@ public class CommonOrder implements Serializable {
         return longitude;
     }
 
+    public void setId(int id) {
+        this.id = id;
+    }
 
+    public void setOrderStatus(status orderStatus) {
+        this.orderStatus = orderStatus;
+    }
 
+    public void setStandId(int standId) {
+        this.standId = standId;
+    }
+
+    public void setBrandName(String brandName) {
+        this.brandName = brandName;
+    }
+
+    public void setStandName(String standName) {
+        this.standName = standName;
+    }
+
+    public void setOrderItems(List<CommonOrderItem> orderItems) {
+        this.orderItems = orderItems;
+    }
+
+    public void setLatitude(double latitude) {
+        this.latitude = latitude;
+    }
+
+    public void setLongitude(double longitude) {
+        this.longitude = longitude;
+    }
+
+    public Calendar getStartTime() {
+        return startTime;
+    }
+
+    public void setStartTime(Calendar startTime) {
+        this.startTime = startTime;
+    }
+
+    public Calendar getExpectedTime() {
+        return expectedTime;
+    }
+
+    public void setExpectedTime(Calendar expectedTime) {
+        this.expectedTime = expectedTime;
+    }
+
+    public BigDecimal getTotalPrice() {
+        return totalPrice;
+    }
+
+    public void setTotalPrice(BigDecimal totalPrice) {
+        this.totalPrice = totalPrice;
+    }
+
+    public int getTotalCount() {
+        return totalCount;
+    }
+
+    public void setTotalCount(int totalCount) {
+        this.totalCount = totalCount;
+    }
+
+    /**
+     * Return the total price of the order with the euro symbol
+     * @return: String of euro symbol with total price
+     */
+    @JsonIgnore
+    public String getTotalPriceEuro() {
+        NumberFormat euro = NumberFormat.getCurrencyInstance(Locale.FRANCE);
+        euro.setMinimumFractionDigits(2);
+        String symbol = euro.getCurrency().getSymbol();
+        return symbol + " " + totalPrice.toString();
+    }
+
+    /**
+     * Helper function that updates the CommonOrderItem prices, because server doesn't send them
+     * @param list: the items to get the price from
+     */
+    public void setPrices(ArrayList<MenuItem> list) {
+        for(MenuItem menuItem : list)  {
+            for(CommonOrderItem item : orderItems) {
+                if(item.getFoodname().equals(menuItem.getFoodName())) {
+                    item.setPrice(menuItem.getPrice());
+                }
+
+            }
+        }
+    }
 
 }

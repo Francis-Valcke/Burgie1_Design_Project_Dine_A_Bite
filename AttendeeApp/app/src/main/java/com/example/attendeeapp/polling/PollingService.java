@@ -48,7 +48,7 @@ public class PollingService extends Service {
             // Send the order and chosen stand ID to the server and confirm the chosen stand
             // Instantiate the RequestQueue
             RequestQueue queue = Volley.newRequestQueue(context);
-            String url = "http://cobol.idlab.ugent.be:8093/events?id="+233;
+            String url = "http://cobol.idlab.ugent.be:8093/events?id="+79;
 
             // Request a string response from the provided URL
             JsonObjectRequest stringRequest = new JsonObjectRequest(Request.Method.GET, url, null, new Response.Listener<JSONObject>() {

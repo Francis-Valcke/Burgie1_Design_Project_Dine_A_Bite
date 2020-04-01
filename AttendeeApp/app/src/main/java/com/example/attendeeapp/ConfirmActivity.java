@@ -1,5 +1,6 @@
 package com.example.attendeeapp;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Typeface;
 import android.location.Location;
@@ -16,6 +17,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
@@ -35,9 +37,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -51,8 +55,8 @@ public class ConfirmActivity extends AppCompatActivity implements AdapterView.On
     private Multimap<String, String> brandStandMap = ArrayListMultimap.create();
     private ArrayList<MenuItem> ordered;
     private int cartCount;
+    private BigDecimal totalPrice;
     private List<Recommendation> recommendations = null;
-    private CommonOrder orderSent = null;
     private CommonOrder orderReceived = null;
     private String chosenStand = null;
     private Toast mToast = null;
@@ -64,6 +68,7 @@ public class ConfirmActivity extends AppCompatActivity implements AdapterView.On
 
         ordered = (ArrayList<MenuItem>) getIntent().getSerializableExtra("order");
         cartCount = getIntent().getIntExtra("cartCount", 0);
+        totalPrice = (BigDecimal) getIntent().getSerializableExtra("totalPrice");
         lastLocation = (Location) getIntent().getParcelableExtra("location");
         requestOrderRecommend();
         fetchStandNames();
@@ -106,11 +111,11 @@ public class ConfirmActivity extends AppCompatActivity implements AdapterView.On
             @Override
             public void onClick(View v) {
                 if(chosenStand != null) {
-                    if (mToast != null) mToast.cancel();
+                    /*if (mToast != null) mToast.cancel();
                     mToast = Toast.makeText(ConfirmActivity.this, "This function is currently not supported yet",
                             Toast.LENGTH_SHORT);
-                    mToast.show();
-                    /*boolean noRecommend = true;
+                    mToast.show();*/
+                    boolean noRecommend = true;
                     if(recommendations != null) {
                         if (recommendations.size() > 0) {
                             noRecommend = false;
@@ -125,9 +130,7 @@ public class ConfirmActivity extends AppCompatActivity implements AdapterView.On
                                     // Continue to order overview with chosen stand
                                     Intent intent = new Intent(ConfirmActivity.this, OrderActivity.class);
                                     intent.putExtra("order", orderReceived);
-                                    intent.putExtra("order_list", ordered);
                                     intent.putExtra("stand", chosenStand);
-                                    intent.putExtra("cartCount", cartCount);
                                     startActivity(intent);
 
                                 }
@@ -139,7 +142,8 @@ public class ConfirmActivity extends AppCompatActivity implements AdapterView.On
                                 }
                             });
 
-                            builder.setMessage("You have a recommendation available.\nAre you sure you want to choose your own stand?")
+                            builder.setMessage("You have a recommendation available." +
+                                    "\nAre you sure you want to choose your own stand?")
                                     .setTitle("Continue with chosen stand");
                             AlertDialog dialog = builder.create();
                             dialog.show();
@@ -147,15 +151,23 @@ public class ConfirmActivity extends AppCompatActivity implements AdapterView.On
                         }
                     }
                     if(noRecommend) {
-                        // Continue to order overview with chosen stand
-                        Intent intent = new Intent(ConfirmActivity.this, OrderActivity.class);
-                        // TODO: handle no order received back from server
-                        intent.putExtra("order", orderReceived);
-                        intent.putExtra("order_list", ordered);
-                        intent.putExtra("cartCount", cartCount);
-                        intent.putExtra("stand", chosenStand);
-                        startActivity(intent);
-                    }*/
+                        if(orderReceived != null) {
+
+                            // Continue to order overview with chosen stand
+                            Intent intent = new Intent(ConfirmActivity.this, OrderActivity.class);
+                            // TODO: handle no order received back from server
+                            intent.putExtra("order", orderReceived);
+                            intent.putExtra("stand", chosenStand);
+                            startActivity(intent);
+
+                        } else {
+                            if (mToast != null) mToast.cancel();
+                            mToast = Toast.makeText(ConfirmActivity.this,
+                                    "Your order could not be received, you cannot continue",
+                                    Toast.LENGTH_SHORT);
+                            mToast.show();
+                        }
+                    }
 
 
                 } else {
@@ -175,11 +187,10 @@ public class ConfirmActivity extends AppCompatActivity implements AdapterView.On
                 if(recommendations != null) {
                     if (recommendations.size() > 0) {
                         noRecommend = false;
+
                         // Continue to order overview with recommended stand
                         Intent intent = new Intent(ConfirmActivity.this, OrderActivity.class);
                         intent.putExtra("order", orderReceived);
-                        intent.putExtra("order_list", ordered);
-                        intent.putExtra("cartCount", cartCount);
                         intent.putExtra("standID", recommendations.get(0).getStandId());
                         startActivity(intent);
                     }
@@ -213,7 +224,7 @@ public class ConfirmActivity extends AppCompatActivity implements AdapterView.On
         }
 
         // Make JSON Object with ordered items and location
-        orderSent = new CommonOrder(ordered, ordered.get(0).getStandName(), ordered.get(0).getBrandName(), latitude, longitude);
+        CommonOrder orderSent = new CommonOrder(ordered, ordered.get(0).getStandName(), ordered.get(0).getBrandName(), latitude, longitude);
         JSONObject jsonOrder = null;
 
         try {
@@ -231,6 +242,16 @@ public class ConfirmActivity extends AppCompatActivity implements AdapterView.On
         jsonOrder.remove("expectedTime");
         jsonOrder.remove("standId");
 
+        // TODO: to remove the following, when server can handle updated CommonOrderItem
+        try {
+            JSONArray array = jsonOrder.getJSONArray("orderItems");
+            for(int i =0 ; i<array.length(); i++){
+                JSONObject item = (JSONObject) array.get(i);
+                item.remove("price");
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
         // Instantiate the RequestQueue
         RequestQueue queue = Volley.newRequestQueue(this);
         //String url = "http://10.0.2.2:8081/placeOrder";
@@ -247,10 +268,15 @@ public class ConfirmActivity extends AppCompatActivity implements AdapterView.On
                         try {
                             recommendations= mapper.readValue(response.get("recommendations").toString(), new TypeReference<List<Recommendation>>() {});
                             orderReceived= mapper.readValue(response.get("order").toString(), CommonOrder.class);
+                            orderReceived.setTotalPrice(totalPrice);
+                            orderReceived.setPrices(ordered);
+                            orderReceived.setTotalCount(cartCount);
+                            // TODO: add ALL menuItem information to the orderItems!
+
                             showRecommendation();
 
                         } catch (JsonProcessingException | JSONException e) {
-                            e.printStackTrace();
+                            Log.v("JSON exception","JSON exception in confirmActivity");
                         }
                     }
                 }, new Response.ErrorListener() {
@@ -265,7 +291,6 @@ public class ConfirmActivity extends AppCompatActivity implements AdapterView.On
             @Override
             public @NonNull Map<String, String> getHeaders()  throws AuthFailureError {
                 Map<String, String>  headers  = new HashMap<String, String>();
-                headers.put("Content-Type", "application/json");
                 headers.put("Authorization", "Bearer " + "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOi" +
                         "JmcmFuY2lzIiwicm9sZXMiOlsiUk9MRV9VU0VSIiwiUk9MRV9BRE1JTiJdLCJpYX" +
                         "QiOjE1ODQ2MTAwMTcsImV4cCI6MTc0MjI5MDAxN30.5UNYM5Qtc4anyHrJXIuK0O" +

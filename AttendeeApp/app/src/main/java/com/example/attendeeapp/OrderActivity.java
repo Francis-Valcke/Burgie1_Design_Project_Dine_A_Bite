@@ -26,11 +26,13 @@ import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.example.attendeeapp.order.CommonOrder;
 import com.example.attendeeapp.polling.PollingService;
+import com.example.attendeeapp.roomDB.OrderDatabaseService;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -58,8 +60,6 @@ public class OrderActivity extends AppCompatActivity {
         return false;
     }
 
-
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -77,27 +77,33 @@ public class OrderActivity extends AppCompatActivity {
         assert ab != null;
         ab.setDisplayHomeAsUpEnabled(true);
 
-        ArrayList<ArrayList<MenuItem>> orders = new ArrayList<ArrayList<MenuItem>>();
-        ArrayList<MenuItem> newOrder_list = (ArrayList<MenuItem>) getIntent().getSerializableExtra("order_list");
         final CommonOrder newOrder = (CommonOrder) getIntent().getSerializableExtra("order");
         int stand = getIntent().getIntExtra("standID", 0);
 
-        if(newOrder_list == null) {
-            // TODO: loading stored orders not yet handled
+        // Database initialization
+        OrderDatabaseService orderDatabaseService = new OrderDatabaseService(getApplicationContext());
+        ArrayList<CommonOrder> orders = (ArrayList<CommonOrder>) orderDatabaseService.getAll();
+
+        if(orders.size() == 0 && newOrder == null) {
+            // No (new) orders
+            return;
+
+        } else if (newOrder == null) {
+            // Initiate the expandable order ListView
+            ExpandableListView expandList = (ExpandableListView)findViewById(R.id.order_expand_list);
+            OrderItemExpandableAdapter adapter = new OrderItemExpandableAdapter(this, orders);
+
+            expandList.setAdapter(adapter);
             return;
         }
-        orders.add(newOrder_list);
+
+        orders.add(newOrder);
+        orderDatabaseService.insertOrder(newOrder);
 
         // Initiate the expandable order ListView
         ExpandableListView expandList = (ExpandableListView)findViewById(R.id.order_expand_list);
-        OrderExpandableItemAdapter adapter = new OrderExpandableItemAdapter(this, orders);
-        adapter.setOrderId(newOrder.getId());
-        adapter.setOrderCount(getIntent().getIntExtra("cartCount", 0));
-        BigDecimal amount = new BigDecimal(0).setScale(2, RoundingMode.HALF_UP);
-        for(MenuItem i : newOrder_list) {
-            amount = amount.add(i.getPrice().multiply(new BigDecimal((i.getCount()))));
-        }
-        adapter.setTotalPrice(amount);
+        OrderItemExpandableAdapter adapter = new OrderItemExpandableAdapter(this, orders);
+
         expandList.setAdapter(adapter);
 
         // Register as subscriber to the orderId event channel
@@ -125,7 +131,7 @@ public class OrderActivity extends AppCompatActivity {
             public void onErrorResponse(VolleyError error) {
                 Toast mToast = null;
                 if (mToast != null) mToast.cancel();
-                mToast = Toast.makeText(OrderActivity.this, "Your order could not be received",
+                mToast = Toast.makeText(OrderActivity.this, "Your final order could not be received",
                         Toast.LENGTH_SHORT);
                 mToast.show();
 
