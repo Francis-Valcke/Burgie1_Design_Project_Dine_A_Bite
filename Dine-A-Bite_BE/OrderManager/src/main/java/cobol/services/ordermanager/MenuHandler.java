@@ -244,8 +244,9 @@ public class MenuHandler {
         if (!newstand) {
             for (Food food : foodInStand) {
                 List<Integer> l = stockRepository.findStandIdByFoodId(food.getId());
-                if (l.size() < 2) food_Repository.deleteById(food.getId());
                 stockRepository.delete(stockRepository.findStock(food.getId(), n.getId()));
+                if (l.size() < 2) food_Repository.deleteById(food.getId());
+
             }
         }
 
