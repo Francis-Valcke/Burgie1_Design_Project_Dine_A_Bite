@@ -11,7 +11,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class Scheduler extends Thread {
     private List<CommonOrder> inc = new LinkedList<>();
-    private ArrayList<CommonFood> menu;
+    private List<CommonFood> menu;
     private String standName;
 
     // Coordinates of Stand
@@ -20,7 +20,7 @@ public class Scheduler extends Thread {
 
     private String brandName;
 
-    public Scheduler(ArrayList<CommonFood> menu, String standName, String brandName, double lat, double lon) {
+    public Scheduler(List<CommonFood> menu, String standName, String brandName, double lat, double lon) {
         this.menu = menu;
         this.standName = standName;
         this.brandName = brandName;
@@ -44,7 +44,7 @@ public class Scheduler extends Thread {
         this.lat = l;
     }
 
-    public ArrayList<CommonFood> getMenu(){
+    public List<CommonFood> getMenu(){
         return this.menu;
     }
 

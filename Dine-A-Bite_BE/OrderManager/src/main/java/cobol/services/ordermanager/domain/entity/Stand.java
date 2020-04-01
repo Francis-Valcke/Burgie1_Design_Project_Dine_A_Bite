@@ -90,6 +90,16 @@ public class Stand implements Serializable {
         return Objects.hash(standId);
     }
 
+    public CommonStand asCommonStand() {
+        return new CommonStand(
+                this.standId.getName(),
+                this.getBrandName(),
+                this.latitude,
+                this.longitude,
+                this.getFoodList().stream().map(Food::asCommonFood).collect(Collectors.toList())
+        );
+    }
+
     @Embeddable
     @Data
     @AllArgsConstructor

@@ -111,7 +111,7 @@ public class MenuHandler {
 
     public List<Food> getStandMenu(String standName, String brandName) {
         Optional<Stand> standOptional = findStandById(standName, brandName);
-        return standOptional.map(Stand::getFoodList).orElse(null);
+        return standOptional.map(Stand::getFoodList).orElse(new ArrayList<>());
     }
 
     /**
@@ -124,7 +124,7 @@ public class MenuHandler {
      */
     public Optional<Stand> findStandById(String standName, String brandName) {
         Optional<Stand> standOptional = stands.stream()
-                .filter(s -> s.getName().equals(standName) && s.getBrand().getName().equals(brandName))
+                .filter(s -> s.getName().equals(standName) && s.getBrandName().equals(brandName))
                 .findFirst();
 
         // not present in cache
@@ -235,7 +235,7 @@ public class MenuHandler {
 
         // Also send the new stand to the StandManager
         ObjectMapper mapper = new ObjectMapper();
-        String jsonString = mapper.writeValueAsString(newStand);
+        String jsonString = mapper.writeValueAsString(newStand.asCommonStand());
         String response = sendRestCallToStandManager("/newStand", jsonString, null);
 
         JSONParser parser = new JSONParser();

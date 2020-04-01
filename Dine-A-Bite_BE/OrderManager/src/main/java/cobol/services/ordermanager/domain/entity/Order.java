@@ -1,9 +1,11 @@
 package cobol.services.ordermanager.domain.entity;
 
 import cobol.commons.order.CommonOrder;
+import cobol.commons.order.CommonOrderItem;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.json.simple.JSONObject;
+import org.springframework.data.jpa.repository.Modifying;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -33,7 +35,7 @@ public class Order implements Serializable {
     @Column
     private CommonOrder.State orderState;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne
     @JoinColumns(
             foreignKey = @ForeignKey(name = "order_stand_fk"), value = {
             @JoinColumn(referencedColumnName = "name", name = "stand_name"),
@@ -58,29 +60,22 @@ public class Order implements Serializable {
     private double longitude;
 
 
+    public Order() {
+    }
+
     /**
      * Constructs an order object from a JSON file
      *
-     * @param orderFile JSON file received from the attendee-app
-     *                  <p>
-     *                  TODO:
-     *                  - id needs to be updated with respect to database
-     *                  - remainingTimeSec needs to be dynamic
-     *                  - momenteel keys (en bij new food) gewoon vaste prijs en preptime
+     * @param orderObject CommonOrder object
      */
-    public Order(JSONObject orderFile) throws JsonProcessingException {
-
-        // Read in request
-        ObjectMapper mapper = new ObjectMapper();
-        Order temp = mapper.readValue(orderFile.toJSONString(), Order.class);
-
-        this.latitude = temp.getLatitude();
-        this.longitude = temp.getLongitude();
+    public Order(CommonOrder orderObject) {
+        this.latitude = orderObject.getLatitude();
+        this.longitude = orderObject.getLongitude();
         this.orderItems = new ArrayList<>();
-        for (OrderItem orderItem : temp.getOrderItems()) {
-            this.addOrderItem(orderItem);
+        for (CommonOrderItem orderItem : orderObject.getOrderItems()) {
+            this.addOrderItem(new OrderItem(orderItem, this));
         }
-        // Add new information
+        this.orderState=orderObject.getOrderState();
         this.startTime = Calendar.getInstance();
         this.expectedTime = Calendar.getInstance();
         expectedTime.setTime(startTime.getTime());
@@ -88,19 +83,22 @@ public class Order implements Serializable {
 
     }
 
-
-    public Order() {
-    }
-
     public CommonOrder asCommonOrder() {
+        String standName="";
+        String brandName="";
+        if(this.stand!= null){
+            standName= this.stand.getName();
+            brandName= this.stand.getBrandName();
+        }
+
         return new CommonOrder(
                 this.id,
                 this.startTime,
                 this.expectedTime,
                 this.orderState,
-                this.stand.getBrandName(),
-                this.stand.getStandId().getName(),
-                this.orderItems.stream().map(o -> o.asCommonOrderItem()).collect(Collectors.toList()),
+                brandName,
+                standName,
+                this.orderItems.stream().map(OrderItem::asCommonOrderItem).collect(Collectors.toList()),
                 this.latitude,
                 this.longitude
         );
@@ -121,13 +119,13 @@ public class Order implements Serializable {
         item.setOrder(this);
     }
 
-    public String getBrandName() {
-        return brandName;
-    }
+//    public String getBrandName() {
+//        return this.stand.getBrandName();
+//    }
 
-    public void setBrandName(String brandName) {
-        this.brandName = brandName;
-    }
+    //public void setBrandName(String brandName) {
+    //    this.brandName = brandName;
+    //}
 
     public double getLatitude() {
         return this.latitude;
@@ -173,12 +171,20 @@ public class Order implements Serializable {
         this.orderState = state;
     }
 
-    public String getStandName() {
-        return standName;
+//    public String getStandName() {
+//        return standName;
+//    }
+//
+//    public void setStandName(String standName) {
+//        this.standName = standName;
+//    }
+
+    public void setStand(Stand stand) {
+        this.stand = stand;
     }
 
-    public void setStandName(String standName) {
-        this.standName = standName;
+    public boolean hasChosenStand() {
+        return this.stand != null;
     }
 
     @Override

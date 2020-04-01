@@ -24,6 +24,8 @@ public class CommonOrder {
     private double latitude;
     private double longitude;
 
+    public CommonOrder(){}
+
     public CommonOrder(int id, Calendar startTime, Calendar expectedTime, State orderState, String brandName, String standName, List<CommonOrderItem> orderItems, double latitude, double longitude) {
         this.id = id;
         this.startTime = startTime;

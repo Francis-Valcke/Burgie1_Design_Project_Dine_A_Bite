@@ -8,6 +8,7 @@ import cobol.services.ordermanager.MenuHandler;
 import cobol.services.ordermanager.OrderManager;
 import cobol.services.ordermanager.OrderProcessor;
 import cobol.services.ordermanager.domain.entity.Order;
+import cobol.services.ordermanager.exception.DoesNotExistException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -26,6 +27,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 public class OrderController {
@@ -41,115 +43,90 @@ public class OrderController {
      * This method will retrieve information about a given order identified by the orderId.
      *
      * @param orderId Id of the order
-     * @return
-     * @throws JsonProcessingException
+     * @return CommonOrder object
+     * @throws JsonProcessingException Json processing error
+     * @throws DoesNotExistException   Order does not exist
      */
     @RequestMapping("/getOrderInfo")
-    public ResponseEntity<CommonOrder> getOrderInfo(@RequestParam(name="orderId") int orderId) throws JsonProcessingException {
-
+    public ResponseEntity<CommonOrder> getOrderInfo(@RequestParam(name = "orderId") int orderId) throws JsonProcessingException, DoesNotExistException {
         // retrieve order
-        Order order= orderProcessor.getOrder(orderId);
+        Optional<Order> orderOptional = orderProcessor.getOrder(orderId);
 
-        // write order to json
-        ObjectMapper mapper= new ObjectMapper();
-        String jsonString= mapper.writeValueAsString(order);
-        JSONParser parser= new JSONParser();
-        JSONObject orderResponse=new JSONObject();
-        try {
-            orderResponse = (JSONObject) parser.parse(jsonString);
-        } catch (ParseException e) {
-            e.printStackTrace();
+        if (orderOptional.isPresent()) {
+            return ResponseEntity.ok(orderOptional.get().asCommonOrder());
+        } else {
+            throw new DoesNotExistException("Order with id " + orderId + " does not exist, please create an order first");
         }
-        return orderResponse;
     }
 
     /**
-     * Add the order to the order processor, gets a recommendation from the scheduler and forwards it to the attendee app.
+     * This method will add the order to the order processor,
+     * gets a recommendation from the scheduler and forwards it to the attendee app.
      *
      * @param orderObject the order recieved from the attendee app
-     * @return the order id, along with the json with recommended stands
-     * @throws JsonProcessingException json error
-     *
+     * @return JSONObject including CommonOrder "order" and JSONArray "Recommendation"
+     * @throws JsonProcessingException Json processing error
+     * @throws ParseException Json parsing error
      */
     @PostMapping(value = "/placeOrder", consumes = "application/json", produces = "application/json")
-    public JSONObject placeOrder(@AuthenticationPrincipal CommonUser userDetails, @RequestBody JSONObject orderObject) throws JsonProcessingException, ParseException {
+    public ResponseEntity<JSONObject> placeOrder(@AuthenticationPrincipal CommonUser userDetails, @RequestBody CommonOrder orderObject) throws JsonProcessingException, ParseException {
 
         // Add order to the processor
-        Order newOrder= new Order(orderObject);
-        newOrder=orderProcessor.addNewOrder(newOrder);
-
+        Order newOrder = new Order(orderObject);
+        newOrder = orderProcessor.addNewOrder(newOrder);
 
         // Put order in json to send to standmanager (as commonOrder object)
         ObjectMapper mapper = new ObjectMapper();
-        String jsonString = mapper.writeValueAsString(newOrder);
-
-
+        String jsonString = mapper.writeValueAsString(newOrder.asCommonOrder());
 
         // Ask standmanager for recommendation
-        String responseString= menuHandler.sendRestCallToStandManager("/getRecommendation", jsonString, null);
-
-        List<Recommendation> recommendations= mapper.readValue(responseString, new TypeReference<List<Recommendation>>() {});
+        String responseString = menuHandler.sendRestCallToStandManager("/getRecommendation", jsonString, null);
+        List<Recommendation> recommendations = mapper.readValue(responseString, new TypeReference<List<Recommendation>>() {});
         orderProcessor.addRecommendations(newOrder.getId(), recommendations);
 
         // send updated order and recommendation
-        JSONObject completeResponse= new JSONObject();
-
-        // ---- add updated order
-        String updateOrder = mapper.writeValueAsString(newOrder);
-        // String to JSON
-        JSONObject updateOrderJson=new JSONObject();
-        JSONParser parser= new JSONParser();
-        try {
-            updateOrderJson = (JSONObject) parser.parse(updateOrder);
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
-
-        // ---- add recommendations
-        String recommendationsResponse=mapper.writeValueAsString(recommendations);
-        JSONArray recomResponseJson= new JSONArray();
-        try {
-            recomResponseJson=(JSONArray) parser.parse(recommendationsResponse);
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
+        JSONObject completeResponse = new JSONObject();
 
         // Construct response
-        completeResponse.put("order", updateOrderJson);
-        completeResponse.put("recommendations", recomResponseJson);
-        return completeResponse;
+        completeResponse.put("order", newOrder.asCommonOrder());
+        completeResponse.put("recommendations", recommendations);
+        return ResponseEntity.ok(completeResponse);
     }
 
 
     /**
      * Sets stand- and brandname of according order when this recommendations is chosen
-     * @param orderId integer id of order to be confirmed
+     *
+     * @param orderId   integer id of order to be confirmed
      * @param standName name of stand
      * @param brandName name of brand
      * @throws JsonProcessingException jsonexception
      */
     @RequestMapping(value = "/confirmStand", method = RequestMethod.GET)
     @ResponseBody
-    public void confirmStand(@RequestParam(name = "orderId") int orderId, @RequestParam(name = "standName") String standName, @RequestParam(name = "brandName") String brandName) throws JsonProcessingException{
+    public ResponseEntity<String> confirmStand(@RequestParam(name = "orderId") int orderId, @RequestParam(name = "standName") String standName, @RequestParam(name = "brandName") String brandName) throws JsonProcessingException, DoesNotExistException {
         // Update order, confirm stand
-        Order updatedOrder=orderProcessor.confirmStand(orderId, standName, brandName);
+        Order updatedOrder = orderProcessor.confirmStand(orderId, standName, brandName);
 
         // Make event for eventchannel (orderId, standId)
         JSONObject orderJson = new JSONObject();
         orderJson.put("order", updatedOrder);
         List<String> types = new ArrayList<>();
-        types.add("o"+orderId);
-        types.add("s_"+standName+"_"+brandName);
+        types.add("o" + orderId);
+        types.add("s_" + standName + "_" + brandName);
         Event e = new Event(orderJson, types, "Order");
 
         // Publish event to standmanager
         String jsonString = objectMapper.writeValueAsString(e);
+        HttpHeaders headers= new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        String uri = OrderManager.ECURL+"/publishEvent";
+        headers.add("Authorization", OrderManager.authToken);
+        RestTemplate restTemplate= new RestTemplate();
+        String uri = OrderManager.ECURL + "/publishEvent";
 
         HttpEntity<String> entity = new HttpEntity<>(jsonString, headers);
         String response = restTemplate.postForObject(uri, entity, String.class);
 
-        System.out.println(response);
+        return ResponseEntity.ok(response);
     }
 }

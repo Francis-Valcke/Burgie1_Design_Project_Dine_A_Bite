@@ -1,11 +1,13 @@
 package cobol.services.ordermanager;
 
 import cobol.commons.Event;
+import cobol.commons.order.CommonOrder;
 import cobol.commons.order.Recommendation;
 import cobol.services.ordermanager.domain.entity.Order;
 import cobol.services.ordermanager.domain.entity.Stand;
 import cobol.services.ordermanager.domain.repository.OrderRepository;
 import cobol.services.ordermanager.domain.repository.StandRepository;
+import cobol.services.ordermanager.exception.DoesNotExistException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -29,18 +31,20 @@ import java.util.*;
  * This is a Singleton
  */
 @Component
-@Scope(value="singleton")
+@Scope(value = "singleton")
 public class OrderProcessor {
 
     @Autowired
     private MenuHandler menuHandler;
 
     @Autowired
-    OrderRepository orders;
+    OrderRepository orderRepository;
 
     @Autowired
     StandRepository stands;
+
     private Map<Integer, Order> runningOrders = new HashMap<>();
+
     private int subscriberId;
     private volatile LinkedList<Event> eventQueue = new LinkedList<Event>();
     private RestTemplate restTemplate;
@@ -48,7 +52,7 @@ public class OrderProcessor {
     private HttpEntity entity;
     private ObjectMapper objectMapper;
     // orderid - recommendations
-    ListMultimap<Integer, Recommendation> orderRecommendations= ArrayListMultimap.create();
+    ListMultimap<Integer, Recommendation> orderRecommendations = ArrayListMultimap.create();
 
     private OrderProcessor() {
         objectMapper = new ObjectMapper();
@@ -60,13 +64,13 @@ public class OrderProcessor {
         this.entity = new HttpEntity(headers);
         ResponseEntity<String> response = restTemplate.exchange(uri, HttpMethod.GET, entity, String.class);
         this.subscriberId = Integer.valueOf(response.getBody());
-    };
+    }
 
 
     /**
      * Function that is called regularly to get events from the EC.
      */
-    @Scheduled(fixedDelay=500)
+    @Scheduled(fixedDelay = 500)
     public void pollEvents() {
         String uri = OrderManager.ECURL + "/events";
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(uri)
@@ -75,7 +79,8 @@ public class OrderProcessor {
         try {
             JSONObject responseObject = this.objectMapper.readValue(response.getBody(), JSONObject.class);
             String details = (String) responseObject.get("details");
-            List<Event> eventList = objectMapper.readValue(details, new TypeReference<List<Event>>() {});
+            List<Event> eventList = objectMapper.readValue(details, new TypeReference<List<Event>>() {
+            });
             eventQueue.addAll(eventList);
         } catch (JsonProcessingException e) {
             System.err.println(e);
@@ -93,11 +98,11 @@ public class OrderProcessor {
             if (e.getDataType().equals("OrderStatusUpdate")) {
                 JSONObject eventData = e.getEventData();
                 String newStatusString = (String) eventData.get("newStatus");
-                Order.status newStatus = Order.status.valueOf(newStatusString);
+                CommonOrder.State newStatus = CommonOrder.State.valueOf(newStatusString);
                 int orderId = (int) eventData.get("orderId");
                 Order localOrder = runningOrders.get(orderId);
                 localOrder.setState(newStatus);
-                if (newStatus.equals(Order.status.DECLINED)) {
+                if (newStatus.equals(CommonOrder.State.DECLINED)) {
                     runningOrders.remove(orderId);
                     String uri = OrderManager.ECURL + "/deregisterSubscriber";
                     String channelId = "o" + Integer.toString(orderId);
@@ -112,17 +117,18 @@ public class OrderProcessor {
 
     /**
      * Add a new incoming order
+     *
      * @param newOrder: order just received from attendee app
      * @return Order: persisted Order object
      */
     public Order addNewOrder(Order newOrder) {
         // update order and save to database
         newOrder.setRemtime(0);
-        newOrder.setStandName("");
-        newOrder.setBrandName("");
-        newOrder.setState(Order.status.PENDING);
-        orders.saveAndFlush(newOrder);
 
+        newOrder.setState(CommonOrder.State.PENDING);
+        //orderRepository.saveAndFlush(newOrder);
+
+        newOrder=orderRepository.save(newOrder);
         this.runningOrders.put(newOrder.getId(), newOrder);
 
         // subscribe to the channel of the order
@@ -137,41 +143,49 @@ public class OrderProcessor {
 
     /**
      * Add an already existing order (for example from database)
-      * @param o: order that is already running but OrderProcessor lost track of
+     *
+     * @param o: order that is already running but OrderProcessor lost track of
      */
-    public void addOrder(Order o){
-       runningOrders.put(o.getId(), o);
+    public void addOrder(Order o) {
+        runningOrders.put(o.getId(), o);
     }
 
-    public Order getOrder(int orderId) {
-        // look in running orders hashmap
-        Order requestedOrder= runningOrders.getOrDefault(orderId,null);
-        if(requestedOrder==null){
-           requestedOrder=orders.findById(orderId).get();
-           this.addOrder(requestedOrder);
+    public Optional<Order> getOrder(int orderId) {
+        Optional<Order> optionalOrder = Optional.ofNullable(runningOrders.getOrDefault(orderId, null));
+
+        if (!optionalOrder.isPresent()) {
+            optionalOrder = orderRepository.findById(orderId);
+            optionalOrder.ifPresent(this::addOrder);
         }
-        return requestedOrder;
+
+        return optionalOrder;
     }
 
-    public Order confirmStand(int orderId, String standName, String brandName) {
-        Order updatedOrder=this.getOrder(orderId);
 
-        if(updatedOrder.getStandName().equals("notset") || updatedOrder.getStandName().equals("")){
 
-            Optional<Stand> standOptional=menuHandler.findStandById(standName, brandName);
-            if(standOptional.isPresent()){
-                Stand foundStand= standOptional.get();
-               updatedOrder.setStandName(foundStand.getName());
-               updatedOrder.setBrandName(foundStand.getBrand().getName());
-               updatedOrder.setState(Order.status.PENDING);
-            }
+    public Order confirmStand(int orderId, String standName, String brandName) throws DoesNotExistException {
+        Optional<Order> orderOptional = this.getOrder(orderId);
+        Optional<Stand> standOptional = menuHandler.findStandById(standName, brandName);
 
-            Optional<Recommendation> recomOptional= orderRecommendations.get(orderId).stream()
+        if (!orderOptional.isPresent()) {
+            throw new DoesNotExistException("Order is does not exist, please make an order first before confirming a stand");
+        }
+
+        if (!standOptional.isPresent()) {
+            throw new DoesNotExistException("Stand does not exist, please check if you confirmed the right stand");
+        }
+
+
+        Order updatedOrder = orderOptional.get();
+        if (!updatedOrder.hasChosenStand()) {
+
+            updatedOrder.setStand(standOptional.get());
+            Optional<Recommendation> recomOptional = orderRecommendations.get(orderId).stream()
                     .filter(r -> r.getStandName().equals(standName))
                     .findFirst();
 
             recomOptional.ifPresent(recommendation -> updatedOrder.setRemtime(recommendation.getTimeEstimate()));
-            orders.saveAndFlush(updatedOrder);
+            orderRepository.save(updatedOrder);
         }
         return updatedOrder;
     }

@@ -2,26 +2,20 @@ package cobol.commons;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.List;
 
 public class CommonStand implements Serializable {
-    private ArrayList<CommonFood> menu = new ArrayList<>();
-    private int id;
+    private List<CommonFood> menu = new ArrayList<>();
+
     private String name;
     private String brandName;
-    private long lat;
-    private long lon;
+    private double lat;
+    private double lon;
     public CommonStand(){
         super();//needed for ObjectMapper
     }
-    public CommonStand(int id, String name, String brandName, long lat, long lon){
-        this.id = id;
-        this.name = name;
-        this.brandName = brandName;
-        this.lat = lat;
-        this.lon = lon;
-    }
-    public CommonStand(String name, String brandName, long lat, long lon, ArrayList<CommonFood> menu){
-        this.id = 0;
+
+    public CommonStand(String name, String brandName, double lat, double lon, List<CommonFood> menu){
         this.name = name;
         this.brandName = brandName;
         this.lat = lat;
@@ -29,27 +23,19 @@ public class CommonStand implements Serializable {
         this.menu = menu;
     }
 
-    public CommonStand(String name, String brandName, long lat, long lon) {
-        this.id = 0;
+    public CommonStand(String name, String brandName, double lat, double lon) {
         this.name = name;
         this.brandName = brandName;
         this.lat = lat;
         this.lon = lon;
     }
 
-    public void setId(int id){
-        this.id = id;
-    }
     public void addMenuItem(CommonFood mi){
         menu.add(mi);
     }
 
-    public ArrayList<CommonFood> getMenu(){
+    public List<CommonFood> getMenu(){
         return this.menu;
-    }
-
-    public int getId(){
-        return this.id;
     }
 
     public String getName(){
@@ -60,11 +46,11 @@ public class CommonStand implements Serializable {
         return this.brandName;
     }
 
-    public long getLon(){
+    public double getLon(){
         return this.lon;
     }
 
-    public long getLat(){
+    public double getLat(){
         return this.lat;
     }
 }

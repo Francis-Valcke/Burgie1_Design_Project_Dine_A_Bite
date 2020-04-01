@@ -36,6 +36,12 @@ public class OrderItem implements Serializable {
         this.amount = amount;
     }
 
+    public OrderItem(CommonOrderItem orderItem, Order order) {
+        this.amount= orderItem.getAmount();
+        this.foodName= orderItem.getFoodName();
+        this.order= order;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -84,11 +90,10 @@ public class OrderItem implements Serializable {
     }
 
     public CommonOrderItem asCommonOrderItem() {
-        CommonOrderItem commonOrderItem = new CommonOrderItem(
+
+        return new CommonOrderItem(
                 this.foodName,
                 this.amount
         );
-
-        return commonOrderItem;
     }
 }
