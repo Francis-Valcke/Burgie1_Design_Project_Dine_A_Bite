@@ -11,6 +11,7 @@ import lombok.Data;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -18,7 +19,7 @@ import java.util.Objects;
 @Data
 @Entity
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class Food implements Serializable {
+public class Food {
 
     @JsonIgnore
     @EmbeddedId
@@ -46,6 +47,8 @@ public class Food implements Serializable {
     private List<Category> category = new ArrayList<>();
 
     public Food(CommonFood cf, Stand stand) {
+        //Setting the food variables
+
         stand.getFoodList().add(this);
         this.description=cf.getDescription();
         this.price= cf.getPrice().floatValue();
@@ -59,6 +62,19 @@ public class Food implements Serializable {
             this.category.add(cat);
             cat.getFoodList().add(this);
         }
+    }
+
+    public CommonFood asCommonFood(){
+        return new CommonFood(
+                foodId.name,
+                BigDecimal.valueOf(price),
+                preparationTime,
+                stock,
+                foodId.stand.getName(),
+                foodId.stand.getBrand().getName(),
+                description,
+                getCategoriesByName()
+        );
     }
 
     @JsonProperty("category")

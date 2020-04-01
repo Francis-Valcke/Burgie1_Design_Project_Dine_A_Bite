@@ -1,5 +1,6 @@
 package cobol.services.ordermanager;
 
+import cobol.commons.CommonFood;
 import cobol.commons.CommonStand;
 import cobol.services.ordermanager.domain.entity.Brand;
 import cobol.services.ordermanager.domain.entity.Food;
@@ -38,7 +39,7 @@ import java.util.stream.Collectors;
 public class MenuHandler {
 
     private List<Stand> stands;
-    private List<Food> globalMenu=new ArrayList<>();
+    private List<CommonFood> globalMenu = new ArrayList<>();
 
     @Autowired
     private StandRepository standRepository;
@@ -140,7 +141,7 @@ public class MenuHandler {
         for (Food f : allFoodItems) {
             Object key = Arrays.asList(f.getName(), f.getStand().getBrand().getName());
             if (isDuplicate.containsKey(key)) {
-                globalMenu.add(f);
+                globalMenu.add(f.asCommonFood());
                 isDuplicate.remove(key);
             }
         }
@@ -274,7 +275,7 @@ public class MenuHandler {
         return t -> seen.putIfAbsent(keyExtractor.apply(t), Boolean.TRUE) == null;
     }
 
-    public List<Food> getGlobalMenu() {
+    public List<CommonFood> getGlobalMenu() {
         return globalMenu;
     }
 }

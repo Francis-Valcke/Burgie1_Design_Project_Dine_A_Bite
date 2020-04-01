@@ -1,5 +1,6 @@
 package cobol.services.ordermanager.controller;
 
+import cobol.commons.CommonFood;
 import cobol.commons.CommonStand;
 import cobol.commons.Event;
 import cobol.commons.ResponseModel;
@@ -242,8 +243,7 @@ public class OrderManagerController {
      */
     @RequestMapping(value="/menu", method = RequestMethod.GET)
     @ResponseBody
-    public List<Food> requestTotalMenu() { //start with id=1 (temporary)
-        System.out.println("request total menu");
+    public List<CommonFood> requestTotalMenu() { //start with id=1 (temporary)
         return menuHandler.getGlobalMenu();
     }
 
@@ -256,14 +256,18 @@ public class OrderManagerController {
      */
     @GetMapping(value = "/standMenu")
     @ResponseBody
-    public ResponseEntity<List<Food>> requestStandMenu(@RequestParam String standName, @RequestParam String brandName) {
-        return ResponseEntity.ok(new ArrayList<>(menuHandler.getStandMenu(standName, brandName)));
+    public ResponseEntity<List<CommonFood>> requestStandMenu(@RequestParam String standName, @RequestParam String brandName) {
+        return ResponseEntity.ok(
+                menuHandler.getStandMenu(standName, brandName)
+                        .stream()
+                        .map(Food::asCommonFood)
+                        .collect(Collectors.toList())
+        );
     }
 
     @GetMapping(value = "/deleteStand")
     @ResponseBody
     public String deleteStand(@RequestParam() String standName, @RequestParam String brandName) throws JsonProcessingException {
-        System.out.println("delete stand: " + standName);
         boolean b = menuHandler.deleteStand(standName, brandName);
         if (b) return "Stand " + standName + " deleted.";
         else return "No stand by that name exists";

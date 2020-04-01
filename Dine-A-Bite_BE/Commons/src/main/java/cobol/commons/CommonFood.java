@@ -12,27 +12,29 @@ import java.util.Locale;
  * Model for one menu item
  */
 public class CommonFood implements Serializable {
-    private static final int MAX_ITEM = 10;
-    private String name;
-    private BigDecimal price;
-    private int count = 0;
-    private int preparationTime;
-    private int stock;
-    private String standName = "";
-    private String brandName;
-    List<String> category = new ArrayList<String>();
-    String description = "";
+
+    protected static final int MAX_ITEM = 10;
+    protected String name;
+    protected BigDecimal price;
+    protected int count = 0;
+    protected int preparationTime;
+    protected int stock;
+    protected String standName = "";
+    protected String brandName;
+    protected List<String> category = new ArrayList<String>();
+    protected String description = "";
 
     public CommonFood() {
         super();//needed for ObjectMapper
     }
 
-    public CommonFood(String foodName, BigDecimal price, int preparationTime, int stock, String brandName, String desc, List<String> category) {
+    public CommonFood(String foodName, BigDecimal price, int preparationTime, int stock, String standName, String brandName, String desc, List<String> category) {
         this.name = foodName;
         this.price = price.setScale(2, RoundingMode.HALF_UP);
         this.preparationTime = preparationTime;
         this.stock = stock;
         this.count = 0;
+        this.standName = standName;
         this.brandName = brandName;
         this.description = desc;
         this.category = category;
