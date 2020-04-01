@@ -243,8 +243,10 @@ public class MenuHandler {
         //delete items removed from menu
         if (!newstand) {
             for (Food food : foodInStand) {
+                List<Integer> l = stockRepository.findStandIdByFoodId(food.getId());
                 stockRepository.delete(stockRepository.findStock(food.getId(), n.getId()));
-                food_Repository.deleteById(food.getId());
+                if (l.size() < 2) food_Repository.deleteById(food.getId());
+
             }
         }
 
@@ -333,7 +335,7 @@ public class MenuHandler {
         }
         if (!newitem) {
             s = stockRepository.findStock(food.getId(), n.getId());
-            if (count >= 0) s.setCount(count);
+            if (count >= 0) s.setCount(count+s.getCount());
         } else {
             s = new Stock();
             s.setCount(count);
