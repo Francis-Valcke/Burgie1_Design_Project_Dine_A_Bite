@@ -3,6 +3,7 @@ plugins {
         id 'io.spring.dependency-management' version '1.0.8.RELEASE' apply false
         id 'java'
         id "org.sonarqube" version "2.7"
+
 }
 
 version = '0.3'
@@ -83,8 +84,11 @@ sonarqube {
     }
 }
 
-project(':Commons'){
 
+
+
+project(':Commons'){
+    apply plugin: 'jacoco'
     dependencies {
         //-----PRODUCTION-----
         //Mysql jdbc driver
@@ -103,10 +107,15 @@ project(':Commons'){
 
         compile 'com.googlecode.json-simple:json-simple:1.1.1'
     }
+    jacocoTestReport {
+        reports {
+            xml.enabled true
+        }
+    }
 }
 
 project(':AuthenticationService'){
-
+        apply plugin: 'jacoco'
     dependencies {
         //-----INTERNAL-----
         implementation project(':Commons')
@@ -139,9 +148,15 @@ project(':AuthenticationService'){
         testCompileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.12'
         testAnnotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.12'
     }
+    jacocoTestReport {
+        reports {
+            xml.enabled true
+        }
+    }
 }
 
 project(':OrderManager'){
+    apply plugin: 'jacoco'
 
     dependencies {
         //-----INTERNAL-----
@@ -169,10 +184,17 @@ project(':OrderManager'){
         testCompileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.12'
         testAnnotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.12'
     }
+
+    jacocoTestReport {
+        reports {
+            xml.enabled true
+        }
+    }
+
 }
 
 project(':StandManager'){
-
+    apply plugin: 'jacoco'
     dependencies {
         //-----INTERNAL-----
         implementation project(':Commons')
@@ -181,11 +203,17 @@ project(':StandManager'){
         implementation group: 'org.springframework.boot', name: 'spring-boot-starter-security', version: '2.2.5.RELEASE'
         implementation group: 'org.springframework.boot', name: 'spring-boot-starter-web', version: '2.2.5.RELEASE'
     }
+
+    jacocoTestReport {
+        reports {
+            xml.enabled true
+        }
+    }
 }
 
 
 project(':EventChannel'){
-
+    apply plugin: 'jacoco'
     dependencies {
         //-----INTERNAL-----
         implementation project(':Commons')
@@ -204,4 +232,14 @@ project(':EventChannel'){
             exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
         }
     }
+
+    jacocoTestReport {
+        reports {
+            xml.enabled true
+        }
+    }
+}
+
+plugins.withType(JacocoPlugin) {
+    tasks["test"].finalizedBy 'jacocoTestReport'
 }
