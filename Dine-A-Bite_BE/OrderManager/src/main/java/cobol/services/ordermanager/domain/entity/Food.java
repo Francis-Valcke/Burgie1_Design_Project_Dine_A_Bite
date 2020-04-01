@@ -82,25 +82,25 @@ public class Food implements Serializable {
         this.foodId.name = name;
     }
 
-    @JsonProperty("standName")
-    public String getStandName(){
-        return foodId.stand.getName();
-    }
+    //public String getStandName(){
+    //    return foodId.stand.getName();
+    //}
 
+    @JsonIgnore
     public Stand getStand() {
         return foodId.stand;
     }
 
-    @JsonProperty("standName")
+    @JsonIgnore
     public void setStand(Stand stand) {
         foodId = (foodId == null) ? new Food.FoodId() : foodId;
         this.foodId.stand = stand;
     }
 
-    @JsonProperty("brandName")
-    public String getBrandName(){
-        return this.foodId.getStand().getBrandName();
-    }
+
+    //public String getBrandName(){
+    //    return this.foodId.getStand().getBrandName();
+    //}
 
     public Food() {
     }

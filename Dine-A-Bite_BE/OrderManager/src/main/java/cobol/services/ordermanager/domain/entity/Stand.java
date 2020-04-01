@@ -30,7 +30,7 @@ public class Stand implements Serializable {
     private double latitude;
 
     @OneToMany(mappedBy = "foodId.stand", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    @JsonProperty("menu")
+    @JsonProperty("food")
     List<Food> foodList = new ArrayList<>();
 
     @JsonProperty("name")
@@ -44,20 +44,20 @@ public class Stand implements Serializable {
         this.standId.name = name;
     }
 
-    @JsonIgnore
-    public Brand getBrand() {
-        return standId.brand;
-    }
 
-    @JsonProperty("brandName")
-    public String getBrandName(){
-        return standId.brand.getName();
-    }
+    //public String getBrandName(){
+    //    return standId.brand.getName();
+    //}
 
     @JsonProperty("brandName")
     public void setBrand(Brand brand) {
         standId = (standId == null) ? new StandId() : standId;
         this.standId.brand = brand;
+    }
+
+    @JsonIgnore
+    public Brand getBrand() {
+        return standId.brand;
     }
 
     public Stand() {

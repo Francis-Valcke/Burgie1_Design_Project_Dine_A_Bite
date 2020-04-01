@@ -32,26 +32,27 @@ public class DBController {
     @Autowired
     FoodRepository foodRepository;
 
-    @GetMapping("/load")
+    @GetMapping("/import")
     public ResponseEntity load(@RequestBody List<Brand> data){
+
         data.forEach(brandRepository::saveAndFlush);
         return null;
+
     }
-
-
-
 
     @GetMapping("/clear")
     public ResponseEntity clear(){
 
         brandRepository.deleteAll();
-
         return null;
+
     }
 
     @GetMapping("/export")
     public ResponseEntity export(){
+
         List<Brand> brands= brandRepository.findAll();
         return ResponseEntity.ok(brands);
+
     }
 }

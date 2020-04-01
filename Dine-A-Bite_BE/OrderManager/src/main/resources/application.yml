@@ -14,7 +14,9 @@ spring:
 
   jpa:
     show_sql: true
-    generate-ddl: true
+#    generate-ddl: true
+    hibernate:
+      ddl-auto: create-drop
 
 logging:
   level:
