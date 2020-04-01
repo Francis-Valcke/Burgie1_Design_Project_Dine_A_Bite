@@ -58,8 +58,8 @@ public class OrderFragment extends Fragment {
         subscribeEC();
 
 
-        refresh = view.findViewById(R.id.refresh);
-        listView = view.findViewById(R.id.expandable_listview);
+        refresh = view.findViewById(R.id.refresh_button);
+        listView = view.findViewById(R.id.expandable_list_view);
         //initData();
         listDataHeader = new ArrayList<>();
         listHash = new HashMap<>();

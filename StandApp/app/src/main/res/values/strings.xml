@@ -41,17 +41,10 @@
     <string name="name_of_menu_item">Name of menu item</string>
     <string name="price_of_menu_item_in_euro">Price of menu item in €</string>
     <string name="added_stock_helper_text">Number of added items to the stock (not final)</string>
-    <string-array name="snacks">
-        <item>Burger</item>
-        <item>Doughnut</item>
-        <item>Hot dog</item>
-        <item>Large fries</item>
-        <item>Medium fries</item>
-        <item>Small fries</item>
-        <item>Pizza</item>
-        <item>Sandwich</item>
-        <item>Toast</item>
-        <item>Juice</item>
-    </string-array>
+    <string name="settings">Settings</string>
+    <string name="profile">Profile</string>
+    <string name="orders">Orders</string>
+    <string name="refresh">Refresh</string>
+    <string name="your_active_orders">Your active orders</string>
 
 </resources>

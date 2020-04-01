@@ -4,9 +4,11 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -33,7 +35,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-public class DashboardFragment2 extends Fragment {
+public class DashboardFragment extends Fragment {
 
     private ArrayList<CommonFood> items = new ArrayList<>();
 
@@ -48,16 +50,26 @@ public class DashboardFragment2 extends Fragment {
         Button addButton = view.findViewById(R.id.add_menu_item_button);
         ListView menuList = view.findViewById(R.id.menu_list);
 
-        // Getting the log in information
+        // Getting the log in information from profile fragment
         final Bundle bundle = this.getArguments();
         String standName = "";
         String brandName = "";
-        if (bundle != null) {
-            if (Utils.isLoggedIn(this.getContext(), bundle)) {
-                standName = bundle.getString("standName");
-                brandName = bundle.getString("brandName");
-                Toast.makeText(getContext(), standName, Toast.LENGTH_SHORT).show();
-            }
+        if (bundle != null && Utils.isLoggedIn(this.getContext(), bundle)) {
+            standName = bundle.getString("standName");
+            brandName = bundle.getString("brandName");
+            Toast.makeText(getContext(), standName, Toast.LENGTH_SHORT).show();
+        }
+
+        // Getting the menu list from the server after logging in
+        // when the stand has a menu list saved on the server
+        if (bundle != null && Utils.isLoggedIn(this.getContext(), bundle) && items.isEmpty()) {
+            // Instantiate the RequestQueue
+            RequestQueue queue = Volley.newRequestQueue(Objects.requireNonNull(getContext()));
+            String url = "";
+
+            // TODO StringRequest
+
+            // queue.add(stringRequest);
         }
 
         final DashboardListViewAdapter adapter = new DashboardListViewAdapter(Objects.requireNonNull(this.getActivity()), items);
@@ -67,6 +79,7 @@ public class DashboardFragment2 extends Fragment {
         final TextInputEditText nameInput = addDialogLayout.findViewById(R.id.menu_item_name);
         final TextInputEditText priceInput = addDialogLayout.findViewById(R.id.menu_item_price);
         final TextInputEditText stockInput = addDialogLayout.findViewById(R.id.menu_item_stock);
+        final View finalView = view;
 
         // Adding a new menu item to the menu list of the stand
         final MaterialAlertDialogBuilder dialog = new MaterialAlertDialogBuilder(Objects.requireNonNull(this.getContext()))
@@ -74,17 +87,27 @@ public class DashboardFragment2 extends Fragment {
                 .setPositiveButton("Save", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        String name = Objects.requireNonNull(nameInput.getText()).toString();
-                        BigDecimal price = new BigDecimal(Objects.requireNonNull(priceInput.getText()).toString());
-                        int stock = Integer.parseInt(Objects.requireNonNull(stockInput.getText()).toString());
-                        List<String> category = new ArrayList<>();
-                        category.add("");
-                        CommonFood item = new CommonFood(name, price, 150, stock, "", "", category);
-                        items.add(item);
-                        adapter.notifyDataSetChanged();
-                        nameInput.setText("");
-                        priceInput.setText("");
-                        stockInput.setText("");
+                        if (Objects.requireNonNull(nameInput.getText()).toString().isEmpty()
+                                || Objects.requireNonNull(priceInput.getText()).toString().isEmpty()
+                                || Objects.requireNonNull(stockInput.getText()).toString().isEmpty()) {
+                            AlertDialog.Builder alertDialog = new AlertDialog.Builder(finalView.getContext())
+                                    .setTitle("Invalid menu item")
+                                    .setMessage("The menu item you tried to add is invalid, please try again.")
+                                    .setNeutralButton("Ok", null);
+                            alertDialog.show();
+                        } else {
+                            String name = Objects.requireNonNull(nameInput.getText()).toString();
+                            BigDecimal price = new BigDecimal(Objects.requireNonNull(priceInput.getText()).toString());
+                            int stock = Integer.parseInt(Objects.requireNonNull(stockInput.getText()).toString());
+                            List<String> category = new ArrayList<>();
+                            category.add("");
+                            CommonFood item = new CommonFood(name, price, 150, stock, "", "", category);
+                            items.add(item);
+                            adapter.notifyDataSetChanged();
+                            nameInput.setText("");
+                            priceInput.setText("");
+                            stockInput.setText("");
+                        }
                         ViewGroup parent = (ViewGroup) addDialogLayout.getParent();
                         if (parent != null) parent.removeView(addDialogLayout);
                     }

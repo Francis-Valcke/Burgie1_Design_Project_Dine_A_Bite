@@ -4,6 +4,7 @@ import org.json.JSONObject;
 //import org.json.simple.JSONObject;
 
 public class Event {
+
     private static int idCount = 0;
     private int myId;
     private String dataType;

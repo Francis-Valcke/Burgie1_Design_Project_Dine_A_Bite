@@ -79,13 +79,23 @@ public class DashboardListViewAdapter extends BaseAdapter {
                         .setPositiveButton("Save", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-                                String name = Objects.requireNonNull(nameInput.getText()).toString();
-                                BigDecimal price = new BigDecimal(Objects.requireNonNull(priceInput.getText()).toString());
-                                int stock = Integer.parseInt(Objects.requireNonNull(stockInput.getText()).toString());
-                                item.setName(name);
-                                item.setPrice(price);
-                                item.setStock(stock);
-                                notifyDataSetChanged();
+                                if (Objects.requireNonNull(nameInput.getText()).toString().isEmpty()
+                                        || Objects.requireNonNull(priceInput.getText()).toString().isEmpty()
+                                        || Objects.requireNonNull(stockInput.getText()).toString().isEmpty()) {
+                                    AlertDialog.Builder alertDialog = new AlertDialog.Builder(finalView.getContext())
+                                            .setTitle("Invalid menu item")
+                                            .setMessage("The menu item you tried to add is invalid, please try again.")
+                                            .setNeutralButton("Ok", null);
+                                    alertDialog.show();
+                                } else {
+                                    String name = Objects.requireNonNull(nameInput.getText()).toString();
+                                    BigDecimal price = new BigDecimal(Objects.requireNonNull(priceInput.getText()).toString());
+                                    int stock = Integer.parseInt(Objects.requireNonNull(stockInput.getText()).toString());
+                                    item.setName(name);
+                                    item.setPrice(price);
+                                    item.setStock(stock);
+                                    notifyDataSetChanged();
+                                }
                                 ViewGroup parent = (ViewGroup) editDialogLayout.getParent();
                                 if (parent != null) parent.removeView(editDialogLayout);
                             }

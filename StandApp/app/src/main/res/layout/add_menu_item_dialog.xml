@@ -20,7 +20,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/menu_item_name"
-            android:hint="@string/name" />
+            android:hint="@string/name"
+            android:inputType="text"/>
 
     </com.google.android.material.textfield.TextInputLayout>
 
@@ -35,7 +36,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/menu_item_price"
-            android:hint="@string/price_in_euro" />
+            android:hint="@string/price_in_euro"
+            android:inputType="numberDecimal"/>
 
     </com.google.android.material.textfield.TextInputLayout>
 
@@ -50,7 +52,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/menu_item_stock"
-            android:hint="@string/added_stock" />
+            android:hint="@string/added_stock"
+            android:inputType="number"/>
 
     </com.google.android.material.textfield.TextInputLayout>
 

@@ -3,7 +3,7 @@ package com.example.standapp.order;
 public class CommonOrderItem {
 
     private int itemId;
-    private String foodname;
+    private String foodname; // TODO wrong naming convention
     private int amount;
 
     public CommonOrderItem(){}
@@ -19,7 +19,7 @@ public class CommonOrderItem {
 
     public String getFoodname() {
         return foodname;
-    }
+    } // TODO wrong naming convention
 
 
     public int getAmount() {

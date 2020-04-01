@@ -10,37 +10,18 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import android.view.MenuItem;
 
 import android.os.Bundle;
-import android.widget.Toast;
 
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.StringRequest;
-import com.android.volley.toolbox.Volley;
-import com.example.standapp.order.CommonOrder;
-import com.example.standapp.order.CommonOrderItem;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.android.material.navigation.NavigationView;
-
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
     private DrawerLayout drawer;
-    private static ProfileFragment profile;
-    private static OrderFragment order;
-    private static DashboardFragment2 dashboard;
-    private int standId = 100;
-    private String subscriberId;
+    private ProfileFragment profile;
+    private OrderFragment order;
+    private DashboardFragment dashboard;
+
+    //private int standId = 100; Why?
+    //private String subscriberId; Why?
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,7 +42,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         profile = new ProfileFragment();
         order = new OrderFragment();
-        dashboard = new DashboardFragment2();
+        dashboard = new DashboardFragment();
 
         // To pass data in between fragments
         Bundle bundle = new Bundle();
@@ -73,8 +54,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             navigationView.setCheckedItem(R.id.nav_profile);
         }
 
-        //the function below will subscribe to the Event Channel, so that we could receive the orders from it in the OrderFragment class
-        //subscriberId = subscribeEC();
     }
 
     /**
