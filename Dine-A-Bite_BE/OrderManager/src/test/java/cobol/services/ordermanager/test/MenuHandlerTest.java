@@ -37,16 +37,19 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
  * 1 stand of different brand
  * Every stand has unique items and items they share with other stands
  * All values vary from normal Strings and numbers (no size limits) to negative numbers and empty strings
+ * Testset should cover all cases that can be transmitted from apps
  * Tests in this class:
  * Stands correctly added - check
  * Menu items correctly added:
  * 1. in global menu: items with same name from different brands appear once for every brand - check
  * 2. in stand menu: all items appear from requested stand and none from other stands -check
+ * 3. All items that should be in menu are in the menu - check
+ * 4. No duplicates in menu (items unique for each brand) - check
  * Menu items correcty changed:
  * 1. if new value is -1 for price or preptime, or "" for categories or description, then the old value is not changed -check
  * 2. if category has changed, it is added to list- check
- * 3. new items added
- * 4. items deleted if not present in new menu
+ * 3. new items added -check
+ * 4. items deleted if not present in new menu -check
  * Stands correctly deleted - check
  */
 @RunWith(SpringRunner.class)
@@ -62,10 +65,11 @@ public class MenuHandlerTest {
     //add lists:
     private ArrayList<String> foodnames = new ArrayList<String>(Arrays.asList("burger1", "burger2", "pizza1", "pizza2", "cola", "fries"));
     //the integer list is a list with the indexes of foodnames contained by the stands
+    //in these tests, the brandname is chosen as the standname before the "-": standname.split("-")[0]
     private Map<String, List<Integer>> stands = new HashMap<String, List<Integer>>() {{
-        put("burgerstand-1", Arrays.asList(0, 4, 5));
-        put("burgerstand-2", Arrays.asList(1, 4, 5));
-        put("pizzastand-1", Arrays.asList(2, 3, 4));
+        put("burgerstand-1", Arrays.asList(0, 4, 5));//burger1, cola, fries
+        put("burgerstand-2", Arrays.asList(1, 4, 5));//burger2, cola, fries
+        put("pizzastand-1", Arrays.asList(2, 3, 4));//pizza1, pizza2, cola
     }};
     private ArrayList<BigDecimal> prices = new ArrayList<BigDecimal>(Arrays.asList(BigDecimal.valueOf(10.0), BigDecimal.valueOf(11.0), BigDecimal.valueOf(12.0), BigDecimal.valueOf(13.0), BigDecimal.valueOf(2.5), BigDecimal.valueOf(4.0)));
     private ArrayList<Integer> preptimes = new ArrayList<Integer>(Arrays.asList(10, 11, 12, 13, 2, 4));
@@ -101,7 +105,7 @@ public class MenuHandlerTest {
         //initialise stands with some variation in coordinates
         int n = 0;
         for (String key : stands.keySet()) {
-            StandInfo si = new StandInfo(key.concat(time), key.split("-")[0].concat(time), (long) n * 10, (long) -n * 10);
+            StandInfo si = new StandInfo(key.concat(time), key.split("-")[0].concat(time), (double) n * 10, (double) -n * 10);
             standInfos.put(key, si);
             n++;
         }
@@ -140,13 +144,16 @@ public class MenuHandlerTest {
                 .andReturn();
         String json = result.getResponse().getContentAsString();
         MenuItem[] mis = objectMapper.readValue(json, MenuItem[].class);
+        Map<String, Integer> count = new HashMap<>();
         //check through entire menu if every item is present and has right attributes
         for (MenuItem mi : mis) {
-            Map<String, Integer> count = new HashMap<>();
             int i = foodnames.indexOf(mi.getFoodName());
+            //continue if menu item not part of test
+            if (i==-1) continue;
             for (String key : stands.keySet()) {
                 //check if item part of stand (check if brand and standname correct)
                 if (stands.get(key).contains(i) && (key.split("-")[0].concat(time).equals(mi.getBrandName()))) {
+                    //count items in stand
                     count.merge(key, 1, Integer::sum);
                     //check if foodname correct
                     assertEquals(mi.getFoodName(), foodnames.get(i));
@@ -170,10 +177,11 @@ public class MenuHandlerTest {
                     }
                 }
             }
-            for (String key : count.keySet()) {
 
-                //assertEquals(stands.get(key).size(), (int) count.get(key));
-            }
+        }
+        //check for every stand if amount of items in stand is correct
+        for (String key : count.keySet()) {
+            assertEquals(stands.get(key).size(), (int) count.get(key));
         }
     }
 
@@ -234,7 +242,7 @@ public class MenuHandlerTest {
         //initialise stands with different variation in coordinates
         int n = 2;
         for (String key : stands.keySet()) {
-            StandInfo si = new StandInfo(key.concat(time), key.split("-")[0].concat(time), (long) n * 10, (long) -n * 10);
+            StandInfo si = new StandInfo(key.concat(time), key.split("-")[0].concat(time), (double) n * 10, (double) -n * 10);
             standInfos.put(key, si);
             n++;
         }
@@ -263,6 +271,7 @@ public class MenuHandlerTest {
                 .andReturn();
         String json = result.getResponse().getContentAsString();
         MenuItem[] mis = objectMapper.readValue(json, MenuItem[].class);
+        Map<String, Integer> count = new HashMap<>();
         //check through entire menu if every item is present and has right attributes
         for (MenuItem mi : mis) {
             int i = foodnames2.indexOf(mi.getFoodName());
@@ -270,11 +279,13 @@ public class MenuHandlerTest {
             if (i == -1) {
                 //if a food item in menu isnt part of new test lists, it shouldnt be part of old test lists (if it was in old lists and not in new list, it should be removed from menu)
                 assertEquals(i, k);
+                continue;
             }
-            Map<String, Integer> count = new HashMap<>();
             for (String key : stands.keySet()) {
                 //check if item part of stand (check if brand and standname correct)
                 if (stands.get(key).contains(i) && (key.split("-")[0].concat(time).equals(mi.getBrandName()))) {
+                    //count items in stand
+                    count.merge(key, 1, Integer::sum);
                     //check if foodname correct, foodnames should only be from second lists now
                     assertEquals(mi.getFoodName(), foodnames2.get(i));
                     //check if preptime correctly edited (only edited if positive)
@@ -310,6 +321,10 @@ public class MenuHandlerTest {
 
                 }
             }
+        }
+        //check for every stand if amount of items in stand is correct
+        for (String key : count.keySet()) {
+            assertEquals(stands.get(key).size(), (int) count.get(key));
         }
 
 

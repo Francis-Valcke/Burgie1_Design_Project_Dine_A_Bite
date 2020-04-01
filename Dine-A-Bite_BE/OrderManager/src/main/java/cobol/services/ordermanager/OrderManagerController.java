@@ -21,7 +21,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
-import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -271,9 +270,16 @@ public class OrderManagerController {
         return mh.getStandMenu(standname);
     }
 
+    /**
+     * delete a stand from server (OM, SM and DB)
+     *
+     * @param standname name of stand
+     * @return message
+     * @throws JsonProcessingException when mapper fails
+     */
     @RequestMapping(value = "/deleteStand", method = RequestMethod.GET)
     @ResponseBody
-    public String deleteStand(@RequestParam() String standname) {
+    public String deleteStand(@RequestParam() String standname) throws JsonProcessingException {
         System.out.println("delete stand: " + standname);
         boolean b = mh.deleteStand(standname);
         if (b) return "Stand " + standname + " deleted.";

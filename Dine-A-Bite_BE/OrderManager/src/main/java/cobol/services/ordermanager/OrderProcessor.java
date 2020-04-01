@@ -54,8 +54,8 @@ public class OrderProcessor {
         this.restTemplate = new RestTemplate();
         this.headers = new HttpHeaders();
         this.headers.add("Authorization", "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJPcmRlck1hbmFnZXIiLCJyb2xlcyI6WyJST0xFX0FQUExJQ0FUSU9OIl0sImlhdCI6MTU4NDkxMTY3MSwiZXhwIjoxNzQyNTkxNjcxfQ.VmujsURhZaXRp5FQJXzmQMB-e6QSNF-OyPLeMEMOVvI");
-        //String uri = OrderManager.ECURL + "/registerSubscriber";
         String uri = "http://cobol.idlab.ugent.be:8093/registerSubscriber";
+        //String uri = OrderManager.ECURL + "/registerSubscriber";
         this.entity = new HttpEntity(headers);
         ResponseEntity<String> response = restTemplate.exchange(uri, HttpMethod.GET, entity, String.class);
         this.subscriberId = Integer.valueOf(response.getBody());
@@ -130,7 +130,7 @@ public class OrderProcessor {
         this.runningOrders.put(newOrder.getId(), newOrder);
 
         // subscribe to the channel of the order
-        String uri = OrderManager.ECURL + "registerSubscriber/toChannel";
+        String uri = OrderManager.ECURL + "/registerSubscriber/toChannel";
         String channelId = "o" + Integer.toString(newOrder.getId());
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(uri)
                 .queryParam("id", this.subscriberId)

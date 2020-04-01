@@ -1,5 +1,6 @@
 package cobol.services.ordermanager;
 
+import cobol.commons.Event;
 import cobol.commons.MenuItem;
 import cobol.commons.StandInfo;
 import cobol.services.ordermanager.dbmenu.*;
@@ -36,11 +37,15 @@ public class MenuHandler {
     @Autowired
     private StockRepository stockRepository;
     private ArrayList<String> standInfos;
+    private ObjectMapper objectMapper;
     private boolean sMon = true;
 
     public MenuHandler() {
-        standInfos=new ArrayList<>();
+        standInfos = new ArrayList<>();
         standmenus = new HashMap<String, JSONArray>();
+        objectMapper = new ObjectMapper();
+
+        objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
     }
     /**
      * this method will change wether stands are added as schedulers in Stand Manager
@@ -83,6 +88,7 @@ public class MenuHandler {
     public List<String> update() throws JsonProcessingException {
         Stand[] s = standRepository.findStands().toArray(new Stand[standRepository.findStands().size()]);
         List<String> standnames = new ArrayList<>();
+        standInfos.clear();
         for (Stand stand : s) {
             if (standnames.contains(stand.getFull_name())) {
                 standRepository.delete(stand);
@@ -95,8 +101,7 @@ public class MenuHandler {
             for (Food f : food_Repository.findByStand(stand.getFull_name())){
                 si.addMenuItem(new MenuItem(f.getName(),f.getPrice(),f.getPreptime(),-1,f.getBrandname(),f.getDescription(),f.getCategory()));
             }
-            ObjectMapper mapper = new ObjectMapper();
-            standInfos.add(mapper.writeValueAsString(si));
+            standInfos.add(objectMapper.writeValueAsString(si));
 
         }
         fetchMenu();
@@ -160,7 +165,6 @@ public class MenuHandler {
     public JSONArray createMenuItems(List<Food> menu, JSONArray obj) throws JsonProcessingException {
         for (Food food : menu) {
             MenuItem mi = new MenuItem(food.getName(), food.getPrice(), food.getPreptime(), -1, food.getBrandname(), food.getDescription(), food.getCategory());
-            ObjectMapper om = new ObjectMapper();
             obj.add(mi);
         }
         return obj;
@@ -190,9 +194,8 @@ public class MenuHandler {
      */
 
     public String addStand(JSONObject menu) throws JsonProcessingException {
-        ObjectMapper objectMapper = new ObjectMapper();
+
         //Initialise stand
-        objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
         List<Stand> stands = standRepository.findStands();
         StandInfo si = objectMapper.readValue(menu.toJSONString(), StandInfo.class);
         //Look if stand already exists
@@ -212,8 +215,8 @@ public class MenuHandler {
         }
         //Save stand
 
-        long llon = si.getLon();
-        long llat = si.getLat();
+        double llon = si.getLon();
+        double llat = si.getLat();
         if (newstand) {
             n = new Stand();
             n.setBrandname(brandname);
@@ -234,102 +237,122 @@ public class MenuHandler {
         for (MenuItem mi : si.getMenu()) {
             mi.setBrandName(brandname);
             //check if food item already part of brand
-
-            boolean existsInBrand = false;
-            Food food = null;
-            for (Food f : brandfood) {
-                if (f.getName().equals(mi.getFoodName())) {
-                    existsInBrand = true;
-                    food = f;
-                }
-            }
-            //make new food item if there does not exist a food item of brand with same name already
-
-            if (!existsInBrand) {
-                food = new Food();
-                food.setName(mi.getFoodName());
-                food.setBrandname(mi.getBrandName());
-            }
-            //Edit food item attributes
-            BigDecimal price = mi.getPrice();
-            int preptime = mi.getPreptime();
-            String desc = mi.getDescription();
-            List<String> cat = mi.getCategory();
-            if (existsInBrand) {
-                if (!(cat == null || cat.get(0).equals(""))){
-                    if (food.getCategory() == null) {
-                        food.setCategory(cat);
-                    } else if (!food.getCategory().containsAll(cat)){
-                        for (String s : cat) food.addCategory(s);
-                    }
-                }
-
-                if (price.compareTo(BigDecimal.ZERO) >= 0) food.setPrice(price);
-                if (preptime >= 0) food.setPreptime(preptime);
-                if (!(desc.equals("")))food.setDescription(desc);
-            } else {
-                food.setPrice(price);
-                food.setPreptime(preptime);
-                if (cat.get(0).equals("")) food.setCategory(null);
-                else food.setCategory(cat);
-                if (desc.equals("")) food.setDescription(null);
-                else food.setDescription(desc);
-                if (brandname.equals("")) food.setBrandname(null);
-                else food.setBrandname(brandname);
-            }
-            food_Repository.save(food);
-            if (!newstand) foodInStand.remove(food);
-
-            int count = mi.getStock();
-            Stock s = null;
-            boolean newitem = true;
-            for (Stock item : items) {
-                if (item.getFood_id() == food.getId()) {
-                    newitem = false;
-                    break;
-                }
-            }
-            if (!newitem) {
-                s = stockRepository.findStock(food.getId(), n.getId());
-                if (count >= 0) s.setCount(count);
-            } else {
-                s = new Stock();
-                s.setCount(count);
-                s.setFood_id(food.getId());
-                s.setStand_id(n.getId());
-            }
-            stockRepository.save(s);
+            Food f = editMenu(mi, n, brandfood, newstand, items);
+            if (!newstand) foodInStand.remove(f);
         }
         //delete items removed from menu
         if (!newstand) {
             for (Food food : foodInStand) {
+                List<Integer> l = stockRepository.findStandIdByFoodId(food.getId());
                 stockRepository.delete(stockRepository.findStock(food.getId(), n.getId()));
-                food_Repository.deleteById(food.getId());
+                if (l.size() < 2) food_Repository.deleteById(food.getId());
+
             }
         }
 
         fetchStandMenu(standname);
         fetchMenu();
-        if (newstand && sMon) {
-
-            ObjectMapper mapper = new ObjectMapper();
-            String jsonString = mapper.writeValueAsString(si);
-            standInfos.add(jsonString);
-            RestTemplate template = new RestTemplate();
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            String uri = OrderManager.SMURL+"/newStand";
-            headers.add("Authorization", "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJPcmRlck1hbmFnZXIiLCJyb2xlcyI6WyJST0xFX0FQUExJQ0FUSU9OIl0sImlhdCI6MTU4NDkxMTY3MSwiZXhwIjoxNzQyNTkxNjcxfQ.VmujsURhZaXRp5FQJXzmQMB-e6QSNF-OyPLeMEMOVvI");
-            HttpEntity<String> request = new HttpEntity<>(jsonString, headers);
-            boolean addinfo = (boolean) Objects.requireNonNull(template.postForObject(uri, request, JSONObject.class)).get("added");
-            if (addinfo) System.out.println("Scheduler added");
-
-
-        }
+        sendScheduler(si);
         return "Saved";
     }
 
-    public boolean deleteStand(String name) {
+    /**
+     * change menu items if necessary
+     *
+     * @param mi        menuitem
+     * @param n         stand
+     * @param brandfood all food of a brand
+     * @param newstand  wether stand is new
+     * @param items     amount of items for each food in a stand
+     * @return created food item
+     * @throws JsonProcessingException when mapper fails
+     */
+    public Food editMenu(MenuItem mi, Stand n, List<Food> brandfood, boolean newstand, List<Stock> items) throws JsonProcessingException {
+        String brandname = n.getBrandname();
+        boolean existsInBrand = false;
+        Food food = null;
+        for (Food f : brandfood) {
+            if (f.getName().equals(mi.getFoodName())) {
+                existsInBrand = true;
+                food = f;
+            }
+        }
+        //make new food item if there does not exist a food item of brand with same name already
+
+        if (!existsInBrand) {
+            food = new Food();
+            food.setName(mi.getFoodName());
+            food.setBrandname(mi.getBrandName());
+        }
+
+        //Edit food item attributes
+
+        BigDecimal price = mi.getPrice();
+        int preptime = mi.getPreptime();
+        String desc = mi.getDescription();
+        List<String> cat = mi.getCategory();
+        //check if there are other stands with this item
+        if (existsInBrand) {
+            //check if category empty
+            if (!(cat == null || cat.size() == 0 || cat.get(0).equals(""))) {
+                if (food.getCategory() == null) {
+                    food.setCategory(cat);
+                } else if (!food.getCategory().containsAll(cat)) {
+                    for (String s : cat) food.addCategory(s);
+                }
+            }
+            //check if price and preptime are intended changes (negative value is not intended change)
+            if (price.compareTo(BigDecimal.ZERO) >= 0) food.setPrice(price);
+            if (preptime >= 0) food.setPreptime(preptime);
+            //checkk if description empty
+            if (!(desc.equals(""))) food.setDescription(desc);
+            if (sMon)publishMenuChange(mi, brandname);
+
+
+        } else {
+            food.setPrice(price);
+            food.setPreptime(preptime);
+            //check if category empty
+            if (cat == null || cat.size() == 0 || cat.get(0).equals("")) food.setCategory(null);
+            else food.setCategory(cat);
+            //check if description empty
+            if (desc == null || desc.equals("")) food.setDescription(null);
+            else food.setDescription(desc);
+            food.setBrandname(brandname);
+        }
+        food_Repository.save(food);
+
+
+        int count = mi.getStock();
+        Stock s;
+        //look if new
+        boolean newitem = true;
+        for (Stock item : items) {
+            if (item.getFood_id() == food.getId()) {
+                newitem = false;
+                break;
+            }
+        }
+        if (!newitem) {
+            s = stockRepository.findStock(food.getId(), n.getId());
+            if (count >= 0) s.setCount(count+s.getCount());
+        } else {
+            s = new Stock();
+            s.setCount(count);
+            s.setFood_id(food.getId());
+            s.setStand_id(n.getId());
+        }
+        stockRepository.save(s);
+        return food;
+    }
+
+    /**
+     * delete stand from OM, SM and db
+     *
+     * @param name stand name
+     * @return true if no error
+     */
+    public boolean deleteStand(String name) throws JsonProcessingException {
         if (standRepository.findStandByName(name) == null) return false;
         int id = standRepository.findStandByName(name).getId();
         List<Stock> st = stockRepository.findStockByStand(id);
@@ -339,8 +362,58 @@ public class MenuHandler {
         }
         stockRepository.deleteAll(st);
         standRepository.deleteById(id);
+        StandInfo si = new StandInfo(id, null, null, 0, 0);
+        sendScheduler(si);
         return true;
 
+    }
+
+    /**
+     * send standinfo to SM
+     *
+     * @param si StandInfo
+     * @throws JsonProcessingException when mapper fails
+     */
+    public void sendScheduler(StandInfo si) throws JsonProcessingException {
+        String jsonString = objectMapper.writeValueAsString(si);
+        standInfos.add(jsonString);
+        RestTemplate template = new RestTemplate();
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.add("Authorization", "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJPcmRlck1hbmFnZXIiLCJyb2xlcyI6WyJST0xFX0FQUExJQ0FUSU9OIl0sImlhdCI6MTU4NDkxMTY3MSwiZXhwIjoxNzQyNTkxNjcxfQ.VmujsURhZaXRp5FQJXzmQMB-e6QSNF-OyPLeMEMOVvI");
+        if (sMon) {
+            String uri = OrderManager.SMURL + "/newStand";
+            HttpEntity<String> request = new HttpEntity<>(jsonString, headers);
+            boolean addinfo = (boolean) Objects.requireNonNull(template.postForObject(uri, request, JSONObject.class)).get("added");
+            if (addinfo) System.out.println("Scheduler added");
+        }
+    }
+
+    /**
+     * publish changed menuItem Event for schedulers
+     *
+     * @param mi    MenuItem
+     * @param brand brandname
+     * @throws JsonProcessingException
+     */
+    public void publishMenuChange(MenuItem mi, String brand) throws JsonProcessingException {
+        JSONObject itemJson = new JSONObject();
+        itemJson.put("menuItem", mi);
+        List<String> types = new ArrayList<>();
+        types.add(brand);
+        Event e = new Event(itemJson, types, "MenuItem");
+
+        // Publish event to standmanager
+        RestTemplate template = new RestTemplate();
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.add("Authorization", "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJPcmRlck1hbmFnZXIiLCJyb2xlcyI6WyJST0xFX0FQUExJQ0FUSU9OIl0sImlhdCI6MTU4NDkxMTY3MSwiZXhwIjoxNzQyNTkxNjcxfQ.VmujsURhZaXRp5FQJXzmQMB-e6QSNF-OyPLeMEMOVvI");
+
+        String jsonString = objectMapper.writeValueAsString(e);
+        String uri = OrderManager.ECURL + "/publishEvent";
+        HttpEntity<String> entity = new HttpEntity<>(jsonString, headers);
+        String response = template.postForObject(uri, entity, String.class);
+        System.out.println(response);
     }
 
     public Food getFood(String name, String brandname) {
