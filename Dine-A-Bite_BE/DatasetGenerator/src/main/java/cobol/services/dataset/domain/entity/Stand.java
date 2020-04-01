@@ -27,7 +27,7 @@ public class Stand implements Serializable {
     private double latitude;
 
     @OneToMany(mappedBy = "foodId.stand", cascade = CascadeType.ALL)
-    @JsonProperty("food")
+    @JsonProperty("menu")
     List<Food> foodList = new ArrayList<>();
 
     @JsonProperty("name")

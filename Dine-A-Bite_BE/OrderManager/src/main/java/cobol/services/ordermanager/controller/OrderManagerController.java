@@ -1,10 +1,13 @@
-package cobol.services.ordermanager;
+package cobol.services.ordermanager.controller;
 
 import cobol.commons.CommonStand;
 import cobol.commons.Event;
 import cobol.commons.ResponseModel;
 import cobol.commons.order.Recommendation;
 import cobol.commons.security.CommonUser;
+import cobol.services.ordermanager.MenuHandler;
+import cobol.services.ordermanager.OrderManager;
+import cobol.services.ordermanager.OrderProcessor;
 import cobol.services.ordermanager.domain.entity.Food;
 import cobol.services.ordermanager.domain.entity.Order;
 import cobol.services.ordermanager.domain.entity.Stand;

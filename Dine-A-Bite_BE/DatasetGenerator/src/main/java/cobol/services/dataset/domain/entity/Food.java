@@ -55,7 +55,7 @@ public class Food implements Serializable {
         return foodId.stand;
     }
 
-    @JsonProperty("standName")
+
     public void setStand(Stand stand) {
         foodId = (foodId == null) ? new Food.FoodId() : foodId;
         this.foodId.stand = stand;

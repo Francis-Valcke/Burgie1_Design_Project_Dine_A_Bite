@@ -18,10 +18,7 @@ public class BrandDeserializer extends JsonDeserializer<Brand> {
         JsonNode node = p.getCodec().readTree(p);
         Brand brand = new Brand(node.get("name").asText());
 
-        ObjectMapper objectMapper = new ObjectMapper();
-        ctxt.setAttribute("brand", brand);
-
-
+        ObjectMapper objectMapper=new ObjectMapper();
         node.get("stand").forEach(stand -> {
             try {
 

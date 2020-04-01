@@ -23,7 +23,7 @@ public class Brand implements Serializable {
     private String name;
 
     @OneToMany(mappedBy = "standId.brand", cascade = CascadeType.ALL)
-    @JsonProperty("food")
+    @JsonProperty("stand")
     private List<Stand> standList = new ArrayList<>();
 
     public Brand() {
