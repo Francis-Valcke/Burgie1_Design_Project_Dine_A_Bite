@@ -8,6 +8,7 @@ import android.widget.TextView;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 
 public class ExpandableListAdapter extends BaseExpandableListAdapter {
 
@@ -26,7 +27,7 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
 
     @Override
     public int getChildrenCount(int groupPosition) {
-        return listHashMap.get(listDataHeader.get(groupPosition)).size();
+        return Objects.requireNonNull(listHashMap.get(listDataHeader.get(groupPosition))).size();
     }
 
     @Override
@@ -36,7 +37,7 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
 
     @Override
     public Object getChild(int groupPosition, int childPosition) {
-        return listHashMap.get(listDataHeader.get(groupPosition)).get(childPosition);
+        return Objects.requireNonNull(listHashMap.get(listDataHeader.get(groupPosition))).get(childPosition);
     }
 
     @Override
@@ -56,9 +57,10 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
 
     @Override
     public View getGroupView(int groupPosition, boolean isExpanded, View convertView, ViewGroup parent) {
-        String headerTitle = (String)getGroup(groupPosition);
+        String headerTitle = (String) getGroup(groupPosition);
         if (convertView == null) {
-            convertView = LayoutInflater.from(parent.getContext()).inflate(R.layout.custom_expandable_list_group, parent, false);
+            convertView = LayoutInflater.from(parent.getContext())
+                    .inflate(R.layout.custom_expandable_list_group, parent, false);
         }
         TextView listHeader = convertView.findViewById(R.id.order_number);
         listHeader.setText(headerTitle);
@@ -66,10 +68,12 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
     }
 
     @Override
-    public View getChildView(int groupPosition, int childPosition, boolean isLastChild, View convertView, ViewGroup parent) {
-        final String childText = (String)getChild(groupPosition, childPosition);
+    public View getChildView(int groupPosition, int childPosition, boolean isLastChild,
+                             View convertView, ViewGroup parent) {
+        final String childText = (String) getChild(groupPosition, childPosition);
         if (convertView == null) {
-            convertView = LayoutInflater.from(parent.getContext()).inflate(R.layout.custom_expandable_list_item, parent, false);
+            convertView = LayoutInflater.from(parent.getContext())
+                    .inflate(R.layout.custom_expandable_list_item, parent, false);
         }
         TextView textListHeader = convertView.findViewById(R.id.list_item);
         textListHeader.setText(childText);

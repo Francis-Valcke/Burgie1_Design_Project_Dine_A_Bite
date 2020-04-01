@@ -32,12 +32,15 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 public class OrderFragment extends Fragment {
 
     private ExpandableListAdapter listAdapter;
     private List<String> listDataHeader = new ArrayList<>();
     private HashMap<String,List<String>> listHash = new HashMap<>();
+
+    // ID from the event channel
     private String subscriberId;
 
     @Nullable
@@ -49,6 +52,8 @@ public class OrderFragment extends Fragment {
 
         // subscribe to the Event Channel
         // so that orders can be received
+        // TODO not everytime this fragment is opened/created, only after first logging in
+        // TODO when another stands logs in
         subscribeEC();
 
         Button refreshButton = view.findViewById(R.id.refresh_button);
@@ -127,18 +132,17 @@ public class OrderFragment extends Fragment {
     /**
      * This function will subscribe to the Event Channel
      */
-    public void subscribeEC() {
-        RequestQueue queue = Volley.newRequestQueue(getContext());
-        //System.out.println("ENTER SUBSCRIBE FUNCTION");
+    private void subscribeEC() {
+
+        // Instantiate the RequestQueue
+        RequestQueue queue = Volley.newRequestQueue(Objects.requireNonNull(getContext()));
         String url = "http://cobol.idlab.ugent.be:8093/registerSubscriber?types=s4"; //TODO: Currently standId 4 is hardcoded, FIX THIS
-        //final String[] ret = new String[1];
 
         //GET
         StringRequest request = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
-                //System.out.println("ENTER ONRESPONSE FUNCTION");
-                //System.out.println("subscriberId within onResponse: " + response);
+                System.out.println(response);
                 Toast mToast = Toast.makeText(getContext(), "SubscriberId: " + response, Toast.LENGTH_SHORT);
                 mToast.show();
                 subscriberId = response;
@@ -148,18 +152,21 @@ public class OrderFragment extends Fragment {
             @Override
             public void onErrorResponse(VolleyError error) {
                 error.printStackTrace();
-                Toast mToast = Toast.makeText(getContext(), error.toString(), Toast.LENGTH_SHORT);
-                mToast.show();
+                Toast.makeText(getContext(), error.toString(), Toast.LENGTH_SHORT).show();
             }
         }) {
             @Override
             public Map<String, String> getHeaders() {
                 HashMap<String, String> headers = new HashMap<>();
                 headers.put("Content-Type", "application/json");
-                headers.put("Authorization", "Bearer" + " " + "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJmcmFuY2lzIiwicm9sZXMiOlsiUk9MRV9VU0VSIiwiUk9MRV9BRE1JTiJdLCJpYXQiOjE1ODQ2MTAwMTcsImV4cCI6MTc0MjI5MDAxN30.5UNYM5Qtc4anyHrJXIuK0OUlsbAPNyS9_vr-1QcOWnQ");
+                headers.put("Authorization", "Bearer" + " " + "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOi" +
+                        "JmcmFuY2lzIiwicm9sZXMiOlsiUk9MRV9VU0VSIiwiUk9MRV9BRE1JTiJdLCJpYXQiOjE" +
+                        "1ODQ2MTAwMTcsImV4cCI6MTc0MjI5MDAxN30.5UNYM5Qtc4anyHrJXIuK0OUlsbAPNyS9" +
+                        "_vr-1QcOWnQ");
                 return headers;
             }
         };
+
         queue.add(request);
     }
 
