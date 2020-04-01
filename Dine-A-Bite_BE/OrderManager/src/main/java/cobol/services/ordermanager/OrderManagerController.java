@@ -73,14 +73,6 @@ public class OrderManagerController {
         );
     }
 
-    /**
-     * this method will change wether stands are added as schedulers in Stand Manager
-     * @param sm: if true, then stands will be added as schedulers
-     */
-    @GetMapping("/SMswitch")
-    public void sMswitch(@RequestParam(name = "on") boolean sm) {
-        this.menuHandler.smSwitch(sm);
-    }
 
 
     /**
@@ -91,7 +83,7 @@ public class OrderManagerController {
     @RequestMapping("/delete")
     public String delete() {
         menuHandler.deleteAll();
-        return "deleting stands from Order Manager";
+        return "deleting stands from database and Order Manager";
     }
 
     /**
@@ -103,19 +95,19 @@ public class OrderManagerController {
     public String update() throws JsonProcessingException {
         menuHandler.refreshCache();
         menuHandler.updateStandManager();
-        if (stands.size()==0) {
+
+        if (menuHandler.getStands().isEmpty()) {
             return "No stands in database";
         }
         else{
             StringBuilder response = new StringBuilder();
             response.append("Stands already in database: \n");
 
-            for (String s : stands) {
-                response.append(s).append("\n");
+            for (Stand s : menuHandler.getStands()) {
+                response.append(s.getName()).append("\n");
             }
             return response.toString();
         }
-
     }
 
     @RequestMapping("/getOrderInfo")
@@ -146,7 +138,7 @@ public class OrderManagerController {
      *
      */
     @PostMapping(value = "/placeOrder", consumes = "application/json", produces = "application/json")
-    public JSONObject placeOrder(@AuthenticationPrincipal CommonUser userDetails, @RequestBody JSONObject orderObject) throws JsonProcessingException {
+    public JSONObject placeOrder(@AuthenticationPrincipal CommonUser userDetails, @RequestBody JSONObject orderObject) throws JsonProcessingException, ParseException {
 
         // Add order to the processor
         Order newOrder= new Order(orderObject);
@@ -158,12 +150,12 @@ public class OrderManagerController {
         String jsonString = mapper.writeValueAsString(newOrder);
 
 
-        // Ask standmanager for recommendation
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        String uri = OrderManager.SMURL+"/getRecommendation";
-        entity = new HttpEntity<>(jsonString, headers);
-        JSONObject response = restTemplate.postForObject(uri, entity, JSONObject.class);
 
+        // Ask standmanager for recommendation
+        String responseString= menuHandler.sendRestCallToStandManager("/getRecommendation", jsonString);
+
+        JSONParser parser= new JSONParser();
+        JSONObject response =  (JSONObject) parser.parse(responseString);
         List<Recommendation> recommendations= mapper.readValue(response.get("recommendations").toString(), new TypeReference<List<Recommendation>>() {});
         orderProcessor.addRecommendations(newOrder.getId(), recommendations);
 
@@ -173,14 +165,12 @@ public class OrderManagerController {
         // ---- add updated order
         String updateOrder = mapper.writeValueAsString(newOrder);
         // String to JSON
-        JSONParser parser= new JSONParser();
         JSONObject updateOrderJson=new JSONObject();
         try {
             updateOrderJson = (JSONObject) parser.parse(updateOrder);
         } catch (ParseException e) {
             e.printStackTrace();
         }
-
 
         // ---- add recommendations
         String recommendationsResponse=mapper.writeValueAsString(recommendations);
@@ -199,23 +189,24 @@ public class OrderManagerController {
 
 
     /**
-     * Sets the order id parameter of order. Adds the order to the stand channel.
-     *
-     * @param orderId
-     * @param standId id of the chosen stand
+     * Sets stand- and brandname of according order when this recommendations is chosen
+     * @param orderId integer id of order to be confirmed
+     * @param standName name of stand
+     * @param brandName name of brand
+     * @throws JsonProcessingException jsonexception
      */
     @RequestMapping(value = "/confirmStand", method = RequestMethod.GET)
     @ResponseBody
-    public void confirmStand(@RequestParam(name = "order_id") int orderId, @RequestParam(name = "stand_id") int standId) throws JsonProcessingException{
+    public void confirmStand(@RequestParam(name = "orderId") int orderId, @RequestParam(name = "standName") String standName, @RequestParam(name = "brandName") String brandName) throws JsonProcessingException{
         // Update order, confirm stand
-        Order updatedOrder=orderProcessor.confirmStand(orderId, standId);
+        Order updatedOrder=orderProcessor.confirmStand(orderId, standName, brandName);
 
         // Make event for eventchannel (orderId, standId)
         JSONObject orderJson = new JSONObject();
         orderJson.put("order", updatedOrder);
         List<String> types = new ArrayList<>();
         types.add("o"+String.valueOf(orderId));
-        types.add("s"+String.valueOf(standId));
+        types.add("s_"+standName+"_"+brandName);
         Event e = new Event(orderJson, types, "Order");
 
         // Publish event to standmanager
@@ -227,8 +218,6 @@ public class OrderManagerController {
         String response = restTemplate.postForObject(uri, entity, String.class);
 
         System.out.println(response);
-
-
     }
 
 
@@ -237,8 +226,8 @@ public class OrderManagerController {
      * returns "saved" if correctly added
      */
     @PostMapping(path = "/addstand") // Map ONLY POST Requests
-    public @ResponseBody
-    String addStand(@RequestBody CommonStand stand) throws JsonProcessingException {
+    @ResponseBody
+    public String addStand(@RequestBody CommonStand stand) throws JsonProcessingException, ParseException {
         return menuHandler.addStand(stand);
     }
 
@@ -252,9 +241,9 @@ public class OrderManagerController {
      */
     @RequestMapping(value="/menu", method = RequestMethod.GET)
     @ResponseBody
-    public JSONArray requestTotalMenu() { //start with id=1 (temporary)
+    public List<Food> requestTotalMenu() { //start with id=1 (temporary)
         System.out.println("request total menu");
-        return menuHandler.getTotalmenu();
+        return menuHandler.getGlobalMenu();
     }
 
     /**
@@ -276,10 +265,10 @@ public class OrderManagerController {
 
     @RequestMapping(value = "/deleteStand", method = RequestMethod.GET)
     @ResponseBody
-    public String deleteStand(@RequestParam() String standname) {
-        System.out.println("delete stand: " + standname);
-        boolean b = menuHandler.deleteStand(standname);
-        if (b) return "Stand " + standname + " deleted.";
+    public String deleteStand(@RequestParam() String standName, @RequestParam String brandName) {
+        System.out.println("delete stand: " + standName);
+        boolean b = menuHandler.deleteStand(standName, brandName);
+        if (b) return "Stand " + standName + " deleted.";
         else return "No stand by that name exists";
 
     }

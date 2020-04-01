@@ -5,7 +5,7 @@ public class Recommendation {
     // standId of recommendation
     private int standId;
     private String standName;
-
+    private String brandName;
 
     // meters
     private double distance;
@@ -21,6 +21,14 @@ public class Recommendation {
         this.standName=standName;
         this.distance = distance;
         this.timeEstimate = timeEstimate;
+    }
+
+    public String getBrandName() {
+        return brandName;
+    }
+
+    public void setBrandName(String brandName) {
+        this.brandName = brandName;
     }
 
     public String getStandName() {

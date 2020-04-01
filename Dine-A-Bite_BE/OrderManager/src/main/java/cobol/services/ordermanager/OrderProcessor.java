@@ -2,10 +2,10 @@ package cobol.services.ordermanager;
 
 import cobol.commons.Event;
 import cobol.commons.order.Recommendation;
-import cobol.services.ordermanager.dbmenu.Stand;
-import cobol.services.ordermanager.dbmenu.StandRepository;
 import cobol.services.ordermanager.domain.entity.Order;
+import cobol.services.ordermanager.domain.entity.Stand;
 import cobol.services.ordermanager.domain.repository.OrderRepository;
+import cobol.services.ordermanager.domain.repository.StandRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -23,10 +23,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * This is a Singleton
@@ -34,6 +31,9 @@ import java.util.Map;
 @Component
 @Scope(value="singleton")
 public class OrderProcessor {
+
+    @Autowired
+    private MenuHandler menuHandler;
 
     @Autowired
     OrderRepository orders;
@@ -55,8 +55,8 @@ public class OrderProcessor {
         this.restTemplate = new RestTemplate();
         this.headers = new HttpHeaders();
         this.headers.add("Authorization", "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJPcmRlck1hbmFnZXIiLCJyb2xlcyI6WyJST0xFX0FQUExJQ0FUSU9OIl0sImlhdCI6MTU4NDkxMTY3MSwiZXhwIjoxNzQyNTkxNjcxfQ.VmujsURhZaXRp5FQJXzmQMB-e6QSNF-OyPLeMEMOVvI");
-        //String uri = OrderManager.ECURL + "/registerSubscriber";
-        String uri = "http://cobol.idlab.ugent.be:8093/registerSubscriber";
+        String uri = OrderManager.ECURL + "/registerSubscriber";
+        //String uri = "http://cobol.idlab.ugent.be:8093/registerSubscriber";
         this.entity = new HttpEntity(headers);
         ResponseEntity<String> response = restTemplate.exchange(uri, HttpMethod.GET, entity, String.class);
         this.subscriberId = Integer.valueOf(response.getBody());
@@ -118,10 +118,11 @@ public class OrderProcessor {
     public Order addNewOrder(Order newOrder) {
         // update order and save to database
         newOrder.setRemtime(0);
-        newOrder.setStandId(-1);
-        newOrder.setStandName("notset");
+        newOrder.setStandName("");
+        newOrder.setBrandName("");
         newOrder.setState(Order.status.PENDING);
         orders.saveAndFlush(newOrder);
+
         this.runningOrders.put(newOrder.getId(), newOrder);
 
         // subscribe to the channel of the order
@@ -152,25 +153,26 @@ public class OrderProcessor {
         return requestedOrder;
     }
 
-    public Order confirmStand(int orderId, int standId) {
+    public Order confirmStand(int orderId, String standName, String brandName) {
         Order updatedOrder=this.getOrder(orderId);
 
-        if(updatedOrder.getStandId()==-1){
-            Stand stand= stands.findById(standId).get();
-            updatedOrder.setStandId(standId);
-            updatedOrder.setState(Order.status.PENDING);
-            updatedOrder.setBrandName(stand.getBrandname());
-            updatedOrder.setStandName(stand.getFull_name());
+        if(updatedOrder.getStandName().equals("notset") || updatedOrder.getStandName().equals("")){
 
-            Recommendation recommendation= orderRecommendations.get(orderId).stream()
-                    .filter(r -> r.getStandId() == standId)
-                    .findFirst().get();
+            Optional<Stand> standOptional=menuHandler.getStand(standName, brandName);
+            if(standOptional.isPresent()){
+                Stand foundStand= standOptional.get();
+               updatedOrder.setStandName(foundStand.getName());
+               updatedOrder.setBrandName(foundStand.getBrand().getName());
+               updatedOrder.setState(Order.status.PENDING);
+            }
 
-            updatedOrder.setRemtime(recommendation.getTimeEstimate()*1000);
+            Optional<Recommendation> recomOptional= orderRecommendations.get(orderId).stream()
+                    .filter(r -> r.getStandName().equals(standName))
+                    .findFirst();
 
+            recomOptional.ifPresent(recommendation -> updatedOrder.setRemtime(recommendation.getTimeEstimate()));
             orders.saveAndFlush(updatedOrder);
         }
-
         return updatedOrder;
     }
 

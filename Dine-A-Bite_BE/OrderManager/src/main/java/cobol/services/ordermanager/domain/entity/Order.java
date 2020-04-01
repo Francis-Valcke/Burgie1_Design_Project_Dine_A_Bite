@@ -30,11 +30,9 @@ public class Order implements Serializable {
     @Column
     private status orderStatus;
     @Column
-    private int standId;
+    private String standName;
     @Column
     private String brandName;
-    @Column
-    private String standName;
 
     //----- Request ------//
     @OneToMany(
@@ -130,7 +128,7 @@ public class Order implements Serializable {
     // Will only have to be called once (when the standmanager accepts the order)
     public void setRemtime(int remtime) {
         expectedTime.setTime(startTime.getTime());
-        expectedTime.add(Calendar.MILLISECOND, remtime);
+        expectedTime.add(Calendar.SECOND, remtime);
     }
 
     public void setOrderItems(List<OrderItem> orderItems) {
@@ -151,14 +149,6 @@ public class Order implements Serializable {
         this.orderStatus = state;
     }
 
-    public int getStandId() {
-        return standId;
-    }
-
-    public void setStandId(int standId) {
-        this.standId = standId;
-    }
-
     public String getStandName() {
         return standName;
     }
@@ -170,7 +160,6 @@ public class Order implements Serializable {
     @Override
     public String toString() {
         return "Order{" +
-                "id=" + id +
                 ", remainingTimeSec=" + this.computeRemainingTime() +
                 ", orderStatus=" + orderStatus +
                 ", orderItems=" + orderItems +

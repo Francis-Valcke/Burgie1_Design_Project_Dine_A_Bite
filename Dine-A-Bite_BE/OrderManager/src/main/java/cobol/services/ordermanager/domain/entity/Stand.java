@@ -1,7 +1,7 @@
 package cobol.services.ordermanager.domain.entity;
 
-import cobol.commons.CommonFood;
 import cobol.commons.CommonStand;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Stand implements Serializable {
 
+    @JsonIgnore
     @EmbeddedId
     private StandId standId;
 
@@ -43,9 +44,14 @@ public class Stand implements Serializable {
         this.standId.name = name;
     }
 
-    @JsonProperty("brandName")
+    @JsonIgnore
     public Brand getBrand() {
         return standId.brand;
+    }
+
+    @JsonProperty("brandName")
+    public String getBrandName(){
+        return standId.brand.getName();
     }
 
     @JsonProperty("brandName")
@@ -58,6 +64,7 @@ public class Stand implements Serializable {
     }
 
     public Stand(CommonStand commonStand, Brand brand){
+        brand.getStandList().add(this);
         this.standId= new StandId(commonStand.getName(), brand);
         this.latitude=commonStand.getLat();
         this.longitude=commonStand.getLon();
@@ -87,7 +94,8 @@ public class Stand implements Serializable {
 
         private String name;
 
-        @ManyToOne()
+        @JsonIgnore
+        @ManyToOne
         @JoinColumn(name = "brand_name")
         private Brand brand;
 

@@ -10,6 +10,7 @@ import cobol.services.ordermanager.domain.repository.FoodRepository;
 import cobol.services.ordermanager.domain.repository.StandRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -36,7 +37,7 @@ import java.util.stream.Collectors;
 public class MenuHandler {
 
     private List<Stand> stands;
-    private List<Food> globalMenu;
+    private List<Food> globalMenu=new ArrayList<>();
 
     @Autowired
     private StandRepository standRepository;
@@ -132,10 +133,20 @@ public class MenuHandler {
      * This method will update the cache of Food objects
      */
     public void updateGlobalMenu() throws JsonProcessingException {
-        globalMenu = foodRepository.findAll().stream()
-                .filter(distinctByKey(Food::getName))
-                .filter(distinctByKey(f -> f.getStand().getBrand().getName()))
-                .collect(Collectors.toList());
+        List<Food> allFoodItems = foodRepository.findAll();
+        Map<Object, Boolean> isDuplicate = allFoodItems.stream()
+                .collect(Collectors.toMap(f -> Arrays.asList(f.getName(), f.getStand().getBrand().getName()),
+                        f -> false,
+                        (a, b) -> true));
+
+
+        for (Food f : allFoodItems) {
+            Object key = Arrays.asList(f.getName(), f.getStand().getBrand().getName());
+            if (isDuplicate.containsKey(key)) {
+                globalMenu.add(f);
+                isDuplicate.remove(key);
+            }
+        }
     }
 
 
@@ -193,7 +204,7 @@ public class MenuHandler {
 
         // create stand object
         Stand newStand = new Stand(newCommonStand, brand);
-        standRepository.save(newStand);
+        brandRepository.save(brand);
 
         refreshCache();
         updateGlobalMenu();
@@ -246,5 +257,9 @@ public class MenuHandler {
 
         Map<Object, Boolean> seen = new ConcurrentHashMap<>();
         return t -> seen.putIfAbsent(keyExtractor.apply(t), Boolean.TRUE) == null;
+    }
+
+    public List<Food> getGlobalMenu() {
+        return globalMenu;
     }
 }

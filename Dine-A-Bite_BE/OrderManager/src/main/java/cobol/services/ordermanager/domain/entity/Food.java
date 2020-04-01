@@ -3,6 +3,7 @@ package cobol.services.ordermanager.domain.entity;
 import cobol.commons.CommonFood;
 import cobol.services.ordermanager.domain.SpringContext;
 import cobol.services.ordermanager.domain.repository.CategoryRepository;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
@@ -21,6 +22,7 @@ import java.util.Optional;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Food implements Serializable {
 
+    @JsonIgnore
     @EmbeddedId
     private FoodId foodId;
 
@@ -44,6 +46,7 @@ public class Food implements Serializable {
     private List<Category> category = new ArrayList<>();
 
     public Food(CommonFood cf, Stand stand) {
+        stand.getFoodList().add(this);
         this.description=cf.getDescription();
         this.price= cf.getPrice().floatValue();
         this.preparationTime=cf.getPreptime();
@@ -52,8 +55,9 @@ public class Food implements Serializable {
         this.category= new ArrayList<>();
         CategoryRepository categoryRepository=SpringContext.getBean(CategoryRepository.class);
         for (String s : cf.getCategory()) {
-            Optional<Category> categoryOptional= categoryRepository.findById(s);
-            categoryOptional.ifPresent(value -> this.category.add(value));
+            Category cat = categoryRepository.save(new Category(s));
+            this.category.add(cat);
+            cat.getFoodList().add(this);
         }
     }
 
@@ -65,6 +69,11 @@ public class Food implements Serializable {
     public void setName(String name) {
         foodId = (foodId == null) ? new Food.FoodId() : foodId;
         this.foodId.name = name;
+    }
+
+    @JsonProperty("standName")
+    public String getStandName(){
+        return foodId.stand.getName();
     }
 
     public Stand getStand() {
@@ -106,6 +115,17 @@ public class Food implements Serializable {
             Optional<Category> categoryOptional= categoryRepository.findById(s);
             categoryOptional.ifPresent(value -> this.category.add(value));
         }*/
+    }
+
+    /**
+     * Compares fooditems on name and brandname
+     * @param food Food object
+     * @return returns true is same global food item
+     */
+    public boolean equalsGlobal(Food food)
+    {
+        return this.foodId.getName().equals(food.getName()) &&
+                this.foodId.getStand().getBrand().getName().equals(food.foodId.getStand().getBrand().getName());
     }
 
     @Data

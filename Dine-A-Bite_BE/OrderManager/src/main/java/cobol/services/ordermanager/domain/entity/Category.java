@@ -1,6 +1,7 @@
 package cobol.services.ordermanager.domain.entity;
 
 import cobol.services.ordermanager.domain.json.CategoryDeserializer;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.Data;
 
@@ -19,8 +20,9 @@ public class Category {
     @Id
     private String category;
 
+    @JsonIgnore
     @ManyToMany(mappedBy = "category")
-    List<Food> foodList = new ArrayList<>();
+    private List<Food> foodList = new ArrayList<>();
 
     public Category() {
     }
