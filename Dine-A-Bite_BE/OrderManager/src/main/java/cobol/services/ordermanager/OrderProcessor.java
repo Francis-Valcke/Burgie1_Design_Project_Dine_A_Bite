@@ -186,7 +186,8 @@ public class OrderProcessor {
         int largestPreptime = 0;
         Food foodToUpdate = null;
         for (OrderItem item : order.getOrderItems()) {
-            Food food = foodRepository.findByNameAndBrand(item.getFoodname(), brandName);
+            String foodName = item.getFoodname();
+            Food food = foodRepository.findByNameAndBrand(foodName, brandName);
             if (food.getPreptime() > largestPreptime) {
                 foodToUpdate = food;
                 largestPreptime = food.getPreptime();
