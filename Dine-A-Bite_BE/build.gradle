@@ -138,6 +138,9 @@ project(':AuthenticationService'){
         //Library for removing lots of boilerplate code, use in combination with intellij plugin
         testCompileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.12'
         testAnnotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.12'
+
+        testCompile group: 'com.h2database', name: 'h2', version: '1.4.200'
+
     }
 }
 
@@ -168,6 +171,9 @@ project(':OrderManager'){
         //Library for removing lots of boilerplate code, use in combination with intellij plugin
         testCompileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.12'
         testAnnotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.12'
+
+        testCompile group: 'com.h2database', name: 'h2', version: '1.4.200'
+
     }
 }
 
@@ -180,6 +186,9 @@ project(':StandManager'){
         //Spring related imports
         implementation group: 'org.springframework.boot', name: 'spring-boot-starter-security', version: '2.2.5.RELEASE'
         implementation group: 'org.springframework.boot', name: 'spring-boot-starter-web', version: '2.2.5.RELEASE'
+
+        testCompile group: 'com.h2database', name: 'h2', version: '1.4.200'
+
     }
 }
 
@@ -203,5 +212,7 @@ project(':EventChannel'){
         testImplementation('org.springframework.boot:spring-boot-starter-test') {
             exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
         }
+
+        testCompile group: 'com.h2database', name: 'h2', version: '1.4.200'
     }
 }

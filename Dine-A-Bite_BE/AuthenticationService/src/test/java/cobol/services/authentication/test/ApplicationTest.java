@@ -114,7 +114,7 @@ public class ApplicationTest {
     private void createUser(String user) throws Exception {
         this.mockMvc
                 .perform(
-                        post("/authenticate")
+                        post("/create")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsBytes(
                                         User.builder().username(user).password(user).build()
