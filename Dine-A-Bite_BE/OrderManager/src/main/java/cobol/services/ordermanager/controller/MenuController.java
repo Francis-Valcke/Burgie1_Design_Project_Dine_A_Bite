@@ -26,7 +26,7 @@ public class MenuController {
      */
     @RequestMapping(value="/menu", method = RequestMethod.GET)
     @ResponseBody
-    public ResponseEntity<List<CommonFood>> requestGlobalMenu() throws JsonProcessingException { //start with id=1 (temporary)
+    public ResponseEntity<List<CommonFood>> requestGlobalMenu() throws JsonProcessingException {
         return ResponseEntity.ok(menuHandler.getGlobalMenu());
     }
 

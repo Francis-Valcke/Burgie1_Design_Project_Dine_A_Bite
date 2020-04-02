@@ -4,8 +4,6 @@ import cobol.services.ordermanager.MenuHandler;
 import cobol.services.ordermanager.domain.entity.Brand;
 import cobol.services.ordermanager.domain.entity.Stand;
 import cobol.services.ordermanager.domain.repository.BrandRepository;
-import cobol.services.ordermanager.domain.repository.CategoryRepository;
-import cobol.services.ordermanager.domain.repository.FoodRepository;
 import cobol.services.ordermanager.domain.repository.StandRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.json.simple.parser.ParseException;
@@ -25,12 +23,6 @@ public class DBController {
 
     @Autowired
     StandRepository standRepository;
-
-    @Autowired
-    CategoryRepository categoryRepository;
-
-    @Autowired
-    FoodRepository foodRepository;
 
     @Autowired
     MenuHandler menuHandler;
@@ -58,7 +50,7 @@ public class DBController {
     @GetMapping("/db/clear")
     public ResponseEntity<String> clear() throws ParseException, JsonProcessingException {
 
-        menuHandler.deleteAll();
+        brandRepository.deleteAll();
         return ResponseEntity.ok("Success");
 
     }
@@ -80,14 +72,13 @@ public class DBController {
 
     /**
      * This API will refresh:
-     * - The cache in OrderManager
      * - The cache in StandManager
      * with respect to the database
      *
      * @return List of stand names
      * @throws JsonProcessingException Json processing error
      */
-    @RequestMapping(value = "/updateOM", method = RequestMethod.GET)
+    @RequestMapping(value = "/updateSM", method = RequestMethod.GET)
     public ResponseEntity<List<String>> update() throws JsonProcessingException {
         menuHandler.updateStandManager();
 

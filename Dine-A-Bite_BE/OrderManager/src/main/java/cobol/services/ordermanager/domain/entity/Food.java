@@ -179,6 +179,7 @@ public class Food {
     }
 
     public void updateGlobalProperties(Food cf) {
+        this.description = cf.getDescription();
         this.category = cf.getCategory();
         this.price = cf.getPrice();
         this.preparationTime = cf.getPreparationTime();

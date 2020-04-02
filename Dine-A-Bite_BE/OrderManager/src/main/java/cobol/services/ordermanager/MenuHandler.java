@@ -12,7 +12,6 @@ import cobol.services.ordermanager.exception.DoesNotExistException;
 import cobol.services.ordermanager.exception.DuplicateStandException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import javafx.util.Pair;
 import lombok.Getter;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -56,7 +55,7 @@ public class MenuHandler {
      * - Clear OrderManager cache
      * - Request StandManager to clear cache
      *
-     * @throws ParseException Json parsing error
+     * @throws ParseException          Json parsing error
      * @throws JsonProcessingException Json processing error
      */
     public void deleteAll() throws ParseException, JsonProcessingException {
@@ -75,7 +74,6 @@ public class MenuHandler {
     }
 
 
-
     /**
      * This method will refresh the cache of the StandManager based on the local cache
      *
@@ -83,19 +81,18 @@ public class MenuHandler {
      */
     public void updateStandManager() throws JsonProcessingException {
         ObjectMapper mapper = new ObjectMapper();
-        String json = mapper.writeValueAsString(standRepository.findAll());
+        String json = mapper.writeValueAsString(standRepository.findAll()
+                .stream().map(Stand::asCommonStand).collect(Collectors.toList()));
         sendRestCallToStandManager("/update", json, null);
     }
 
     public List<Food> getStandMenu(String standName, String brandName) throws DoesNotExistException {
         Stand stand = standRepository.findStandById(standName, brandName).orElse(null);
-        if(stand==null){
+        if (stand == null) {
             throw new DoesNotExistException("Such stand does not exist");
         }
         return stand.getFoodList();
     }
-
-
 
 
     /**
@@ -104,7 +101,7 @@ public class MenuHandler {
      * @throws JsonProcessingException Json processing error
      */
     public List<CommonFood> getGlobalMenu() throws JsonProcessingException {
-        List<CommonFood> globalMenu= new ArrayList<>();
+        List<CommonFood> globalMenu = new ArrayList<>();
         List<Food> allFoodItems = foodRepository.findAll();
         Map<Object, Boolean> isDuplicate = allFoodItems.stream()
                 .collect(Collectors.toMap(f -> Arrays.asList(f.getName(), f.getStand().getBrand().getName()),
@@ -127,8 +124,8 @@ public class MenuHandler {
     /**
      * This method will update a existing stand in the database with updated information.
      *
-     * @param commonStand Stand to be updated
-     * @return
+     * @param commonStand CommonStand with CommonFood Objects that need to be updated
+     * @throws DoesNotExistException Stand does not exist
      */
     public void updateStand(CommonStand commonStand) throws DoesNotExistException {
 
@@ -137,28 +134,30 @@ public class MenuHandler {
                 .orElseThrow(() -> new DoesNotExistException("Does not exist"));
         standEntity.update(commonStand);
 
-        standEntity.getFoodList().clear();
-        standEntity = standRepository.saveAndFlush(standEntity);
+        List<Stand> toUpdateStands = standRepository.findStandsByBrand(standEntity.getBrandName());
 
+        List<Food> newFoodItems = commonStand.getMenu().stream().map(Food::new).collect(Collectors.toList());
 
-        standEntity.getFoodList().clear();
-        CommonFood cf = commonStand.getMenu().get(0);
-        Food food = foodRepository.findFoodById(cf.getName(), cf.getStandName(), cf.getBrandName()).orElse(new Food());
-        standEntity.getFoodList().add(food);
-        standRepository.saveAndFlush(standEntity);
+        for (Stand toUpdateStand : toUpdateStands) {
+            for (Food newFoodItem : newFoodItems) {
+                for (Food food : toUpdateStand.getFoodList()) {
+                    if (food.getName().equals(newFoodItem.getName())) {
+                        food.updateGlobalProperties(newFoodItem);
+                        if (food.getStand().getName().equals(newFoodItem.getStand().getName())) {
+                            food.updateStock(newFoodItem);
+                        }
+                        break;
+                    }
+                }
+            }
+        }
 
+        Set<Food> toDelete = new HashSet<>(standEntity.getFoodList());
+        toDelete.removeAll(newFoodItems);
+        standEntity.getFoodList().removeAll(toDelete);
 
+        brandRepository.save(standEntity.getBrand());
 
-        standEntity.getFoodList().clear();
-        cf = commonStand.getMenu().get(0);
-        food = foodRepository.findFoodById(cf.getName(), cf.getStandName(), cf.getBrandName()).orElse(new Food());
-        standEntity.getFoodList().add(food);
-        standRepository.saveAndFlush(standEntity);
-
-
-        Stand stand = standRepository.findStandById(standEntity.getName(), standEntity.getBrandName()).orElse(null);
-
-        System.out.println();
     }
 
 
@@ -174,16 +173,16 @@ public class MenuHandler {
     public void addStand(CommonStand newCommonStand) throws JsonProcessingException, ParseException, DuplicateStandException {
 
         // look if stands already exists
-         Stand stand = standRepository.findStandById(newCommonStand.getName(), newCommonStand.getBrandName()).orElse(null);
+        Stand stand = standRepository.findStandById(newCommonStand.getName(), newCommonStand.getBrandName()).orElse(null);
 
-        if (stand!=null) {
+        if (stand != null) {
             throw new DuplicateStandException("The stand with id: " + stand.getStandId() + " already exists.");
         }
 
         // get brand from commonstand
-        Brand brand= brandRepository.findById(newCommonStand.getBrandName()).orElse(null);
-        if(brand == null){
-            brand= new Brand(newCommonStand.getBrandName());
+        Brand brand = brandRepository.findById(newCommonStand.getBrandName()).orElse(null);
+        if (brand == null) {
+            brand = new Brand(newCommonStand.getBrandName());
             brandRepository.save(brand);
         }
 
@@ -216,7 +215,7 @@ public class MenuHandler {
     public void deleteStandById(String standName, String brandName) throws JsonProcessingException, DoesNotExistException {
 
         Stand stand = standRepository.findStandById(standName, brandName).orElse(null);
-        if (stand!=null) {
+        if (stand != null) {
             standRepository.delete(stand);
 
             Map<String, String> params = new HashMap<>();
@@ -234,7 +233,7 @@ public class MenuHandler {
      * Returns a String assuming the caller knows what to expect from the response.
      * Ex. JSONArray or JSONObject
      *
-     * @param path Example: "/..."
+     * @param path       Example: "/..."
      * @param jsonObject JSONObject or JSONArray format
      * @return response as String
      */
@@ -260,13 +259,6 @@ public class MenuHandler {
 
         return template.postForObject(builder.toUriString(), request, String.class);
     }
-
-
-
-
-
-
-
 
 
 }
