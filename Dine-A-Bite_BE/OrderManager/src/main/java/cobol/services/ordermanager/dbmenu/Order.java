@@ -71,6 +71,7 @@ public class Order implements Serializable {
 
         this.latitude = temp.getLatitude();
         this.longitude= temp.getLongitude();
+        this.brandName = temp.getBrandName();
         this.orderItems=new ArrayList<>();
         for (OrderItem orderItem : temp.getOrderItems()) {
             this.addOrderItem(orderItem);
@@ -166,6 +167,10 @@ public class Order implements Serializable {
 
     public void setStandName(String standName) {
         this.standName = standName;
+    }
+
+    public Calendar getStartTime() {
+        return this.startTime;
     }
 
     @Override
