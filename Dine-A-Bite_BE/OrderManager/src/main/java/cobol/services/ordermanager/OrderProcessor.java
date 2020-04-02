@@ -165,13 +165,13 @@ public class OrderProcessor {
 
     public Order confirmStand(int orderId, String standName, String brandName) throws DoesNotExistException {
         Optional<Order> orderOptional = this.getOrder(orderId);
-        Optional<Stand> standOptional = menuHandler.findStandById(standName, brandName);
+        Stand stand = menuHandler.findStandById(standName, brandName);
 
         if (!orderOptional.isPresent()) {
             throw new DoesNotExistException("Order is does not exist, please make an order first before confirming a stand");
         }
 
-        if (!standOptional.isPresent()) {
+        if (stand == null) {
             throw new DoesNotExistException("Stand does not exist, please check if you confirmed the right stand");
         }
 
@@ -179,7 +179,7 @@ public class OrderProcessor {
         Order updatedOrder = orderOptional.get();
         if (!updatedOrder.hasChosenStand()) {
 
-            updatedOrder.setStand(standOptional.get());
+            updatedOrder.setStand(stand);
             Optional<Recommendation> recomOptional = orderRecommendations.get(orderId).stream()
                     .filter(r -> r.getStandName().equals(standName))
                     .findFirst();

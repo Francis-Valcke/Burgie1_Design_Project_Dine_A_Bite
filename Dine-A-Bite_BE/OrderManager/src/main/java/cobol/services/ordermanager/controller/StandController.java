@@ -70,7 +70,7 @@ public class StandController {
      */
     @GetMapping(value = "/stands")
     public ResponseEntity<Map<String, String>> requestStandNames() {
-        return ResponseEntity.ok(menuHandler.getStands()
+        return ResponseEntity.ok(menuHandler.findAllStands()
                 .stream().collect(Collectors.toMap(Stand::getName, stand -> stand.getBrand().getName())));
     }
 }

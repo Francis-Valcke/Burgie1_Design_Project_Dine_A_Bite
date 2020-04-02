@@ -46,8 +46,8 @@ public class DBController {
     @GetMapping("/db/import")
     public ResponseEntity<String> load(@RequestBody List<Brand> data) {
 
-        data.forEach(brandRepository::saveAndFlush);
 
+        menuHandler.addBrands(data);
         return ResponseEntity.ok("Success");
     }
 
@@ -58,9 +58,9 @@ public class DBController {
      * @return Success message or exception
      */
     @GetMapping("/db/clear")
-    public ResponseEntity<String> clear() {
+    public ResponseEntity<String> clear() throws ParseException, JsonProcessingException {
 
-        brandRepository.deleteAll();
+        menuHandler.deleteAll();
         return ResponseEntity.ok("Success");
 
     }
@@ -73,7 +73,7 @@ public class DBController {
     @GetMapping("/db/export")
     public ResponseEntity<List<Brand>> export() {
 
-        List<Brand> data = brandRepository.findAll();
+        List<Brand> data = menuHandler.findAllBrands();
 
         return ResponseEntity.ok(data);
 
@@ -90,10 +90,9 @@ public class DBController {
      */
     @RequestMapping(value = "/updateOM", method = RequestMethod.GET)
     public ResponseEntity<List<String>> update() throws JsonProcessingException {
-        menuHandler.refreshCache();
         menuHandler.updateStandManager();
 
-        List<Stand> stands = menuHandler.getStands();
+        List<Stand> stands = menuHandler.findAllStands();
         List<String> standNames = stands.stream().map(Stand::getName).collect(Collectors.toList());
         return ResponseEntity.ok(standNames);
     }
