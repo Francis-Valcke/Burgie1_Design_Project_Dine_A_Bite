@@ -266,5 +266,31 @@ public class MenuHandler {
         return template.postForObject(builder.toUriString(), request, String.class);
     }
 
+    /**
+     * publish changed menuItem Event for schedulers
+     *
+     * @param mi    MenuItem
+     * @param brand brandname
+     * @throws JsonProcessingException
+     */
+    public void publishMenuChange(MenuItem mi, String brand) throws JsonProcessingException {
+        JSONObject itemJson = new JSONObject();
+        itemJson.put("menuItem", mi);
+        List<String> types = new ArrayList<>();
+        types.add(brand);
+        Event e = new Event(itemJson, types, "MenuItem");
+
+        // Publish event to standmanager
+        RestTemplate template = new RestTemplate();
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.add("Authorization", "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJPcmRlck1hbmFnZXIiLCJyb2xlcyI6WyJST0xFX0FQUExJQ0FUSU9OIl0sImlhdCI6MTU4NDkxMTY3MSwiZXhwIjoxNzQyNTkxNjcxfQ.VmujsURhZaXRp5FQJXzmQMB-e6QSNF-OyPLeMEMOVvI");
+
+        String jsonString = objectMapper.writeValueAsString(e);
+        String uri = OrderManager.ECURL + "/publishEvent";
+        HttpEntity<String> entity = new HttpEntity<>(jsonString, headers);
+        String response = template.postForObject(uri, entity, String.class);
+        System.out.println(response);
+    }
 
 }

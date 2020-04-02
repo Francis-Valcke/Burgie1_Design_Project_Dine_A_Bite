@@ -9,6 +9,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.json.simple.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,12 +22,8 @@ import static cobol.commons.ResponseModel.status.OK;
 
 @RestController
 public class StandManagerController {
-
-    /**
-     * The controller has a list of all schedulers.
-     * More information on schedulers in class Scheduler
-     */
-    private List<Scheduler> schedulers = new ArrayList<Scheduler>();
+    @Autowired
+    private SchedulerHandler schedulerHandler;
 
     /**
      * API endpoint to test if the server is still alive.
@@ -72,14 +69,8 @@ public class StandManagerController {
     }
 
 
-    @PostMapping("/delete")
-    public JSONObject deleteSchedulers() {
-        schedulers.clear();
-        JSONObject obj = new JSONObject();
-        obj.put("del", true);
-        return obj;
-    }
 
+   
     /**
      * @param stand class object StandInfo which is used to start a scheduler for stand added in order manager
      *             available at localhost:8081/newStand
@@ -87,12 +78,7 @@ public class StandManagerController {
      */
     @PostMapping(value = "/newStand", consumes = "application/json")
     public JSONObject addNewStand(@RequestBody() CommonStand stand) {
-        Scheduler s = new Scheduler(stand.getMenu(), stand.getName(), stand.getBrandName(), stand.getLatitude(), stand.getLongitude());
-        schedulers.add(s);
-        s.start();
-        JSONObject obj = new JSONObject();
-        obj.put("added", true);
-        return obj;
+            return schedulerHandler.updateSchedulers(stand);
     }
 
 
@@ -101,7 +87,7 @@ public class StandManagerController {
      *              TODO: really implement this
      */
     @RequestMapping(value = "/placeOrder", consumes = "application/json")
-    public void placeOrder(@RequestBody() CommonOrder order){
+    public void placeOrder(@RequestBody() CommonOrder order) {
         //add order to right scheduler
     }
 
@@ -114,88 +100,10 @@ public class StandManagerController {
     @ResponseBody
     public List<Recommendation> postCommonOrder(@RequestBody() CommonOrder order) throws JsonProcessingException {
         System.out.println("User requested recommended stand for " + order.getId());
-        return recommend(order);
+        return schedulerHandler.recommend(order);
     }
 
 
-    /**
-     * @param order the order for which you want to find corresponding stands
-     * @return list of schedulers (so the stands) which offer the correct food to complete the order
-     */
-    public ArrayList<Scheduler> findCorrespondStands(CommonOrder order){
-        // first get the Array with all the food of the order
-        ArrayList<CommonOrderItem> orderItems = new ArrayList<>(order.getOrderItems());
 
-
-        // group all stands (schedulers) with the correct type of food available
-        ArrayList<Scheduler> goodSchedulers = new ArrayList<>();
-
-        for (int i = 0; i < schedulers.size(); i++) {
-            boolean validStand = true;
-
-            Scheduler currentScheduler = schedulers.get(i);
-
-            for (CommonOrderItem orderItem : orderItems) {
-                String food= orderItem.getFoodName();
-                if (currentScheduler.checkType(food)) {
-                    validStand = true;
-                } else {
-                    validStand = false;
-                    break;
-                }
-            }
-
-            if (validStand){
-                goodSchedulers.add(currentScheduler);
-            }
-        }
-        return goodSchedulers;
-    }
-
-
-    /**
-     * @param order is the order for which the recommended stands are required
-     * @return JSON with a certain amount of recommended stands (currently based on lowest queue time only)
-     */
-    public List<Recommendation> recommend(CommonOrder order) throws JsonProcessingException {
-        /* choose how many recommends you want */
-        int amountOfRecommends = 3;
-
-        /* find stands (schedulers) which offer correct food for the order */
-        ArrayList<Scheduler> goodSchedulers = findCorrespondStands(order);
-
-        /* sort the stands (schedulers) based on remaining time */
-        //Collections.sort(goodSchedulers, new SchedulerComparatorTime(order.getFull_order()));
-
-        /* sort the stands (schedulers) based on distance */
-        Collections.sort(goodSchedulers, new SchedulerComparatorDistance(order.getLatitude(),order.getLongitude()));
-
-        /* TODO: this is how you sort based on combination, weight is how much time you add for each unit of distance */
-        /* sort the stands (schedulers) based on combination of time and distance */
-        //double weight = 5;
-        //Collections.sort(goodSchedulers, new SchedulerComparator(order.getLat(), order.getLon(), weight);
-
-        /* check if you have enough stands (for amount of recommendations you want) */
-        if (goodSchedulers.size() < amountOfRecommends) {
-            amountOfRecommends = goodSchedulers.size();
-        }
-
-        /* put everything into a JSON file to give as return value */
-        List<Recommendation> recommendations=new ArrayList<>();
-
-        for (int i = 0 ; i < amountOfRecommends ; i++){
-            Scheduler curScheduler = goodSchedulers.get(i);
-            System.out.println(curScheduler.getStandName());
-            SchedulerComparatorDistance sc = new SchedulerComparatorDistance(curScheduler.getLat(),curScheduler.getLon());
-            SchedulerComparatorTime st = new SchedulerComparatorTime(new ArrayList<>(order.getOrderItems()));
-
-            recommendations.add(new Recommendation(curScheduler.getStandName(), curScheduler.getBrandName(), sc.getDistance(order.getLatitude(), order.getLongitude()), st.getTimesum(curScheduler)));
-            System.out.println(st.getTimesum(curScheduler));
-        }
-
-
-
-        return recommendations;
-    }
 
 }

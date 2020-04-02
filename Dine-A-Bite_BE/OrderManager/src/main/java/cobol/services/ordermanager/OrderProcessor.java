@@ -49,6 +49,7 @@ public class OrderProcessor {
     private Map<Integer, Order> runningOrders = new HashMap<>();
 
     private int subscriberId;
+    private double learningRate;
     private volatile LinkedList<Event> eventQueue = new LinkedList<Event>();
     private RestTemplate restTemplate;
     private HttpHeaders headers;
@@ -67,7 +68,10 @@ public class OrderProcessor {
         this.entity = new HttpEntity(headers);
         ResponseEntity<String> response = restTemplate.exchange(uri, HttpMethod.GET, entity, String.class);
         this.subscriberId = Integer.valueOf(response.getBody());
-    }
+
+        //set learning rate for the running averages
+        this.learningRate = 0.2;
+    };
 
 
     /**
@@ -105,7 +109,10 @@ public class OrderProcessor {
                 int orderId = (int) eventData.get("orderId");
                 Order localOrder = runningOrders.get(orderId);
                 localOrder.setState(newStatus);
-                if (newStatus.equals(CommonOrder.State.DECLINED)) {
+                if (newStatus.equals(Order.status.DECLINED) || newStatus.equals(Order.status.READY)) {
+                    if (newStatus.equals(Order.status.READY)) {
+                        updatePreparationEstimate(localOrder);
+                    }
                     runningOrders.remove(orderId);
                     String uri = OrderManager.ECURL + "/deregisterSubscriber";
                     String channelId = "o" + Integer.toString(orderId);
@@ -135,7 +142,7 @@ public class OrderProcessor {
         this.runningOrders.put(newOrder.getId(), newOrder);
 
         // subscribe to the channel of the order
-        String uri = OrderManager.ECURL + "registerSubscriber/toChannel";
+        String uri = OrderManager.ECURL + "/registerSubscriber/toChannel";
         String channelId = "o" + Integer.toString(newOrder.getId());
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(uri)
                 .queryParam("id", this.subscriberId)
@@ -191,6 +198,24 @@ public class OrderProcessor {
             orderRepository.save(updatedOrder);
         }
         return updatedOrder;
+    }
+
+    private void updatePreparationEstimate(Order order) {
+        Calendar actualTime =  Calendar.getInstance();
+        int actualPrepTime = (int) ((actualTime.getTime().getTime() - order.getStartTime().getTime().getTime())) / 1000;
+        String brandName = order.getBrandName();
+        int largestPreptime = 0;
+        Food foodToUpdate = null;
+        for (OrderItem item : order.getOrderItems()) {
+            String foodName = item.getFoodname();
+            Food food = foodRepository.findByNameAndBrand(foodName, brandName);
+            if (food.getPreptime() > largestPreptime) {
+                foodToUpdate = food;
+                largestPreptime = food.getPreptime();
+            }
+        }
+        int updatedAverage = (int) (((1-this.learningRate) * largestPreptime) + (learningRate * actualPrepTime));
+        foodToUpdate.setPreptime(updatedAverage);
     }
 
     public void addRecommendations(int id, List<Recommendation> recommendations) {
