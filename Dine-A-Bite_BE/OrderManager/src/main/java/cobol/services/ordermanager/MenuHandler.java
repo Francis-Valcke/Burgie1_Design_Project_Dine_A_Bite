@@ -12,6 +12,7 @@ import cobol.services.ordermanager.exception.DoesNotExistException;
 import cobol.services.ordermanager.exception.DuplicateStandException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import javafx.util.Pair;
 import lombok.Getter;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -131,76 +132,33 @@ public class MenuHandler {
      */
     public void updateStand(CommonStand commonStand) throws DoesNotExistException {
 
-        // First get the stand entity based on the given CommonStand
-        Optional<Stand> standOptional = standRepository.findStandById(commonStand.getName(), commonStand.getBrandName());
-        Stand stand = standOptional
-                .orElseThrow(() -> new DoesNotExistException("The stand to be updated does not yet exist, please create the stand first."));
+        // Update the stand information and persist
+        Stand standEntity = standRepository.findStandById(commonStand.getName(), commonStand.getBrandName())
+                .orElseThrow(() -> new DoesNotExistException("Does not exist"));
+        standEntity.update(commonStand);
+
+        standEntity.getFoodList().clear();
+        standEntity = standRepository.saveAndFlush(standEntity);
+
+
+        standEntity.getFoodList().clear();
+        CommonFood cf = commonStand.getMenu().get(0);
+        Food food = foodRepository.findFoodById(cf.getName(), cf.getStandName(), cf.getBrandName()).orElse(new Food());
+        standEntity.getFoodList().add(food);
+        standRepository.saveAndFlush(standEntity);
 
 
 
+        standEntity.getFoodList().clear();
+        cf = commonStand.getMenu().get(0);
+        food = foodRepository.findFoodById(cf.getName(), cf.getStandName(), cf.getBrandName()).orElse(new Food());
+        standEntity.getFoodList().add(food);
+        standRepository.saveAndFlush(standEntity);
 
 
-        List<Food> allFood = new ArrayList<>();
-        stands.stream().filter(s -> s.getBrandName().equals(commonStand.getBrandName())).forEach(st -> allFood.addAll(st.getFoodList()));
+        Stand stand = standRepository.findStandById(standEntity.getName(), standEntity.getBrandName()).orElse(null);
 
-        stand.setFoodList(commonStand.getMenu().stream()
-                .map(cf -> new Pair<>(foodRepository.findById(new Food.FoodId(cf.getName(), stand)).orElse(new Food(cf, stand)), cf))
-                .map(pair -> {
-
-                    allFood.stream().filter(food -> food.equals(pair.getKey())).forEach(food -> {
-                        food.updateGlobalProperties(pair.getValue());
-                    });
-
-                    return pair;
-                })
-                .map(pair -> {
-
-                    Food newFood = pair.getKey();
-                    newFood.updateStock(pair.getValue());
-                    newFood.updateGlobalProperties(pair.getValue());
-                    return pair.getKey();
-
-                })
-
-                .collect(Collectors.toList()));
-
-                /*
-                This will map a entry of common food to a food entity.
-                Already existing items will be updated, new ones will be created,
-                missing items will implicitly be discarded.
-                */
-
-                allFood.forEach(f -> foodRepository.save(f));
-
-
-
-
-
-
-
-        Food referenceFood = new Food(cf, standOptional.get());
-        allFood.stream().filter(f -> f.hashCode())
-
-        stand.setFoodList(commonStand.getMenu().stream()
-                /*
-                This will map a entry of common food to a food entity.
-                Already existing items will be updated, new ones will be created,
-                missing items will implicitly be discarded.
-                */
-                .map(cf -> {
-                    Food food;
-                    Optional<Food> optionalFood = foodRepository.findById(new Food.FoodId(cf.getName(), stand));
-                    if (optionalFood.isPresent()) {
-                        optionalFood.get().updateGlobalProperties(cf);
-                        optionalFood.get().updateStock(cf);
-                        food = optionalFood.get();
-                    } else {
-                        food = new Food(cf, stand);
-                    }
-                    return food;
-                }).collect(Collectors.toList()));
-
-        standRepository.save(stand);
+        System.out.println();
     }
 
 

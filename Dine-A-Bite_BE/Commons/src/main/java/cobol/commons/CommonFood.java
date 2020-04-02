@@ -1,5 +1,7 @@
 package cobol.commons;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -17,6 +19,8 @@ public class CommonFood implements Serializable {
     protected String name;
     protected BigDecimal price;
     protected int count = 0;
+
+    @JsonProperty("preptime")
     protected int preparationTime;
     protected int stock;
     protected String standName = "";

@@ -67,6 +67,10 @@ public class Stand implements Serializable {
     public Stand() {
     }
 
+    public Stand(String name, String brandName) {
+        this.standId = new StandId(name, new Brand(brandName));
+    }
+
     public Stand(CommonStand commonStand, Brand brand){
         brand.getStandList().add(this);
         this.standId= new StandId(commonStand.getName(), brand);
@@ -74,6 +78,15 @@ public class Stand implements Serializable {
         this.longitude=commonStand.getLon();
         Stand thisStand= this;
         this.foodList= commonStand.getMenu().stream().map(cf -> new Food(cf, thisStand)).collect(Collectors.toList());
+    }
+
+    @Override
+    public String toString() {
+        return "Stand{" +
+                getName() +
+                "_" +
+                getBrandName() +
+                "}";
     }
 
     @Override
@@ -99,6 +112,11 @@ public class Stand implements Serializable {
         );
     }
 
+    public void update(CommonStand commonStand) {
+        this.longitude = commonStand.getLon();
+        this.latitude = commonStand.getLat();
+    }
+
     @Embeddable
     @Data
     @AllArgsConstructor
@@ -117,6 +135,8 @@ public class Stand implements Serializable {
 
         public StandId() {
         }
+
+
 
         @Override
         public boolean equals(Object o) {

@@ -47,6 +47,22 @@ public class StandController {
 
 
     /**
+     * This API will update a stands
+     * - The database
+     * - The cache
+     *
+     * @param stand The stand that needs to be created
+     * @return Success message or exception
+     */
+    @PostMapping(path = "/updateStand")
+    @ResponseBody
+    public ResponseEntity<String> updateStand(@RequestBody CommonStand stand) throws DoesNotExistException {
+        menuHandler.updateStand(stand);
+        return ResponseEntity.ok("The stand was updated.");
+    }
+
+
+    /**
      * This API will delete a stand based on its Id.
      * The stand will be removed in:
      * - The database

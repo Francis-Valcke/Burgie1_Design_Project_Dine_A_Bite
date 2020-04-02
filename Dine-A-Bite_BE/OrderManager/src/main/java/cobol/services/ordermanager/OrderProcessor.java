@@ -38,6 +38,9 @@ public class OrderProcessor {
     private MenuHandler menuHandler;
 
     @Autowired
+    StandRepository standRepository;
+
+    @Autowired
     OrderRepository orderRepository;
 
     @Autowired
@@ -165,7 +168,7 @@ public class OrderProcessor {
 
     public Order confirmStand(int orderId, String standName, String brandName) throws DoesNotExistException {
         Optional<Order> orderOptional = this.getOrder(orderId);
-        Stand stand = menuHandler.findStandById(standName, brandName);
+        Stand stand = standRepository.findStandById(standName, brandName).orElseThrow(() -> new DoesNotExistException("Stand does not exist"));
 
         if (!orderOptional.isPresent()) {
             throw new DoesNotExistException("Order is does not exist, please make an order first before confirming a stand");
