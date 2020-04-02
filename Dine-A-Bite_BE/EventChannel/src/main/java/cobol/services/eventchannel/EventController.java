@@ -84,7 +84,7 @@ public class EventController {
             broker.unSubscribe(subscriber, subscriber.getTypes());
         } else {
             List<String> typeList = new ArrayList<>();
-            String[] tempList = type.split(",");;
+            String[] tempList = type.split(",");
             Collections.addAll(typeList, tempList);
             broker.unSubscribe(subscriber, typeList);
         }
