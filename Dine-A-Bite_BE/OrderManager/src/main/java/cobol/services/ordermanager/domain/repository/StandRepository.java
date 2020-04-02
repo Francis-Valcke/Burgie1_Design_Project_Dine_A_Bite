@@ -7,7 +7,14 @@ package cobol.services.ordermanager.domain.repository;
 
 import cobol.services.ordermanager.domain.entity.Stand;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+
+import java.util.Optional;
 
 public interface StandRepository extends JpaRepository<Stand, Stand.StandId> {
+
+    @Query("Select s from Stand s where s.standId.name=?1 and s.standId.brand.name=?2")
+    Optional<Stand> findStandById(String standName, String brandName);
+
 
 }

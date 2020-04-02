@@ -2,7 +2,6 @@ package cobol.services.ordermanager.controller;
 
 import cobol.services.ordermanager.MenuHandler;
 import cobol.services.ordermanager.domain.entity.Brand;
-import cobol.services.ordermanager.domain.entity.Category;
 import cobol.services.ordermanager.domain.entity.Stand;
 import cobol.services.ordermanager.domain.repository.BrandRepository;
 import cobol.services.ordermanager.domain.repository.CategoryRepository;
@@ -46,8 +45,7 @@ public class DBController {
     @GetMapping("/db/import")
     public ResponseEntity<String> load(@RequestBody List<Brand> data) {
 
-
-        menuHandler.addBrands(data);
+        data.forEach(brand -> brandRepository.save(brand));
         return ResponseEntity.ok("Success");
     }
 
@@ -73,11 +71,12 @@ public class DBController {
     @GetMapping("/db/export")
     public ResponseEntity<List<Brand>> export() {
 
-        List<Brand> data = menuHandler.findAllBrands();
+        List<Brand> data = brandRepository.findAll();
 
         return ResponseEntity.ok(data);
 
     }
+
 
     /**
      * This API will refresh:
@@ -92,7 +91,7 @@ public class DBController {
     public ResponseEntity<List<String>> update() throws JsonProcessingException {
         menuHandler.updateStandManager();
 
-        List<Stand> stands = menuHandler.findAllStands();
+        List<Stand> stands = standRepository.findAll();
         List<String> standNames = stands.stream().map(Stand::getName).collect(Collectors.toList());
         return ResponseEntity.ok(standNames);
     }

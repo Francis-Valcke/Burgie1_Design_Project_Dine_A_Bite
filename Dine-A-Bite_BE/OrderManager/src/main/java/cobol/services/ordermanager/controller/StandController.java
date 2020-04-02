@@ -4,6 +4,7 @@ import cobol.commons.CommonStand;
 import cobol.services.ordermanager.MenuHandler;
 import cobol.services.ordermanager.OrderProcessor;
 import cobol.services.ordermanager.domain.entity.Stand;
+import cobol.services.ordermanager.domain.repository.StandRepository;
 import cobol.services.ordermanager.exception.DoesNotExistException;
 import cobol.services.ordermanager.exception.DuplicateStandException;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -23,6 +24,8 @@ public class StandController {
     @Autowired
     private MenuHandler menuHandler;
 
+    @Autowired
+    private StandRepository standRepository;
 
     /**
      * This API will add a stand to:
@@ -70,7 +73,7 @@ public class StandController {
      */
     @GetMapping(value = "/stands")
     public ResponseEntity<Map<String, String>> requestStandNames() {
-        return ResponseEntity.ok(menuHandler.findAllStands()
+        return ResponseEntity.ok(standRepository.findAll()
                 .stream().collect(Collectors.toMap(Stand::getName, stand -> stand.getBrand().getName())));
     }
 }

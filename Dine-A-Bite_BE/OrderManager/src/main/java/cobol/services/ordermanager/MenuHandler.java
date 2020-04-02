@@ -13,14 +13,10 @@ import cobol.services.ordermanager.exception.DuplicateStandException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
-import org.hibernate.annotations.Cache;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
-import org.springframework.cache.annotation.Caching;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -28,7 +24,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import javax.annotation.PostConstruct;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.*;
@@ -63,14 +58,6 @@ public class MenuHandler {
      * @throws ParseException Json parsing error
      * @throws JsonProcessingException Json processing error
      */
-    @Caching(evict={
-            @CacheEvict(value="stand", allEntries = true),
-            @CacheEvict(value="stands", allEntries = true),
-            @CacheEvict(value="food", allEntries = true),
-            @CacheEvict(value="foodItems", allEntries = true),
-            @CacheEvict(value="brand", allEntries = true),
-            @CacheEvict(value="brands", allEntries = true)
-    })
     public void deleteAll() throws ParseException, JsonProcessingException {
 
         // Clear database
@@ -95,12 +82,12 @@ public class MenuHandler {
      */
     public void updateStandManager() throws JsonProcessingException {
         ObjectMapper mapper = new ObjectMapper();
-        String json = mapper.writeValueAsString(findAllStands());
+        String json = mapper.writeValueAsString(standRepository.findAll());
         sendRestCallToStandManager("/update", json, null);
     }
 
     public List<Food> getStandMenu(String standName, String brandName) throws DoesNotExistException {
-        Stand stand = findStandById(standName, brandName);
+        Stand stand = standRepository.findStandById(standName, brandName).orElse(null);
         if(stand==null){
             throw new DoesNotExistException("Such stand does not exist");
         }
@@ -117,7 +104,7 @@ public class MenuHandler {
      */
     public List<CommonFood> getGlobalMenu() throws JsonProcessingException {
         List<CommonFood> globalMenu= new ArrayList<>();
-        List<Food> allFoodItems = findAllFood();
+        List<Food> allFoodItems = foodRepository.findAll();
         Map<Object, Boolean> isDuplicate = allFoodItems.stream()
                 .collect(Collectors.toMap(f -> Arrays.asList(f.getName(), f.getStand().getBrand().getName()),
                         f -> false,
@@ -142,17 +129,57 @@ public class MenuHandler {
      * @param commonStand Stand to be updated
      * @return
      */
-    @Caching(evict={
-            @CacheEvict(value="stand", allEntries = true),
-            @CacheEvict(value="stands", allEntries = true),
-            @CacheEvict(value="food", allEntries = true),
-            @CacheEvict(value="foodItems", allEntries = true)
-    })
     public void updateStand(CommonStand commonStand) throws DoesNotExistException {
-        Stand stand = findStandById(commonStand.getName(), commonStand.getBrandName());
-        if (stand == null) {
-            throw new DoesNotExistException("The stand to be updated does not yet exist, please create the stand first.");
-        }
+
+        // First get the stand entity based on the given CommonStand
+        Optional<Stand> standOptional = standRepository.findStandById(commonStand.getName(), commonStand.getBrandName());
+        Stand stand = standOptional
+                .orElseThrow(() -> new DoesNotExistException("The stand to be updated does not yet exist, please create the stand first."));
+
+
+
+
+
+        List<Food> allFood = new ArrayList<>();
+        stands.stream().filter(s -> s.getBrandName().equals(commonStand.getBrandName())).forEach(st -> allFood.addAll(st.getFoodList()));
+
+        stand.setFoodList(commonStand.getMenu().stream()
+                .map(cf -> new Pair<>(foodRepository.findById(new Food.FoodId(cf.getName(), stand)).orElse(new Food(cf, stand)), cf))
+                .map(pair -> {
+
+                    allFood.stream().filter(food -> food.equals(pair.getKey())).forEach(food -> {
+                        food.updateGlobalProperties(pair.getValue());
+                    });
+
+                    return pair;
+                })
+                .map(pair -> {
+
+                    Food newFood = pair.getKey();
+                    newFood.updateStock(pair.getValue());
+                    newFood.updateGlobalProperties(pair.getValue());
+                    return pair.getKey();
+
+                })
+
+                .collect(Collectors.toList()));
+
+                /*
+                This will map a entry of common food to a food entity.
+                Already existing items will be updated, new ones will be created,
+                missing items will implicitly be discarded.
+                */
+
+                allFood.forEach(f -> foodRepository.save(f));
+
+
+
+
+
+
+
+        Food referenceFood = new Food(cf, standOptional.get());
+        allFood.stream().filter(f -> f.hashCode())
 
         stand.setFoodList(commonStand.getMenu().stream()
                 /*
@@ -164,7 +191,8 @@ public class MenuHandler {
                     Food food;
                     Optional<Food> optionalFood = foodRepository.findById(new Food.FoodId(cf.getName(), stand));
                     if (optionalFood.isPresent()) {
-                        optionalFood.get().update(cf);
+                        optionalFood.get().updateGlobalProperties(cf);
+                        optionalFood.get().updateStock(cf);
                         food = optionalFood.get();
                     } else {
                         food = new Food(cf, stand);
@@ -185,25 +213,17 @@ public class MenuHandler {
      * @throws ParseException          A json parsing error
      * @throws DuplicateStandException Duplicate stand detected
      */
-    @Caching(evict={
-            @CacheEvict(value="stand", allEntries = true),
-            @CacheEvict(value="stands", allEntries = true),
-            @CacheEvict(value="brand", allEntries = true),
-            @CacheEvict(value="brands", allEntries = true),
-            @CacheEvict(value="food", allEntries = true),
-            @CacheEvict(value="foodItems", allEntries = true)
-    })
     public void addStand(CommonStand newCommonStand) throws JsonProcessingException, ParseException, DuplicateStandException {
 
         // look if stands already exists
-         Stand stand = findStandById(newCommonStand.getName(), newCommonStand.getBrandName());
+         Stand stand = standRepository.findStandById(newCommonStand.getName(), newCommonStand.getBrandName()).orElse(null);
 
         if (stand!=null) {
             throw new DuplicateStandException("The stand with id: " + stand.getStandId() + " already exists.");
         }
 
         // get brand from commonstand
-        Brand brand= findBrandById(newCommonStand.getBrandName());
+        Brand brand= brandRepository.findById(newCommonStand.getBrandName()).orElse(null);
         if(brand == null){
             brand= new Brand(newCommonStand.getBrandName());
             brandRepository.save(brand);
@@ -235,13 +255,9 @@ public class MenuHandler {
      * @param brandName Name of the stand's brand
      * @throws JsonProcessingException Json processing error
      */
-    @Caching(evict={
-            @CacheEvict(value= "stand", allEntries = true),
-            @CacheEvict(value= "stands", allEntries = true)
-    })
     public void deleteStandById(String standName, String brandName) throws JsonProcessingException, DoesNotExistException {
 
-        Stand stand = findStandById(standName, brandName);
+        Stand stand = standRepository.findStandById(standName, brandName).orElse(null);
         if (stand!=null) {
             standRepository.delete(stand);
 
@@ -287,58 +303,12 @@ public class MenuHandler {
         return template.postForObject(builder.toUriString(), request, String.class);
     }
 
-    @Cacheable("foodItems")
-    public List<Food> findAllFood(){
-        return foodRepository.findAll();
-    }
 
-    @Cacheable("food")
-    public Food findFoodById(String foodName, String standName, String brandName){
-        Stand stand= findStandById(standName, brandName);
-        return foodRepository.findById(new Food.FoodId(foodName, stand)).orElse(null);
-    }
 
-    @Cacheable("brand")
-    public Brand findBrandById(String brandName){
-        return brandRepository.findById(brandName).orElse(null);
-    }
 
-    @Cacheable("brands")
-    public List<Brand> findAllBrands(){
-        return brandRepository.findAll();
-    }
 
-    /**
-     * Get stand from cache or database by composite key (standName and brandName)
-     * On miss in cache, it will search in database and add to cache if present in db
-     *
-     * @param standName name of stand
-     * @param brandName name of brand
-     * @return Stand object or returns null if no such stand exists
-     */
-    @Cacheable("stand")
-    public Stand findStandById(String standName, String brandName) {
-        Brand brand= findBrandById(brandName);
-        if(brand!=null){
-            return standRepository.findById(new Stand.StandId(standName, brand)).orElse(null);
-        }
-        return null;
-    }
 
-    @Cacheable("stands")
-    public List<Stand> findAllStands(){
-        return standRepository.findAll();
-    }
 
-    @Caching(evict={
-            @CacheEvict(value="stand", allEntries = true),
-            @CacheEvict(value="stands", allEntries = true),
-            @CacheEvict(value="brand", allEntries = true),
-            @CacheEvict(value="brands", allEntries = true),
-            @CacheEvict(value="food", allEntries = true),
-            @CacheEvict(value="foodItems", allEntries = true)
-    })
-    public void addBrands(List<Brand> data) {
-        data.forEach(brandRepository::saveAndFlush);
-    }
+
+
 }
