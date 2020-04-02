@@ -9,25 +9,22 @@ public class CommonStand implements Serializable {
 
     private String name;
     private String brandName;
-    private double lat;
-    private double lon;
-    public CommonStand(){
-        super();//needed for ObjectMapper
-    }
+    private double latitude;
+    private double longitude;
 
-    public CommonStand(String name, String brandName, double lat, double lon, List<CommonFood> menu){
+    public CommonStand(String name, String brandName, double latitude, double longitude, List<CommonFood> menu){
         this.name = name;
         this.brandName = brandName;
-        this.lat = lat;
-        this.lon = lon;
+        this.latitude = latitude;
+        this.longitude = longitude;
         this.menu = menu;
     }
 
-    public CommonStand(String name, String brandName, double lat, double lon) {
+    public CommonStand(String name, String brandName, double latitude, double longitude) {
         this.name = name;
         this.brandName = brandName;
-        this.lat = lat;
-        this.lon = lon;
+        this.latitude = latitude;
+        this.longitude = longitude;
     }
 
     public void addMenuItem(CommonFood mi){
@@ -46,11 +43,11 @@ public class CommonStand implements Serializable {
         return this.brandName;
     }
 
-    public double getLon(){
-        return this.lon;
+    public double getLongitude(){
+        return this.longitude;
     }
 
-    public double getLat(){
-        return this.lat;
+    public double getLatitude(){
+        return this.latitude;
     }
 }

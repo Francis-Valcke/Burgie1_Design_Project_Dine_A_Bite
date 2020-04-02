@@ -8,7 +8,6 @@ import java.util.List;
 @Data
 public class CommonOrder {
 
-    // unique id for this order
     private int id;
 
     private Calendar startTime;
@@ -17,10 +16,9 @@ public class CommonOrder {
     private String brandName;
     private String standName;
 
-    //----- Request ------//
     private List<CommonOrderItem> orderItems;
 
-    // Coordinates Attendee on moment that order was mad
+    // Coordinates attendee on moment that order was made
     private double latitude;
     private double longitude;
 
@@ -46,8 +44,12 @@ public class CommonOrder {
         READY
     }
 
+    /**
+     * Computes remaining time till expected time with respect to current time
+     * @return RemainingTime in seconds
+     */
     public int computeRemainingTime(){
-        return (int) (expectedTime.getTimeInMillis()-startTime.getTimeInMillis());
+        return (int) (expectedTime.getTimeInMillis()-startTime.getTimeInMillis())/1000;
     }
 
 }

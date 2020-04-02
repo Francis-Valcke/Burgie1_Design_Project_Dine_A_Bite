@@ -34,6 +34,11 @@ public class Order implements Serializable {
     private Calendar expectedTime;
     @Column
     private CommonOrder.State orderState;
+    // Coordinates Attendee on moment that order was mad
+    @Column
+    private double latitude;
+    @Column
+    private double longitude;
 
     @ManyToOne
     @JoinColumns(
@@ -53,18 +58,18 @@ public class Order implements Serializable {
     )
     private List<OrderItem> orderItems;
 
-    // Coordinates Attendee on moment that order was mad
-    @Column
-    private double latitude;
-    @Column
-    private double longitude;
 
+    // ---- Constructor / Transformers ---- //
 
+    /**
+     * Default empty constructor
+     */
     public Order() {
     }
 
     /**
-     * Constructs an order object from a JSON file
+     * will transform CommonOrder object to Order object
+     * used when receiving an order from AttendeeApp
      *
      * @param orderObject CommonOrder object
      */
@@ -75,7 +80,7 @@ public class Order implements Serializable {
         for (CommonOrderItem orderItem : orderObject.getOrderItems()) {
             this.addOrderItem(new OrderItem(orderItem, this));
         }
-        this.orderState=orderObject.getOrderState();
+        this.orderState = orderObject.getOrderState();
         this.startTime = Calendar.getInstance();
         this.expectedTime = Calendar.getInstance();
         expectedTime.setTime(startTime.getTime());
@@ -83,12 +88,20 @@ public class Order implements Serializable {
 
     }
 
+    /**
+     * will transform Order object to Commonorder object
+     * Used to send
+     *  - an order to the AttendeeApp/StandApp
+     *  - an order to the StandManager in order to receive a recommendation
+     *
+     * @return CommonOrder object
+     */
     public CommonOrder asCommonOrder() {
-        String standName="";
-        String brandName="";
-        if(this.stand!= null){
-            standName= this.stand.getName();
-            brandName= this.stand.getBrandName();
+        String standName = "";
+        String brandName = "";
+        if (this.stand != null) {
+            standName = this.stand.getName();
+            brandName = this.stand.getBrandName();
         }
 
         return new CommonOrder(
@@ -107,6 +120,27 @@ public class Order implements Serializable {
     }
 
 
+    // ---- Update / Compute ---- //
+
+    /**
+     * Will update the expected time based on remainingTime
+     *
+     * @param remainingTime time in seconds
+     */
+    public void setRemtime(int remainingTime) {
+        expectedTime.setTime(startTime.getTime());
+        expectedTime.add(Calendar.SECOND, remainingTime);
+    }
+
+
+    /**
+     * Computes remaining time till expected time with respect to current time
+     * @return RemainingTime in seconds
+     */
+    public int computeRemainingTime() {
+        return (int) (expectedTime.getTimeInMillis() - Calendar.getInstance().getTimeInMillis())/1000;
+    }
+
     // ---- Getters and Setters ----- //
 
     public void addOrderItem(OrderItem item) {
@@ -118,14 +152,6 @@ public class Order implements Serializable {
         orderItems.remove(item);
         item.setOrder(this);
     }
-
-//    public String getBrandName() {
-//        return this.stand.getBrandName();
-//    }
-
-    //public void setBrandName(String brandName) {
-    //    this.brandName = brandName;
-    //}
 
     public double getLatitude() {
         return this.latitude;
@@ -139,17 +165,6 @@ public class Order implements Serializable {
         return orderItems;
     }
 
-    // TODO: these 2 functions only temporary for remaining time
-    //  (think this should be through event channel)
-    public int computeRemainingTime() {
-        return (int) (expectedTime.getTimeInMillis() - Calendar.getInstance().getTimeInMillis());
-    }
-
-    // Will only have to be called once (when the standmanager accepts the order)
-    public void setRemtime(int remtime) {
-        expectedTime.setTime(startTime.getTime());
-        expectedTime.add(Calendar.SECOND, remtime);
-    }
 
     public void setOrderItems(List<OrderItem> orderItems) {
         this.orderItems = orderItems;
@@ -170,14 +185,6 @@ public class Order implements Serializable {
     public void setState(CommonOrder.State state) {
         this.orderState = state;
     }
-
-//    public String getStandName() {
-//        return standName;
-//    }
-//
-//    public void setStandName(String standName) {
-//        this.standName = standName;
-//    }
 
     public void setStand(Stand stand) {
         this.stand = stand;

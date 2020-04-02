@@ -54,7 +54,7 @@ public class StandManagerController {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
         for (CommonStand stand : stands) {
-            Scheduler s = new Scheduler(stand.getMenu(), stand.getName(), stand.getBrandName(), stand.getLat(), stand.getLon());
+            Scheduler s = new Scheduler(stand.getMenu(), stand.getName(), stand.getBrandName(), stand.getLatitude(), stand.getLongitude());
             schedulers.add(s);
             s.start();
         }
@@ -87,7 +87,7 @@ public class StandManagerController {
      */
     @PostMapping(value = "/newStand", consumes = "application/json")
     public JSONObject addNewStand(@RequestBody() CommonStand stand) {
-        Scheduler s = new Scheduler(stand.getMenu(), stand.getName(), stand.getBrandName(), stand.getLat(), stand.getLon());
+        Scheduler s = new Scheduler(stand.getMenu(), stand.getName(), stand.getBrandName(), stand.getLatitude(), stand.getLongitude());
         schedulers.add(s);
         s.start();
         JSONObject obj = new JSONObject();

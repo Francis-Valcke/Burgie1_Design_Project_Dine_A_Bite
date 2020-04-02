@@ -15,8 +15,6 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Data
 @Entity
@@ -27,13 +25,11 @@ public class Food {
     @EmbeddedId
     private FoodId foodId;
 
-    private String description;
-
-    private float price;
-
-    private int preparationTime;
-
     private int stock;
+
+    private String description;
+    private float price;
+    private int preparationTime;
 
     @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinTable(name = "food_category",
@@ -48,6 +44,31 @@ public class Food {
     )
     private List<Category> category = new ArrayList<>();
 
+
+    // ---- Constructors ---- //
+    public Food() {
+    }
+
+
+    // ---- Updaters ---- //
+    public void updateGlobalProperties(Food cf) {
+        this.description = cf.getDescription();
+        this.category = cf.getCategory();
+        this.price = cf.getPrice();
+        this.preparationTime = cf.getPreparationTime();
+    }
+
+    public void updateStock(Food cf) {
+        this.stock += cf.getStock();
+    }
+
+    // ---- Transformers ---- //
+
+    /**
+     * Transform a CommonFood Object to a Food Object
+     * - Used to update Stand menu (compare with food)
+     * @param cf CommonFood oject
+     */
     public Food(CommonFood cf){
 
         this.description = cf.getDescription();
@@ -64,6 +85,13 @@ public class Food {
         }
     }
 
+    /**
+     * Transform a CommonFood object to a Food Object AND attach to Stand entity
+     * - Used when making a new Stand
+     *
+     * @param cf CommonFood object
+     * @param stand Stand object
+     */
     public Food(CommonFood cf, Stand stand) {
         //Setting the food variables
 
@@ -82,6 +110,11 @@ public class Food {
         }
     }
 
+    /**
+     * Transform a Food object to a CommonFood object
+     * - Used to send global or stand menu
+     * @return CommonFood object
+     */
     public CommonFood asCommonFood() {
         return new CommonFood(
                 foodId.name,
@@ -95,6 +128,9 @@ public class Food {
         );
     }
 
+
+
+    // ---- Getters and Setters ---- //
     @JsonProperty("category")
     public List<String> getCategoriesByName() {
         List<String> returnCategories = new ArrayList<>();
@@ -105,7 +141,6 @@ public class Food {
         return returnCategories;
     }
 
-
     public String getName() {
         return foodId.name;
     }
@@ -115,10 +150,6 @@ public class Food {
         foodId = (foodId == null) ? new Food.FoodId() : foodId;
         this.foodId.name = name;
     }
-
-    //public String getStandName(){
-    //    return foodId.stand.getName();
-    //}
 
     @JsonIgnore
     public Stand getStand() {
@@ -132,12 +163,7 @@ public class Food {
     }
 
 
-    //public String getBrandName(){
-    //    return this.foodId.getStand().getBrandName();
-    //}
-
-    public Food() {
-    }
+    // ---- Extra ---- //
 
     @Override
     public boolean equals(Object o) {
@@ -153,41 +179,7 @@ public class Food {
     }
 
 
-    public void update(CommonFood cf) {
-        this.description = cf.getDescription();
-        this.price = cf.getPrice().floatValue();
-        this.preparationTime = cf.getPreparationTime();
-        this.stock = cf.getStock();
-        this.category = new ArrayList<>();
-
-        CategoryRepository categoryRepository = SpringContext.getBean(CategoryRepository.class);
-        for (String s : cf.getCategory()) {
-            Category cat = categoryRepository.findById(s).orElse(categoryRepository.save(new Category(s)));
-            this.category.add(cat);
-        }
-    }
-
-    /**
-     * Compares fooditems on name and brandname
-     *
-     * @param food Food object
-     * @return returns true is same global food item
-     */
-    public boolean equalsGlobal(Food food) {
-        return this.foodId.getName().equals(food.getName()) &&
-                this.foodId.getStand().getBrand().getName().equals(food.foodId.getStand().getBrand().getName());
-    }
-
-    public void updateGlobalProperties(Food cf) {
-        this.description = cf.getDescription();
-        this.category = cf.getCategory();
-        this.price = cf.getPrice();
-        this.preparationTime = cf.getPreparationTime();
-    }
-
-    public void updateStock(Food cf) {
-        this.stock += cf.getStock();
-    }
+    // ---- Composite Id ---- //
 
     @Override
     public String toString() {

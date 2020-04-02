@@ -20,26 +20,52 @@ public class OrderItem implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int itemId;
-
     @Column
     private String foodName;
     @Column
     private int amount;
 
 
+    // ---- Constructors ---- //
+
     public OrderItem(){
 
-    }
-
-    public OrderItem(String foodName, int amount) {
-        this.foodName = foodName;
-        this.amount = amount;
     }
 
     public OrderItem(CommonOrderItem orderItem, Order order) {
         this.amount= orderItem.getAmount();
         this.foodName= orderItem.getFoodName();
         this.order= order;
+    }
+
+    // ---- Transformers ---- //
+
+    public CommonOrderItem asCommonOrderItem() {
+
+        return new CommonOrderItem(
+                this.foodName,
+                this.amount
+        );
+    }
+
+
+    // ---- Getters and Setters ---- //
+    public void setOrder(Order order) {
+        this.order = order;
+    }
+
+    public int getItemId() {
+        return itemId;
+    }
+
+
+    // ---- Extra ---- //
+    @Override
+    public String toString() {
+        return "OrderItem{" +
+                "foodName='" + foodName + '\'' +
+                ", amount=" + amount +
+                '}';
     }
 
     @Override
@@ -49,51 +75,5 @@ public class OrderItem implements Serializable {
         return itemId!=0 && itemId==(((OrderItem) o).getItemId());
     }
 
-    public Order getOrder() {
-        return order;
-    }
 
-    public void setOrder(Order order) {
-        this.order = order;
-    }
-
-    public int getItemId() {
-        return itemId;
-    }
-
-    public void setItemId(int itemId) {
-        this.itemId = itemId;
-    }
-
-    public String getFoodName() {
-        return foodName;
-    }
-
-    public void setFoodName(String foodname) {
-        this.foodName = foodname;
-    }
-
-    public int getAmount() {
-        return amount;
-    }
-
-    public void setAmount(int amount) {
-        this.amount = amount;
-    }
-
-    @Override
-    public String toString() {
-        return "OrderItem{" +
-                "foodName='" + foodName + '\'' +
-                ", amount=" + amount +
-                '}';
-    }
-
-    public CommonOrderItem asCommonOrderItem() {
-
-        return new CommonOrderItem(
-                this.foodName,
-                this.amount
-        );
-    }
 }

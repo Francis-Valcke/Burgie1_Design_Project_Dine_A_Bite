@@ -4,6 +4,7 @@ import cobol.commons.CommonStand;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -23,19 +24,70 @@ public class Stand implements Serializable {
     @EmbeddedId
     private StandId standId;
 
-    @JsonProperty("lon")
     private double longitude;
-
-    @JsonProperty("lat")
     private double latitude;
 
     @OneToMany(mappedBy = "foodId.stand", cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
-    @JsonProperty("food")
+    @JsonProperty("menu")
     List<Food> foodList = new ArrayList<>();
 
     @JsonIgnore
     @OneToMany(mappedBy = "stand")
     List<Order> orderList = new ArrayList<>();
+
+
+    // ---- Constructors ---- //
+    public Stand() {
+    }
+
+    public Stand(String name, String brandName) {
+        this.standId = new StandId(name, new Brand(brandName));
+    }
+
+    // ---- Transformers ----//
+
+    /**
+     * Transform a CommonStand object to a Stand object and attach it with a Brand object
+     * - used to add Stand to database
+     *
+     * @param commonStand CommonStand object
+     * @param brand Brand object
+     */
+    public Stand(CommonStand commonStand, Brand brand) {
+        brand.getStandList().add(this);
+        this.standId = new StandId(commonStand.getName(), brand);
+        this.latitude = commonStand.getLatitude();
+        this.longitude = commonStand.getLongitude();
+        Stand thisStand = this;
+        this.foodList = commonStand.getMenu().stream().map(cf -> new Food(cf, thisStand)).collect(Collectors.toList());
+    }
+
+
+    /**
+     * Transform Stand object to CommonStand object
+     * - Used to send Stand to StandManager
+     *
+     * @return CommonStand object
+     */
+    public CommonStand asCommonStand() {
+        return new CommonStand(
+                this.standId.getName(),
+                this.getBrandName(),
+                this.latitude,
+                this.longitude,
+                this.getFoodList().stream().map(Food::asCommonFood).collect(Collectors.toList())
+        );
+    }
+
+    // ---- Updaters ---- //
+    public void update(CommonStand commonStand) {
+        this.longitude = commonStand.getLongitude();
+        this.latitude = commonStand.getLatitude();
+    }
+
+
+
+    // ---- Getters and Setters ----//
 
     @JsonProperty("name")
     public String getName() {
@@ -49,7 +101,7 @@ public class Stand implements Serializable {
     }
 
     @JsonIgnore
-    public String getBrandName(){
+    public String getBrandName() {
         return standId.brand.getName();
     }
 
@@ -64,22 +116,7 @@ public class Stand implements Serializable {
         return standId.brand;
     }
 
-    public Stand() {
-    }
-
-    public Stand(String name, String brandName) {
-        this.standId = new StandId(name, new Brand(brandName));
-    }
-
-    public Stand(CommonStand commonStand, Brand brand){
-        brand.getStandList().add(this);
-        this.standId= new StandId(commonStand.getName(), brand);
-        this.latitude=commonStand.getLat();
-        this.longitude=commonStand.getLon();
-        Stand thisStand= this;
-        this.foodList= commonStand.getMenu().stream().map(cf -> new Food(cf, thisStand)).collect(Collectors.toList());
-    }
-
+    // ---- Extra ---- //
     @Override
     public String toString() {
         return "Stand{" +
@@ -102,25 +139,13 @@ public class Stand implements Serializable {
         return Objects.hash(standId);
     }
 
-    public CommonStand asCommonStand() {
-        return new CommonStand(
-                this.standId.getName(),
-                this.getBrandName(),
-                this.latitude,
-                this.longitude,
-                this.getFoodList().stream().map(Food::asCommonFood).collect(Collectors.toList())
-        );
-    }
 
-    public void update(CommonStand commonStand) {
-        this.longitude = commonStand.getLon();
-        this.latitude = commonStand.getLat();
-    }
+    // ---- Composite Id ----//
 
     @Embeddable
     @Data
     @AllArgsConstructor
-    public static class StandId implements Serializable{
+    public static class StandId implements Serializable {
 
         private String name;
 
@@ -135,7 +160,6 @@ public class Stand implements Serializable {
 
         public StandId() {
         }
-
 
 
         @Override
