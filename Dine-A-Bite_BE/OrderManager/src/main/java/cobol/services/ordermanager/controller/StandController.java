@@ -56,7 +56,7 @@ public class StandController {
      */
     @PostMapping(path = "/updateStand")
     @ResponseBody
-    public ResponseEntity<String> updateStand(@RequestBody CommonStand stand) throws DoesNotExistException {
+    public ResponseEntity<String> updateStand(@RequestBody CommonStand stand) throws DoesNotExistException, JsonProcessingException {
         menuHandler.updateStand(stand);
         return ResponseEntity.ok("The stand was updated.");
     }

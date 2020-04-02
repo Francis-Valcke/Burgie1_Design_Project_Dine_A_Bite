@@ -47,25 +47,21 @@ public class StandManagerController {
      */
     @PostMapping("/update")
     public void update(@RequestBody ArrayList<CommonStand> stands) throws JsonProcessingException {
-        schedulers.clear();
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
         for (CommonStand stand : stands) {
-            Scheduler s = new Scheduler(stand.getMenu(), stand.getName(), stand.getBrandName(), stand.getLatitude(), stand.getLongitude());
-            schedulers.add(s);
-            s.start();
+           schedulerHandler.updateSchedulers(stand);
         }
+
     }
 
     @PostMapping("/deleteScheduler")
     public void deleteScheduler(@RequestParam String standName, @RequestParam String brandName){
-        Optional<Scheduler> schedulerOptional= schedulers.stream()
+
+
+
+        Optional<Scheduler> schedulerOptional= schedulerHandler.getSchedulers().stream()
                 .filter(s -> s.getStandName().equals(standName) &&
-                        s.getBrandName().equals(brandName)).findAny();
-        if(schedulerOptional.isPresent()){
-            Scheduler scheduler= schedulerOptional.get();
-            schedulers.remove(scheduler);
-        }
+                        s.getBrand().equals(brandName)).findAny();
+        schedulerOptional.ifPresent(scheduler -> schedulerHandler.removeScheduler(scheduler));
     }
 
 

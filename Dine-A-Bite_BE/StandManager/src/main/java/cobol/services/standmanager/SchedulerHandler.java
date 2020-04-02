@@ -1,7 +1,7 @@
 package cobol.services.standmanager;
 
-import cobol.commons.MenuItem;
-import cobol.commons.StandInfo;
+import cobol.commons.CommonFood;
+import cobol.commons.CommonStand;
 import cobol.commons.order.CommonOrder;
 import cobol.commons.order.CommonOrderItem;
 import cobol.commons.order.Recommendation;
@@ -62,7 +62,7 @@ public class SchedulerHandler {
             Scheduler currentScheduler = this.schedulers.get(i);
 
             for (CommonOrderItem orderItem : orderItems) {
-                String food = orderItem.getFoodname();
+                String food = orderItem.getFoodName();
                 if (currentScheduler.checkType(food)) {
                     validStand = true;
                 } else {
@@ -83,7 +83,7 @@ public class SchedulerHandler {
      * @param order is the order for which the recommended stands are required
      * @return JSON with a certain amount of recommended stands (currently based on lowest queue time only)
      */
-    public JSONObject recommend(CommonOrder order) throws JsonProcessingException {
+    public List<Recommendation> recommend(CommonOrder order) throws JsonProcessingException {
         /* choose how many recommends you want */
         int amountOfRecommends = 3;
 
@@ -113,17 +113,11 @@ public class SchedulerHandler {
             System.out.println(curScheduler.getStandName());
             SchedulerComparatorDistance sc = new SchedulerComparatorDistance(curScheduler.getLat(), curScheduler.getLon());
             SchedulerComparatorTime st = new SchedulerComparatorTime(new ArrayList<>(order.getOrderItems()));
-            recommendations.add(new Recommendation(curScheduler.getStandId(), curScheduler.getStandName(), sc.getDistance(order.getLatitude(), order.getLongitude()), st.getTimesum(curScheduler)));
+            recommendations.add(new Recommendation(curScheduler.getStandName(), curScheduler.getBrand(), sc.getDistance(order.getLatitude(), order.getLongitude()), st.getTimesum(curScheduler)));
             System.out.println(st.getTimesum(curScheduler));
         }
 
-        // Arraylist recommendations to jsonobject
-        ObjectMapper mapper = new ObjectMapper();
-        String jsonString = mapper.writeValueAsString(recommendations);
-        JSONObject obj = new JSONObject();
-        obj.put("recommendations", jsonString);
-
-        return obj;
+        return recommendations;
     }
     @Scheduled(fixedDelay = 5000)
     public void pollEvents() {
@@ -132,11 +126,11 @@ public class SchedulerHandler {
             s.pollEvents();
         }
     }
-    public JSONObject updateSchedulers(StandInfo info){
+    public JSONObject updateSchedulers(CommonStand info){
         boolean newScheduler = true;
         JSONObject obj = new JSONObject();
         for (Scheduler s : getSchedulers()) {
-            if (s.getStandId() == info.getId()) {
+            if (s.getStandName().equals(info.getName()) && s.getBrand().equals(info.getBrandName())) {
                 //remove scheduler
                 if (info.getName() == null || info.getName().equals("")) {
                     removeScheduler(s);
@@ -145,10 +139,10 @@ public class SchedulerHandler {
                 //edit scheduler
                 else {
                     ArrayList<String> l = new ArrayList<>();
-                    for (MenuItem mi : info.getMenu()) {
-                        l.add(mi.getFoodName());
+                    for (CommonFood mi : info.getMenu()) {
+                        l.add(mi.getName());
                         boolean olditem=false;
-                        for (MenuItem mi2 : s.getMenu()) {
+                        for (CommonFood mi2 : s.getMenu()) {
 
                             olditem = Scheduler.updateItem(mi, mi2);
 
@@ -157,9 +151,17 @@ public class SchedulerHandler {
                             s.getMenu().add(mi);
                         }
                     }
-                    for (MenuItem mi2 : s.getMenu()) {
-                        if (!l.contains(mi2.getFoodName()))s.removeItem(mi2);
+
+                    // TODO is dit nooit getest geweest ?? je kan geen items
+                    //  verwijderen uit een lijst dat je aan het itereren bent
+                    List<CommonFood> toRemove= new ArrayList<>();
+                    for (CommonFood mi2 : s.getMenu()) {
+                        if (!l.contains(mi2.getName())){
+                            toRemove.add(mi2);
+                        }
                     }
+                    s.getMenu().removeAll(toRemove);
+
                 }
                 newScheduler = false;
                 obj.put("added", true);
@@ -168,9 +170,7 @@ public class SchedulerHandler {
         }
         //create scheduler
         if (newScheduler) {
-            Scheduler s = new Scheduler(info.getMenu(), info.getName(), info.getId(), info.getBrand());
-            s.setLat(info.getLat());
-            s.setLon(info.getLon());
+            Scheduler s = new Scheduler(info.getMenu(), info.getName(), info.getBrandName(), info.getLatitude(), info.getLongitude());
             addScheduler(s);
             s.start();
             obj.put("added", true);

@@ -165,6 +165,9 @@ public class Order implements Serializable {
         return orderItems;
     }
 
+    public Stand getStand() {
+        return stand;
+    }
 
     public void setOrderItems(List<OrderItem> orderItems) {
         this.orderItems = orderItems;

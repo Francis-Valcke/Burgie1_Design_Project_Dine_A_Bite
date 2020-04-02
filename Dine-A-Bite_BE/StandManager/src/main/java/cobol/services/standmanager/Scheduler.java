@@ -1,7 +1,7 @@
 package cobol.services.standmanager;
 
+import cobol.commons.CommonFood;
 import cobol.commons.Event;
-import cobol.commons.MenuItem;
 import cobol.commons.order.CommonOrder;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -29,7 +29,7 @@ import java.util.concurrent.TimeUnit;
 public class Scheduler extends Thread {
     private List<CommonOrder> inc = new LinkedList<>();
     private List<CommonFood> menu;
-    private String standname;
+    private String standName;
     private ObjectMapper objectMapper;
     private RestTemplate restTemplate;
     private HttpHeaders headers;
@@ -38,7 +38,7 @@ public class Scheduler extends Thread {
     private double lon;
     private double lat;
     private int subscriberId;
-    private String brand;
+    private String brandName;
 
     public Scheduler(List<CommonFood> menu, String standName, String brandName, double lat, double lon) {
         this.menu = menu;
@@ -49,17 +49,15 @@ public class Scheduler extends Thread {
         objectMapper = new ObjectMapper();
         objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
         restTemplate = new RestTemplate();
-        headers = new HttpHeaders();
-        headers.add("Authorization", "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJPcmRlck1hbmFnZXIiLCJyb2xlcyI6WyJST0xFX0FQUExJQ0FUSU9OIl0sImlhdCI6MTU4NDkxMTY3MSwiZXhwIjoxNzQyNTkxNjcxfQ.VmujsURhZaXRp5FQJXzmQMB-e6QSNF-OyPLeMEMOVvI");
-        entity = new HttpEntity(headers);
+        headers=new HttpHeaders();
         // subscribe to the channel of the brand
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.add("Authorization", "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJTdGFuZE1hbmFnZXIiLCJyb2xlcyI6WyJST0xFX0FQUExJQ0FUSU9OIl0sImlhdCI6MTU4NDkxMTc0MywiZXhwIjoxNzQyNTkxNzQzfQ.tuteSFjRJdQDMja2ioV0eiHvuCu0lkuS94zyhw9ZLIk");
-        HttpEntity<String> entity = new HttpEntity<>(headers);
+        entity = new HttpEntity<>(headers);
         String uri = StandManager.ECURL + "/registerSubscriber";
-        this.subscriberId = Integer.valueOf(response.getBody());
         ResponseEntity<String> response = restTemplate.exchange(uri, HttpMethod.GET, entity, String.class);
-        String channelId = brand;
+        this.subscriberId = Integer.valueOf(response.getBody());
+        String channelId = brandName;
         uri = StandManager.ECURL + "/registerSubscriber/toChannel";
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(uri)
                 .queryParam("id", this.subscriberId)
@@ -75,9 +73,9 @@ public class Scheduler extends Thread {
      * @param mi2 old item
      * @return
      */
-    static boolean updateItem(MenuItem mi, MenuItem mi2) {
-        if (mi.getFoodName().equals(mi2.getFoodName())) {
-            if (mi.getPreptime() >= 0) mi2.setPreptime(mi.getPreptime());
+    static boolean updateItem(CommonFood mi, CommonFood mi2) {
+        if (mi.getName().equals(mi2.getName())) {
+            if (mi.getPreparationTime() >= 0) mi2.setPreparationTime(mi.getPreparationTime());
             if (mi.getPrice().compareTo(BigDecimal.ZERO) >= 0) mi2.setPrice(mi.getPrice());
             mi2.setStock(mi.getStock() + mi2.getStock());
             return true;
@@ -102,8 +100,8 @@ public class Scheduler extends Thread {
 
                 JSONObject eventData = (JSONObject) e.get("eventData");
                 JSONObject menuchange = (JSONObject) eventData.get("menuItem");
-                MenuItem mi = objectMapper.readValue(menuchange.toString(), MenuItem.class);
-                for (MenuItem mi2 : menu) {
+                CommonFood mi = objectMapper.readValue(menuchange.toString(), CommonFood.class);
+                for (CommonFood mi2 : menu) {
                     updateItem(mi, mi2);
 
                 }
@@ -192,12 +190,12 @@ public class Scheduler extends Thread {
      * @return preptime
      */
     public int getPreptime(String foodname) {
-        for (MenuItem m : menu) {
-            if (m.getFoodName().equals(foodname)) return m.getPreptime();
+        for (CommonFood m : menu) {
+            if (m.getName().equals(foodname)) return m.getPreparationTime();
         }
         return -1;
     }
-    public void removeItem(MenuItem mi){
+    public void removeItem(CommonFood mi){
         this.menu.remove(mi);
     }
     public double getLon() {
@@ -216,20 +214,17 @@ public class Scheduler extends Thread {
         this.lat = l;
     }
 
-    public ArrayList<MenuItem> getMenu() {
+    public List<CommonFood> getMenu() {
         return this.menu;
     }
 
-    public int getStandId() {
-        return this.id;
-    }
 
     public String getStandName() {
-        return this.standname;
+        return this.standName;
     }
 
     public String getBrand() {
-        return this.brand;
+        return this.brandName;
     }
 
 

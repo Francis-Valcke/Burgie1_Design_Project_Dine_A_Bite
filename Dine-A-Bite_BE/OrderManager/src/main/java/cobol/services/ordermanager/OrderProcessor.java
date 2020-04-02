@@ -1,10 +1,14 @@
 package cobol.services.ordermanager;
 
+import cobol.commons.CommonFood;
 import cobol.commons.Event;
 import cobol.commons.order.CommonOrder;
 import cobol.commons.order.Recommendation;
+import cobol.services.ordermanager.domain.entity.Food;
 import cobol.services.ordermanager.domain.entity.Order;
+import cobol.services.ordermanager.domain.entity.OrderItem;
 import cobol.services.ordermanager.domain.entity.Stand;
+import cobol.services.ordermanager.domain.repository.FoodRepository;
 import cobol.services.ordermanager.domain.repository.OrderRepository;
 import cobol.services.ordermanager.domain.repository.StandRepository;
 import cobol.services.ordermanager.exception.DoesNotExistException;
@@ -42,6 +46,9 @@ public class OrderProcessor {
 
     @Autowired
     OrderRepository orderRepository;
+
+    @Autowired
+    FoodRepository foodRepository;
 
     @Autowired
     StandRepository stands;
@@ -109,9 +116,9 @@ public class OrderProcessor {
                 int orderId = (int) eventData.get("orderId");
                 Order localOrder = runningOrders.get(orderId);
                 localOrder.setState(newStatus);
-                if (newStatus.equals(Order.status.DECLINED) || newStatus.equals(Order.status.READY)) {
-                    if (newStatus.equals(Order.status.READY)) {
-                        updatePreparationEstimate(localOrder);
+                if (newStatus.equals(CommonOrder.State.DECLINED) || newStatus.equals(CommonOrder.State.READY)) {
+                    if (newStatus.equals(CommonOrder.State.READY)) {
+                        //updatePreparationEstimate(localOrder);
                     }
                     runningOrders.remove(orderId);
                     String uri = OrderManager.ECURL + "/deregisterSubscriber";
@@ -200,23 +207,23 @@ public class OrderProcessor {
         return updatedOrder;
     }
 
-    private void updatePreparationEstimate(Order order) {
-        Calendar actualTime =  Calendar.getInstance();
-        int actualPrepTime = (int) ((actualTime.getTime().getTime() - order.getStartTime().getTime().getTime())) / 1000;
-        String brandName = order.getBrandName();
-        int largestPreptime = 0;
-        Food foodToUpdate = null;
-        for (OrderItem item : order.getOrderItems()) {
-            String foodName = item.getFoodname();
-            Food food = foodRepository.findByNameAndBrand(foodName, brandName);
-            if (food.getPreptime() > largestPreptime) {
-                foodToUpdate = food;
-                largestPreptime = food.getPreptime();
-            }
-        }
-        int updatedAverage = (int) (((1-this.learningRate) * largestPreptime) + (learningRate * actualPrepTime));
-        foodToUpdate.setPreptime(updatedAverage);
-    }
+//    private void updatePreparationEstimate(Order order) {
+//        Calendar actualTime =  Calendar.getInstance();
+//        int actualPrepTime = (int) ((actualTime.getTime().getTime() - order.getStartTime().getTime().getTime())) / 1000;
+//        String brandName = order.getStand().getBrandName();
+//        int largestPreptime = 0;
+//        Food foodToUpdate = null;
+//        for (OrderItem item : order.getOrderItems()) {
+//            String foodName = item.getFoodName();
+//            Food food = foodRepository.findFoodById(foodName, order.getStand().getName(), brandName).orElse(null);
+//            if (food != null && food.getPreparationTime() > largestPreptime) {
+//                foodToUpdate = food;
+//                largestPreptime = food.getPreparationTime();
+//            }
+//        }
+//        int updatedAverage = (int) (((1-this.learningRate) * largestPreptime) + (learningRate * actualPrepTime));
+//        foodToUpdate.setPreparationTime(updatedAverage);
+//    }
 
     public void addRecommendations(int id, List<Recommendation> recommendations) {
         for (Recommendation recommendation : recommendations) {

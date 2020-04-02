@@ -2,6 +2,7 @@ package cobol.services.ordermanager;
 
 import cobol.commons.CommonFood;
 import cobol.commons.CommonStand;
+import cobol.commons.Event;
 import cobol.services.ordermanager.domain.entity.Brand;
 import cobol.services.ordermanager.domain.entity.Food;
 import cobol.services.ordermanager.domain.entity.Stand;
@@ -12,6 +13,7 @@ import cobol.services.ordermanager.exception.DoesNotExistException;
 import cobol.services.ordermanager.exception.DuplicateStandException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import lombok.Getter;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -127,7 +129,7 @@ public class MenuHandler {
      * @param commonStand CommonStand with CommonFood Objects that need to be updated
      * @throws DoesNotExistException Stand does not exist
      */
-    public void updateStand(CommonStand commonStand) throws DoesNotExistException {
+    public void updateStand(CommonStand commonStand) throws DoesNotExistException, JsonProcessingException {
 
         // Update the stand information and persist
         Stand standEntity = standRepository.findStandById(commonStand.getName(), commonStand.getBrandName())
@@ -163,6 +165,10 @@ public class MenuHandler {
 
 
         brandRepository.save(standEntity.getBrand());
+
+        JsonMapper jsonMapper= new JsonMapper();
+        String jsonString= jsonMapper.writeValueAsString(standEntity.getBrand().getStandList().stream().map(Stand::asCommonStand).collect(Collectors.toList()));
+        sendRestCallToStandManager("/update", jsonString , null);
 
     }
 
@@ -273,7 +279,7 @@ public class MenuHandler {
      * @param brand brandname
      * @throws JsonProcessingException
      */
-    public void publishMenuChange(MenuItem mi, String brand) throws JsonProcessingException {
+    public void publishMenuChange(CommonFood mi, String brand) throws JsonProcessingException {
         JSONObject itemJson = new JSONObject();
         itemJson.put("menuItem", mi);
         List<String> types = new ArrayList<>();
@@ -286,6 +292,7 @@ public class MenuHandler {
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.add("Authorization", "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJPcmRlck1hbmFnZXIiLCJyb2xlcyI6WyJST0xFX0FQUExJQ0FUSU9OIl0sImlhdCI6MTU4NDkxMTY3MSwiZXhwIjoxNzQyNTkxNjcxfQ.VmujsURhZaXRp5FQJXzmQMB-e6QSNF-OyPLeMEMOVvI");
 
+        ObjectMapper objectMapper= new ObjectMapper();
         String jsonString = objectMapper.writeValueAsString(e);
         String uri = OrderManager.ECURL + "/publishEvent";
         HttpEntity<String> entity = new HttpEntity<>(jsonString, headers);

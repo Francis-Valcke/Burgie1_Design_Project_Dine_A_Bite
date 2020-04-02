@@ -58,6 +58,9 @@ public class OrderItem implements Serializable {
         return itemId;
     }
 
+    public String getFoodName() {
+        return foodName;
+    }
 
     // ---- Extra ---- //
     @Override
