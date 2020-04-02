@@ -12,6 +12,8 @@ public class CommonStand implements Serializable {
     private double latitude;
     private double longitude;
 
+    public CommonStand(){}
+
     public CommonStand(String name, String brandName, double latitude, double longitude, List<CommonFood> menu){
         this.name = name;
         this.brandName = brandName;
