@@ -155,6 +155,12 @@ public class MenuHandler {
         Set<Food> toDelete = new HashSet<>(standEntity.getFoodList());
         toDelete.removeAll(newFoodItems);
         standEntity.getFoodList().removeAll(toDelete);
+        newFoodItems.removeAll(standEntity.getFoodList());
+        for (Food newFoodItem : newFoodItems) {
+            standEntity.getFoodList().add(newFoodItem);
+            newFoodItem.setStand(standEntity);
+        }
+
 
         brandRepository.save(standEntity.getBrand());
 
