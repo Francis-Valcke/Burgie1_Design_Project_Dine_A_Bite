@@ -1,6 +1,8 @@
 package cobol.services.eventchannel;
 
 import cobol.commons.Event;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -8,13 +10,14 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class EventBroker implements Runnable {
-    private volatile HashMap<String, HashSet<EventSubscriber>> subscriberMap = new HashMap<>();
-    private volatile HashMap<Integer, EventSubscriber> subscriberId = new HashMap<>();
+    private final HashMap<String, HashSet<EventSubscriber>> subscriberMap = new HashMap<>();
+    private final HashMap<Integer, EventSubscriber> subscriberId = new HashMap<>();
     private final LinkedList<Event> queue = new LinkedList<>();
     private volatile boolean stop = false;
     private volatile boolean run = true;
+    Logger logger = LoggerFactory.getLogger(EventBroker.class);
 
-    private final static EventBroker ourInstance = new EventBroker();
+    private static final EventBroker ourInstance = new EventBroker();
 
     public static EventBroker getInstance() {
         return ourInstance;
@@ -32,16 +35,20 @@ public class EventBroker implements Runnable {
      */
     public void subscribe(EventSubscriber subscriber, List<String> typeArray) {
         for (String type : typeArray) {
-            HashSet<EventSubscriber> typeSet = subscriberMap.get(type);
-            if (!subscriberId.containsKey(subscriber.getId())) {
-                subscriberId.put(subscriber.getId(), subscriber);
+            synchronized (subscriberId) {
+                if (!subscriberId.containsKey(subscriber.getId())) {
+                    subscriberId.put(subscriber.getId(), subscriber);
+                }
             }
-            if (typeSet == null) {
-                typeSet = new HashSet<>();
-                typeSet.add(subscriber);
-                subscriberMap.put(type, typeSet);
-            } else {
-                typeSet.add(subscriber);
+            synchronized (subscriberMap) {
+                HashSet<EventSubscriber> typeSet = subscriberMap.get(type);
+                if (typeSet == null) {
+                    typeSet = new HashSet<>();
+                    typeSet.add(subscriber);
+                    subscriberMap.put(type, typeSet);
+                } else {
+                    typeSet.add(subscriber);
+                }
             }
         }
     }
@@ -55,11 +62,11 @@ public class EventBroker implements Runnable {
     public void unSubscribe(EventSubscriber subscriber, List<String> typeArray) {
         for (String type : typeArray) {
             subscriber.removeType(type);
-            HashSet<EventSubscriber> typeSet = subscriberMap.get(type);
-            if (typeSet == null) {
-                continue; //silently discard wrong type, should we define an exception for this?
-            } else {
-                typeSet.remove(subscriber);
+            synchronized (subscriberMap) {
+                HashSet<EventSubscriber> typeSet = subscriberMap.get(type);
+                if (typeSet != null) {
+                    typeSet.remove(subscriber);
+                }
             }
         }
     }
@@ -86,7 +93,10 @@ public class EventBroker implements Runnable {
     private void process(Event e) {
         List<String> types = e.getTypes();
         for (String type : types) {
-            HashSet<EventSubscriber> typeSet = subscriberMap.get(type);
+            HashSet<EventSubscriber> typeSet;
+            synchronized (subscriberMap) {
+                typeSet = subscriberMap.get(type);
+            }
             if (typeSet != null) {
                 for (EventSubscriber s : typeSet) {
                     s.handleEvent(e);  //loops are possible
@@ -100,11 +110,12 @@ public class EventBroker implements Runnable {
         while (true) {
             Event e;
             synchronized (queue) {
-                while (queue.size() == 0) {
+                while (queue.isEmpty()) {
                     try {
                         queue.wait();
                     } catch (InterruptedException ex) {
-                        throw new RuntimeException(ex);
+                        logger.warn("Thread was interrupted!", ex);
+                        Thread.currentThread().interrupt();
                     }
                 }
                 e = queue.poll();
@@ -135,7 +146,9 @@ public class EventBroker implements Runnable {
      * @return the subscriber stub that is associated with an subscriber that is not on the server.
      */
     public EventSubscriber getSubscriberStub(int id) {
-        return subscriberId.get(id);
+        synchronized (subscriberId) {
+            return subscriberId.get(id);
+        }
     }
 
     private void setRun() {

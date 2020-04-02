@@ -3,6 +3,7 @@ package cobol.services.eventchannel;
 import cobol.commons.Event;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 
@@ -15,10 +16,8 @@ public class EventSubscriber {
     EventSubscriber(String types) {
         id = numSubscribers;
         numSubscribers++;
-        String[] temp_types = types.split(",");
-        for (String type : temp_types) {
-            this.types.add(type);
-        }
+        String[] tempTypes = types.split(",");
+        Collections.addAll(this.types, tempTypes);
     }
 
     /**
