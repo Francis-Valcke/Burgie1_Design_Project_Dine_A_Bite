@@ -9,7 +9,7 @@
       "standName": "BurgerKing 1",
       "brandName": "BurgerKing",
       "price": 2,
-      "preptime": 150,
+      "preparationTime": 150,
       "stock": 20,
       "description": "Good Burger",
       "category": [
@@ -27,7 +27,7 @@
         "BURGER"
       ],
       "description": "Pepper king with chicken",
-      "preptime": 500
+      "preparationTime": 500
     }
   ]
 }

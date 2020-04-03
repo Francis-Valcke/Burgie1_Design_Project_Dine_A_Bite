@@ -179,6 +179,7 @@ public class MenuHandlerTest {
         List<CommonFood> updatedIncomingStandMenu = objectMapper.readValue(updatedIncomingStand, new TypeReference<List<CommonFood>>() {
         });
 
+        System.out.println();
         assert (incomingStand.getMenu().containsAll(updatedIncomingStandMenu) && updatedIncomingStandMenu.containsAll(incomingStand.getMenu()));
 
 
@@ -244,7 +245,7 @@ public class MenuHandlerTest {
     @Test
     public void addTwoStandsFromSameBrand() throws Exception {
         // TODO: uncomment when merging with brand of francis
-        /*URL url = Thread.currentThread().getContextClassLoader().getResource("newStand.json");
+        URL url = Thread.currentThread().getContextClassLoader().getResource("newStand.json");
         assert url != null;
         String body = Resources.toString(url, StandardCharsets.UTF_8);
         CommonStand commonStand = objectMapper.readValue(body, CommonStand.class);
@@ -264,7 +265,7 @@ public class MenuHandlerTest {
                 .content(body2)
                 .header("Authorization", token))
                 .andExpect(status().isOk())
-                .andReturn();*/
+                .andReturn();
 
     }
 

@@ -4,6 +4,7 @@ import cobol.commons.CommonStand;
 import cobol.services.ordermanager.domain.SpringContext;
 import cobol.services.ordermanager.domain.repository.BrandRepository;
 import cobol.services.ordermanager.domain.repository.CategoryRepository;
+import cobol.services.ordermanager.domain.repository.FoodRepository;
 import cobol.services.ordermanager.domain.repository.StandRepository;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -74,6 +75,36 @@ public class Stand implements Serializable {
 
     }
 
+    public Stand update(CommonStand cs){
+
+        //Update general fields
+        this.longitude = cs.getLongitude();
+        this.latitude = cs.getLatitude();
+
+        //Set the brand in the standId
+        BrandRepository brandRepository = SpringContext.getBean(BrandRepository.class);
+        Brand brand = brandRepository.findById(cs.getBrandName()).orElse(new Brand(cs.getBrandName()));
+        this.standId = new StandId(cs.getName(), brand);
+
+        //Update food list
+        FoodRepository foodRepository = SpringContext.getBean(FoodRepository.class);
+        this.foodList.clear();
+        cs.getMenu().forEach(cf -> {
+            //TODO: should not be nescessary if everything is sent correctly
+            cf.setBrandName(cs.getBrandName());
+            cf.setStandName(cs.getName());
+
+            Food food = foodRepository.findFoodById(cf.getName(), cf.getStandName(), cf.getBrandName()).orElse(new Food(cf));
+            foodList.add(food);
+            food.setStand(this);
+
+            food.update(cf);
+        });
+
+        return this;
+
+    }
+
     /**
      * Transform a CommonStand object to a Stand object and attach it with a Brand object
      * - used to add Stand to database
@@ -107,12 +138,6 @@ public class Stand implements Serializable {
                 this.longitude,
                 this.getFoodList().stream().map(Food::asCommonFood).collect(Collectors.toList())
         );
-    }
-
-    // ---- Updaters ---- //
-    public void update(CommonStand commonStand) {
-        this.longitude = commonStand.getLongitude();
-        this.latitude = commonStand.getLatitude();
     }
 
 
@@ -159,12 +184,20 @@ public class Stand implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Stand stand = (Stand) o;
-        return Objects.equals(standId, stand.standId);
+        return Objects.equals(getName(), stand.getName()) &&
+                Objects.equals(getBrandName(), stand.getBrandName());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(standId);
+        return Objects.hash(getName(), getBrandName());
+    }
+
+    public Stand updateShallow(CommonStand commonStand) {
+        this.latitude = commonStand.getLatitude();
+        this.longitude = commonStand.getLongitude();
+
+        return this;
     }
 
 
@@ -178,7 +211,7 @@ public class Stand implements Serializable {
         private String name;
 
         @JsonIgnore
-        @ManyToOne(cascade = CascadeType.ALL)
+        @ManyToOne
         @JoinColumns(
                 foreignKey = @ForeignKey(name = "stand_brand_fk"), value = {
                 @JoinColumn(referencedColumnName = "name", name = "brand_name")

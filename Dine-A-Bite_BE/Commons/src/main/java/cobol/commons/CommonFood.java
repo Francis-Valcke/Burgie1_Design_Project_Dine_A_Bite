@@ -7,10 +7,7 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.NumberFormat;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * Model for one menu item
@@ -190,18 +187,20 @@ public class CommonFood implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         CommonFood that = (CommonFood) o;
-        return count == that.count &&
-                preparationTime == that.preparationTime &&
+
+        boolean priceb = price.floatValue()==that.price.floatValue();
+        boolean cat = Objects.equals(new HashSet(category), new HashSet(that.category));
+
+        return preparationTime == that.preparationTime &&
                 name.equals(that.name) &&
                 price.floatValue()==that.price.floatValue() &&
-                standName.equals(that.standName) &&
                 brandName.equals(that.brandName) &&
-                category.equals(that.category) &&
+                Objects.equals(new HashSet(category), new HashSet(that.category)) &&
                 description.equals(that.description);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, price, count, preparationTime, standName, brandName, category, description);
+        return Objects.hash(name, price.floatValue(), preparationTime, brandName, new HashSet(category), description);
     }
 }

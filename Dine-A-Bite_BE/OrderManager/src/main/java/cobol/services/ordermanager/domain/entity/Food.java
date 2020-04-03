@@ -61,13 +61,12 @@ public class Food {
 
     public void updateGlobalProperties(Food cf) {
         this.description = cf.getDescription();
-        this.category = cf.getCategory();
         this.price = cf.getPrice();
         this.preparationTime = cf.getPreparationTime();
-    }
 
-    public void updateStock(Food cf) {
-        this.stock += cf.getStock();
+        this.category.clear();
+        CategoryRepository categoryRepository = SpringContext.getBean(CategoryRepository.class);
+        this.category.addAll(cf.getCategory());
     }
 
     /**
@@ -83,15 +82,38 @@ public class Food {
         this.preparationTime = cf.getPreparationTime();
         this.stock = cf.getStock();
 
+        //Setting categories
+        CategoryRepository categoryRepository = SpringContext.getBean(CategoryRepository.class);
+        cf.getCategory().forEach(c -> category.add(categoryRepository.findById(c).orElse(categoryRepository.save(new Category(c)))));
+
         //Setting foodId
         StandRepository standRepository = SpringContext.getBean(StandRepository.class);
         Stand stand = standRepository.findStandById(cf.getStandName(), cf.getBrandName())
                 .orElse(new Stand(cf.getStandName(), cf.getBrandName()));
         this.foodId = new FoodId(cf.getName(), stand);
 
+    }
+
+    public Food update(CommonFood cf){
+
+        //Setting general fields
+        this.description = cf.getDescription();
+        this.price = cf.getPrice().floatValue();
+        this.preparationTime = cf.getPreparationTime();
+        this.stock = cf.getStock();
+
         //Setting categories
+        this.category.clear();
         CategoryRepository categoryRepository = SpringContext.getBean(CategoryRepository.class);
         cf.getCategory().forEach(c -> category.add(categoryRepository.findById(c).orElse(categoryRepository.save(new Category(c)))));
+
+        //Setting foodId
+        StandRepository standRepository = SpringContext.getBean(StandRepository.class);
+        Stand stand = standRepository.findStandById(cf.getStandName(), cf.getBrandName())
+                .orElse(new Stand(cf.getStandName(), cf.getBrandName()));
+        this.foodId = new FoodId(cf.getName(), stand);
+
+        return this;
     }
 
     /**
@@ -183,17 +205,23 @@ public class Food {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Food food = (Food) o;
-        return Objects.equals(foodId, food.foodId);
+        return Objects.equals(getName(), food.getName()) &&
+                Objects.equals(getStandName(), food.getStandName()) &&
+                Objects.equals(getBrandName(), food.getBrandName());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(foodId);
+        return Objects.hash(getName(), getStandName(), getBrandName());
     }
 
     @Override
     public String toString() {
         return "Food{"+foodId.name + "_" + foodId.stand.getName() + "_" + foodId.stand.getBrandName()+"}";
+    }
+
+    public void updateStock(int stock) {
+        this.stock += stock;
     }
 
     @Data
@@ -203,7 +231,7 @@ public class Food {
 
         private String name;
 
-        @ManyToOne(cascade = CascadeType.ALL)
+        @ManyToOne
         @JoinColumns(
                 foreignKey = @ForeignKey(name = "food_stand_fk"), value = {
                 @JoinColumn(referencedColumnName = "name", name = "stand_name"),

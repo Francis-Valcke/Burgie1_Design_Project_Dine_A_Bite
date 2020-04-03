@@ -10,7 +10,7 @@
       "PIZZA"
     ],
     "description": "Smoked bacon cubes, red onion, mushrooms, mild garlic sauce, tomato sauce and mozzarella",
-    "preptime": 1200
+    "preparationTime": 1200
   },
   {
     "name": "Barbecue chicken",
@@ -23,7 +23,7 @@
       "PIZZA"
     ],
     "description": "Pieces of grilled chicken, mushrooms, red onion, green pepper, mozzarella and barbecue sauce",
-    "preptime": 1200
+    "preparationTime": 1200
   },
   {
     "name": "Big Mac",
@@ -37,7 +37,7 @@
       "BURGER"
     ],
     "description": "The classic big mac!",
-    "preptime": 600
+    "preparationTime": 600
   },
   {
     "name": "CBO burger",
@@ -51,7 +51,7 @@
       "BURGER"
     ],
     "description": "Chicken bacon onion",
-    "preptime": 600
+    "preparationTime": 600
   },
   {
     "name": "Cheesam",
@@ -64,7 +64,7 @@
       "PIZZA"
     ],
     "description": "With extra mozzarella, thin strips of ham and tomato sauce",
-    "preptime": 1200
+    "preparationTime": 1200
   },
   {
     "name": "Cheeseburger",
@@ -78,7 +78,7 @@
       "BURGER"
     ],
     "description": "A delicious cheeseburger.",
-    "preptime": 600
+    "preparationTime": 600
   },
   {
     "name": "Chicken Pepper King",
@@ -92,7 +92,7 @@
       "BURGER"
     ],
     "description": "Pepper king with chicken",
-    "preptime": 500
+    "preparationTime": 500
   },
   {
     "name": "Classic Pork",
@@ -105,7 +105,7 @@
       "SNACK"
     ],
     "description": "A ball of delicious pork",
-    "preptime": 300
+    "preparationTime": 300
   },
   {
     "name": "Delicious Veggie",
@@ -119,7 +119,7 @@
       "VEGGIE"
     ],
     "description": "Veggie ball",
-    "preptime": 300
+    "preparationTime": 300
   },
   {
     "name": "Forestiere",
@@ -133,7 +133,7 @@
       "VEGGIE"
     ],
     "description": "Strips of ham, mushrooms, tomato cubes, tomato sauce and mozzarella",
-    "preptime": 1200
+    "preparationTime": 1200
   },
   {
     "name": "Hot n spicy",
@@ -146,7 +146,7 @@
       "PIZZA"
     ],
     "description": "Spicy beef, chili peppers, red onion, diced tomatoes, tomato sauce and mozzarella",
-    "preptime": 1200
+    "preparationTime": 1200
   },
   {
     "name": "Large fries",
@@ -159,7 +159,7 @@
       "FRIES"
     ],
     "description": "Large fries",
-    "preptime": 300
+    "preparationTime": 300
   },
   {
     "name": "Large fries",
@@ -172,7 +172,7 @@
       "FRIES"
     ],
     "description": "Large fries",
-    "preptime": 300
+    "preparationTime": 300
   },
   {
     "name": "Maestro Generous Jack",
@@ -186,7 +186,7 @@
       "BURGER"
     ],
     "description": "Big burger with 3 patties.",
-    "preptime": 600
+    "preparationTime": 600
   },
   {
     "name": "Margharita",
@@ -199,7 +199,7 @@
       "PIZZA"
     ],
     "description": "The original, oven-fresh basic pizza with tomato sauce and mozzarella.",
-    "preptime": 1200
+    "preparationTime": 1200
   },
   {
     "name": "Medium fries",
@@ -212,7 +212,7 @@
       "FRIES"
     ],
     "description": "Medium fries",
-    "preptime": 300
+    "preparationTime": 300
   },
   {
     "name": "Medium fries",
@@ -225,7 +225,7 @@
       "FRIES"
     ],
     "description": "Medium fries",
-    "preptime": 300
+    "preparationTime": 300
   },
   {
     "name": "Original Stoemp",
@@ -239,7 +239,7 @@
       "PREPARATION"
     ],
     "description": "Stoemp like grandma used to make",
-    "preptime": 1200
+    "preparationTime": 1200
   },
   {
     "name": "Pepper",
@@ -252,7 +252,7 @@
       "PIZZA"
     ],
     "description": "Double portion of beef, diced tomatoes, red onion, pepper sauce, tomato sauce and mozzarella",
-    "preptime": 1200
+    "preparationTime": 1200
   },
   {
     "name": "Pepper King",
@@ -266,7 +266,7 @@
       "BURGER"
     ],
     "description": "Delicious patty with peppered cheese",
-    "preptime": 400
+    "preparationTime": 400
   },
   {
     "name": "Rebel Whopper",
@@ -280,7 +280,7 @@
       "BURGER"
     ],
     "description": "Veggie burger",
-    "preptime": 400
+    "preparationTime": 400
   },
   {
     "name": "Small fries",
@@ -293,7 +293,7 @@
       "FRIES"
     ],
     "description": "Small fries",
-    "preptime": 300
+    "preparationTime": 300
   },
   {
     "name": "Small fries",
@@ -306,7 +306,7 @@
       "FRIES"
     ],
     "description": "Small fries",
-    "preptime": 300
+    "preparationTime": 300
   },
   {
     "name": "Sweet Cake",
@@ -319,7 +319,7 @@
       "SNACK"
     ],
     "description": "Delicious cake",
-    "preptime": 300
+    "preparationTime": 300
   },
   {
     "name": "Tasty Salad",
@@ -332,7 +332,7 @@
       "SNACK"
     ],
     "description": "Healthy green salad",
-    "preptime": 600
+    "preparationTime": 600
   },
   {
     "name": "Ultimate Chicken Bacon King",
@@ -346,6 +346,6 @@
       "BURGER"
     ],
     "description": "The final evolution of the the Chicken Pepper King burger!",
-    "preptime": 700
+    "preparationTime": 700
   }
 ]

@@ -96,26 +96,17 @@ public class MenuHandler {
     /**
      * Refresh the global menu cache based on the database contents.
      *
-     * @throws JsonProcessingException Json processing error
      */
-    public List<CommonFood> getGlobalMenu() throws JsonProcessingException {
-        List<CommonFood> globalMenu = new ArrayList<>();
-        List<Food> allFoodItems = foodRepository.findAll();
-        Map<Object, Boolean> isDuplicate = allFoodItems.stream()
-                .collect(Collectors.toMap(f -> Arrays.asList(f.getName(), f.getStand().getBrand().getName()),
-                        f -> false,
-                        (a, b) -> true));
+    public List<CommonFood> getGlobalMenu() {
 
+        List<CommonFood> food = standRepository.findAll().stream()
+                .map(Stand::getFoodList)
+                .flatMap(Collection::stream)
+                .map(Food::asCommonFood)
+                .distinct()
+                .collect(Collectors.toList());
 
-        for (Food f : allFoodItems) {
-            Object key = Arrays.asList(f.getName(), f.getStand().getBrand().getName());
-            if (isDuplicate.containsKey(key)) {
-                globalMenu.add(f.asCommonFood());
-                isDuplicate.remove(key);
-            }
-        }
-
-        return globalMenu;
+        return food;
     }
 
 
@@ -127,45 +118,47 @@ public class MenuHandler {
      */
     public void updateStand(CommonStand commonStand) throws DoesNotExistException, JsonProcessingException {
 
-        // Update the stand information and persist
+        // Check if the stand exists and if so retrieve it
         Stand originalStand = standRepository.findStandById(commonStand.getName(), commonStand.getBrandName())
                 .orElseThrow(() -> new DoesNotExistException("Does not exist"));
 
-        // The same stand modified by the new information
+        // This will create a new stand based on a common stand
+        // This will just take over the stock value, but as stock is given in an incremental fashion, this needs to be adjusted
         Stand modifiedStand = new Stand(commonStand);
 
+        // Now we need to adjust the stock of the food items of the new stand
         //This map will contain mapping between the hash of the original food item and the adjusted food item
         Map<Food, Food> originalModifiedFoodMapping = new HashMap<>();
-
         modifiedStand.getFoodList().forEach(modifiedFood -> {
             //Every modified food item that is not new will be added to the mapping
             foodRepository.findFoodById(modifiedFood.getName(), modifiedFood.getStandName(), modifiedFood.getBrandName()).ifPresent(originalFood -> {
                 originalModifiedFoodMapping.put(originalFood, modifiedFood);
+                // Also update the stock
+                modifiedFood.updateStock(originalFood.getStock());
             });
         });
-
 
         originalModifiedFoodMapping.entrySet().forEach(mapping -> {
 
             // look in all other stands of the brand and find the one that needs to be adjusted
-            originalStand.getBrand().getStandList().stream()
+            standRepository.findStandsByBrand(commonStand.getBrandName()).stream()
                     .filter(s -> !s.equals(originalStand)) //get other stands of the brand
                     .map(Stand::getFoodList) // map every stand to its list of food items
                     .flatMap(Collection::stream) //bring lists in one stream
-                    .filter(food -> food.equals(mapping.getKey())) //Get all of the food items that match the one that needs to be adjusted
+                    .filter(food -> food.asCommonFood().equals(mapping.getKey().asCommonFood())) //Get all of the food items that match the one that needs to be adjusted
                     .forEach(food -> {
 
                         food.updateGlobalProperties(mapping.getValue());
-                        food.updateStock(mapping.getValue());
-
                         foodRepository.save(food);
-
                     });
 
         });
 
-
         standRepository.save(modifiedStand);
+
+        JsonMapper jsonMapper= new JsonMapper();
+        String jsonString= jsonMapper.writeValueAsString(modifiedStand.getBrand().getStandList().stream().map(Stand::asCommonStand).collect(Collectors.toList()));
+        communicationHandler.sendRestCallToStandManager("/update", jsonString , null);
     }
 
 

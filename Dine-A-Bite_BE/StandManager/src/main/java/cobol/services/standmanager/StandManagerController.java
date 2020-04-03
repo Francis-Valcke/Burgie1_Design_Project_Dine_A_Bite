@@ -69,7 +69,7 @@ public class StandManagerController {
      *             available at localhost:8081/newStand
      * @return true (if no errors)
      */
-    @PostMapping(value = "/newStand", consumes = "application/json")
+    @RequestMapping(value = "/newStand", consumes = "application/json")
     public JSONObject addNewStand(@RequestBody() CommonStand stand) throws CommunicationException {
             return schedulerHandler.updateSchedulers(stand);
     }

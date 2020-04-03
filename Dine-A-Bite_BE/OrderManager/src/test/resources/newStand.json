@@ -7,7 +7,7 @@
     {
       "name":"Burger One",
       "price":2.0,
-      "preptime":150,
+      "preparationTime":150,
       "stock":20,
       "description":"Good Burger",
       "category":["BURGER"]
