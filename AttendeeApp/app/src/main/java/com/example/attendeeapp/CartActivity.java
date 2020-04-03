@@ -27,8 +27,9 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
-import com.example.attendeeapp.order.CommonOrder;
-import com.example.attendeeapp.order.Recommendation;
+import com.example.attendeeapp.json.CommonOrder;
+import com.example.attendeeapp.json.CommonFood;
+import com.example.attendeeapp.json.Recommendation;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -78,7 +79,7 @@ public class CartActivity extends AppCompatActivity {
         ab.setDisplayHomeAsUpEnabled(true);
 
         // Get the ordered items from the cart in the menu view
-        ArrayList<MenuItem> ordered = (ArrayList<MenuItem>) getIntent().getSerializableExtra("cartList");
+        ArrayList<CommonFood> ordered = (ArrayList<CommonFood>) getIntent().getSerializableExtra("cartList");
 
         // Instantiates cart item list, get the cartCount from menuActivity
         ListView lView = (ListView)findViewById(R.id.cart_list);
@@ -95,7 +96,7 @@ public class CartActivity extends AppCompatActivity {
 
         // Handle TextView to display total cart amount (price)
         BigDecimal amount = new BigDecimal(0).setScale(2, RoundingMode.HALF_UP);
-        for(MenuItem i : ordered) {
+        for(CommonFood i : ordered) {
             amount = amount.add(i.getPrice().multiply(new BigDecimal((i.getCount()))));
         }
         updatePrice(amount);

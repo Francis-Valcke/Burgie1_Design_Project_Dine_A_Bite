@@ -10,6 +10,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+import com.example.attendeeapp.json.CommonFood;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -71,7 +73,7 @@ public class MenuFragmentGlobal extends MenuFragment {
             // Create the menuItem with price, food and brandName
             JSONArray jsonArray = response.getJSONArray(key);
             double price = jsonArray.getDouble(0);
-            MenuItem item = new MenuItem(foodName, new BigDecimal(price), brandName);
+            CommonFood item = new CommonFood(foodName, new BigDecimal(price), brandName);
 
             // Add categories to the menuItem
             if(!jsonArray.getString(1).equals("null")) {

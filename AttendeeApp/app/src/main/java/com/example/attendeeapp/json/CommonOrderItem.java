@@ -1,4 +1,4 @@
-package com.example.attendeeapp.order;
+package com.example.attendeeapp.json;
 
 public class CommonOrderItem {
 

@@ -1,49 +1,81 @@
-package com.example.attendeeapp;
+package com.example.attendeeapp.json;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.NumberFormat;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
 
 /**
  * Model for one menu item
  */
-public class MenuItem implements Serializable {
+public class CommonFood implements Serializable {
+
     private static final int MAX_ITEM = 10;
-    private String foodName;
+    private String name;
     private BigDecimal price;
     private int count = 0;
-
+    private int preparationTime;
+    private int stock;
     private String standName = "";
     private String brandName;
-    HashSet<String> category = new HashSet<String>();
-    String description = "";
+    private List<String> category = new ArrayList<String>();
+    private String description = "";
 
-    public MenuItem(String foodName, BigDecimal price, String brandName) {
-        this.foodName = foodName;
-        this.price = price.setScale(2,RoundingMode.HALF_UP);
-        this.count = 0;
-        this.brandName = brandName;
+    public CommonFood() {
+        super();//needed for ObjectMapper
     }
 
-    public MenuItem(MenuItem copy) {
-        this.foodName = copy.foodName;
+    public CommonFood(String name, BigDecimal price, int preparationTime, int stock, String brandName, String desc, List<String> category) {
+        this.name = name;
+        this.price = price.setScale(2, RoundingMode.HALF_UP);
+        this.preparationTime = preparationTime;
+        this.stock = stock;
+        this.brandName = brandName;
+        this.description = desc;
+        this.category = category;
+        this.count = 0;
+    }
+
+    public CommonFood(String foodName, BigDecimal price, int preparationTime, int stock, String standName, String brandName, String desc, List<String> category) {
+        this.name = foodName;
+        this.price = price.setScale(2, RoundingMode.HALF_UP);
+        this.preparationTime = preparationTime;
+        this.stock = stock;
+        this.count = 0;
+        this.standName = standName;
+        this.brandName = brandName;
+        this.description = desc;
+        this.category = category;
+    }
+
+    public CommonFood(CommonFood copy) {
+        this.name = copy.name;
         this.price = copy.getPrice();
         this.count = copy.count;
         this.standName = copy.standName;
         this.brandName = copy.brandName;
-        this.category = new HashSet<String>(copy.category);
+        this.category = new ArrayList<String>(copy.category);
         this.description = copy.description;
     }
 
-    public String getFoodName() {
-        return foodName;
+    public CommonFood(String foodName, BigDecimal price, String brandName) {
+        this.name = foodName;
+        this.price = price;
+        this.brandName = brandName;
     }
 
-    public void setFoodName(String foodName) {
-        this.foodName = foodName;
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getStandName() {
@@ -62,12 +94,13 @@ public class MenuItem implements Serializable {
         this.brandName = brandName;
     }
 
-    public HashSet<String> getCategory() {
+    public List<String> getCategory() {
         return category;
     }
 
     /**
      * Will only add distinct categories (set)
+     *
      * @param cat: Category to add
      * @return: if the add was successful
      */
@@ -97,16 +130,18 @@ public class MenuItem implements Serializable {
 
     /**
      * Return the price of a menu item with the euro symbol
+     *
      * @return: String of euro symbol with price
      */
+    @JsonIgnore
     public String getPriceEuro() {
         NumberFormat euro = NumberFormat.getCurrencyInstance(Locale.FRANCE);
         euro.setMinimumFractionDigits(2);
         String symbol = euro.getCurrency().getSymbol();
-        return symbol + " " + price.toString();
+        return symbol + price.toString();
     }
 
-    public int getCount(){
+    public int getCount() {
         return count;
     }
 
@@ -126,9 +161,24 @@ public class MenuItem implements Serializable {
      * Decreases the number of times the item is in the cart
      * Throws ArithmeticException when this item has reached 0
      */
-    public void decreaseCount() throws ArithmeticException{
-        if(count == 0) throw new ArithmeticException("This menuItem cannot be decreased!");
+    public void decreaseCount() throws ArithmeticException {
+        if (count == 0) throw new ArithmeticException("This menuItem cannot be decreased!");
         this.count--;
     }
 
+    public int getPreparationTime() {
+        return preparationTime;
+    }
+
+    public void setPreparationTime(int preparationTime) {
+        this.preparationTime = preparationTime;
+    }
+
+    public int getStock() {
+        return stock;
+    }
+
+    public void setStock(int stock) {
+        this.stock = stock;
+    }
 }

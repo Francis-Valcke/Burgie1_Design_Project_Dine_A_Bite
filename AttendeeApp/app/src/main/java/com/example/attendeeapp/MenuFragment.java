@@ -15,11 +15,11 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
+import com.example.attendeeapp.json.CommonFood;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -30,7 +30,7 @@ import java.util.Map;
  */
 public abstract class MenuFragment extends Fragment {
 
-    protected ArrayList<MenuItem> menuItems = new ArrayList<MenuItem>();
+    protected ArrayList<CommonFood> menuItems = new ArrayList<CommonFood>();
     protected MenuItemAdapter menuAdapter;
     protected SwipeRefreshLayout pullToRefresh;
     protected Toast mToast;

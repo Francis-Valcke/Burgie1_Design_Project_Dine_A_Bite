@@ -19,6 +19,8 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+import com.example.standapp.json.CommonStand;
+import com.example.standapp.json.CommonFood;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
@@ -33,7 +35,7 @@ import java.util.Objects;
 
 public class DashboardFragment2 extends Fragment {
 
-    private ArrayList<MenuItem> items = new ArrayList<>();
+    private ArrayList<CommonFood> items = new ArrayList<>();
 
     @Nullable
     @Override
@@ -77,7 +79,7 @@ public class DashboardFragment2 extends Fragment {
                         int stock = Integer.parseInt(Objects.requireNonNull(stockInput.getText()).toString());
                         List<String> category = new ArrayList<>();
                         category.add("");
-                        MenuItem item = new MenuItem(name, price, 150, stock, "", "", category);
+                        CommonFood item = new CommonFood(name, price, 150, stock, "", "", category);
                         items.add(item);
                         adapter.notifyDataSetChanged();
                         nameInput.setText("");
@@ -112,18 +114,18 @@ public class DashboardFragment2 extends Fragment {
             public void onClick(View v) {
                 if (bundle != null && Utils.isLoggedIn(getContext(), bundle)) {
 
-                    for (MenuItem item : items) {
+                    for (CommonFood item : items) {
                         item.setBrandName(finalBrandName);
                     }
 
                     // create JSON string containing the information of the menu and the stand
                     long lat = 360L; // temporary
                     long lon = 360L; // temporary
-                    StandInfo standInfo = new StandInfo(finalStandName, finalBrandName, lat, lon, items);
+                    CommonStand commonStand = new CommonStand(finalStandName, finalBrandName, lat, lon, items);
                     ObjectMapper mapper = new ObjectMapper();
                     String jsonString = "";
                     try {
-                        jsonString = mapper.writeValueAsString(standInfo);
+                        jsonString = mapper.writeValueAsString(commonStand);
                     } catch (JsonProcessingException e) {
                         e.printStackTrace();
                     }

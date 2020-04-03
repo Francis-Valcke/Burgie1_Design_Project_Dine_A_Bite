@@ -23,6 +23,7 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
+import com.example.attendeeapp.json.CommonFood;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -182,7 +183,7 @@ public class MenuFragmentStand extends MenuFragment implements AdapterView.OnIte
             JSONArray jsonArray = response.getJSONArray(foodName);
             String brandName = jsonArray.getString(0);
             double price = jsonArray.getDouble(1);
-            MenuItem item = new MenuItem(foodName, new BigDecimal(price), brandName);
+            CommonFood item = new CommonFood(foodName, new BigDecimal(price), brandName);
             item.setStandName(standName);
 
             // Add categories to the menuItem

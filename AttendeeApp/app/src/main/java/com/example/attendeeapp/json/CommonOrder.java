@@ -1,6 +1,4 @@
-package com.example.attendeeapp.order;
-
-import com.example.attendeeapp.MenuItem;
+package com.example.attendeeapp.json;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -35,7 +33,7 @@ public class CommonOrder {
         READY
     }
 
-    public CommonOrder(List<MenuItem> menuItems, String standName, String brandName, double latitude, double longitude){
+    public CommonOrder(List<CommonFood> menuItems, String standName, String brandName, double latitude, double longitude){
         this.id=0;
         this.latitude=latitude;
         this.longitude=longitude;
@@ -49,8 +47,8 @@ public class CommonOrder {
         this.orderStatus=status.SEND;
 
         this.orderItems=new ArrayList<>();
-        for (MenuItem menuItem : menuItems) {
-            orderItems.add(new CommonOrderItem(menuItem.getFoodName(), menuItem.getCount()));
+        for (CommonFood menuItem : menuItems) {
+            orderItems.add(new CommonOrderItem(menuItem.getName(), menuItem.getCount()));
         }
     }
 

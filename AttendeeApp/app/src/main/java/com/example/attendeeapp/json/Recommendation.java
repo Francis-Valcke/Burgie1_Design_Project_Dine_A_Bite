@@ -1,11 +1,10 @@
-package com.example.attendeeapp.order;
+package com.example.attendeeapp.json;
 
 public class Recommendation {
 
     // standId of recommendation
     private int standId;
     private String standName;
-
 
     // meters
     private double distance;
