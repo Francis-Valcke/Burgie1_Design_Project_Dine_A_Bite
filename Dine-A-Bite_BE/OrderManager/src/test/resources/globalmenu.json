@@ -1,0 +1,351 @@
+[
+  {
+    "name": "alcace",
+    "price": 10.50,
+    "count": 0,
+    "stock": 25,
+    "standName": "PizzaHut 1",
+    "brandName": "PizzaHut",
+    "category": [
+      "PIZZA"
+    ],
+    "description": "Smoked bacon cubes, red onion, mushrooms, mild garlic sauce, tomato sauce and mozzarella",
+    "preptime": 1200
+  },
+  {
+    "name": "Barbecue chicken",
+    "price": 10.50,
+    "count": 0,
+    "stock": 25,
+    "standName": "PizzaHut 1",
+    "brandName": "PizzaHut",
+    "category": [
+      "PIZZA"
+    ],
+    "description": "Pieces of grilled chicken, mushrooms, red onion, green pepper, mozzarella and barbecue sauce",
+    "preptime": 1200
+  },
+  {
+    "name": "Big Mac",
+    "price": 5.50,
+    "count": 0,
+    "stock": 25,
+    "standName": "McDonalds 1",
+    "brandName": "McDonalds",
+    "category": [
+      "SNACK",
+      "BURGER"
+    ],
+    "description": "The classic big mac!",
+    "preptime": 600
+  },
+  {
+    "name": "CBO burger",
+    "price": 5.50,
+    "count": 0,
+    "stock": 25,
+    "standName": "McDonalds 1",
+    "brandName": "McDonalds",
+    "category": [
+      "SNACK",
+      "BURGER"
+    ],
+    "description": "Chicken bacon onion",
+    "preptime": 600
+  },
+  {
+    "name": "Cheesam",
+    "price": 10.50,
+    "count": 0,
+    "stock": 25,
+    "standName": "PizzaHut 1",
+    "brandName": "PizzaHut",
+    "category": [
+      "PIZZA"
+    ],
+    "description": "With extra mozzarella, thin strips of ham and tomato sauce",
+    "preptime": 1200
+  },
+  {
+    "name": "Cheeseburger",
+    "price": 5.50,
+    "count": 0,
+    "stock": 25,
+    "standName": "McDonalds 1",
+    "brandName": "McDonalds",
+    "category": [
+      "SNACK",
+      "BURGER"
+    ],
+    "description": "A delicious cheeseburger.",
+    "preptime": 600
+  },
+  {
+    "name": "Chicken Pepper King",
+    "price": 7.30,
+    "count": 0,
+    "stock": 25,
+    "standName": "BurgerKing 1",
+    "brandName": "BurgerKing",
+    "category": [
+      "SNACK",
+      "BURGER"
+    ],
+    "description": "Pepper king with chicken",
+    "preptime": 500
+  },
+  {
+    "name": "Classic Pork",
+    "price": 3.33,
+    "count": 0,
+    "stock": 25,
+    "standName": "Balls & Glory 1",
+    "brandName": "Balls & Glory",
+    "category": [
+      "SNACK"
+    ],
+    "description": "A ball of delicious pork",
+    "preptime": 300
+  },
+  {
+    "name": "Delicious Veggie",
+    "price": 3.33,
+    "count": 0,
+    "stock": 25,
+    "standName": "Balls & Glory 1",
+    "brandName": "Balls & Glory",
+    "category": [
+      "SNACK",
+      "VEGGIE"
+    ],
+    "description": "Veggie ball",
+    "preptime": 300
+  },
+  {
+    "name": "Forestiere",
+    "price": 10.50,
+    "count": 0,
+    "stock": 25,
+    "standName": "PizzaHut 1",
+    "brandName": "PizzaHut",
+    "category": [
+      "PIZZA",
+      "VEGGIE"
+    ],
+    "description": "Strips of ham, mushrooms, tomato cubes, tomato sauce and mozzarella",
+    "preptime": 1200
+  },
+  {
+    "name": "Hot n spicy",
+    "price": 10.50,
+    "count": 0,
+    "stock": 25,
+    "standName": "PizzaHut 1",
+    "brandName": "PizzaHut",
+    "category": [
+      "PIZZA"
+    ],
+    "description": "Spicy beef, chili peppers, red onion, diced tomatoes, tomato sauce and mozzarella",
+    "preptime": 1200
+  },
+  {
+    "name": "Large fries",
+    "price": 4.30,
+    "count": 0,
+    "stock": 25,
+    "standName": "BurgerKing 1",
+    "brandName": "BurgerKing",
+    "category": [
+      "FRIES"
+    ],
+    "description": "Large fries",
+    "preptime": 300
+  },
+  {
+    "name": "Large fries",
+    "price": 3.33,
+    "count": 0,
+    "stock": 25,
+    "standName": "McDonalds 1",
+    "brandName": "McDonalds",
+    "category": [
+      "FRIES"
+    ],
+    "description": "Large fries",
+    "preptime": 300
+  },
+  {
+    "name": "Maestro Generous Jack",
+    "price": 5.50,
+    "count": 0,
+    "stock": 25,
+    "standName": "McDonalds 1",
+    "brandName": "McDonalds",
+    "category": [
+      "SNACK",
+      "BURGER"
+    ],
+    "description": "Big burger with 3 patties.",
+    "preptime": 600
+  },
+  {
+    "name": "Margharita",
+    "price": 10.50,
+    "count": 0,
+    "stock": 25,
+    "standName": "PizzaHut 1",
+    "brandName": "PizzaHut",
+    "category": [
+      "PIZZA"
+    ],
+    "description": "The original, oven-fresh basic pizza with tomato sauce and mozzarella.",
+    "preptime": 1200
+  },
+  {
+    "name": "Medium fries",
+    "price": 3.20,
+    "count": 0,
+    "stock": 25,
+    "standName": "BurgerKing 1",
+    "brandName": "BurgerKing",
+    "category": [
+      "FRIES"
+    ],
+    "description": "Medium fries",
+    "preptime": 300
+  },
+  {
+    "name": "Medium fries",
+    "price": 2.60,
+    "count": 0,
+    "stock": 25,
+    "standName": "McDonalds 1",
+    "brandName": "McDonalds",
+    "category": [
+      "FRIES"
+    ],
+    "description": "Medium fries",
+    "preptime": 300
+  },
+  {
+    "name": "Original Stoemp",
+    "price": 3.33,
+    "count": 0,
+    "stock": 25,
+    "standName": "Balls & Glory 1",
+    "brandName": "Balls & Glory",
+    "category": [
+      "SNACK",
+      "PREPARATION"
+    ],
+    "description": "Stoemp like grandma used to make",
+    "preptime": 1200
+  },
+  {
+    "name": "Pepper",
+    "price": 10.50,
+    "count": 0,
+    "stock": 25,
+    "standName": "PizzaHut 1",
+    "brandName": "PizzaHut",
+    "category": [
+      "PIZZA"
+    ],
+    "description": "Double portion of beef, diced tomatoes, red onion, pepper sauce, tomato sauce and mozzarella",
+    "preptime": 1200
+  },
+  {
+    "name": "Pepper King",
+    "price": 6.70,
+    "count": 0,
+    "stock": 25,
+    "standName": "BurgerKing 1",
+    "brandName": "BurgerKing",
+    "category": [
+      "SNACK",
+      "BURGER"
+    ],
+    "description": "Delicious patty with peppered cheese",
+    "preptime": 400
+  },
+  {
+    "name": "Rebel Whopper",
+    "price": 6.70,
+    "count": 0,
+    "stock": 25,
+    "standName": "BurgerKing 1",
+    "brandName": "BurgerKing",
+    "category": [
+      "SNACK",
+      "BURGER"
+    ],
+    "description": "Veggie burger",
+    "preptime": 400
+  },
+  {
+    "name": "Small fries",
+    "price": 2.10,
+    "count": 0,
+    "stock": 25,
+    "standName": "BurgerKing 1",
+    "brandName": "BurgerKing",
+    "category": [
+      "FRIES"
+    ],
+    "description": "Small fries",
+    "preptime": 300
+  },
+  {
+    "name": "Small fries",
+    "price": 2.10,
+    "count": 0,
+    "stock": 25,
+    "standName": "McDonalds 1",
+    "brandName": "McDonalds",
+    "category": [
+      "FRIES"
+    ],
+    "description": "Small fries",
+    "preptime": 300
+  },
+  {
+    "name": "Sweet Cake",
+    "price": 4.99,
+    "count": 0,
+    "stock": 25,
+    "standName": "Balls & Glory 1",
+    "brandName": "Balls & Glory",
+    "category": [
+      "SNACK"
+    ],
+    "description": "Delicious cake",
+    "preptime": 300
+  },
+  {
+    "name": "Tasty Salad",
+    "price": 5.98,
+    "count": 0,
+    "stock": 25,
+    "standName": "Balls & Glory 1",
+    "brandName": "Balls & Glory",
+    "category": [
+      "SNACK"
+    ],
+    "description": "Healthy green salad",
+    "preptime": 600
+  },
+  {
+    "name": "Ultimate Chicken Bacon King",
+    "price": 9.99,
+    "count": 0,
+    "stock": 25,
+    "standName": "BurgerKing 1",
+    "brandName": "BurgerKing",
+    "category": [
+      "SNACK",
+      "BURGER"
+    ],
+    "description": "The final evolution of the the Chicken Pepper King burger!",
+    "preptime": 700
+  }
+]

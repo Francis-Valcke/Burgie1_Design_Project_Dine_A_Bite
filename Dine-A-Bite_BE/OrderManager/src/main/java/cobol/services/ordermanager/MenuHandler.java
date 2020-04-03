@@ -2,6 +2,7 @@ package cobol.services.ordermanager;
 
 import cobol.commons.CommonFood;
 import cobol.commons.CommonStand;
+import cobol.commons.exception.CommunicationException;
 import cobol.services.ordermanager.domain.entity.Brand;
 import cobol.services.ordermanager.domain.entity.Food;
 import cobol.services.ordermanager.domain.entity.Stand;
@@ -177,7 +178,7 @@ public class MenuHandler {
      * @throws ParseException          A json parsing error
      * @throws DuplicateStandException Duplicate stand detected
      */
-    public void addStand(CommonStand newCommonStand) throws JsonProcessingException, ParseException, DuplicateStandException {
+    public void addStand(CommonStand newCommonStand) throws JsonProcessingException, ParseException, DuplicateStandException, CommunicationException {
 
         // look if stands already exists
         Stand stand = standRepository.findStandById(newCommonStand.getName(), newCommonStand.getBrandName()).orElse(null);
@@ -205,8 +206,13 @@ public class MenuHandler {
 
         JSONParser parser = new JSONParser();
         JSONObject responseObject = (JSONObject) parser.parse(response);
-        boolean addinfo = (boolean) Objects.requireNonNull(responseObject).get("added");
-        if (addinfo) System.out.println("Scheduler added");
+        boolean addinfo = (boolean) responseObject.getOrDefault("added", false);
+        if (addinfo) {
+            System.out.println("Scheduler added");
+        }
+        else{
+            throw new CommunicationException("Scheduler could not be added");
+        }
 
     }
 

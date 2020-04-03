@@ -34,7 +34,7 @@ public class DBController {
      * @param data List of Brand objects deserialized from json
      * @return Success message or exception
      */
-    @GetMapping("/db/import")
+    @PostMapping("/db/import")
     public ResponseEntity<String> load(@RequestBody List<Brand> data) {
 
         data.forEach(brand -> brandRepository.save(brand));
@@ -47,7 +47,7 @@ public class DBController {
      *
      * @return Success message or exception
      */
-    @GetMapping("/db/clear")
+    @DeleteMapping("/db/clear")
     public ResponseEntity<String> clear() throws ParseException, JsonProcessingException {
 
         brandRepository.deleteAll();
@@ -94,7 +94,7 @@ public class DBController {
      * @throws ParseException Parsing error
      * @throws JsonProcessingException Json processing error
      */
-    @RequestMapping("/delete")
+    @DeleteMapping("/delete")
     public ResponseEntity<String> delete() throws ParseException, JsonProcessingException {
         menuHandler.deleteAll();
         return ResponseEntity.ok("Database from OrderManager and StandManager cleared.");

@@ -42,7 +42,9 @@ public class CommunicationHandler {
      * @return response as String
      */
     public String sendRestCallToStandManager(String path, String jsonObject, Map<String, String> params) throws JsonProcessingException {
-        if(configurationBean.isUnitTest()) return "";
+        if(configurationBean.isUnitTest()) {
+            if(path.equals("/newStand")) return "{\"added\": true}";
+        }
         RestTemplate template = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
