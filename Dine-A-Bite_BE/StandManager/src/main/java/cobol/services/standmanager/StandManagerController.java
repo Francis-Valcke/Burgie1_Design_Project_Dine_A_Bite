@@ -1,21 +1,17 @@
 package cobol.services.standmanager;
 
-import cobol.commons.ResponseModel;
 import cobol.commons.CommonStand;
+import cobol.commons.ResponseModel;
 import cobol.commons.exception.CommunicationException;
 import cobol.commons.order.CommonOrder;
-import cobol.commons.order.CommonOrderItem;
 import cobol.commons.order.Recommendation;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -93,7 +89,7 @@ public class StandManagerController {
      * @param order order object for which the Order Manager wants a recommendation
      * @return recommendation in JSON format
      */
-    @RequestMapping(value = "/getRecommendation", consumes = "application/json")
+    @GetMapping(value = "/getRecommendation", consumes = "application/json")
     @ResponseBody
     public List<Recommendation> postCommonOrder(@RequestBody() CommonOrder order) throws JsonProcessingException {
         System.out.println("User requested recommended stand for " + order.getId());

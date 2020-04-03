@@ -1,0 +1,16 @@
+{
+  "name": "Levis Burgers",
+  "brandName": "Levis Burgers",
+  "latitude": 0.0,
+  "longitude": 0.0,
+  "menu":[
+    {
+      "name":"Burger One",
+      "price":2.0,
+      "preptime":150,
+      "stock":20,
+      "description":"Good Burger",
+      "category":["BURGER"]
+    }
+  ]
+}

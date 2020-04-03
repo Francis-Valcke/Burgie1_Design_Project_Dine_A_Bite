@@ -46,7 +46,7 @@ public class OrderController {
      * @throws JsonProcessingException Json processing error
      * @throws DoesNotExistException   Order does not exist
      */
-    @RequestMapping("/getOrderInfo")
+    @GetMapping("/getOrderInfo")
     public ResponseEntity<CommonOrder> getOrderInfo(@RequestParam(name = "orderId") int orderId) throws JsonProcessingException, DoesNotExistException {
         // retrieve order
         Optional<Order> orderOptional = orderProcessor.getOrder(orderId);
