@@ -29,6 +29,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import javax.naming.CommunicationException;
 import java.util.*;
 
 /**
@@ -39,10 +40,10 @@ import java.util.*;
 public class OrderProcessor {
 
     @Autowired
-    private MenuHandler menuHandler;
+    StandRepository standRepository;
 
     @Autowired
-    StandRepository standRepository;
+    CommunicationHandler communicationHandler;
 
     @Autowired
     OrderRepository orderRepository;
@@ -53,84 +54,23 @@ public class OrderProcessor {
     @Autowired
     StandRepository stands;
 
-    private Map<Integer, Order> runningOrders = new HashMap<>();
 
     private int subscriberId;
     private double learningRate;
     private volatile LinkedList<Event> eventQueue = new LinkedList<Event>();
-    private RestTemplate restTemplate;
-    private HttpHeaders headers;
-    private HttpEntity entity;
-    private ObjectMapper objectMapper;
-    // orderid - recommendations
+
+
+    // key order id
     ListMultimap<Integer, Recommendation> orderRecommendations = ArrayListMultimap.create();
 
-    private OrderProcessor() {
-        objectMapper = new ObjectMapper();
-        this.restTemplate = new RestTemplate();
-        this.headers = new HttpHeaders();
-        this.headers.add("Authorization", "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJPcmRlck1hbmFnZXIiLCJyb2xlcyI6WyJST0xFX0FQUExJQ0FUSU9OIl0sImlhdCI6MTU4NDkxMTY3MSwiZXhwIjoxNzQyNTkxNjcxfQ.VmujsURhZaXRp5FQJXzmQMB-e6QSNF-OyPLeMEMOVvI");
-        String uri = OrderManager.ECURL + "/registerSubscriber";
-        //String uri = "http://cobol.idlab.ugent.be:8093/registerSubscriber";
-        this.entity = new HttpEntity(headers);
-        ResponseEntity<String> response = restTemplate.exchange(uri, HttpMethod.GET, entity, String.class);
-        this.subscriberId = Integer.valueOf(response.getBody());
+    private OrderProcessor() throws CommunicationException {
+        this.subscriberId= communicationHandler.getSubscriberIdFromEC();
 
         //set learning rate for the running averages
         this.learningRate = 0.2;
     };
 
-
-    /**
-     * Function that is called regularly to get events from the EC.
-     */
-    @Scheduled(fixedDelay = 500)
-    public void pollEvents() {
-        String uri = OrderManager.ECURL + "/events";
-        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(uri)
-                .queryParam("id", this.subscriberId);
-        ResponseEntity<String> response = this.restTemplate.exchange(builder.toUriString(), HttpMethod.GET, this.entity, String.class);
-        try {
-            JSONObject responseObject = this.objectMapper.readValue(response.getBody(), JSONObject.class);
-            String details = (String) responseObject.get("details");
-            List<Event> eventList = objectMapper.readValue(details, new TypeReference<List<Event>>() {
-            });
-            eventQueue.addAll(eventList);
-        } catch (JsonProcessingException e) {
-            System.err.println(e);
-            e.printStackTrace();
-        }
-    }
-
-    /**
-     * Process events that were received.
-     */
-    @Scheduled(fixedDelay = 500)
-    public void processEvents() {
-        while (!eventQueue.isEmpty()) {
-            Event e = eventQueue.poll();
-            if (e.getDataType().equals("OrderStatusUpdate")) {
-                JSONObject eventData = e.getEventData();
-                String newStatusString = (String) eventData.get("newStatus");
-                CommonOrder.State newStatus = CommonOrder.State.valueOf(newStatusString);
-                int orderId = (int) eventData.get("orderId");
-                Order localOrder = runningOrders.get(orderId);
-                localOrder.setState(newStatus);
-                if (newStatus.equals(CommonOrder.State.DECLINED) || newStatus.equals(CommonOrder.State.READY)) {
-                    if (newStatus.equals(CommonOrder.State.READY)) {
-                        //updatePreparationEstimate(localOrder);
-                    }
-                    runningOrders.remove(orderId);
-                    String uri = OrderManager.ECURL + "/deregisterSubscriber";
-                    String channelId = "o" + Integer.toString(orderId);
-                    UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(uri)
-                            .queryParam("id", this.subscriberId)
-                            .queryParam("type", channelId);
-                    ResponseEntity<String> response = this.restTemplate.exchange(builder.toUriString(), HttpMethod.GET, this.entity, String.class);
-                }
-            }
-        }
-    }
+    // ---- Incoming Requests ---- //
 
     /**
      * Add a new incoming order
@@ -146,39 +86,12 @@ public class OrderProcessor {
         //orderRepository.saveAndFlush(newOrder);
 
         newOrder=orderRepository.save(newOrder);
-        this.runningOrders.put(newOrder.getId(), newOrder);
 
         // subscribe to the channel of the order
-        String uri = OrderManager.ECURL + "/registerSubscriber/toChannel";
-        String channelId = "o" + Integer.toString(newOrder.getId());
-        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(uri)
-                .queryParam("id", this.subscriberId)
-                .queryParam("type", channelId);
-        ResponseEntity<String> responseEntity = this.restTemplate.exchange(builder.toUriString(), HttpMethod.GET, this.entity, String.class);
+        communicationHandler.registerOnOrder(subscriberId, newOrder.getId());
+
         return newOrder;
     }
-
-    /**
-     * Add an already existing order (for example from database)
-     *
-     * @param o: order that is already running but OrderProcessor lost track of
-     */
-    public void addOrder(Order o) {
-        runningOrders.put(o.getId(), o);
-    }
-
-    public Optional<Order> getOrder(int orderId) {
-        Optional<Order> optionalOrder = Optional.ofNullable(runningOrders.getOrDefault(orderId, null));
-
-        if (!optionalOrder.isPresent()) {
-            optionalOrder = orderRepository.findById(orderId);
-            optionalOrder.ifPresent(this::addOrder);
-        }
-
-        return optionalOrder;
-    }
-
-
 
     public Order confirmStand(int orderId, String standName, String brandName) throws DoesNotExistException {
         Optional<Order> orderOptional = this.getOrder(orderId);
@@ -207,27 +120,80 @@ public class OrderProcessor {
         return updatedOrder;
     }
 
-//    private void updatePreparationEstimate(Order order) {
-//        Calendar actualTime =  Calendar.getInstance();
-//        int actualPrepTime = (int) ((actualTime.getTime().getTime() - order.getStartTime().getTime().getTime())) / 1000;
-//        String brandName = order.getStand().getBrandName();
-//        int largestPreptime = 0;
-//        Food foodToUpdate = null;
-//        for (OrderItem item : order.getOrderItems()) {
-//            String foodName = item.getFoodName();
-//            Food food = foodRepository.findFoodById(foodName, order.getStand().getName(), brandName).orElse(null);
-//            if (food != null && food.getPreparationTime() > largestPreptime) {
-//                foodToUpdate = food;
-//                largestPreptime = food.getPreparationTime();
-//            }
-//        }
-//        int updatedAverage = (int) (((1-this.learningRate) * largestPreptime) + (learningRate * actualPrepTime));
-//        foodToUpdate.setPreparationTime(updatedAverage);
-//    }
+    // ---- Update or Process existing orders ---- //
+
+    private void updatePreparationEstimate(Order order) {
+        Calendar actualTime =  Calendar.getInstance();
+        // Compute how long the stand has been working on this order
+        int actualPrepTime = (int) ((actualTime.getTime().getTime() - order.getStartTime().getTime().getTime())) / 1000;
+
+        String brandName = order.getStand().getBrandName();
+        int largestPreptime = 0;
+        Food foodToUpdate = null;
+        for (OrderItem item : order.getOrderItems()) {
+            String foodName = item.getFoodName();
+            Food food = foodRepository.findFoodById(foodName, order.getStand().getName(), brandName).orElse(null);
+            if (food != null && food.getPreparationTime() > largestPreptime) {
+                foodToUpdate = food;
+                largestPreptime = food.getPreparationTime();
+            }
+        }
+        int updatedAverage = (int) (((1-this.learningRate) * largestPreptime) + (learningRate * actualPrepTime));
+        if(foodToUpdate!=null){
+            foodToUpdate.setPreparationTime(updatedAverage);
+        }
+    }
 
     public void addRecommendations(int id, List<Recommendation> recommendations) {
         for (Recommendation recommendation : recommendations) {
             orderRecommendations.put(id, recommendation);
+        }
+    }
+    // ---- Getters ---- //
+
+    public Optional<Order> getOrder(int orderId) {
+        return orderRepository.findById(orderId);
+    }
+
+    // ---- Scheduled Requests ---- //
+
+    @Scheduled(fixedDelay = 500)
+    public void pollEvents() throws CommunicationException, JsonProcessingException {
+        List<Event> newEvents= communicationHandler.pollEventsFromEC(subscriberId);
+        eventQueue.addAll(newEvents);
+    }
+
+    /**
+     * Process events that were received.
+     */
+    @Scheduled(fixedDelay = 500)
+    public void processEvents() {
+        while (!eventQueue.isEmpty()) {
+            Event e = eventQueue.poll();
+            assert e != null;
+            if (e.getDataType().equals("OrderStatusUpdate")) {
+                JSONObject eventData = e.getEventData();
+                String newStatusString = (String) eventData.get("newStatus");
+                CommonOrder.State newStatus = CommonOrder.State.valueOf(newStatusString);
+                int orderId = (int) eventData.get("orderId");
+                Order localOrder = orderRepository.findById(orderId).orElse(null);
+                if(localOrder!=null){
+
+                    // update to new state
+                    localOrder.setState(newStatus);
+                    if (newStatus.equals(CommonOrder.State.DECLINED) || newStatus.equals(CommonOrder.State.READY)) {
+                        if (newStatus.equals(CommonOrder.State.READY)) {
+                            updatePreparationEstimate(localOrder);
+                        }
+
+                        orderRepository.delete(localOrder);
+
+                        // deregister from order
+                        communicationHandler.deregisterFromOrder(subscriberId, orderId);
+
+                    }
+                }
+            }
         }
     }
 }

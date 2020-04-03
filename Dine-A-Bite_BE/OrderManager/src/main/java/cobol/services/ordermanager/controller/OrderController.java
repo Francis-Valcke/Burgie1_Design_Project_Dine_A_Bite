@@ -4,6 +4,7 @@ import cobol.commons.Event;
 import cobol.commons.order.CommonOrder;
 import cobol.commons.order.Recommendation;
 import cobol.commons.security.CommonUser;
+import cobol.services.ordermanager.CommunicationHandler;
 import cobol.services.ordermanager.MenuHandler;
 import cobol.services.ordermanager.OrderManager;
 import cobol.services.ordermanager.OrderProcessor;
@@ -32,8 +33,9 @@ import java.util.Optional;
 @RestController
 public class OrderController {
 
+
     @Autowired
-    private MenuHandler menuHandler;
+    private CommunicationHandler communicationHandler;
     @Autowired
     private ObjectMapper objectMapper;
     @Autowired
@@ -80,7 +82,7 @@ public class OrderController {
         String jsonString = mapper.writeValueAsString(newOrder.asCommonOrder());
 
         // Ask standmanager for recommendation
-        String responseString = menuHandler.sendRestCallToStandManager("/getRecommendation", jsonString, null);
+        String responseString = communicationHandler.sendRestCallToStandManager("/getRecommendation", jsonString, null);
         List<Recommendation> recommendations = mapper.readValue(responseString, new TypeReference<List<Recommendation>>() {});
         orderProcessor.addRecommendations(newOrder.getId(), recommendations);
 

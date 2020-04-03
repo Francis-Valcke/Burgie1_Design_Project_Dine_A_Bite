@@ -48,6 +48,9 @@ public class MenuHandler {
     @Autowired
     private BrandRepository brandRepository;
 
+    @Autowired
+    private CommunicationHandler communicationHandler;
+
     public MenuHandler() {
     }
 
@@ -65,7 +68,7 @@ public class MenuHandler {
         // Clear database
         brandRepository.deleteAll();
 
-        String response = sendRestCallToStandManager("/delete", null, null);
+        String response = communicationHandler.sendRestCallToStandManager("/delete", null, null);
         JSONParser parser = new JSONParser();
         JSONObject responseObject = (JSONObject) parser.parse(response);
 
@@ -85,7 +88,7 @@ public class MenuHandler {
         ObjectMapper mapper = new ObjectMapper();
         String json = mapper.writeValueAsString(standRepository.findAll()
                 .stream().map(Stand::asCommonStand).collect(Collectors.toList()));
-        sendRestCallToStandManager("/update", json, null);
+        communicationHandler.sendRestCallToStandManager("/update", json, null);
     }
 
     public List<Food> getStandMenu(String standName, String brandName) throws DoesNotExistException {
@@ -168,7 +171,7 @@ public class MenuHandler {
 
         JsonMapper jsonMapper= new JsonMapper();
         String jsonString= jsonMapper.writeValueAsString(standEntity.getBrand().getStandList().stream().map(Stand::asCommonStand).collect(Collectors.toList()));
-        sendRestCallToStandManager("/update", jsonString , null);
+        communicationHandler.sendRestCallToStandManager("/update", jsonString , null);
 
     }
 
@@ -206,7 +209,7 @@ public class MenuHandler {
         // Also send the new stand to the StandManager
         ObjectMapper mapper = new ObjectMapper();
         String jsonString = mapper.writeValueAsString(newStand.asCommonStand());
-        String response = sendRestCallToStandManager("/newStand", jsonString, null);
+        String response = communicationHandler.sendRestCallToStandManager("/newStand", jsonString, null);
 
         JSONParser parser = new JSONParser();
         JSONObject responseObject = (JSONObject) parser.parse(response);
@@ -233,71 +236,17 @@ public class MenuHandler {
             Map<String, String> params = new HashMap<>();
             params.put("standName", standName);
             params.put("brandName", brandName);
-            sendRestCallToStandManager("/deleteScheduler", null, params);
+            communicationHandler.sendRestCallToStandManager("/deleteScheduler", null, params);
         } else {
             throw new DoesNotExistException("The stand can't be deleted when it does not exist.");
         }
     }
 
 
-    /**
-     * This method will issue HTTP request to StandManager.
-     * Returns a String assuming the caller knows what to expect from the response.
-     * Ex. JSONArray or JSONObject
-     *
-     * @param path       Example: "/..."
-     * @param jsonObject JSONObject or JSONArray format
-     * @return response as String
-     */
-    public String sendRestCallToStandManager(String path, String jsonObject, Map<String, String> params) throws JsonProcessingException {
-        RestTemplate template = new RestTemplate();
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.add("Authorization", OrderManager.authToken);
 
-        HttpEntity<String> request = new HttpEntity<>(jsonObject, headers);
-        String uri = OrderManager.SMURL + path;
 
-        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(uri);
-        if (params != null) {
-            for (String s : params.keySet()) {
-                try {
-                    builder.queryParam(s, URLEncoder.encode(params.get(s), "UTF-8"));
-                } catch (UnsupportedEncodingException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
 
-        return template.postForObject(builder.toUriString(), request, String.class);
-    }
 
-    /**
-     * publish changed menuItem Event for schedulers
-     *
-     * @param mi    MenuItem
-     * @param brand brandname
-     * @throws JsonProcessingException
-     */
-    public void publishMenuChange(CommonFood mi, String brand) throws JsonProcessingException {
-        JSONObject itemJson = new JSONObject();
-        itemJson.put("menuItem", mi);
-        List<String> types = new ArrayList<>();
-        types.add(brand);
-        Event e = new Event(itemJson, types, "MenuItem");
 
-        // Publish event to standmanager
-        RestTemplate template = new RestTemplate();
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.add("Authorization", "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJPcmRlck1hbmFnZXIiLCJyb2xlcyI6WyJST0xFX0FQUExJQ0FUSU9OIl0sImlhdCI6MTU4NDkxMTY3MSwiZXhwIjoxNzQyNTkxNjcxfQ.VmujsURhZaXRp5FQJXzmQMB-e6QSNF-OyPLeMEMOVvI");
-
-        ObjectMapper objectMapper= new ObjectMapper();
-        String jsonString = objectMapper.writeValueAsString(e);
-        String uri = OrderManager.ECURL + "/publishEvent";
-        HttpEntity<String> entity = new HttpEntity<>(jsonString, headers);
-        String response = template.postForObject(uri, entity, String.class);
-        System.out.println(response);
-    }
 
 }

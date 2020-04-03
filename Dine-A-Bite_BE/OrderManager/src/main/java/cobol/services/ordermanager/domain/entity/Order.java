@@ -169,6 +169,10 @@ public class Order implements Serializable {
         return stand;
     }
 
+    public Calendar getStartTime() {
+        return startTime;
+    }
+
     public void setOrderItems(List<OrderItem> orderItems) {
         this.orderItems = orderItems;
     }
