@@ -1,4 +1,4 @@
-package cobol.services.ordermanager.exception;
+package cobol.commons.exception;
 
 public class DuplicateStandException extends Throwable{
 

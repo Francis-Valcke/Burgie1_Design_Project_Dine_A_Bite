@@ -2,12 +2,15 @@ package cobol.services.ordermanager;
 
 import cobol.commons.CommonFood;
 import cobol.commons.Event;
+import cobol.services.ordermanager.domain.entity.Order;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
 import org.json.simple.JSONObject;
+import org.springframework.context.annotation.Scope;
 import org.springframework.http.*;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -19,8 +22,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-@Service
-@Getter
 public class CommunicationHandler {
 
 
@@ -35,7 +36,7 @@ public class CommunicationHandler {
      * @param jsonObject JSONObject or JSONArray format
      * @return response as String
      */
-    public String sendRestCallToStandManager(String path, String jsonObject, Map<String, String> params) throws JsonProcessingException {
+    public static String sendRestCallToStandManager(String path, String jsonObject, Map<String, String> params) throws JsonProcessingException {
         RestTemplate template = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -68,7 +69,7 @@ public class CommunicationHandler {
      * @return subscriber id used to poll events
      * @throws CommunicationException thrown when eventchannel can't be reached
      */
-    public int getSubscriberIdFromEC() throws CommunicationException {
+    public static int getSubscriberIdFromEC() throws CommunicationException {
 
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
@@ -84,7 +85,7 @@ public class CommunicationHandler {
         }
     }
 
-    public List<Event> pollEventsFromEC(int subscriberId) throws CommunicationException, JsonProcessingException {
+    public static List<Event> pollEventsFromEC(int subscriberId) throws CommunicationException, JsonProcessingException {
         String uri = OrderManager.ECURL + "/events";
 
         // Headers and URL
@@ -115,7 +116,7 @@ public class CommunicationHandler {
      * @param subscriberId subscriber id from ordermanager
      * @param orderId order id from order to unsubscribe from
      */
-    public void deregisterFromOrder(int subscriberId, int orderId) {
+    public static void deregisterFromOrder(int subscriberId, int orderId) {
         String uri = OrderManager.ECURL + "/deregisterSubscriber";
         String channelId = "o" + orderId;
         RestTemplate restTemplate=new RestTemplate();
@@ -134,9 +135,9 @@ public class CommunicationHandler {
      * @param subscriberId Subscriber id from the ordermanager
      * @param orderId order id from order to subscribe to
      */
-    public void registerOnOrder(int subscriberId, int orderId) {
+    public static void registerOnOrder(int subscriberId, int orderId) {
         String uri = OrderManager.ECURL + "/registerSubscriber/toChannel";
-        String channelId = "o" + orderId;
+        String channelId = "o_" + orderId;
         RestTemplate restTemplate=new RestTemplate();
         HttpHeaders httpHeaders= new HttpHeaders();
         httpHeaders.add("Authorization", OrderManager.authToken);
@@ -147,7 +148,28 @@ public class CommunicationHandler {
         ResponseEntity<String> responseEntity = restTemplate.exchange(builder.toUriString(), HttpMethod.GET, httpEntity, String.class);
     }
 
+    public static String publishConfirmedStand(Order updatedOrder, String standName, String brandName) throws JsonProcessingException {
+        // Create event for eventchannel
+        JSONObject orderJson = new JSONObject();
+        orderJson.put("order", updatedOrder);
+        List<String> types = new ArrayList<>();
+        types.add("o_" + updatedOrder.getId());
+        types.add("s_" + standName + "_" + brandName);
+        Event e = new Event(orderJson, types, "Order");
 
+        // Send Request
+        ObjectMapper objectMapper= new ObjectMapper();
+        String jsonString = objectMapper.writeValueAsString(e);
+        HttpHeaders headers= new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.add("Authorization", OrderManager.authToken);
+        RestTemplate restTemplate= new RestTemplate();
+        String uri = OrderManager.ECURL + "/publishEvent";
+
+        HttpEntity<String> entity = new HttpEntity<>(jsonString, headers);
+        return restTemplate.postForObject(uri, entity, String.class);
+
+    }
     // ---- TODO te verwijderen? ----//
 
     /**
@@ -159,7 +181,7 @@ public class CommunicationHandler {
      * @param brand brandname
      * @throws JsonProcessingException
      */
-    public void publishMenuChange(CommonFood mi, String brand) throws JsonProcessingException {
+    public static void publishMenuChange(CommonFood mi, String brand) throws JsonProcessingException {
         JSONObject itemJson = new JSONObject();
         itemJson.put("menuItem", mi);
         List<String> types = new ArrayList<>();
@@ -179,5 +201,7 @@ public class CommunicationHandler {
         String response = template.postForObject(uri, entity, String.class);
         System.out.println(response);
     }
+
+
 
 }

@@ -5,17 +5,14 @@ import cobol.commons.order.CommonOrder;
 import cobol.commons.order.Recommendation;
 import cobol.commons.security.CommonUser;
 import cobol.services.ordermanager.CommunicationHandler;
-import cobol.services.ordermanager.MenuHandler;
 import cobol.services.ordermanager.OrderManager;
 import cobol.services.ordermanager.OrderProcessor;
 import cobol.services.ordermanager.domain.entity.Order;
-import cobol.services.ordermanager.exception.DoesNotExistException;
+import cobol.commons.exception.DoesNotExistException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
@@ -34,8 +31,6 @@ import java.util.Optional;
 public class OrderController {
 
 
-    @Autowired
-    private CommunicationHandler communicationHandler;
     @Autowired
     private ObjectMapper objectMapper;
     @Autowired
@@ -82,7 +77,7 @@ public class OrderController {
         String jsonString = mapper.writeValueAsString(newOrder.asCommonOrder());
 
         // Ask standmanager for recommendation
-        String responseString = communicationHandler.sendRestCallToStandManager("/getRecommendation", jsonString, null);
+        String responseString = CommunicationHandler.sendRestCallToStandManager("/getRecommendation", jsonString, null);
         List<Recommendation> recommendations = mapper.readValue(responseString, new TypeReference<List<Recommendation>>() {});
         orderProcessor.addRecommendations(newOrder.getId(), recommendations);
 
@@ -110,24 +105,8 @@ public class OrderController {
         // Update order, confirm stand
         Order updatedOrder = orderProcessor.confirmStand(orderId, standName, brandName);
 
-        // Make event for eventchannel (orderId, standId)
-        JSONObject orderJson = new JSONObject();
-        orderJson.put("order", updatedOrder);
-        List<String> types = new ArrayList<>();
-        types.add("o" + orderId);
-        types.add("s_" + standName + "_" + brandName);
-        Event e = new Event(orderJson, types, "Order");
-
         // Publish event to standmanager
-        String jsonString = objectMapper.writeValueAsString(e);
-        HttpHeaders headers= new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.add("Authorization", OrderManager.authToken);
-        RestTemplate restTemplate= new RestTemplate();
-        String uri = OrderManager.ECURL + "/publishEvent";
-
-        HttpEntity<String> entity = new HttpEntity<>(jsonString, headers);
-        String response = restTemplate.postForObject(uri, entity, String.class);
+        String response= CommunicationHandler.publishConfirmedStand(updatedOrder, standName, brandName);
 
         return ResponseEntity.ok(response);
     }

@@ -2,6 +2,7 @@ package cobol.services.standmanager;
 
 import cobol.commons.CommonFood;
 import cobol.commons.Event;
+import cobol.commons.exception.CommunicationException;
 import cobol.commons.order.CommonOrder;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -11,6 +12,7 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -27,43 +29,39 @@ import java.util.concurrent.TimeUnit;
  * TODO: change "inc" to proper schedule
  */
 public class Scheduler extends Thread {
+
+
+
+    // incoming orders
     private List<CommonOrder> inc = new LinkedList<>();
-    private List<CommonFood> menu;
+
+
+    // Stand properties
+
     private String standName;
-    private ObjectMapper objectMapper;
-    private RestTemplate restTemplate;
-    private HttpHeaders headers;
-    private HttpEntity entity;
-    // Coordinates of Stand
+    private List<CommonFood> menu;
     private double lon;
     private double lat;
+
+
+    // Scheduler properties
     private int subscriberId;
     private String brandName;
 
-    public Scheduler(List<CommonFood> menu, String standName, String brandName, double lat, double lon) {
+    private ObjectMapper objectMapper;
+    public Scheduler(List<CommonFood> menu, String standName, String brandName, double lat, double lon) throws CommunicationException {
+        // set stand properties
         this.menu = menu;
         this.standName = standName;
         this.brandName = brandName;
         this.lat= lat;
         this.lon=lon;
-        objectMapper = new ObjectMapper();
-        objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-        restTemplate = new RestTemplate();
-        headers=new HttpHeaders();
-        // subscribe to the channel of the brand
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.add("Authorization", "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJTdGFuZE1hbmFnZXIiLCJyb2xlcyI6WyJST0xFX0FQUExJQ0FUSU9OIl0sImlhdCI6MTU4NDkxMTc0MywiZXhwIjoxNzQyNTkxNzQzfQ.tuteSFjRJdQDMja2ioV0eiHvuCu0lkuS94zyhw9ZLIk");
-        entity = new HttpEntity<>(headers);
-        String uri = StandManager.ECURL + "/registerSubscriber";
-        ResponseEntity<String> response = restTemplate.exchange(uri, HttpMethod.GET, entity, String.class);
-        this.subscriberId = Integer.valueOf(response.getBody());
-        String channelId = brandName;
-        uri = StandManager.ECURL + "/registerSubscriber/toChannel";
-        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(uri)
-                .queryParam("id", this.subscriberId)
-                .queryParam("type", channelId);
 
-        ResponseEntity<String> responseEntity = restTemplate.exchange(builder.toUriString(), HttpMethod.GET, entity, String.class);
+        // retrieve subscriber id
+        subscriberId= CommunicationHandler.getSubscriberIdFromEC();
+
+        // register to orders from a brand
+        CommunicationHandler.registerToOrdersFromBrand(subscriberId, brandName);
 
     }
 
@@ -84,26 +82,17 @@ public class Scheduler extends Thread {
     }
 
     public void pollEvents() {
-        String uri = StandManager.ECURL + "/events";
-        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(uri)
-                .queryParam("id", this.subscriberId);
-        ResponseEntity<String> response = this.restTemplate.exchange(builder.toUriString(), HttpMethod.GET, this.entity, String.class);
-        try {
-            JSONObject responseObject = this.objectMapper.readValue(response.getBody(), JSONObject.class);
-            String details = (String) responseObject.get("details");
-            JSONParser parser = new JSONParser();
-            JSONArray detailsJSON = (JSONArray) parser.parse(details);
-            List<Event> eventList = objectMapper.readValue(details, new TypeReference<List<Event>>() {
-            });
-            for (int i = 0; i < detailsJSON.size(); i++) {
-                JSONObject e = (JSONObject) detailsJSON.get(i);
 
-                JSONObject eventData = (JSONObject) e.get("eventData");
+        try {
+
+            List<Event> eventList=CommunicationHandler.pollEventsFromEC(subscriberId);
+
+            for (Event event : eventList) {
+                JSONObject eventData = event.getEventData();
                 JSONObject menuchange = (JSONObject) eventData.get("menuItem");
                 CommonFood mi = objectMapper.readValue(menuchange.toString(), CommonFood.class);
                 for (CommonFood mi2 : menu) {
                     updateItem(mi, mi2);
-
                 }
             }
         } catch (JsonProcessingException | ParseException e) {

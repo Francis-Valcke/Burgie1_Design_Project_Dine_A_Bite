@@ -2,15 +2,14 @@ package cobol.services.ordermanager;
 
 import cobol.commons.CommonFood;
 import cobol.commons.CommonStand;
-import cobol.commons.Event;
 import cobol.services.ordermanager.domain.entity.Brand;
 import cobol.services.ordermanager.domain.entity.Food;
 import cobol.services.ordermanager.domain.entity.Stand;
 import cobol.services.ordermanager.domain.repository.BrandRepository;
 import cobol.services.ordermanager.domain.repository.FoodRepository;
 import cobol.services.ordermanager.domain.repository.StandRepository;
-import cobol.services.ordermanager.exception.DoesNotExistException;
-import cobol.services.ordermanager.exception.DuplicateStandException;
+import cobol.commons.exception.DoesNotExistException;
+import cobol.commons.exception.DuplicateStandException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
@@ -19,15 +18,8 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriComponentsBuilder;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -48,8 +40,6 @@ public class MenuHandler {
     @Autowired
     private BrandRepository brandRepository;
 
-    @Autowired
-    private CommunicationHandler communicationHandler;
 
     public MenuHandler() {
     }
@@ -68,7 +58,7 @@ public class MenuHandler {
         // Clear database
         brandRepository.deleteAll();
 
-        String response = communicationHandler.sendRestCallToStandManager("/delete", null, null);
+        String response = CommunicationHandler.sendRestCallToStandManager("/delete", null, null);
         JSONParser parser = new JSONParser();
         JSONObject responseObject = (JSONObject) parser.parse(response);
 
@@ -88,7 +78,7 @@ public class MenuHandler {
         ObjectMapper mapper = new ObjectMapper();
         String json = mapper.writeValueAsString(standRepository.findAll()
                 .stream().map(Stand::asCommonStand).collect(Collectors.toList()));
-        communicationHandler.sendRestCallToStandManager("/update", json, null);
+        CommunicationHandler.sendRestCallToStandManager("/update", json, null);
     }
 
     public List<Food> getStandMenu(String standName, String brandName) throws DoesNotExistException {
@@ -171,7 +161,7 @@ public class MenuHandler {
 
         JsonMapper jsonMapper= new JsonMapper();
         String jsonString= jsonMapper.writeValueAsString(standEntity.getBrand().getStandList().stream().map(Stand::asCommonStand).collect(Collectors.toList()));
-        communicationHandler.sendRestCallToStandManager("/update", jsonString , null);
+        CommunicationHandler.sendRestCallToStandManager("/update", jsonString , null);
 
     }
 
@@ -209,7 +199,7 @@ public class MenuHandler {
         // Also send the new stand to the StandManager
         ObjectMapper mapper = new ObjectMapper();
         String jsonString = mapper.writeValueAsString(newStand.asCommonStand());
-        String response = communicationHandler.sendRestCallToStandManager("/newStand", jsonString, null);
+        String response = CommunicationHandler.sendRestCallToStandManager("/newStand", jsonString, null);
 
         JSONParser parser = new JSONParser();
         JSONObject responseObject = (JSONObject) parser.parse(response);
@@ -236,7 +226,7 @@ public class MenuHandler {
             Map<String, String> params = new HashMap<>();
             params.put("standName", standName);
             params.put("brandName", brandName);
-            communicationHandler.sendRestCallToStandManager("/deleteScheduler", null, params);
+            CommunicationHandler.sendRestCallToStandManager("/deleteScheduler", null, params);
         } else {
             throw new DoesNotExistException("The stand can't be deleted when it does not exist.");
         }

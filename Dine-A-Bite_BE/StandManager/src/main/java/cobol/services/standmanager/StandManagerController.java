@@ -2,6 +2,7 @@ package cobol.services.standmanager;
 
 import cobol.commons.ResponseModel;
 import cobol.commons.CommonStand;
+import cobol.commons.exception.CommunicationException;
 import cobol.commons.order.CommonOrder;
 import cobol.commons.order.CommonOrderItem;
 import cobol.commons.order.Recommendation;
@@ -46,7 +47,7 @@ public class StandManagerController {
      * @throws JsonProcessingException when wrong input param
      */
     @PostMapping("/update")
-    public void update(@RequestBody ArrayList<CommonStand> stands) throws JsonProcessingException {
+    public void update(@RequestBody ArrayList<CommonStand> stands) throws CommunicationException {
         for (CommonStand stand : stands) {
            schedulerHandler.updateSchedulers(stand);
         }
@@ -73,7 +74,7 @@ public class StandManagerController {
      * @return true (if no errors)
      */
     @PostMapping(value = "/newStand", consumes = "application/json")
-    public JSONObject addNewStand(@RequestBody() CommonStand stand) {
+    public JSONObject addNewStand(@RequestBody() CommonStand stand) throws CommunicationException {
             return schedulerHandler.updateSchedulers(stand);
     }
 

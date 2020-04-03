@@ -1,6 +1,5 @@
 package cobol.services.ordermanager;
 
-import cobol.commons.CommonFood;
 import cobol.commons.Event;
 import cobol.commons.order.CommonOrder;
 import cobol.commons.order.Recommendation;
@@ -11,23 +10,15 @@ import cobol.services.ordermanager.domain.entity.Stand;
 import cobol.services.ordermanager.domain.repository.FoodRepository;
 import cobol.services.ordermanager.domain.repository.OrderRepository;
 import cobol.services.ordermanager.domain.repository.StandRepository;
-import cobol.services.ordermanager.exception.DoesNotExistException;
+import cobol.commons.exception.DoesNotExistException;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.naming.CommunicationException;
 import java.util.*;
@@ -41,9 +32,6 @@ public class OrderProcessor {
 
     @Autowired
     StandRepository standRepository;
-
-    @Autowired
-    CommunicationHandler communicationHandler;
 
     @Autowired
     OrderRepository orderRepository;
@@ -64,7 +52,7 @@ public class OrderProcessor {
     ListMultimap<Integer, Recommendation> orderRecommendations = ArrayListMultimap.create();
 
     private OrderProcessor() throws CommunicationException {
-        this.subscriberId= communicationHandler.getSubscriberIdFromEC();
+        this.subscriberId= CommunicationHandler.getSubscriberIdFromEC();
 
         //set learning rate for the running averages
         this.learningRate = 0.2;
@@ -88,7 +76,7 @@ public class OrderProcessor {
         newOrder=orderRepository.save(newOrder);
 
         // subscribe to the channel of the order
-        communicationHandler.registerOnOrder(subscriberId, newOrder.getId());
+        CommunicationHandler.registerOnOrder(subscriberId, newOrder.getId());
 
         return newOrder;
     }
@@ -159,7 +147,7 @@ public class OrderProcessor {
 
     @Scheduled(fixedDelay = 500)
     public void pollEvents() throws CommunicationException, JsonProcessingException {
-        List<Event> newEvents= communicationHandler.pollEventsFromEC(subscriberId);
+        List<Event> newEvents= CommunicationHandler.pollEventsFromEC(subscriberId);
         eventQueue.addAll(newEvents);
     }
 
@@ -189,7 +177,7 @@ public class OrderProcessor {
                         orderRepository.delete(localOrder);
 
                         // deregister from order
-                        communicationHandler.deregisterFromOrder(subscriberId, orderId);
+                        CommunicationHandler.deregisterFromOrder(subscriberId, orderId);
 
                     }
                 }

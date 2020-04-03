@@ -3,7 +3,7 @@ package cobol.services.ordermanager.controller;
 import cobol.commons.CommonFood;
 import cobol.services.ordermanager.MenuHandler;
 import cobol.services.ordermanager.domain.entity.Food;
-import cobol.services.ordermanager.exception.DoesNotExistException;
+import cobol.commons.exception.DoesNotExistException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;

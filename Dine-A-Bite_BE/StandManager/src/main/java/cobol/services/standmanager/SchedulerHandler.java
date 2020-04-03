@@ -2,6 +2,7 @@ package cobol.services.standmanager;
 
 import cobol.commons.CommonFood;
 import cobol.commons.CommonStand;
+import cobol.commons.exception.CommunicationException;
 import cobol.commons.order.CommonOrder;
 import cobol.commons.order.CommonOrderItem;
 import cobol.commons.order.Recommendation;
@@ -126,7 +127,7 @@ public class SchedulerHandler {
             s.pollEvents();
         }
     }
-    public JSONObject updateSchedulers(CommonStand info){
+    public JSONObject updateSchedulers(CommonStand info) throws CommunicationException {
         boolean newScheduler = true;
         JSONObject obj = new JSONObject();
         for (Scheduler s : getSchedulers()) {
