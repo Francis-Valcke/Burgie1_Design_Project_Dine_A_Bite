@@ -50,6 +50,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import static com.example.attendeeapp.ServerConfig.AUTHORIZATION_TOKEN;
+
 /**
  * Activity to handle the view cart page
  */
@@ -262,8 +264,7 @@ public class CartActivity extends AppCompatActivity {
 
         // Instantiate the RequestQueue
         RequestQueue queue = Volley.newRequestQueue(this);
-        //String url = "http://10.0.2.2:8081/placeOrder";
-        String url = "http://cobol.idlab.ugent.be:8091/placeOrder";
+        String url = ServerConfig.OM_ADDRESS + "/placeOrder";
 
 
         // Request recommendation from server for sent order (both in JSON)
@@ -299,10 +300,7 @@ public class CartActivity extends AppCompatActivity {
             public @NonNull Map<String, String> getHeaders()  throws AuthFailureError {
                 Map<String, String>  headers  = new HashMap<String, String>();
                 headers.put("Content-Type", "application/json");
-                headers.put("Authorization", "Bearer " + "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOi" +
-                        "JmcmFuY2lzIiwicm9sZXMiOlsiUk9MRV9VU0VSIiwiUk9MRV9BRE1JTiJdLCJpYX" +
-                        "QiOjE1ODQ2MTAwMTcsImV4cCI6MTc0MjI5MDAxN30.5UNYM5Qtc4anyHrJXIuK0O" +
-                        "UlsbAPNyS9_vr-1QcOWnQ");
+                headers.put("Authorization", AUTHORIZATION_TOKEN);
                 return headers;
             }
         };

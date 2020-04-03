@@ -132,7 +132,7 @@ public class DashboardFragment2 extends Fragment {
 
                     // Instantiate the RequestQueue
                     RequestQueue queue = Volley.newRequestQueue(Objects.requireNonNull(getContext()));
-                    String url = "http://cobol.idlab.ugent.be:8091/addstand";
+                    String url = ServerConfig.OM_ADDRESS + "/newStand";
 
                     // POST to server
                     final String finalJsonString = jsonString;
@@ -164,7 +164,7 @@ public class DashboardFragment2 extends Fragment {
                         public Map<String, String> getHeaders() {
                             HashMap<String, String> headers = new HashMap<>();
                             headers.put("Content-Type", "application/json");
-                            headers.put("Authorization", "Bearer" + " " + "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJmcmFuY2lzIiwicm9sZXMiOlsiUk9MRV9VU0VSIiwiUk9MRV9BRE1JTiJdLCJpYXQiOjE1ODQ2MTAwMTcsImV4cCI6MTc0MjI5MDAxN30.5UNYM5Qtc4anyHrJXIuK0OUlsbAPNyS9_vr-1QcOWnQ");
+                            headers.put("Authorization", ServerConfig.AUTHORIZATION_TOKEN);
                             return headers;
                         }
                     };

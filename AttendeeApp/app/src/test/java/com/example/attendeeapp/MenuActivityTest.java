@@ -30,7 +30,6 @@ import static org.robolectric.Shadows.shadowOf;
 public class MenuActivityTest {
 
     // TODO: test permission granting
-
     private MenuActivity menuActivity;
 
     @Before

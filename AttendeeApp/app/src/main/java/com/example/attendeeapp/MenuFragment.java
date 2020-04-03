@@ -24,6 +24,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.example.attendeeapp.ServerConfig.AUTHORIZATION_TOKEN;
+
 /**
  * Abstract parent class of global and stand menuFragments
  * Contains the common variables and functions
@@ -56,10 +58,10 @@ public abstract class MenuFragment extends Fragment {
     protected void fetchMenu(final String standName){
         // Instantiate the RequestQueue
         RequestQueue queue = Volley.newRequestQueue(getActivity());
-        String url = "http://cobol.idlab.ugent.be:8091/";
+        String url = ServerConfig.OM_ADDRESS;
         int req = Request.Method.GET;
         if(standName.equals("")){
-            url = url + "menu";
+            url = url + "/menu";
         } else {
             //url = "http://localhost:8080/standmenu?standname=" + standName;
             url = url + "standmenu?standname=" + standName;
@@ -116,10 +118,7 @@ public abstract class MenuFragment extends Fragment {
             public @NonNull
             Map<String, String> getHeaders()  throws AuthFailureError {
                 Map<String, String>  headers  = new HashMap<String, String>();
-                headers.put("Authorization", "Bearer " + "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOi" +
-                        "JmcmFuY2lzIiwicm9sZXMiOlsiUk9MRV9VU0VSIiwiUk9MRV9BRE1JTiJdLCJpYX" +
-                        "QiOjE1ODQ2MTAwMTcsImV4cCI6MTc0MjI5MDAxN30.5UNYM5Qtc4anyHrJXIuK0O" +
-                        "UlsbAPNyS9_vr-1QcOWnQ");
+                headers.put("Authorization", AUTHORIZATION_TOKEN);
                 return headers;
             }
         };
