@@ -158,8 +158,6 @@ public class SchedulerHandler {
                         }
                     }
 
-                    // TODO is dit nooit getest geweest ?? je kan geen items
-                    //  verwijderen uit een lijst dat je aan het itereren bent
                     List<CommonFood> toRemove= new ArrayList<>();
                     for (CommonFood mi2 : s.getMenu()) {
                         if (!l.contains(mi2.getName())){

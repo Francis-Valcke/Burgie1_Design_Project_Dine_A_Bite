@@ -187,10 +187,6 @@ public class CommonFood implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         CommonFood that = (CommonFood) o;
-
-        boolean priceb = price.floatValue()==that.price.floatValue();
-        boolean cat = Objects.equals(new HashSet(category), new HashSet(that.category));
-
         return preparationTime == that.preparationTime &&
                 name.equals(that.name) &&
                 price.floatValue()==that.price.floatValue() &&

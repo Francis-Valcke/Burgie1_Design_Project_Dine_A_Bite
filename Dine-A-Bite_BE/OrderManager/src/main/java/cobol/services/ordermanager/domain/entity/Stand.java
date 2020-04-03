@@ -193,13 +193,6 @@ public class Stand implements Serializable {
         return Objects.hash(getName(), getBrandName());
     }
 
-    public Stand updateShallow(CommonStand commonStand) {
-        this.latitude = commonStand.getLatitude();
-        this.longitude = commonStand.getLongitude();
-
-        return this;
-    }
-
 
     // ---- Composite Id ----//
 

@@ -67,8 +67,8 @@ public class Scheduler extends Thread {
      */
     static boolean updateItem(CommonFood mi, CommonFood mi2) {
         if (mi.getName().equals(mi2.getName())) {
-            if (mi.getPreparationTime() >= 0) mi2.setPreparationTime(mi.getPreparationTime());
-            if (mi.getPrice().compareTo(BigDecimal.ZERO) >= 0) mi2.setPrice(mi.getPrice());
+            mi2.setPreparationTime(mi.getPreparationTime());
+            mi2.setPrice(mi.getPrice());
             mi2.setStock(mi.getStock() + mi2.getStock());
             return true;
         }

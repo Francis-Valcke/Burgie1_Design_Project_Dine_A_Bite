@@ -43,10 +43,12 @@ public class StandManagerController {
      * @throws JsonProcessingException when wrong input param
      */
     @PostMapping("/update")
-    public void update(@RequestBody ArrayList<CommonStand> stands) throws CommunicationException {
+    public void update(@RequestBody List<CommonStand> stands) throws CommunicationException {
+
         for (CommonStand stand : stands) {
-           schedulerHandler.updateSchedulers(stand);
+            schedulerHandler.updateSchedulers(stand);
         }
+
 
     }
 
@@ -89,7 +91,7 @@ public class StandManagerController {
      * @param order order object for which the Order Manager wants a recommendation
      * @return recommendation in JSON format
      */
-    @GetMapping(value = "/getRecommendation", consumes = "application/json")
+    @RequestMapping(value = "/getRecommendation", consumes = "application/json")
     @ResponseBody
     public List<Recommendation> postCommonOrder(@RequestBody() CommonOrder order) throws JsonProcessingException {
         System.out.println("User requested recommended stand for " + order.getId());

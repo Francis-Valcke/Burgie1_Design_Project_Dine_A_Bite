@@ -156,9 +156,10 @@ public class MenuHandler {
 
         standRepository.save(modifiedStand);
 
+        //Send update to stand manger
         JsonMapper jsonMapper= new JsonMapper();
-        String jsonString= jsonMapper.writeValueAsString(modifiedStand.getBrand().getStandList().stream().map(Stand::asCommonStand).collect(Collectors.toList()));
-        communicationHandler.sendRestCallToStandManager("/update", jsonString , null);
+        String jsonString= jsonMapper.writeValueAsString(commonStand);
+        communicationHandler.sendRestCallToStandManager("/newStand", jsonString , null);
     }
 
 
@@ -229,12 +230,5 @@ public class MenuHandler {
             throw new DoesNotExistException("The stand can't be deleted when it does not exist.");
         }
     }
-
-
-
-
-
-
-
 
 }
