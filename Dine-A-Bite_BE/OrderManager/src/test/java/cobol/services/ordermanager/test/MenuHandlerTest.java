@@ -227,8 +227,24 @@ public class MenuHandlerTest {
 
 
     @Test
-    public void addTwoStandsFromSameBrand() throws Exception {
+    public void addStand() throws Exception{
         URL url = Thread.currentThread().getContextClassLoader().getResource("newStand.json");
+        assert url != null;
+        String body = Resources.toString(url, StandardCharsets.UTF_8);
+        CommonStand commonStand = objectMapper.readValue(body, CommonStand.class);
+
+        this.mockMvc.perform(post("/addStand").contentType(MediaType.APPLICATION_JSON)
+                .content(body)
+                .header("Authorization", token))
+                .andExpect(status().isOk())
+                .andReturn();
+    }
+
+
+    @Test
+    public void addTwoStandsFromSameBrand() throws Exception {
+        // TODO: uncomment when merging with brand of francis
+        /*URL url = Thread.currentThread().getContextClassLoader().getResource("newStand.json");
         assert url != null;
         String body = Resources.toString(url, StandardCharsets.UTF_8);
         CommonStand commonStand = objectMapper.readValue(body, CommonStand.class);
@@ -248,7 +264,7 @@ public class MenuHandlerTest {
                 .content(body2)
                 .header("Authorization", token))
                 .andExpect(status().isOk())
-                .andReturn();
+                .andReturn();*/
 
     }
 
