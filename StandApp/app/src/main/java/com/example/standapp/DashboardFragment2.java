@@ -132,7 +132,7 @@ public class DashboardFragment2 extends Fragment {
 
                     // Instantiate the RequestQueue
                     RequestQueue queue = Volley.newRequestQueue(Objects.requireNonNull(getContext()));
-                    String url = ServerConfig.OM_ADDRESS + "/newStand";
+                    String url = ServerConfig.OM_ADDRESS + "/addStand";
 
                     // POST to server
                     final String finalJsonString = jsonString;

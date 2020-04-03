@@ -1,12 +1,18 @@
 package cobol.services.ordermanager.domain.entity;
 
 import cobol.commons.CommonStand;
+import cobol.services.ordermanager.domain.SpringContext;
+import cobol.services.ordermanager.domain.repository.BrandRepository;
+import cobol.services.ordermanager.domain.repository.CategoryRepository;
+import cobol.services.ordermanager.domain.repository.StandRepository;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Configurable;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -23,7 +29,6 @@ public class Stand implements Serializable {
     @JsonIgnore
     @EmbeddedId
     private StandId standId;
-
     private double longitude;
     private double latitude;
 
@@ -36,15 +41,38 @@ public class Stand implements Serializable {
     List<Order> orderList = new ArrayList<>();
 
 
-    // ---- Constructors ---- //
     public Stand() {
     }
 
     public Stand(String name, String brandName) {
-        this.standId = new StandId(name, new Brand(brandName));
+        BrandRepository brandRepository = SpringContext.getBean(BrandRepository.class);
+        Brand brand = brandRepository.findById(brandName).orElse(new Brand(brandName));
+        this.standId = new StandId(name, brand);
     }
 
-    // ---- Transformers ----//
+    public Stand(CommonStand cs){
+
+        //Update general fields
+        this.longitude = cs.getLongitude();
+        this.latitude = cs.getLatitude();
+
+        //Set the brand in the standId
+        BrandRepository brandRepository = SpringContext.getBean(BrandRepository.class);
+        Brand brand = brandRepository.findById(cs.getBrandName()).orElse(new Brand(cs.getBrandName()));
+        this.standId = new StandId(cs.getName(), brand);
+
+        //Update food list
+        cs.getMenu().forEach(cf -> {
+            //TODO: should not be nescessary if everything is sent correctly
+            cf.setBrandName(cs.getBrandName());
+            cf.setStandName(cs.getName());
+
+            Food food = new Food(cf);
+            foodList.add(food);
+            food.setStand(this);
+        });
+
+    }
 
     /**
      * Transform a CommonStand object to a Stand object and attach it with a Brand object
@@ -54,12 +82,14 @@ public class Stand implements Serializable {
      * @param brand Brand object
      */
     public Stand(CommonStand commonStand, Brand brand) {
-        brand.getStandList().add(this);
         this.standId = new StandId(commonStand.getName(), brand);
         this.latitude = commonStand.getLatitude();
         this.longitude = commonStand.getLongitude();
-        Stand thisStand = this;
-        this.foodList = commonStand.getMenu().stream().map(cf -> new Food(cf, thisStand)).collect(Collectors.toList());
+        commonStand.getMenu().forEach(cf -> {
+            Food food = new Food(cf, this);
+            foodList.add(food); //Map bidirectional relationship
+            food.setStand(this);
+        });
     }
 
 
@@ -86,23 +116,21 @@ public class Stand implements Serializable {
     }
 
 
-
     // ---- Getters and Setters ----//
 
-    @JsonProperty("name")
-    public String getName() {
+    public String getName(){
         return standId.name;
     }
+
+    public String getBrandName(){
+        return standId.brand.getName();
+    }
+
 
     @JsonProperty("name")
     public void setName(String name) {
         standId = (standId == null) ? new StandId() : standId;
         this.standId.name = name;
-    }
-
-    @JsonIgnore
-    public String getBrandName() {
-        return standId.brand.getName();
     }
 
     @JsonProperty("brandName")

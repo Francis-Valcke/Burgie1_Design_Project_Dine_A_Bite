@@ -2,7 +2,9 @@ package cobol.services.ordermanager.domain.entity;
 
 import cobol.commons.CommonFood;
 import cobol.services.ordermanager.domain.SpringContext;
+import cobol.services.ordermanager.domain.repository.BrandRepository;
 import cobol.services.ordermanager.domain.repository.CategoryRepository;
+import cobol.services.ordermanager.domain.repository.StandRepository;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -45,12 +47,18 @@ public class Food {
     private List<Category> category = new ArrayList<>();
 
 
-    // ---- Constructors ---- //
+
     public Food() {
+
     }
 
+    public Food(String name, String standName, String brandName) {
 
-    // ---- Updaters ---- //
+        StandRepository standRepository = SpringContext.getBean(StandRepository.class);
+        Stand stand = standRepository.findStandById(standName, brandName).orElse(new Stand(standName, brandName));
+        this.foodId = new Food.FoodId(name, stand);
+    }
+
     public void updateGlobalProperties(Food cf) {
         this.description = cf.getDescription();
         this.category = cf.getCategory();
@@ -62,8 +70,6 @@ public class Food {
         this.stock += cf.getStock();
     }
 
-    // ---- Transformers ---- //
-
     /**
      * Transform a CommonFood Object to a Food Object
      * - Used to update Stand menu (compare with food)
@@ -71,18 +77,21 @@ public class Food {
      */
     public Food(CommonFood cf){
 
+        //Setting general fields
         this.description = cf.getDescription();
         this.price = cf.getPrice().floatValue();
         this.preparationTime = cf.getPreparationTime();
         this.stock = cf.getStock();
-        this.foodId = new FoodId(cf.getName(), new Stand(cf.getStandName(), cf.getBrandName()));
-        this.category = new ArrayList<>();
 
+        //Setting foodId
+        StandRepository standRepository = SpringContext.getBean(StandRepository.class);
+        Stand stand = standRepository.findStandById(cf.getStandName(), cf.getBrandName())
+                .orElse(new Stand(cf.getStandName(), cf.getBrandName()));
+        this.foodId = new FoodId(cf.getName(), stand);
+
+        //Setting categories
         CategoryRepository categoryRepository = SpringContext.getBean(CategoryRepository.class);
-        for (String s : cf.getCategory()) {
-            Category cat = categoryRepository.findById(s).orElse(categoryRepository.save(new Category(s)));
-            this.category.add(cat);
-        }
+        cf.getCategory().forEach(c -> category.add(categoryRepository.findById(c).orElse(categoryRepository.save(new Category(c)))));
     }
 
     /**
@@ -93,15 +102,11 @@ public class Food {
      * @param stand Stand object
      */
     public Food(CommonFood cf, Stand stand) {
-        //Setting the food variables
-
-        stand.getFoodList().add(this);
         this.description = cf.getDescription();
         this.price = cf.getPrice().floatValue();
         this.preparationTime = cf.getPreparationTime();
         this.stock = cf.getStock();
         this.foodId = new FoodId(cf.getName(), stand);
-        this.category = new ArrayList<>();
 
         CategoryRepository categoryRepository = SpringContext.getBean(CategoryRepository.class);
         for (String s : cf.getCategory()) {
@@ -145,6 +150,14 @@ public class Food {
         return foodId.name;
     }
 
+    public String getStandName(){
+        return foodId.stand.getName();
+    }
+
+    public String getBrandName(){
+        return foodId.stand.getBrandName();
+    }
+
     @JsonProperty("name")
     public void setName(String name) {
         foodId = (foodId == null) ? new Food.FoodId() : foodId;
@@ -177,9 +190,6 @@ public class Food {
     public int hashCode() {
         return Objects.hash(foodId);
     }
-
-
-    // ---- Composite Id ---- //
 
     @Override
     public String toString() {

@@ -128,44 +128,44 @@ public class MenuHandler {
     public void updateStand(CommonStand commonStand) throws DoesNotExistException, JsonProcessingException {
 
         // Update the stand information and persist
-        Stand standEntity = standRepository.findStandById(commonStand.getName(), commonStand.getBrandName())
+        Stand originalStand = standRepository.findStandById(commonStand.getName(), commonStand.getBrandName())
                 .orElseThrow(() -> new DoesNotExistException("Does not exist"));
-        standEntity.update(commonStand);
 
-        List<Stand> toUpdateStands = standRepository.findStandsByBrand(standEntity.getBrandName());
+        // The same stand modified by the new information
+        Stand modifiedStand = new Stand(commonStand);
 
-        List<Food> newFoodItems = commonStand.getMenu().stream().map(Food::new).collect(Collectors.toList());
+        //This map will contain mapping between the hash of the original food item and the adjusted food item
+        Map<Food, Food> originalModifiedFoodMapping = new HashMap<>();
 
-        for (Stand toUpdateStand : toUpdateStands) {
-            for (Food newFoodItem : newFoodItems) {
-                for (Food food : toUpdateStand.getFoodList()) {
-                    if (food.getName().equals(newFoodItem.getName())) {
-                        food.updateGlobalProperties(newFoodItem);
-                        if (food.getStand().getName().equals(newFoodItem.getStand().getName())) {
-                            food.updateStock(newFoodItem);
-                        }
-                        break;
-                    }
-                }
-            }
-        }
-
-        Set<Food> toDelete = new HashSet<>(standEntity.getFoodList());
-        toDelete.removeAll(newFoodItems);
-        standEntity.getFoodList().removeAll(toDelete);
-        newFoodItems.removeAll(standEntity.getFoodList());
-        for (Food newFoodItem : newFoodItems) {
-            standEntity.getFoodList().add(newFoodItem);
-            newFoodItem.setStand(standEntity);
-        }
+        modifiedStand.getFoodList().forEach(modifiedFood -> {
+            //Every modified food item that is not new will be added to the mapping
+            foodRepository.findFoodById(modifiedFood.getName(), modifiedFood.getStandName(), modifiedFood.getBrandName()).ifPresent(originalFood -> {
+                originalModifiedFoodMapping.put(originalFood, modifiedFood);
+            });
+        });
 
 
-        brandRepository.save(standEntity.getBrand());
+        originalModifiedFoodMapping.entrySet().forEach(mapping -> {
 
-        JsonMapper jsonMapper= new JsonMapper();
-        String jsonString= jsonMapper.writeValueAsString(standEntity.getBrand().getStandList().stream().map(Stand::asCommonStand).collect(Collectors.toList()));
-        communicationHandler.sendRestCallToStandManager("/update", jsonString , null);
+            // look in all other stands of the brand and find the one that needs to be adjusted
+            originalStand.getBrand().getStandList().stream()
+                    .filter(s -> !s.equals(originalStand)) //get other stands of the brand
+                    .map(Stand::getFoodList) // map every stand to its list of food items
+                    .flatMap(Collection::stream) //bring lists in one stream
+                    .filter(food -> food.equals(mapping.getKey())) //Get all of the food items that match the one that needs to be adjusted
+                    .forEach(food -> {
 
+                        food.updateGlobalProperties(mapping.getValue());
+                        food.updateStock(mapping.getValue());
+
+                        foodRepository.save(food);
+
+                    });
+
+        });
+
+
+        standRepository.save(modifiedStand);
     }
 
 
@@ -188,16 +188,13 @@ public class MenuHandler {
         }
 
         // get brand from commonstand
-        Brand brand = brandRepository.findById(newCommonStand.getBrandName()).orElse(null);
-        if (brand == null) {
-            brand = new Brand(newCommonStand.getBrandName());
-            brandRepository.save(brand);
-        }
+        Brand brand = brandRepository.findById(newCommonStand.getBrandName())
+                .orElse(new Brand(newCommonStand.getBrandName()));
 
         // create stand object
         Stand newStand = new Stand(newCommonStand, brand);
+        brand.getStandList().add(newStand);
         brandRepository.save(brand);
-
 
         // Also send the new stand to the StandManager
         ObjectMapper mapper = new ObjectMapper();
