@@ -25,3 +25,5 @@ logging:
     cobol: DEBUG
   file:
     name: app.log
+
+unitTest: false

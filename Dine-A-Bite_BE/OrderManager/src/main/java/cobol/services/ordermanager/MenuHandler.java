@@ -40,6 +40,8 @@ public class MenuHandler {
     @Autowired
     private BrandRepository brandRepository;
 
+    @Autowired
+    private CommunicationHandler communicationHandler;
 
     public MenuHandler() {
     }
@@ -58,7 +60,7 @@ public class MenuHandler {
         // Clear database
         brandRepository.deleteAll();
 
-        String response = CommunicationHandler.sendRestCallToStandManager("/delete", null, null);
+        String response = communicationHandler.sendRestCallToStandManager("/delete", null, null);
         JSONParser parser = new JSONParser();
         JSONObject responseObject = (JSONObject) parser.parse(response);
 
@@ -78,7 +80,7 @@ public class MenuHandler {
         ObjectMapper mapper = new ObjectMapper();
         String json = mapper.writeValueAsString(standRepository.findAll()
                 .stream().map(Stand::asCommonStand).collect(Collectors.toList()));
-        CommunicationHandler.sendRestCallToStandManager("/update", json, null);
+        communicationHandler.sendRestCallToStandManager("/update", json, null);
     }
 
     public List<Food> getStandMenu(String standName, String brandName) throws DoesNotExistException {
@@ -161,7 +163,7 @@ public class MenuHandler {
 
         JsonMapper jsonMapper= new JsonMapper();
         String jsonString= jsonMapper.writeValueAsString(standEntity.getBrand().getStandList().stream().map(Stand::asCommonStand).collect(Collectors.toList()));
-        CommunicationHandler.sendRestCallToStandManager("/update", jsonString , null);
+        communicationHandler.sendRestCallToStandManager("/update", jsonString , null);
 
     }
 
@@ -199,7 +201,7 @@ public class MenuHandler {
         // Also send the new stand to the StandManager
         ObjectMapper mapper = new ObjectMapper();
         String jsonString = mapper.writeValueAsString(newStand.asCommonStand());
-        String response = CommunicationHandler.sendRestCallToStandManager("/newStand", jsonString, null);
+        String response = communicationHandler.sendRestCallToStandManager("/newStand", jsonString, null);
 
         JSONParser parser = new JSONParser();
         JSONObject responseObject = (JSONObject) parser.parse(response);
@@ -226,7 +228,7 @@ public class MenuHandler {
             Map<String, String> params = new HashMap<>();
             params.put("standName", standName);
             params.put("brandName", brandName);
-            CommunicationHandler.sendRestCallToStandManager("/deleteScheduler", null, params);
+            communicationHandler.sendRestCallToStandManager("/deleteScheduler", null, params);
         } else {
             throw new DoesNotExistException("The stand can't be deleted when it does not exist.");
         }

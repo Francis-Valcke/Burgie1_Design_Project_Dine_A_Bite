@@ -5,21 +5,12 @@ import cobol.commons.Event;
 import cobol.commons.exception.CommunicationException;
 import cobol.commons.order.CommonOrder;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.*;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriComponentsBuilder;
 
-import java.awt.*;
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -31,6 +22,8 @@ import java.util.concurrent.TimeUnit;
 public class Scheduler extends Thread {
 
 
+    @Autowired
+    CommunicationHandler communicationHandler;
 
     // incoming orders
     private List<CommonOrder> inc = new LinkedList<>();
@@ -58,10 +51,10 @@ public class Scheduler extends Thread {
         this.lon=lon;
 
         // retrieve subscriber id
-        subscriberId= CommunicationHandler.getSubscriberIdFromEC();
+        subscriberId= communicationHandler.getSubscriberIdFromEC();
 
         // register to orders from a brand
-        CommunicationHandler.registerToOrdersFromBrand(subscriberId, brandName);
+        communicationHandler.registerToOrdersFromBrand(subscriberId, brandName);
 
     }
 
@@ -85,7 +78,7 @@ public class Scheduler extends Thread {
 
         try {
 
-            List<Event> eventList=CommunicationHandler.pollEventsFromEC(subscriberId);
+            List<Event> eventList=communicationHandler.pollEventsFromEC(subscriberId);
 
             for (Event event : eventList) {
                 JSONObject eventData = event.getEventData();

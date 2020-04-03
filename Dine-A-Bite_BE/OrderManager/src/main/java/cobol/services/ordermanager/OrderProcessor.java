@@ -15,12 +15,18 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import org.json.simple.JSONObject;
+import org.junit.Before;
+import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.annotation.Scope;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import javax.naming.CommunicationException;
+import java.beans.ConstructorProperties;
 import java.util.*;
 
 /**
@@ -40,8 +46,12 @@ public class OrderProcessor {
     FoodRepository foodRepository;
 
     @Autowired
+    CommunicationHandler communicationHandler;
+
+    @Autowired
     StandRepository stands;
 
+    public boolean unitTest;
 
     private int subscriberId;
     private double learningRate;
@@ -51,12 +61,19 @@ public class OrderProcessor {
     // key order id
     ListMultimap<Integer, Recommendation> orderRecommendations = ArrayListMultimap.create();
 
+
+
+
     private OrderProcessor() throws CommunicationException {
-        this.subscriberId= CommunicationHandler.getSubscriberIdFromEC();
 
         //set learning rate for the running averages
         this.learningRate = 0.2;
-    };
+    }
+
+    @PostConstruct
+    private void run() throws CommunicationException {
+        this.subscriberId= communicationHandler.getSubscriberIdFromEC();
+    }
 
     // ---- Incoming Requests ---- //
 
@@ -76,7 +93,7 @@ public class OrderProcessor {
         newOrder=orderRepository.save(newOrder);
 
         // subscribe to the channel of the order
-        CommunicationHandler.registerOnOrder(subscriberId, newOrder.getId());
+        communicationHandler.registerOnOrder(subscriberId, newOrder.getId());
 
         return newOrder;
     }
@@ -147,7 +164,7 @@ public class OrderProcessor {
 
     @Scheduled(fixedDelay = 500)
     public void pollEvents() throws CommunicationException, JsonProcessingException {
-        List<Event> newEvents= CommunicationHandler.pollEventsFromEC(subscriberId);
+        List<Event> newEvents= communicationHandler.pollEventsFromEC(subscriberId);
         eventQueue.addAll(newEvents);
     }
 
@@ -177,7 +194,7 @@ public class OrderProcessor {
                         orderRepository.delete(localOrder);
 
                         // deregister from order
-                        CommunicationHandler.deregisterFromOrder(subscriberId, orderId);
+                        communicationHandler.deregisterFromOrder(subscriberId, orderId);
 
                     }
                 }

@@ -35,6 +35,8 @@ public class OrderController {
     private ObjectMapper objectMapper;
     @Autowired
     private OrderProcessor orderProcessor = null;
+    @Autowired
+    private CommunicationHandler communicationHandler;
 
     /**
      * This method will retrieve information about a given order identified by the orderId.
@@ -77,7 +79,7 @@ public class OrderController {
         String jsonString = mapper.writeValueAsString(newOrder.asCommonOrder());
 
         // Ask standmanager for recommendation
-        String responseString = CommunicationHandler.sendRestCallToStandManager("/getRecommendation", jsonString, null);
+        String responseString = communicationHandler.sendRestCallToStandManager("/getRecommendation", jsonString, null);
         List<Recommendation> recommendations = mapper.readValue(responseString, new TypeReference<List<Recommendation>>() {});
         orderProcessor.addRecommendations(newOrder.getId(), recommendations);
 
@@ -106,7 +108,7 @@ public class OrderController {
         Order updatedOrder = orderProcessor.confirmStand(orderId, standName, brandName);
 
         // Publish event to standmanager
-        String response= CommunicationHandler.publishConfirmedStand(updatedOrder, standName, brandName);
+        String response= communicationHandler.publishConfirmedStand(updatedOrder, standName, brandName);
 
         return ResponseEntity.ok(response);
     }

@@ -36,7 +36,7 @@ public class CommunicationHandler {
      * @return subscriber id used to poll events
      * @throws CommunicationException thrown when eventchannel can't be reached
      */
-    public static int getSubscriberIdFromEC() throws CommunicationException {
+    public int getSubscriberIdFromEC() throws CommunicationException {
 
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
@@ -53,7 +53,7 @@ public class CommunicationHandler {
     }
 
 
-    public static void registerToOrdersFromBrand(int subscriberId, String brandName) {
+    public void registerToOrdersFromBrand(int subscriberId, String brandName) {
 
         RestTemplate restTemplate= new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
@@ -69,7 +69,7 @@ public class CommunicationHandler {
 
     }
 
-    public static List<Event> pollEventsFromEC(int subscriberId) throws JsonProcessingException, ParseException {
+    public List<Event> pollEventsFromEC(int subscriberId) throws JsonProcessingException, ParseException {
         RestTemplate restTemplate= new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.add("Authorization", StandManager.authToken);

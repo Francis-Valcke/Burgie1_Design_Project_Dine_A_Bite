@@ -2,6 +2,7 @@ package cobol.services.ordermanager.test;
 
 import cobol.commons.CommonFood;
 import cobol.commons.CommonStand;
+import cobol.services.ordermanager.CommunicationHandler;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.After;
 import org.junit.Before;
@@ -13,7 +14,6 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 
 import java.math.BigDecimal;
@@ -25,6 +25,7 @@ import static org.junit.Assert.*;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
 
 /**
@@ -50,12 +51,13 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest
-@Transactional
 public class MenuHandlerTest {
     @Autowired
     WebApplicationContext applicationContext;
     @Autowired
     ObjectMapper objectMapper;
+
+
     private MockMvc mockMvc;
     private String token = "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJmcmFuY2lzIiwicm9sZXMiOlsiUk9MRV9VU0VSIiwiUk9MRV9BRE1JTiJdLCJpYXQiOjE1ODQ2MTAwMTcsImV4cCI6MTc0MjI5MDAxN30.5UNYM5Qtc4anyHrJXIuK0OUlsbAPNyS9_vr-1QcOWnQ";
     //add lists:
@@ -63,9 +65,9 @@ public class MenuHandlerTest {
     //the integer list is a list with the indexes of foodnames contained by the stands
     //in these tests, the brandname is chosen as the standname before the "-": standname.split("-")[0]
     private Map<String, List<Integer>> stands = new HashMap<String, List<Integer>>() {{
-        put("burgerstand-1", Arrays.asList(0, 4, 5));//burger1, cola, fries
-        put("burgerstand-2", Arrays.asList(1, 4, 5));//burger2, cola, fries
-        put("pizzastand-1", Arrays.asList(2, 3, 4));//pizza1, pizza2, cola
+        put("burgerstand1-burgerbrand", Arrays.asList(0, 4, 5));//burger1, cola, fries
+        put("burgerstand2-burgerbrand", Arrays.asList(1, 4, 5));//burger2, cola, fries
+        put("pizzastand1-pizzabrand", Arrays.asList(2, 3, 4));//pizza1, pizza2, cola
     }};
     private ArrayList<BigDecimal> prices = new ArrayList<BigDecimal>(Arrays.asList(BigDecimal.valueOf(10.0), BigDecimal.valueOf(11.0), BigDecimal.valueOf(12.0), BigDecimal.valueOf(13.0), BigDecimal.valueOf(2.5), BigDecimal.valueOf(4.0)));
     private ArrayList<Integer> preptimes = new ArrayList<Integer>(Arrays.asList(10, 11, 12, 13, 2, 4));
@@ -91,9 +93,6 @@ public class MenuHandlerTest {
         this.mockMvc = webAppContextSetup(this.applicationContext)
                 .apply(springSecurity())
                 .build();
-        //disable sending stands to Stand Manager for these tests
-        this.mockMvc.perform(get("/SMswitch?on=false").contentType(MediaType.APPLICATION_JSON)
-                .header("Authorization", token));
         //create a unique attachment so every test is unique in time: with this, 2 of the same tests cannot intefere if executed close (but not exact at same time) in time
         Timestamp timestamp = new Timestamp(System.currentTimeMillis());
         time=timestamp.toString();
@@ -111,7 +110,7 @@ public class MenuHandlerTest {
                 if (stands.get(key).contains(i)) {
                     List<String> cat = new ArrayList<>();
                     cat.add(categories.get(i));
-                    CommonFood mi = new CommonFood(foodnames.get(i), prices.get(i), preptimes.get(i), 20, key.split("-")[0].concat(time), descriptions.get(i), cat);
+                    CommonFood mi = new CommonFood(foodnames.get(i), prices.get(i), preptimes.get(i), 20, key.split("-")[0].concat(time), key.split("-")[1],descriptions.get(i), cat);
                     standInfos.get(key).addMenuItem(mi);
                 }
             }
@@ -140,9 +139,9 @@ public class MenuHandlerTest {
                 .andReturn();
         String json = result.getResponse().getContentAsString();
         CommonFood[] mis = objectMapper.readValue(json, CommonFood[].class);
+        Map<String, Integer> count = new HashMap<>();
         //check through entire menu if every item is present and has right attributes
         for (CommonFood mi : mis) {
-            Map<String, Integer> count = new HashMap<>();
             int i = foodnames.indexOf(mi.getName());
             for (String key : stands.keySet()) {
                 //check if item part of stand (check if brand and standname correct)
@@ -246,7 +245,7 @@ public class MenuHandlerTest {
                 if (stands.get(key).contains(i)) {
                     List<String> cat = new ArrayList<>();
                     cat.add(categories2.get(i));
-                    CommonFood mi = new CommonFood(foodnames2.get(i), prices2.get(i), preptimes2.get(i), 20, key.split("-")[0].concat(time), descriptions2.get(i), cat);
+                    CommonFood mi = new CommonFood(foodnames2.get(i), prices2.get(i), preptimes2.get(i), 20, key.split("-")[0].concat(time), key.split("-")[1], descriptions2.get(i), cat);
                     standInfos.get(key).addMenuItem(mi);
                 }
             }
@@ -254,10 +253,8 @@ public class MenuHandlerTest {
         }
         //call addstand method from menuhandler to edit stands and check if they are correctly edited
         for (String key : stands.keySet()) {
-            MvcResult result = this.mockMvc.perform(post("/addstand").contentType(MediaType.APPLICATION_JSON)
-                    .header("Authorization", token).content(objectMapper.writeValueAsString(standInfos.get(key)))).andReturn();
-            String ret = result.getResponse().getContentAsString();
-            assertTrue(ret.equals("Saved"));
+            MvcResult result = this.mockMvc.perform(post("/addStand").contentType(MediaType.APPLICATION_JSON)
+                    .header("Authorization", token).content(objectMapper.writeValueAsString(standInfos.get(key)))).andExpect(status().isOk()).andReturn();
         }
         //call menu from menuhandler and extract MenuItems
         MvcResult result = this.mockMvc.perform(get("/menu").contentType(MediaType.APPLICATION_JSON)
@@ -265,6 +262,7 @@ public class MenuHandlerTest {
                 .andReturn();
         String json = result.getResponse().getContentAsString();
         CommonFood[] mis = objectMapper.readValue(json, CommonFood[].class);
+        Map<String, Integer> count= new HashMap<>();
         //check through entire menu if every item is present and has right attributes
         for (CommonFood mi : mis) {
             int i = foodnames2.indexOf(mi.getName());
