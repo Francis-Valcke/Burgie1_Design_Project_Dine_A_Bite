@@ -176,9 +176,8 @@ public class CommonFood implements Serializable {
         CommonFood that = (CommonFood) o;
         return count == that.count &&
                 preparationTime == that.preparationTime &&
-                stock == that.stock &&
                 name.equals(that.name) &&
-                price.equals(that.price) &&
+                price.floatValue()==that.price.floatValue() &&
                 standName.equals(that.standName) &&
                 brandName.equals(that.brandName) &&
                 category.equals(that.category) &&
@@ -187,6 +186,6 @@ public class CommonFood implements Serializable {
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, price, count, preparationTime, stock, standName, brandName, category, description);
+        return Objects.hash(name, price, count, preparationTime, standName, brandName, category, description);
     }
 }
