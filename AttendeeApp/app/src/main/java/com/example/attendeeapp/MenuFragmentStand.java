@@ -33,6 +33,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import static com.example.attendeeapp.ServerConfig.AUTHORIZATION_TOKEN;
@@ -93,7 +94,7 @@ public class MenuFragmentStand extends MenuFragment implements AdapterView.OnIte
                                int pos, long id) {
         // An item was selected in the spinner, fetch the menu of the selected stand
         String standName = (String) parent.getItemAtPosition(pos);
-        fetchMenu(standName);
+        fetchMenu(standName, standList.get(standName));
     }
 
     public void onNothingSelected(AdapterView<?> parent) {
@@ -171,32 +172,33 @@ public class MenuFragmentStand extends MenuFragment implements AdapterView.OnIte
      * @param standName: the requested menu standName, "" is global
      * @throws JSONException
      */
-    public void updateMenu(JSONObject response, String standName) throws JSONException {
+    public void updateMenu(List<CommonFood> response, String standName) throws JSONException {
         // Renew the list
         menuItems.clear();
+        menuItems.addAll(response);
         //Log.v("response", "Response: " + response.toString());
-        for (Iterator<String> iter = response.keys(); iter.hasNext(); ) {
-            String foodName = iter.next();
-
-            // Create the menuItem with price, food and brandName
-            JSONArray jsonArray = response.getJSONArray(foodName);
-            String brandName = jsonArray.getString(0);
-            double price = jsonArray.getDouble(1);
-            CommonFood item = new CommonFood(foodName, new BigDecimal(price), brandName);
-            item.setStandName(standName);
-
-            // Add categories to the menuItem
-            JSONArray cat_array = jsonArray.getJSONArray(2);
-            for (int j = 0; j < cat_array.length(); j++) {
-                item.addCategory((String) cat_array.get(j));
-            }
-
-            // Add the description, if provided
-            String description = jsonArray.getString(3);
-            if (!description.equals("null")) item.setDescription(description);
-
-            menuItems.add(item);
-        }
+//        for (Iterator<String> iter = response.keys(); iter.hasNext(); ) {
+//            String foodName = iter.next();
+//
+//            // Create the menuItem with price, food and brandName
+//            JSONArray jsonArray = response.getJSONArray(foodName);
+//            String brandName = jsonArray.getString(0);
+//            double price = jsonArray.getDouble(1);
+//            CommonFood item = new CommonFood(foodName, new BigDecimal(price), brandName);
+//            item.setStandName(standName);
+//
+//            // Add categories to the menuItem
+//            JSONArray cat_array = jsonArray.getJSONArray(2);
+//            for (int j = 0; j < cat_array.length(); j++) {
+//                item.addCategory((String) cat_array.get(j));
+//            }
+//
+//            // Add the description, if provided
+//            String description = jsonArray.getString(3);
+//            if (!description.equals("null")) item.setDescription(description);
+//
+//            menuItems.add(item);
+//        }
         menuAdapter.putList(menuItems);
         menuAdapter.notifyDataSetChanged();
     }

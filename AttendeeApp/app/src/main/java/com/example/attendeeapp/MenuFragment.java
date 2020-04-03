@@ -13,15 +13,20 @@ import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import com.example.attendeeapp.json.CommonFood;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static com.example.attendeeapp.ServerConfig.AUTHORIZATION_TOKEN;
@@ -44,7 +49,7 @@ public abstract class MenuFragment extends Fragment {
      * @param standName: the requested menu standName, "" is global
      * @throws JSONException
      */
-    public abstract void updateMenu(JSONObject response, String standName) throws JSONException;
+    public abstract void updateMenu(List<CommonFood> response, String standName) throws JSONException;
 
     /**
      * Function to fetch the global or stand menu from the server in JSON
@@ -55,7 +60,7 @@ public abstract class MenuFragment extends Fragment {
      * @param standName: the name of the stand to request the menu of,
      *                "" if the global menu is required
      */
-    protected void fetchMenu(final String standName){
+    protected void fetchMenu(final String standName, final String brandName){
         // Instantiate the RequestQueue
         RequestQueue queue = Volley.newRequestQueue(getActivity());
         String url = ServerConfig.OM_ADDRESS;
@@ -63,22 +68,30 @@ public abstract class MenuFragment extends Fragment {
         if(standName.equals("")){
             url = url + "/menu";
         } else {
+
+            url = String.format("%1$s/standMenu?standName=%2$s&brandName=%3$s",
+                    url,
+                    standName.replace("&","%26"),
+                    brandName.replace("&","%26"));
             //url = "http://localhost:8080/standmenu?standname=" + standName;
-            url = url + "standmenu?standname=" + standName;
+            //url = url + "/standMenu";
         }
         // Remove spaces from the url
         url = url.replace(' ', '+');
 
         // Request the global/stand menu in JSON from the order manager
         // Handle no network connection or server not reachable
-        JsonObjectRequest jsonRequest = new JsonObjectRequest(req, url, null,
-                                                            new Response.Listener<JSONObject>() {
+        JsonArrayRequest jsonRequest = new JsonArrayRequest(req, url, null,
+                                                            new Response.Listener<JSONArray>() {
             @Override
-            public void onResponse(JSONObject response) {
+            public void onResponse(JSONArray response) {
 
                 try {
+                    ObjectMapper om = new ObjectMapper();
+                    List<CommonFood> foodList=om.readValue(response.toString(), new TypeReference<List<CommonFood>>() {});
+
                     // Let fragments handle the response
-                    updateMenu(response, standName);
+                    updateMenu(foodList, standName);
                 } catch (Exception e) { // Catch all exceptions TODO: only specific ones
                     Log.v("Exception fetchMenu", e.toString());
                     if (mToast != null) mToast.cancel();
@@ -121,8 +134,19 @@ public abstract class MenuFragment extends Fragment {
                 headers.put("Authorization", AUTHORIZATION_TOKEN);
                 return headers;
             }
+
+//            @Override
+//            protected Map<String, String> getParams() throws AuthFailureError {
+//                Map<String, String> params = new HashMap<>();
+//                params.put("standName", standName);
+//                params.put("brandName", brandName);
+//                return params;
+//            }
         };
 
+
+        String test1 = jsonRequest.getUrl();
+        String test2 = jsonRequest.toString();
         // Add the request to the RequestQueue
         queue.add(jsonRequest);
     }
