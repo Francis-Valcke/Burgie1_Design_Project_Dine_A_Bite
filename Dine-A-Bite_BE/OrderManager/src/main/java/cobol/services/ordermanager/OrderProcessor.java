@@ -51,11 +51,9 @@ public class OrderProcessor {
     @Autowired
     StandRepository stands;
 
-    public boolean unitTest;
-
     private int subscriberId;
     private double learningRate;
-    private volatile LinkedList<Event> eventQueue = new LinkedList<Event>();
+    private volatile LinkedList<Event> eventQueue = new LinkedList<>();
 
 
     // key order id

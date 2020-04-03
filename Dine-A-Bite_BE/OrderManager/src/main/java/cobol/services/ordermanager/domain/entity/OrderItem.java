@@ -78,5 +78,8 @@ public class OrderItem implements Serializable {
         return itemId!=0 && itemId==(((OrderItem) o).getItemId());
     }
 
-
+    @Override
+    public int hashCode() {
+        return itemId;
+    }
 }
