@@ -10,6 +10,7 @@ import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 
 /**
  * Model for one menu item
@@ -181,5 +182,27 @@ public class CommonFood implements Serializable {
 
     public void setStock(int stock) {
         this.stock = stock;
+    }
+
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        CommonFood that = (CommonFood) o;
+        return count == that.count &&
+                preparationTime == that.preparationTime &&
+                stock == that.stock &&
+                name.equals(that.name) &&
+                price.equals(that.price) &&
+                standName.equals(that.standName) &&
+                brandName.equals(that.brandName) &&
+                category.equals(that.category) &&
+                description.equals(that.description);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(name, price, count, preparationTime, stock, standName, brandName, category, description);
     }
 }

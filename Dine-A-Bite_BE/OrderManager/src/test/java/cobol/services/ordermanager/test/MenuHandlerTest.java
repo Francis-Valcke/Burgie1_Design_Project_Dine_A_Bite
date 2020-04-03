@@ -2,9 +2,13 @@ package cobol.services.ordermanager.test;
 
 import cobol.commons.CommonFood;
 import cobol.commons.CommonStand;
-import cobol.services.ordermanager.CommunicationHandler;
+import cobol.services.ordermanager.domain.entity.Brand;
+import cobol.services.ordermanager.domain.entity.Stand;
+import cobol.services.ordermanager.domain.repository.BrandRepository;
+import cobol.services.ordermanager.domain.repository.CategoryRepository;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.After;
+import com.google.common.io.Resources;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -15,17 +19,17 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.web.context.WebApplicationContext;
+import org.springframework.web.util.UriComponentsBuilder;
 
-import java.math.BigDecimal;
-import java.math.MathContext;
-import java.sql.Timestamp;
-import java.util.*;
+import java.net.URL;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 
-import static org.junit.Assert.*;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
 
 /**
@@ -57,31 +61,17 @@ public class MenuHandlerTest {
     @Autowired
     ObjectMapper objectMapper;
 
+    @Autowired
+    BrandRepository brandRepository;
+
+    @Autowired
+    CategoryRepository categoryRepository;
 
     private MockMvc mockMvc;
     private String token = "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJmcmFuY2lzIiwicm9sZXMiOlsiUk9MRV9VU0VSIiwiUk9MRV9BRE1JTiJdLCJpYXQiOjE1ODQ2MTAwMTcsImV4cCI6MTc0MjI5MDAxN30.5UNYM5Qtc4anyHrJXIuK0OUlsbAPNyS9_vr-1QcOWnQ";
-    //add lists:
-    private ArrayList<String> foodnames = new ArrayList<String>(Arrays.asList("burger1", "burger2", "pizza1", "pizza2", "cola", "fries"));
-    //the integer list is a list with the indexes of foodnames contained by the stands
-    //in these tests, the brandname is chosen as the standname before the "-": standname.split("-")[0]
-    private Map<String, List<Integer>> stands = new HashMap<String, List<Integer>>() {{
-        put("burgerstand1-burgerbrand", Arrays.asList(0, 4, 5));//burger1, cola, fries
-        put("burgerstand2-burgerbrand", Arrays.asList(1, 4, 5));//burger2, cola, fries
-        put("pizzastand1-pizzabrand", Arrays.asList(2, 3, 4));//pizza1, pizza2, cola
-    }};
-    private ArrayList<BigDecimal> prices = new ArrayList<BigDecimal>(Arrays.asList(BigDecimal.valueOf(10.0), BigDecimal.valueOf(11.0), BigDecimal.valueOf(12.0), BigDecimal.valueOf(13.0), BigDecimal.valueOf(2.5), BigDecimal.valueOf(4.0)));
-    private ArrayList<Integer> preptimes = new ArrayList<Integer>(Arrays.asList(10, 11, 12, 13, 2, 4));
-    private ArrayList<String> categories = new ArrayList<String>(Arrays.asList("burger", "", "pizza", "pizza", "drink", "fries"));
-    private ArrayList<String> descriptions = new ArrayList<String>(Arrays.asList("burger with bacon", "burger with cheese", "pizza with salami", "pizza with pineapple", "", "with frietsauce"));
-    //edit lists:
-    private ArrayList<String> foodnames2 = new ArrayList<String>(Arrays.asList("burger1", "burger2", "pizza3", "pizza2", "cola", "fries"));
-    private ArrayList<BigDecimal> prices2 = new ArrayList<BigDecimal>(Arrays.asList(BigDecimal.valueOf(100.0), BigDecimal.valueOf(-1.0), BigDecimal.valueOf(12.0), BigDecimal.valueOf(13.0), BigDecimal.valueOf(2.5), BigDecimal.valueOf(4.0)));
-    private ArrayList<Integer> preptimes2 = new ArrayList<Integer>(Arrays.asList(-1, 11, 12, 13, 2, 40));
-    private ArrayList<String> categories2 = new ArrayList<String>(Arrays.asList("bacon", "", "pizza", "pizza", "drink", ""));
-    private ArrayList<String> descriptions2 = new ArrayList<String>(Arrays.asList("burger with bacon", "", "pizza with salami", "pizza with extra pineapple", "", "with ketchup"));
 
+    private static List<Stand> stands = new ArrayList<>();
 
-    private String time;
     /**
      * setup stands for testing
      *
@@ -90,146 +80,106 @@ public class MenuHandlerTest {
     @Before
     public void setup() throws Exception {
         //setup mockmvc of OrderManager application
-        this.mockMvc = webAppContextSetup(this.applicationContext)
+        mockMvc = webAppContextSetup(applicationContext)
                 .apply(springSecurity())
                 .build();
-        //create a unique attachment so every test is unique in time: with this, 2 of the same tests cannot intefere if executed close (but not exact at same time) in time
-        Timestamp timestamp = new Timestamp(System.currentTimeMillis());
-        time=timestamp.toString();
-        Map<String, CommonStand> standInfos = new HashMap<>();
-        //initialise stands with some variation in coordinates
-        int n = 0;
-        for (String key : stands.keySet()) {
-            CommonStand si = new CommonStand(key.concat(time), key.split("-")[0].concat(time), (long) n * 10, (long) -n * 10);
-            standInfos.put(key, si);
-            n++;
-        }
-        //add menuitems to stands with attributes from lists above
-        for (int i = 0; i < foodnames.size(); i++) {
-            for (String key : stands.keySet()) {
-                if (stands.get(key).contains(i)) {
-                    List<String> cat = new ArrayList<>();
-                    cat.add(categories.get(i));
-                    CommonFood mi = new CommonFood(foodnames.get(i), prices.get(i), preptimes.get(i), 20, key.split("-")[0].concat(time), key.split("-")[1],descriptions.get(i), cat);
-                    standInfos.get(key).addMenuItem(mi);
-                }
-            }
 
-        }
-        //call addstand method from menuhandler to add stands and check if they are correctly added
-        for (String key : stands.keySet()) {
-            MvcResult result = this.mockMvc.perform(post("/addstand").contentType(MediaType.APPLICATION_JSON)
-                    .header("Authorization", token).content(objectMapper.writeValueAsString(standInfos.get(key)))).andReturn();
-            String ret = result.getResponse().getContentAsString();
-            assertEquals("Saved", ret);
+        URL url = Thread.currentThread().getContextClassLoader().getResource("dataset.json");
+        String body = Resources.toString(url, StandardCharsets.UTF_8);
+        ObjectMapper mapper = new ObjectMapper();
+        List<Brand> brands = mapper.readValue(body, new TypeReference<List<Brand>>() {
+        });
+        for (Brand brand : brands) {
+            stands.addAll(brand.getStandList());
         }
 
+
+         this.mockMvc.perform(post("/db/import").contentType(MediaType.APPLICATION_JSON)
+                .content(body)
+                .header("Authorization", token))
+                .andReturn();
 
     }
 
+
     /**
      * request menu to see if items are correct
+     *
      * @throws Exception when call failed or assertion wrong
      */
     @Test
     public void getMenuTest() throws Exception {
+
+
+        ObjectMapper mapper= new ObjectMapper();
         //call menu from menuhandler and extract MenuItems
         MvcResult result = this.mockMvc.perform(get("/menu").contentType(MediaType.APPLICATION_JSON)
                 .header("Authorization", token))
                 .andReturn();
         String json = result.getResponse().getContentAsString();
-        CommonFood[] mis = objectMapper.readValue(json, CommonFood[].class);
-        Map<String, Integer> count = new HashMap<>();
-        //check through entire menu if every item is present and has right attributes
-        for (CommonFood mi : mis) {
-            int i = foodnames.indexOf(mi.getName());
-            for (String key : stands.keySet()) {
-                //check if item part of stand (check if brand and standname correct)
-                if (stands.get(key).contains(i) && (key.split("-")[0].concat(time).equals(mi.getBrandName()))) {
-                    //count items in stand
-                    count.merge(key, 1, Integer::sum);
-                    //check if foodname correct
-                    assertEquals(mi.getName(), foodnames.get(i));
-                    //check if preptime correct
-                    assertEquals(mi.getPreparationTime(), (int) preptimes.get(i));
-                    //check if price correct
-                    assertEquals(mi.getPrice().round(new MathContext(2)), prices.get(i).round(new MathContext(2)));
-                    //check if description correct (empty description is not added)
-                    if (descriptions.get(i).equals("")) assertNull(mi.getDescription());
-                    else assertEquals(descriptions.get(i), mi.getDescription());
-                    //check if category correct (empty category is not added)
-                    if (mi.getCategory() == null || mi.getCategory().size() == 0)
-                        assertEquals("", categories.get(i));
-                    else {
-                        boolean catOk = false;
-                        //looks if added category is part of list
-                        for (String cat : mi.getCategory()) {
-                            if (cat.equals(categories.get(i))) catOk = true;
-                        }
-                        assertTrue(catOk);
-                    }
-                }
-            }
+        List<CommonFood> retrievedFoodItems = mapper.readValue(json, new TypeReference<List<CommonFood>>() {
+        });
 
-        }
-        //check for every stand if amount of items in stand is correct
-        for (String key : count.keySet()) {
-            assertEquals(stands.get(key).size(), (int) count.get(key));
-        }
+        // What the result should be
+        URL url2 = Thread.currentThread().getContextClassLoader().getResource("globalmenu.json");
+        String body2 = Resources.toString(url2, StandardCharsets.UTF_8);
+        List<CommonFood> correctFoodItems = mapper.readValue(body2, new TypeReference<List<CommonFood>>() {
+        });
+
+
+        assert (retrievedFoodItems.containsAll(correctFoodItems) && correctFoodItems.containsAll(retrievedFoodItems));
+        brandRepository.deleteAll();
+        categoryRepository.deleteAll();
+
     }
 
     /**
      * request standmenu to see if items are correct an no extra items are added
+     *
      * @throws Exception when call failed or assertion wrong
      */
     @Test
     public void getStandmenusTest() throws Exception {
-        for (String key : stands.keySet()) { //check for every standmenu
-            // for specific standname, call standmenu and extract result as MenuItems list
-            MvcResult result = this.mockMvc.perform(get(String.format("/standmenu?standname=%s", key.concat(time))).contentType(MediaType.APPLICATION_JSON)
+
+        for (Stand stand : stands) {
+            UriComponentsBuilder builder = UriComponentsBuilder.fromUriString("/standMenu");
+            builder.queryParam("standName",  stand.getName())
+                    .queryParam("brandName", stand.getBrandName());
+            String uri= builder.toUriString();
+
+            StringBuilder request= new StringBuilder();
+            request.append("/standMenu").append("?")
+                    .append("standName=").append(stand.getName())
+                    .append("&")
+                    .append("brandName=").append(stand.getBrandName());
+
+
+            MvcResult result = this.mockMvc.perform(get(request.toString()).contentType(MediaType.APPLICATION_JSON)
                     .header("Authorization", token))
                     .andReturn();
-            String json = result.getResponse().getContentAsString();
-            CommonFood[] mis = objectMapper.readValue(json, CommonFood[].class);
-            //check through entire menu if every item is present and has right attributes
-            for (CommonFood mi : mis) {
-                int i = foodnames.indexOf(mi.getName()); //returns -1 if not found
-                //check if no extra item added
-                assertNotEquals(i, -1);
-                //check if brandname correct
-                assertEquals(key.split("-")[0].concat(time), mi.getBrandName());
-                //check if foodname correct
-                assertEquals(mi.getName(), foodnames.get(i));
-                //check if preptime correct
-                assertEquals(mi.getPreparationTime(), (int) preptimes.get(i));
-                //check if price correct
-                assertEquals(mi.getPrice().round(new MathContext(2)), prices.get(i).round(new MathContext(2)));
-                //check if description correct (empty description is not added -> then check if null)
-                if (descriptions.get(i).equals("")) assertNull(mi.getDescription());
-                else assertEquals(descriptions.get(i), mi.getDescription());
-                //check if category correct (empty category is not added -> then check if null)
-                if (mi.getCategory() == null || mi.getCategory().size() == 0) assertEquals("", categories.get(i));
-                else {
-                    boolean catOk = false;
-                    //looks if added category is part of list
-                    for (String cat : mi.getCategory()) {
-                        if (cat.equals(categories.get(i))) {
-                            catOk = true;
-                            break;
-                        }
-                    }
-                    assertTrue(catOk);
-                }
 
-            }
+            String standMenuJson = result.getResponse().getContentAsString();
+            List<CommonFood> standMenu = objectMapper.readValue(standMenuJson, new TypeReference<List<CommonFood>>() {
+            });
+
+
+            CommonStand cStand = stand.asCommonStand();
+
+            assert (cStand.getMenu().containsAll(standMenu) && standMenu.containsAll(cStand.getMenu()));
+
         }
+
     }
 
-    /**
-     * Edit stands and request menu to see if they are correct
-     * @throws Exception when call failed or assertion wrong
-     */
-    @Test
+
+}
+
+/**
+ * Edit stands and request menu to see if they are correct
+ *
+ * @throws Exception when call failed or assertion wrong
+ */
+    /*@Test
     public void alterMenus() throws Exception {
         Map<String, CommonStand> standInfos = new HashMap<>();
         //initialise stands with different variation in coordinates
@@ -253,7 +203,7 @@ public class MenuHandlerTest {
         }
         //call addstand method from menuhandler to edit stands and check if they are correctly edited
         for (String key : stands.keySet()) {
-            MvcResult result = this.mockMvc.perform(post("/addStand").contentType(MediaType.APPLICATION_JSON)
+            MvcResult result = this.mockMvc.perform(post("/updateStand").contentType(MediaType.APPLICATION_JSON)
                     .header("Authorization", token).content(objectMapper.writeValueAsString(standInfos.get(key)))).andExpect(status().isOk()).andReturn();
         }
         //call menu from menuhandler and extract MenuItems
@@ -321,21 +271,7 @@ public class MenuHandlerTest {
 
     }
 
-    /**
-     * delete the tested stands
-     *
-     * @throws Exception when call failed or assertion wrong
-     */
-    @After
-    public void clearMenus() throws Exception {
-        for (String key : stands.keySet()) {
-            //call deleteStand in menuhandler to delete tested stands from database
-            MvcResult result = this.mockMvc.perform(get(String.format("/deleteStand?standname=%s", key.concat(time))).contentType(MediaType.APPLICATION_JSON)
-                    .header("Authorization", token)).andReturn();
-            String ret1 = result.getResponse().getContentAsString();
-            assertEquals(ret1, "Stand " + key.concat(time) + " deleted.");
-        }
-    }
+*/
 
 
-}
+

@@ -9,6 +9,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.LinkedList;
@@ -22,8 +23,7 @@ import java.util.concurrent.TimeUnit;
 public class Scheduler extends Thread {
 
 
-    @Autowired
-    CommunicationHandler communicationHandler;
+    private CommunicationHandler communicationHandler;
 
     // incoming orders
     private List<CommonOrder> inc = new LinkedList<>();
@@ -42,7 +42,7 @@ public class Scheduler extends Thread {
     private String brandName;
 
     private ObjectMapper objectMapper;
-    public Scheduler(List<CommonFood> menu, String standName, String brandName, double lat, double lon) throws CommunicationException {
+    public Scheduler(List<CommonFood> menu, String standName, String brandName, double lat, double lon, CommunicationHandler communicationHandler) throws CommunicationException {
         // set stand properties
         this.menu = menu;
         this.standName = standName;
@@ -50,6 +50,7 @@ public class Scheduler extends Thread {
         this.lat= lat;
         this.lon=lon;
 
+        this.communicationHandler=communicationHandler;
         // retrieve subscriber id
         subscriberId= communicationHandler.getSubscriberIdFromEC();
 

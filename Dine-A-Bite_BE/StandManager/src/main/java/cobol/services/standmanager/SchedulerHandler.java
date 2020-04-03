@@ -9,6 +9,7 @@ import cobol.commons.order.Recommendation;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.json.simple.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -20,6 +21,10 @@ import java.util.List;
 @Component
 @Scope(value = "singleton")
 public class SchedulerHandler {
+
+
+    @Autowired
+    CommunicationHandler communicationHandler;
 
     /**
      * The schedulerhandler has a list of all schedulers.
@@ -171,7 +176,7 @@ public class SchedulerHandler {
         }
         //create scheduler
         if (newScheduler) {
-            Scheduler s = new Scheduler(info.getMenu(), info.getName(), info.getBrandName(), info.getLatitude(), info.getLongitude());
+            Scheduler s = new Scheduler(info.getMenu(), info.getName(), info.getBrandName(), info.getLatitude(), info.getLongitude(), communicationHandler);
             addScheduler(s);
             s.start();
             obj.put("added", true);

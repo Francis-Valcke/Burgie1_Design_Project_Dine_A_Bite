@@ -1,6 +1,7 @@
 package cobol.services.ordermanager.controller;
 
 import cobol.commons.CommonStand;
+import cobol.commons.exception.CommunicationException;
 import cobol.services.ordermanager.MenuHandler;
 import cobol.services.ordermanager.domain.entity.Stand;
 import cobol.services.ordermanager.domain.repository.StandRepository;
@@ -37,7 +38,7 @@ public class StandController {
      */
     @PostMapping(path = "/addStand")
     @ResponseBody
-    public ResponseEntity<String> addStand(@RequestBody CommonStand stand) throws JsonProcessingException, ParseException, DuplicateStandException {
+    public ResponseEntity<String> addStand(@RequestBody CommonStand stand) throws JsonProcessingException, ParseException, DuplicateStandException, CommunicationException {
         menuHandler.addStand(stand);
         return ResponseEntity.ok("The stand was created.");
     }
