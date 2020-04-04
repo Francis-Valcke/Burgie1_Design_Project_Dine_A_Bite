@@ -12,6 +12,7 @@ import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.TextView;
 
+import com.example.standapp.json.CommonFood;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textfield.TextInputEditText;
 
@@ -22,9 +23,9 @@ import java.util.Objects;
 public class DashboardListViewAdapter extends BaseAdapter {
 
     private LayoutInflater inflater;
-    private List<MenuItem> items;
+    private List<CommonFood> items;
 
-    DashboardListViewAdapter(Activity context, List<MenuItem> items) {
+    DashboardListViewAdapter(Activity context, List<CommonFood> items) {
         super();
         this.items = items;
         this.inflater = (LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -48,7 +49,7 @@ public class DashboardListViewAdapter extends BaseAdapter {
     @SuppressLint("SetTextI18n")
     @Override
     public View getView(final int position, View convertView, ViewGroup parent) {
-        final MenuItem item = items.get(position);
+        final CommonFood item = items.get(position);
         View view = convertView;
 
         if (convertView == null) view = inflater.inflate(R.layout.menu_item, parent, false);
@@ -56,7 +57,7 @@ public class DashboardListViewAdapter extends BaseAdapter {
         TextView name = view.findViewById(R.id.menu_item_name);
         TextView price = view.findViewById(R.id.menu_item_price);
         TextView stock = view.findViewById(R.id.menu_item_stock);
-        name.setText(item.getFoodName());
+        name.setText(item.getName());
         price.setText(item.getPrice().toString());
         stock.setText(Integer.toString(item.getStock()));
 
@@ -67,7 +68,7 @@ public class DashboardListViewAdapter extends BaseAdapter {
         final TextInputEditText nameInput = editDialogLayout.findViewById(R.id.menu_item_name);
         final TextInputEditText priceInput = editDialogLayout.findViewById(R.id.menu_item_price);
         final TextInputEditText stockInput = editDialogLayout.findViewById(R.id.menu_item_stock);
-        nameInput.setText(item.getFoodName());
+        nameInput.setText(item.getName());
         priceInput.setText(item.getPrice().toString());
         stockInput.setText(Integer.toString(item.getStock()));
         editButton.setOnClickListener(new View.OnClickListener() {
@@ -81,7 +82,7 @@ public class DashboardListViewAdapter extends BaseAdapter {
                                 String name = Objects.requireNonNull(nameInput.getText()).toString();
                                 BigDecimal price = new BigDecimal(Objects.requireNonNull(priceInput.getText()).toString());
                                 int stock = Integer.parseInt(Objects.requireNonNull(stockInput.getText()).toString());
-                                item.setFoodName(name);
+                                item.setName(name);
                                 item.setPrice(price);
                                 item.setStock(stock);
                                 notifyDataSetChanged();

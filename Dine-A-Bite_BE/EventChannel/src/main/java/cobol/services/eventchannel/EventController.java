@@ -3,7 +3,6 @@ package cobol.services.eventchannel;
 import cobol.commons.Event;
 import cobol.commons.ResponseModel;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -110,13 +109,7 @@ public class EventController {
         EventBroker broker = EventBroker.getInstance();
         EventSubscriber subscriber = broker.getSubscriberStub(id);
         List<Event> response = subscriber.getUnhandledEvents();
-        ObjectMapper mapper = new ObjectMapper();
-        String responseArray = mapper.writeValueAsString(response);
-        return ResponseEntity.ok(
-                ResponseModel.builder()
-                        .status(OK.toString())
-                        .details(responseArray)
-                        .build().generateResponse()
-        );
+
+        return ResponseEntity.ok(response);
     }
 }
