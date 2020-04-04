@@ -26,7 +26,7 @@ class Utils {
 
         // Instantiate the RequestQueue
         RequestQueue queue = Volley.newRequestQueue(context);
-        String om_url = "http://cobol.idlab.ugent.be:8091/pingOM";
+        String om_url = ServerConfig.OM_ADDRESS + "/pingOM";
 
         // Request a string response (ping message) from the provided URL
         StringRequest stringRequest = new StringRequest(Request.Method.GET, om_url, new Response.Listener<String>() {

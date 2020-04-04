@@ -1,6 +1,7 @@
 package com.example.attendeeapp;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,12 +11,15 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+import com.example.attendeeapp.json.CommonFood;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.math.BigDecimal;
 import java.util.Iterator;
+import java.util.List;
 
 /**
  * Handles the view for the global menu
@@ -42,13 +46,13 @@ public class MenuFragmentGlobal extends MenuFragment {
         pullToRefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                fetchMenu("");
+                fetchMenu("", "");
                 pullToRefresh.setRefreshing(false);
             }
         });
 
         // Fetch global menu from server
-        fetchMenu("");
+        fetchMenu("", "");
     }
 
     /**
@@ -58,34 +62,13 @@ public class MenuFragmentGlobal extends MenuFragment {
      * @param standName: the requested menu standName, "" is global
      * @throws JSONException
      */
-    public void updateMenu(JSONObject response, String standName) throws JSONException {
+    public void updateMenu(List<CommonFood> response, String standName) throws JSONException {
         // Renew the list
         menuItems.clear();
-        //Log.v("response", "Response: " + response.toString());
-        for (Iterator<String> iter = response.keys(); iter.hasNext(); ) {
-            String key = iter.next();
-            String[] item_name = key.split("_");
-            String foodName = item_name[0];
-            String brandName = item_name[1];
 
-            // Create the menuItem with price, food and brandName
-            JSONArray jsonArray = response.getJSONArray(key);
-            double price = jsonArray.getDouble(0);
-            MenuItem item = new MenuItem(foodName, new BigDecimal(price), brandName);
+        menuItems.addAll(response);
+//        Log.v("response", "Response: " + response.toString());
 
-            // Add categories to the menuItem
-            if(!jsonArray.getString(1).equals("null")) {
-                JSONArray cat_array = jsonArray.getJSONArray(1);
-                for (int j = 0; j < cat_array.length(); j++) {
-                    item.addCategory((String) cat_array.get(j));
-                }
-            }
-            // Add the description, if provided
-            String description = jsonArray.getString(2);
-            if (!description.equals("null")) item.setDescription(description);
-
-            menuItems.add(item);
-        }
         menuAdapter.putList(menuItems);
         menuAdapter.notifyDataSetChanged();
     }

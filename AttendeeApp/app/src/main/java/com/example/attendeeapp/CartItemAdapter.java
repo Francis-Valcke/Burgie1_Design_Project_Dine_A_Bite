@@ -9,18 +9,20 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.attendeeapp.json.CommonFood;
+
 import java.util.ArrayList;
 
 /**
  * Handles all the cart items in the cart list
  */
 public class CartItemAdapter  extends BaseAdapter {
-    private ArrayList<MenuItem> cartList = new ArrayList<MenuItem>();
+    private ArrayList<CommonFood> cartList = new ArrayList<CommonFood>();
     private int cartCount;
     private Context context;
     private Toast mToast = null;
 
-    public CartItemAdapter(ArrayList<MenuItem> list,Context context) {
+    public CartItemAdapter(ArrayList<CommonFood> list, Context context) {
         this.cartList = list;
         this.context = context;
     }
@@ -33,7 +35,7 @@ public class CartItemAdapter  extends BaseAdapter {
         return cartCount;
     }
 
-    public ArrayList<MenuItem> getCartList() {
+    public ArrayList<CommonFood> getCartList() {
         return cartList;
     }
 
@@ -63,7 +65,7 @@ public class CartItemAdapter  extends BaseAdapter {
 
         //Handle TextView to display one cart item name, if this name has a stand, display it too
         TextView listItemText = (TextView)view.findViewById(R.id.cart_item);
-        String name = cartList.get(position).getFoodName();
+        String name = cartList.get(position).getName();
         if(!cartList.get(position).getStandName().equals("")) name += " (" + cartList.get(position)
                                                                         .getStandName() + ")";
         listItemText.setText(name);

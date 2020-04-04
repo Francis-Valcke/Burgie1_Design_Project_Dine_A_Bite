@@ -1,23 +1,17 @@
 package cobol.services.standmanager;
 
+import cobol.commons.CommonFood;
 import cobol.commons.Event;
-import cobol.commons.MenuItem;
+import cobol.commons.exception.CommunicationException;
 import cobol.commons.order.CommonOrder;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
-import org.springframework.http.*;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriComponentsBuilder;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
-import java.awt.*;
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -27,45 +21,41 @@ import java.util.concurrent.TimeUnit;
  * TODO: change "inc" to proper schedule
  */
 public class Scheduler extends Thread {
+
+
+    private CommunicationHandler communicationHandler;
+
+    // incoming orders
     private List<CommonOrder> inc = new LinkedList<>();
-    private ArrayList<MenuItem> menu;
-    private String standname;
-    private int id;
-    private ObjectMapper objectMapper;
-    private RestTemplate restTemplate;
-    private HttpHeaders headers;
-    private HttpEntity entity;
-    // Coordinates of Stand
+
+
+    // Stand properties
+
+    private String standName;
+    private List<CommonFood> menu;
     private double lon;
     private double lat;
+
+
+    // Scheduler properties
     private int subscriberId;
-    private String brand;
+    private String brandName;
 
-    public Scheduler(ArrayList<MenuItem> menu, String standname, int id, String brand) {
+    private ObjectMapper objectMapper;
+    public Scheduler(List<CommonFood> menu, String standName, String brandName, double lat, double lon, CommunicationHandler communicationHandler) throws CommunicationException {
+        // set stand properties
         this.menu = menu;
-        this.standname = standname;
-        this.id = id;
-        this.brand = brand;
-        objectMapper = new ObjectMapper();
-        objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-        restTemplate = new RestTemplate();
-        headers = new HttpHeaders();
-        headers.add("Authorization", "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJPcmRlck1hbmFnZXIiLCJyb2xlcyI6WyJST0xFX0FQUExJQ0FUSU9OIl0sImlhdCI6MTU4NDkxMTY3MSwiZXhwIjoxNzQyNTkxNjcxfQ.VmujsURhZaXRp5FQJXzmQMB-e6QSNF-OyPLeMEMOVvI");
-        entity = new HttpEntity(headers);
-        // subscribe to the channel of the brand
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.add("Authorization", "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJTdGFuZE1hbmFnZXIiLCJyb2xlcyI6WyJST0xFX0FQUExJQ0FUSU9OIl0sImlhdCI6MTU4NDkxMTc0MywiZXhwIjoxNzQyNTkxNzQzfQ.tuteSFjRJdQDMja2ioV0eiHvuCu0lkuS94zyhw9ZLIk");
-        HttpEntity<String> entity = new HttpEntity<>(headers);
-        String uri = StandManager.ECURL + "/registerSubscriber";
-        ResponseEntity<String> response = restTemplate.exchange(uri, HttpMethod.GET, entity, String.class);
-        this.subscriberId = Integer.valueOf(response.getBody());
-        String channelId = brand;
-        uri = StandManager.ECURL + "/registerSubscriber/toChannel";
-        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(uri)
-                .queryParam("id", this.subscriberId)
-                .queryParam("type", channelId);
+        this.standName = standName;
+        this.brandName = brandName;
+        this.lat= lat;
+        this.lon=lon;
 
-        ResponseEntity<String> responseEntity = restTemplate.exchange(builder.toUriString(), HttpMethod.GET, entity, String.class);
+        this.communicationHandler=communicationHandler;
+        // retrieve subscriber id
+        subscriberId= communicationHandler.getSubscriberIdFromEC();
+
+        // register to orders from a brand
+        communicationHandler.registerToOrdersFromBrand(subscriberId, brandName);
 
     }
 
@@ -75,10 +65,10 @@ public class Scheduler extends Thread {
      * @param mi2 old item
      * @return
      */
-    static boolean updateItem(MenuItem mi, MenuItem mi2) {
-        if (mi.getFoodName().equals(mi2.getFoodName())) {
-            if (mi.getPreptime() >= 0) mi2.setPreptime(mi.getPreptime());
-            if (mi.getPrice().compareTo(BigDecimal.ZERO) >= 0) mi2.setPrice(mi.getPrice());
+    static boolean updateItem(CommonFood mi, CommonFood mi2) {
+        if (mi.getName().equals(mi2.getName())) {
+            mi2.setPreparationTime(mi.getPreparationTime());
+            mi2.setPrice(mi.getPrice());
             mi2.setStock(mi.getStock() + mi2.getStock());
             return true;
         }
@@ -86,26 +76,17 @@ public class Scheduler extends Thread {
     }
 
     public void pollEvents() {
-        String uri = StandManager.ECURL + "/events";
-        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(uri)
-                .queryParam("id", this.subscriberId);
-        ResponseEntity<String> response = this.restTemplate.exchange(builder.toUriString(), HttpMethod.GET, this.entity, String.class);
+
         try {
-            JSONObject responseObject = this.objectMapper.readValue(response.getBody(), JSONObject.class);
-            String details = (String) responseObject.get("details");
-            JSONParser parser = new JSONParser();
-            JSONArray detailsJSON = (JSONArray) parser.parse(details);
-            List<Event> eventList = objectMapper.readValue(details, new TypeReference<List<Event>>() {
-            });
-            for (int i = 0; i < detailsJSON.size(); i++) {
-                JSONObject e = (JSONObject) detailsJSON.get(i);
 
-                JSONObject eventData = (JSONObject) e.get("eventData");
+            List<Event> eventList=communicationHandler.pollEventsFromEC(subscriberId);
+
+            for (Event event : eventList) {
+                JSONObject eventData = event.getEventData();
                 JSONObject menuchange = (JSONObject) eventData.get("menuItem");
-                MenuItem mi = objectMapper.readValue(menuchange.toString(), MenuItem.class);
-                for (MenuItem mi2 : menu) {
+                CommonFood mi = objectMapper.readValue(menuchange.toString(), CommonFood.class);
+                for (CommonFood mi2 : menu) {
                     updateItem(mi, mi2);
-
                 }
             }
         } catch (JsonProcessingException | ParseException e) {
@@ -152,8 +133,8 @@ public class Scheduler extends Thread {
      * @return true/false
      */
     public boolean checkType(String type) {
-        for (MenuItem mi : menu) {
-            if (mi.getFoodName().equals(type)) {
+        for (CommonFood mi : menu) {
+            if (mi.getName().equals(type)) {
                 return true;
             }
         }
@@ -192,12 +173,12 @@ public class Scheduler extends Thread {
      * @return preptime
      */
     public int getPreptime(String foodname) {
-        for (MenuItem m : menu) {
-            if (m.getFoodName().equals(foodname)) return m.getPreptime();
+        for (CommonFood m : menu) {
+            if (m.getName().equals(foodname)) return m.getPreparationTime();
         }
         return -1;
     }
-    public void removeItem(MenuItem mi){
+    public void removeItem(CommonFood mi){
         this.menu.remove(mi);
     }
     public double getLon() {
@@ -216,20 +197,17 @@ public class Scheduler extends Thread {
         this.lat = l;
     }
 
-    public ArrayList<MenuItem> getMenu() {
+    public List<CommonFood> getMenu() {
         return this.menu;
     }
 
-    public int getStandId() {
-        return this.id;
-    }
 
     public String getStandName() {
-        return this.standname;
+        return this.standName;
     }
 
     public String getBrand() {
-        return this.brand;
+        return this.brandName;
     }
 
 

@@ -22,7 +22,7 @@ public class SchedulerComparatorTime implements Comparator<Scheduler> {
         int time1 = 0;
         int time2 = 0;
         for (CommonOrderItem orderItem : orderItems) {
-            String foodName = orderItem.getFoodname();
+            String foodName = orderItem.getFoodName();
             time1 += o1.getPreptime(foodName) * orderItem.getAmount();
             time2 += o2.getPreptime(foodName) * orderItem.getAmount();
         }
@@ -33,7 +33,7 @@ public class SchedulerComparatorTime implements Comparator<Scheduler> {
     public int getTimesum(Scheduler o) {
         int time = 0;
         for (CommonOrderItem orderItem : orderItems) {
-            time += o.getPreptime(orderItem.getFoodname()) * orderItem.getAmount();
+            time += o.getPreptime(orderItem.getFoodName()) * orderItem.getAmount();
         }
         return o.timeSum() + time;
     }

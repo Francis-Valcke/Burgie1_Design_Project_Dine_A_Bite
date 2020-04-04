@@ -1,22 +1,19 @@
 package cobol.services.standmanager;
 
-import cobol.commons.MenuItem;
+import cobol.commons.CommonStand;
 import cobol.commons.ResponseModel;
-import cobol.commons.StandInfo;
+import cobol.commons.exception.CommunicationException;
 import cobol.commons.order.CommonOrder;
-import cobol.commons.order.CommonOrderItem;
 import cobol.commons.order.Recommendation;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import static cobol.commons.ResponseModel.status.OK;
 
@@ -42,41 +39,41 @@ public class StandManagerController {
 
     /**
      * adds schedulers to SM
-     *
-     * @param standinfos
+     * @param stands
      * @throws JsonProcessingException when wrong input param
      */
     @PostMapping("/update")
-    public void update(@RequestBody String[] standinfos) throws JsonProcessingException {
-        schedulerHandler.clearSchedulers();
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-        for (String standinfo : standinfos) {
-            StandInfo info = objectMapper.readValue(standinfo, StandInfo.class);
-            Scheduler s = new Scheduler(info.getMenu(), info.getName(), info.getId(), info.getBrand());
-            s.setLat(info.getLat());
-            s.setLon(info.getLon());
-            schedulerHandler.addScheduler(s);
-            s.start();
+    public void update(@RequestBody List<CommonStand> stands) throws CommunicationException {
+
+        for (CommonStand stand : stands) {
+            schedulerHandler.updateSchedulers(stand);
         }
+
+
     }
 
-    @PostMapping("/delete")
-    public JSONObject deleteSchedulers() {
-        schedulerHandler.clearSchedulers();
-        JSONObject obj = new JSONObject();
-        obj.put("del", true);
-        return obj;
+    @PostMapping("/deleteScheduler")
+    public void deleteScheduler(@RequestParam String standName, @RequestParam String brandName){
+
+
+
+        Optional<Scheduler> schedulerOptional= schedulerHandler.getSchedulers().stream()
+                .filter(s -> s.getStandName().equals(standName) &&
+                        s.getBrand().equals(brandName)).findAny();
+        schedulerOptional.ifPresent(scheduler -> schedulerHandler.removeScheduler(scheduler));
     }
 
+
+
+   
     /**
-     * @param info class object StandInfo which is used to start a scheduler for stand added in order manager
-     *             available at localhost:8082/newStand
+     * @param stand class object StandInfo which is used to start a scheduler for stand added in order manager
+     *             available at localhost:8081/newStand
      * @return true (if no errors)
      */
-    @PostMapping(value = "/newStand", consumes = "application/json")
-    public JSONObject addNewStand(@RequestBody() StandInfo info) {
-            return schedulerHandler.updateSchedulers(info);
+    @RequestMapping(value = "/newStand", consumes = "application/json")
+    public JSONObject addNewStand(@RequestBody() CommonStand stand) throws CommunicationException {
+            return schedulerHandler.updateSchedulers(stand);
     }
 
 
@@ -96,7 +93,7 @@ public class StandManagerController {
      */
     @RequestMapping(value = "/getRecommendation", consumes = "application/json")
     @ResponseBody
-    public JSONObject postCommonOrder(@RequestBody() CommonOrder order) throws JsonProcessingException {
+    public List<Recommendation> postCommonOrder(@RequestBody() CommonOrder order) throws JsonProcessingException {
         System.out.println("User requested recommended stand for " + order.getId());
         return schedulerHandler.recommend(order);
     }

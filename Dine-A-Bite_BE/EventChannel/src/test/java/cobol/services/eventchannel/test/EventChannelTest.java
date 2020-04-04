@@ -24,8 +24,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
 
-;
-
 @RunWith(SpringRunner.class)
 @SpringBootTest
 public class EventChannelTest {
@@ -131,10 +129,9 @@ public class EventChannelTest {
                 )
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
-        JSONObject response = objectMapper.readValue(data, JSONObject.class);
-        String details = (String) response.get("details");
-        List<Event> eventList = objectMapper.readValue(details, new TypeReference<List<Event>>() {
-        });
+        //JSONObject response = objectMapper.readValue(data, JSONObject.class);
+        //String details = (String) response.get("details");
+        List<Event> eventList = objectMapper.readValue(data, new TypeReference<List<Event>>() {});
         assert (eventList.size() == 3); //event from channel 1,2 and 3;
         for (Event e : eventList) {
             assert (e.getMyId() == 0 || e.getMyId() == 1);
