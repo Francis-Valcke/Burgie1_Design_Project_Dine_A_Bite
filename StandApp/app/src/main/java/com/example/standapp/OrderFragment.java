@@ -50,12 +50,14 @@ public class OrderFragment extends Fragment {
 
         View view = inflater.inflate(R.layout.activity_order, container, false);
 
-        // subscribe to the Event Channel
-        // so that orders can be received
-        // TODO not everytime this fragment is opened/created, only after first logging in
-        // TODO when another stands logs in
-        subscribeEC();
+        // subscribe to the Event Channel and get subscriberID
+        // TODO not every time this fragment is opened/created, only after first logging in
+        // TODO when another stands logs in (erase subscriberID in activity_account?)
+        if (subscriberId.isEmpty()) {
+            subscribeEC();
+        }
 
+        // TODO without refresh button, but automatic polling
         Button refreshButton = view.findViewById(R.id.refresh_button);
         ExpandableListView listView = view.findViewById(R.id.expandable_list_view);
         listDataHeader = new ArrayList<>();
@@ -138,7 +140,7 @@ public class OrderFragment extends Fragment {
         RequestQueue queue = Volley.newRequestQueue(Objects.requireNonNull(getContext()));
         String url = "http://cobol.idlab.ugent.be:8093/registerSubscriber?types=s4"; //TODO: Currently standId 4 is hardcoded, FIX THIS
 
-        //GET
+        // Get string request to server
         StringRequest request = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
