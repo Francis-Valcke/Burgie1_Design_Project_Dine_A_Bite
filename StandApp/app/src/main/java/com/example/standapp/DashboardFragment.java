@@ -41,6 +41,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+// TODO add discription input fields
+// TODO add prep time input fields
+// TODO fix sending and showing and storing stock
+// TODO change stock based on incoming orders
+// TODO set location data
+
 public class DashboardFragment extends Fragment {
 
     private ArrayList<CommonFood> items = new ArrayList<>();

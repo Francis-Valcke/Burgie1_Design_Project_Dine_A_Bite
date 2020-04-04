@@ -5,7 +5,6 @@ import androidx.annotation.NonNull;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import java.util.List;
-import org.json.JSONObject;
 
 public class Event {
 
@@ -20,7 +19,6 @@ public class Event {
         idCount++;
         eventData = null;
     }
-
 
     public Event(JsonNode data, List<String> types, String dataType) {
         myId = idCount;

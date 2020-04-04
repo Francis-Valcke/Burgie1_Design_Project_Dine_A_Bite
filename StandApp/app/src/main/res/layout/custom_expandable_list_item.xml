@@ -1,20 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- what is this -->
-<LinearLayout
+<RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="?android:attr/listPreferredItemPaddingLeft"
-    android:paddingLeft="45dp"
-    android:paddingStart="45dp">
+    android:paddingStart="30dp"
+    android:paddingEnd="30dp"
+    android:paddingTop="5dp">
 
     <TextView
         android:id="@+id/list_item"
-        android:textSize="12sp"
-        android:paddingStart="?android:attr/expandableListPreferredChildIndicatorLeft"
-        android:paddingEnd="?android:attr/expandableListPreferredChildIndicatorRight"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textColor="#f00"/>
+        style="@style/TextAppearance.MaterialComponents.Body1"
+        android:textSize="20sp"/>
 
-</LinearLayout>
+</RelativeLayout>

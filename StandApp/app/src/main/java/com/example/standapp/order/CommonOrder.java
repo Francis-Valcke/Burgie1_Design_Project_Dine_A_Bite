@@ -56,7 +56,6 @@ public class CommonOrder {
         }
     }
 
-
     public int getId() {
         return id;
     }
