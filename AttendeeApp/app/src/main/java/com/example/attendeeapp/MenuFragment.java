@@ -14,18 +14,16 @@ import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
-import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import com.example.attendeeapp.json.CommonFood;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -47,18 +45,13 @@ public abstract class MenuFragment extends Fragment {
      * Updates the current global/stand menu with the updated version returned from the server
      * Error are handled in the fetchMenu function
      * @param response: the JSON response from the server
-     * @param standName: the requested menu standName, "" is global
-     * @throws JsonProcessingException
      */
-    public abstract void updateMenu(List<CommonFood> response, String standName) throws JSONException;
-    public void updateMenu(JSONArray response, String standName) throws JsonProcessingException {
+    public void updateMenu(List<CommonFood> response) {
         // Renew the list
         menuItems.clear();
 
-        ObjectMapper mapper= new ObjectMapper();
-        mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-        MenuItem[] items = mapper.readValue(response.toString(), MenuItem[].class);
-        Collections.addAll(menuItems, items);
+        menuItems.addAll(response);
+        //Log.v("response", "Response: " + response.toString());
 
         menuAdapter.putList(menuItems);
         menuAdapter.notifyDataSetChanged();
@@ -78,7 +71,7 @@ public abstract class MenuFragment extends Fragment {
         RequestQueue queue = Volley.newRequestQueue(getActivity());
         String url = ServerConfig.OM_ADDRESS;
         int req = Request.Method.GET;
-        if(standName.equals("")){
+        if (standName.equals("")) {
             url = url + "/menu";
         } else {
 
@@ -101,8 +94,15 @@ public abstract class MenuFragment extends Fragment {
                     ObjectMapper om = new ObjectMapper();
                     List<CommonFood> foodList=om.readValue(response.toString(), new TypeReference<List<CommonFood>>() {});
 
+                    // For global menu, set stand names to ""
+                    if (standName.equals("")) {
+                        for (CommonFood food : foodList) {
+                            food.setStandName("");
+                        }
+                    }
+
                     // Let fragments handle the response
-                    updateMenu(foodList, standName);
+                    updateMenu(foodList);
                 } catch (Exception e) { // Catch all exceptions TODO: only specific ones
                     Log.v("Exception fetchMenu", e.toString());
                     if (mToast != null) mToast.cancel();

@@ -2,8 +2,8 @@ package com.example.attendeeapp.appDatabase;
 
 import androidx.room.TypeConverter;
 
-import com.example.attendeeapp.order.CommonOrder;
-import com.example.attendeeapp.order.CommonOrderItem;
+import com.example.attendeeapp.json.CommonOrder;
+import com.example.attendeeapp.json.CommonOrderItem;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -53,13 +53,13 @@ public class Converters {
     }
 
     @TypeConverter
-    public static CommonOrder.status getStatus(Integer numeral){
-        return CommonOrder.status.values()[numeral];
+    public static CommonOrder.State getStatus(Integer numeral){
+        return CommonOrder.State.values()[numeral];
     }
 
     @TypeConverter
-    public static Integer getStatusInt(CommonOrder.status status){
-        return status.ordinal();
+    public static Integer getStatusInt(CommonOrder.State state){
+        return state.ordinal();
     }
 
     @TypeConverter

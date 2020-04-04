@@ -34,7 +34,7 @@
         android:layout_gravity="center" />
 
     <TextView
-        android:id="@+id/order_group_header_id"
+        android:id="@+id/order_group_title_id"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginEnd="25dp"
@@ -52,7 +52,7 @@
             android:layout_gravity="center" />
 
     <TextView
-        android:id="@+id/order_group_header_count"
+        android:id="@+id/order_group_title_count"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="15dp"
@@ -62,7 +62,7 @@
         android:layout_gravity="center" />
 
     <TextView
-        android:id="@+id/order_group_header_price"
+        android:id="@+id/order_group_title_price"
         android:layout_width="105dp"
         android:layout_height="wrap_content"
         android:layout_marginEnd="15dp"

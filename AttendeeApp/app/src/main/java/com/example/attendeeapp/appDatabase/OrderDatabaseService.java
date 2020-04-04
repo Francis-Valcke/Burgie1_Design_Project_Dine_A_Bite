@@ -6,7 +6,7 @@ import android.util.Log;
 
 import androidx.room.Room;
 
-import com.example.attendeeapp.order.CommonOrder;
+import com.example.attendeeapp.json.CommonOrder;
 
 import java.util.List;
 import java.util.concurrent.ExecutionException;

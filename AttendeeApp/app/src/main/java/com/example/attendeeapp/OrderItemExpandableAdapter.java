@@ -10,14 +10,14 @@ import android.widget.BaseExpandableListAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.example.attendeeapp.order.CommonOrder;
-import com.example.attendeeapp.order.CommonOrderItem;
+import com.example.attendeeapp.json.CommonOrder;
+import com.example.attendeeapp.json.CommonOrderItem;
 
-import java.math.BigDecimal;
-import java.text.NumberFormat;
 import java.util.ArrayList;
-import java.util.Locale;
 
+/**
+ * Handles all the order items in the order expandable list overview
+ */
 public class OrderItemExpandableAdapter extends BaseExpandableListAdapter {
 
     private Context context;
@@ -36,8 +36,8 @@ public class OrderItemExpandableAdapter extends BaseExpandableListAdapter {
 
     @Override
     public int getChildrenCount(int i) {
-        // Add 1 to childCount because of header
-        return orders.get(i).getOrderItems().size() + 1;
+        // Add 2 to childCount because of header and footer
+        return orders.get(i).getOrderItems().size() + 2;
     }
 
     @Override
@@ -65,6 +65,14 @@ public class OrderItemExpandableAdapter extends BaseExpandableListAdapter {
         return false;
     }
 
+    /**
+     * Create the view for one group item in the expandable list, always visible
+     * @param i = the position of the group item
+     * @param b = if the group item is currently selected (and expanded)
+     * @param view
+     * @param viewGroup
+     * @return
+     */
     @Override
     public View getGroupView(int i, boolean b, View view, ViewGroup viewGroup) {
         CommonOrder currentOrder = orders.get(i);
@@ -83,9 +91,9 @@ public class OrderItemExpandableAdapter extends BaseExpandableListAdapter {
         highPriority.setVisibility(View.GONE);
 
         // Handle textViews of the order expandable title
-        TextView textID = (TextView)view.findViewById(R.id.order_group_header_id);
-        TextView textCount = (TextView)view.findViewById(R.id.order_group_header_count);
-        TextView txtPrice = (TextView)view.findViewById(R.id.order_group_header_price);
+        TextView textID = (TextView)view.findViewById(R.id.order_group_title_id);
+        TextView textCount = (TextView)view.findViewById(R.id.order_group_title_count);
+        TextView txtPrice = (TextView)view.findViewById(R.id.order_group_title_price);
         textID.setText("#" + currentOrder.getId());
         textCount.setText("" + currentOrder.getTotalCount());
         txtPrice.setText(currentOrder.getTotalPriceEuro());
@@ -97,6 +105,15 @@ public class OrderItemExpandableAdapter extends BaseExpandableListAdapter {
         return view;
     }
 
+    /**
+     * Create the view of 1 child items of 1 group, only visible if group item is expanded
+     * @param groupPos = the child's (parent) group item position
+     * @param childPos = the child position (of all children)
+     * @param b
+     * @param view
+     * @param viewGroup
+     * @return
+     */
     @Override
     public View getChildView(int groupPos, int childPos, boolean b, View view, ViewGroup viewGroup) {
         CommonOrder currentOrder = getGroup(groupPos);
@@ -109,7 +126,7 @@ public class OrderItemExpandableAdapter extends BaseExpandableListAdapter {
         }
 
         // Here is the ListView of the ChildView is handled
-        if(childPos > 0 && childPos < getChildrenCount(groupPos))
+        if(childPos > 0 && childPos < getChildrenCount(groupPos)-1)
         {
             // Handle one menuItem of the order being shown
             CommonOrderItem currentItem = getChild(groupPos,childPos-1);
@@ -118,14 +135,24 @@ public class OrderItemExpandableAdapter extends BaseExpandableListAdapter {
             TextView txtFoodName = (TextView)view.findViewById(R.id.order_item_name);
             TextView txtCount = (TextView)view.findViewById(R.id.order_item_count);
             TextView txtPrice = (TextView)view.findViewById(R.id.order_item_price);
-            txtFoodName.setText(currentItem.getFoodname());
+            txtFoodName.setText(currentItem.getFoodName());
             txtCount.setText("" + currentItem.getAmount());
             txtPrice.setText(currentItem.getPriceEuro());
 
             // Set padding for the last child
-            if (childPos == currentOrder.getOrderItems().size()) {
+            /*if (childPos == currentOrder.getOrderItems().size()) {
                 view.setPadding(0, 0, 0, 50);
-            }
+            }*/
+        }
+
+        if(childPos == getChildrenCount(groupPos)-1)
+        {
+            view = inflater.inflate(R.layout.order_item_expandable_footer, null);
+            // Handle footer for order stand and brand details
+            TextView txtStandName = (TextView)view.findViewById(R.id.order_footer_stand);
+            TextView txtBrandName = (TextView)view.findViewById(R.id.order_footer_brand);
+            txtStandName.setText(currentOrder.getStandName());
+            txtBrandName.setText(currentOrder.getBrandName() + ")");
         }
         return view;
     }

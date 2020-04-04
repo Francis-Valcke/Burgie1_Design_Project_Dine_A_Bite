@@ -29,8 +29,9 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
-import com.example.attendeeapp.order.CommonOrder;
-import com.example.attendeeapp.order.Recommendation;
+import com.example.attendeeapp.json.CommonFood;
+import com.example.attendeeapp.json.CommonOrder;
+import com.example.attendeeapp.json.Recommendation;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -48,12 +49,17 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import static com.example.attendeeapp.ServerConfig.AUTHORIZATION_TOKEN;
+
+/**
+ * Activity that handles the confirmation/choosing of the (recommended) stand of the placed order
+ */
 public class ConfirmActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener {
 
     private ArrayAdapter<String> standListAdapter;
     private Location lastLocation;
     private Multimap<String, String> brandStandMap = ArrayListMultimap.create();
-    private ArrayList<MenuItem> ordered;
+    private ArrayList<CommonFood> ordered;
     private int cartCount;
     private BigDecimal totalPrice;
     private List<Recommendation> recommendations = null;
@@ -66,7 +72,7 @@ public class ConfirmActivity extends AppCompatActivity implements AdapterView.On
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_confirm);
 
-        ordered = (ArrayList<MenuItem>) getIntent().getSerializableExtra("order");
+        ordered = (ArrayList<CommonFood>) getIntent().getSerializableExtra("order");
         cartCount = getIntent().getIntExtra("cartCount", 0);
         totalPrice = (BigDecimal) getIntent().getSerializableExtra("totalPrice");
         lastLocation = (Location) getIntent().getParcelableExtra("location");
@@ -111,11 +117,11 @@ public class ConfirmActivity extends AppCompatActivity implements AdapterView.On
             @Override
             public void onClick(View v) {
                 if(chosenStand != null) {
-                    /*if (mToast != null) mToast.cancel();
+                    if (mToast != null) mToast.cancel();
                     mToast = Toast.makeText(ConfirmActivity.this, "This function is currently not supported yet",
                             Toast.LENGTH_SHORT);
-                    mToast.show();*/
-                    boolean noRecommend = true;
+                    mToast.show();
+                    /*boolean noRecommend = true;
                     if(recommendations != null) {
                         if (recommendations.size() > 0) {
                             noRecommend = false;
@@ -131,6 +137,7 @@ public class ConfirmActivity extends AppCompatActivity implements AdapterView.On
                                     Intent intent = new Intent(ConfirmActivity.this, OrderActivity.class);
                                     intent.putExtra("order", orderReceived);
                                     intent.putExtra("stand", chosenStand);
+                                    intent.putExtra("brand", ordered.get(0).getBrandName());
                                     startActivity(intent);
 
                                 }
@@ -158,6 +165,7 @@ public class ConfirmActivity extends AppCompatActivity implements AdapterView.On
                             // TODO: handle no order received back from server
                             intent.putExtra("order", orderReceived);
                             intent.putExtra("stand", chosenStand);
+                            intent.putExtra("brand", ordered.get(0).getBrandName());
                             startActivity(intent);
 
                         } else {
@@ -167,7 +175,7 @@ public class ConfirmActivity extends AppCompatActivity implements AdapterView.On
                                     Toast.LENGTH_SHORT);
                             mToast.show();
                         }
-                    }
+                    }*/
 
 
                 } else {
@@ -191,7 +199,8 @@ public class ConfirmActivity extends AppCompatActivity implements AdapterView.On
                         // Continue to order overview with recommended stand
                         Intent intent = new Intent(ConfirmActivity.this, OrderActivity.class);
                         intent.putExtra("order", orderReceived);
-                        intent.putExtra("standID", recommendations.get(0).getStandId());
+                        intent.putExtra("stand", recommendations.get(0).getStandName());
+                        intent.putExtra("brand", recommendations.get(0).getBrandName());
                         startActivity(intent);
                     }
                 }
@@ -226,7 +235,6 @@ public class ConfirmActivity extends AppCompatActivity implements AdapterView.On
         // Make JSON Object with ordered items and location
         CommonOrder orderSent = new CommonOrder(ordered, ordered.get(0).getStandName(), ordered.get(0).getBrandName(), latitude, longitude);
         JSONObject jsonOrder = null;
-
         try {
             ObjectMapper mapper = new ObjectMapper();
             String jsonOrderString = mapper.writeValueAsString(orderSent);
@@ -254,13 +262,12 @@ public class ConfirmActivity extends AppCompatActivity implements AdapterView.On
         }
         // Instantiate the RequestQueue
         RequestQueue queue = Volley.newRequestQueue(this);
-        //String url = "http://10.0.2.2:8081/placeOrder";
-        String url = "http://cobol.idlab.ugent.be:8091/placeOrder";
+        String url = ServerConfig.OM_ADDRESS + "/placeOrder";
 
 
         // Request recommendation from server for sent order (both in JSON)
         JsonObjectRequest jsonRequest = new JsonObjectRequest(Request.Method.POST, url, jsonOrder,
-                new Response.Listener<JSONObject>() {
+                                                            new Response.Listener<JSONObject>() {
                     @Override
                     public void onResponse(JSONObject response) {
                         ObjectMapper mapper= new ObjectMapper();
@@ -291,10 +298,8 @@ public class ConfirmActivity extends AppCompatActivity implements AdapterView.On
             @Override
             public @NonNull Map<String, String> getHeaders()  throws AuthFailureError {
                 Map<String, String>  headers  = new HashMap<String, String>();
-                headers.put("Authorization", "Bearer " + "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOi" +
-                        "JmcmFuY2lzIiwicm9sZXMiOlsiUk9MRV9VU0VSIiwiUk9MRV9BRE1JTiJdLCJpYX" +
-                        "QiOjE1ODQ2MTAwMTcsImV4cCI6MTc0MjI5MDAxN30.5UNYM5Qtc4anyHrJXIuK0O" +
-                        "UlsbAPNyS9_vr-1QcOWnQ");
+                headers.put("Content-Type", "application/json");
+                headers.put("Authorization", AUTHORIZATION_TOKEN);
                 return headers;
             }
         };
@@ -309,7 +314,7 @@ public class ConfirmActivity extends AppCompatActivity implements AdapterView.On
     public void fetchStandNames() {
         // Instantiate the RequestQueue
         RequestQueue queue = Volley.newRequestQueue(this);
-        String url = "http://cobol.idlab.ugent.be:8091/stands";
+        String url = ServerConfig.OM_ADDRESS + "/stands";
 
         // Request the stand names in JSON from the order manager
         // Handle no network connection or server not reachable
@@ -359,10 +364,7 @@ public class ConfirmActivity extends AppCompatActivity implements AdapterView.On
             public @NonNull
             Map<String, String> getHeaders()  throws AuthFailureError {
                 Map<String, String>  headers  = new HashMap<String, String>();
-                headers.put("Authorization", "Bearer " + "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOi" +
-                        "JmcmFuY2lzIiwicm9sZXMiOlsiUk9MRV9VU0VSIiwiUk9MRV9BRE1JTiJdLCJpYX" +
-                        "QiOjE1ODQ2MTAwMTcsImV4cCI6MTc0MjI5MDAxN30.5UNYM5Qtc4anyHrJXIuK0O" +
-                        "UlsbAPNyS9_vr-1QcOWnQ");
+                headers.put("Authorization", AUTHORIZATION_TOKEN);
                 return headers;
             }
         };

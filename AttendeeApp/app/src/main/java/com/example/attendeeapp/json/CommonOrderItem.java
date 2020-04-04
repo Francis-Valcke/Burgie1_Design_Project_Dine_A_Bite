@@ -9,21 +9,21 @@ import java.util.Locale;
 
 public class CommonOrderItem implements Serializable {
 
-    private String foodname;
+    private String foodName;
     private int amount;
     private int itemId;
     private BigDecimal price;
 
-    public CommonOrderItem(){}
+    public CommonOrderItem() {}
 
-    public CommonOrderItem(String foodname, int amount, BigDecimal price) {
-        this.foodname = foodname;
+    public CommonOrderItem(String foodName, int amount, BigDecimal price) {
+        this.foodName = foodName;
         this.amount = amount;
         this.price = price;
     }
 
-    public String getFoodname() {
-        return foodname;
+    public String getFoodName() {
+        return foodName;
     }
 
     public int getItemId() {
@@ -44,7 +44,7 @@ public class CommonOrderItem implements Serializable {
 
     /**
      * Return the price of an order item with the euro symbol
-     * @return: String of euro symbol with price
+     * @return String of euro symbol with price
      */
     @JsonIgnore
     public String getPriceEuro() {

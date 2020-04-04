@@ -17,9 +17,11 @@ import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
-import com.example.attendeeapp.order.CommonOrder;
+import com.example.attendeeapp.ServerConfig;
+import com.example.attendeeapp.json.CommonOrder;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -29,6 +31,8 @@ import org.json.JSONObject;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import static com.example.attendeeapp.ServerConfig.AUTHORIZATION_TOKEN;
 
 /**
  * Service that polls the server for order updates
@@ -48,17 +52,25 @@ public class PollingService extends Service {
             // Send the order and chosen stand ID to the server and confirm the chosen stand
             // Instantiate the RequestQueue
             RequestQueue queue = Volley.newRequestQueue(context);
-            String url = "http://cobol.idlab.ugent.be:8093/events?id="+79;
+            String url = ServerConfig.EC_ADDRESS + "/events?id="+subscribeId;
 
             // Request a string response from the provided URL
-            JsonObjectRequest stringRequest = new JsonObjectRequest(Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
+            JsonArrayRequest jsonArray = new JsonArrayRequest(Request.Method.GET, url, null, new Response.Listener<JSONArray>() {
                 @Override
-                public void onResponse(JSONObject response) {
+                public void onResponse(JSONArray response) {
+                    Toast mToast = null;
+                    if (mToast != null) mToast.cancel();
+                    mToast = Toast.makeText(context, "Polling success",
+                            Toast.LENGTH_SHORT);
+                    mToast.show();
+
+
                     ObjectMapper mapper = new ObjectMapper();
                     String details = null;
                     try {
-                        details = (String) response.get("details");
-                        JSONArray detailsJSON= new JSONArray(details);
+                        //details = (String) response.get("details");
+                        //JSONArray detailsJSON= new JSONArray(details);
+                        JSONArray detailsJSON = response;
                         for(int i =0 ; i<detailsJSON.length(); i++){
                             JSONObject event = (JSONObject) detailsJSON.get(0);
                             JSONObject eventData = (JSONObject) event.get("eventData");
@@ -91,16 +103,13 @@ public class PollingService extends Service {
                 public @NonNull
                 Map<String, String> getHeaders()  throws AuthFailureError {
                     Map<String, String> headers = new HashMap<String, String>();
-                    headers.put("Authorization", "Bearer " + "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOi" +
-                            "JmcmFuY2lzIiwicm9sZXMiOlsiUk9MRV9VU0VSIiwiUk9MRV9BRE1JTiJdLCJpYX" +
-                            "QiOjE1ODQ2MTAwMTcsImV4cCI6MTc0MjI5MDAxN30.5UNYM5Qtc4anyHrJXIuK0O" +
-                            "UlsbAPNyS9_vr-1QcOWnQ");
+                    headers.put("Authorization", AUTHORIZATION_TOKEN);
                     return headers;
                 }
             };
 
             // Add the request to the RequestQueue
-            queue.add(stringRequest);
+            queue.add(jsonArray);
 
             handler.postDelayed(runnableService, DEFAULT_SYNC_INTERVAL);
         }

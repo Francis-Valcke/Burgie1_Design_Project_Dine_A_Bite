@@ -6,7 +6,7 @@ import androidx.room.Insert;
 import androidx.room.Query;
 import androidx.room.Update;
 
-import com.example.attendeeapp.order.CommonOrder;
+import com.example.attendeeapp.json.CommonOrder;
 
 import java.util.List;
 

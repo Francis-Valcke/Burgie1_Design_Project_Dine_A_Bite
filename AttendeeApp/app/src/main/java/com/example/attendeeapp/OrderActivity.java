@@ -24,7 +24,7 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
-import com.example.attendeeapp.order.CommonOrder;
+import com.example.attendeeapp.json.CommonOrder;
 import com.example.attendeeapp.polling.PollingService;
 import com.example.attendeeapp.appDatabase.OrderDatabaseService;
 
@@ -32,12 +32,18 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.example.attendeeapp.ServerConfig.AUTHORIZATION_TOKEN;
+
 /**
  * Activity to handle the show order overview
+ * Loads previous orders from the internal database stored on the devide
  */
 public class OrderActivity extends AppCompatActivity {
 
     private int subscribeId;
+    private ArrayList<CommonOrder> orders;
+    private OrderDatabaseService orderDatabaseService;
+    private OrderItemExpandableAdapter adapter;
 
     // Receives the order updates from the polling service
     private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
@@ -47,6 +53,7 @@ public class OrderActivity extends AppCompatActivity {
         }
     };
 
+    // If the service polling for order updates is running or not
     private boolean isPollingServiceRunning(Class<?> serviceClass) {
         ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
         for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
@@ -75,11 +82,10 @@ public class OrderActivity extends AppCompatActivity {
         ab.setDisplayHomeAsUpEnabled(true);
 
         final CommonOrder newOrder = (CommonOrder) getIntent().getSerializableExtra("order");
-        int stand = getIntent().getIntExtra("standID", 0);
 
-        // Database initialization
-        OrderDatabaseService orderDatabaseService = new OrderDatabaseService(getApplicationContext());
-        ArrayList<CommonOrder> orders = (ArrayList<CommonOrder>) orderDatabaseService.getAll();
+        // Database initialization and loading of the stored data
+        orderDatabaseService = new OrderDatabaseService(getApplicationContext());
+        orders = (ArrayList<CommonOrder>) orderDatabaseService.getAll();
 
         if(orders.size() == 0 && newOrder == null) {
             // No (new) orders
@@ -94,30 +100,42 @@ public class OrderActivity extends AppCompatActivity {
             return;
         }
 
-        orders.add(newOrder);
-        orderDatabaseService.insertOrder(newOrder);
-
         // Initiate the expandable order ListView
         ExpandableListView expandList = (ExpandableListView)findViewById(R.id.order_expand_list);
-        OrderItemExpandableAdapter adapter = new OrderItemExpandableAdapter(this, orders);
+        adapter = new OrderItemExpandableAdapter(this, orders);
 
         expandList.setAdapter(adapter);
 
         // Register as subscriber to the orderId event channel
-        if (!isPollingServiceRunning(PollingService.class)){
+        // to be used later
+        /*if (!isPollingServiceRunning(PollingService.class)){
             getSubscriberId(newOrder.getId());
-        }
+        }*/
 
-        // Send the order and chosen stand ID to the server and confirm the chosen stand
+        // Send the order and chosen stand and brandName to the server and confirm the chosen stand
+        String chosenStand = getIntent().getStringExtra("stand");
+        String chosenBrand = getIntent().getStringExtra("brand");
+        newOrder.setStandName(chosenStand);
+        newOrder.setBrandName(chosenBrand);
         // Instantiate the RequestQueue
         RequestQueue queue = Volley.newRequestQueue(this);
-        String om_url = String.format("http://cobol.idlab.ugent.be:8091/confirmStand?order_id=%1$s&stand_id=%2$s", newOrder.getId(), stand);
-        String om_url = ServerConfig.OM_ADDRESS + "/pingOM";
+        String url = ServerConfig.OM_ADDRESS;
+        url = String.format("%1$s/confirmStand?orderId=%2$s&standName=%3$s&brandName=%4$s",
+                url,
+                newOrder.getId(),
+                chosenStand.replace("&","%26"),
+                chosenBrand.replace("&","%26"));
 
         // Request a string response from the provided URL
-        StringRequest stringRequest = new StringRequest(Request.Method.GET, om_url, new Response.Listener<String>() {
+        StringRequest stringRequest = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
+
+                // Only add the order if successful
+                orders.add(newOrder);
+                orderDatabaseService.insertOrder(newOrder);
+                adapter.notifyDataSetChanged();
+
                 Toast mToast = null;
                 if (mToast != null) mToast.cancel();
                 mToast = Toast.makeText(OrderActivity.this, "Your order was successful",
@@ -139,10 +157,7 @@ public class OrderActivity extends AppCompatActivity {
             @Override
             public @NonNull Map<String, String> getHeaders()  throws AuthFailureError {
                 Map<String, String> headers = new HashMap<String, String>();
-                headers.put("Authorization", "Bearer " + "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOi" +
-                        "JmcmFuY2lzIiwicm9sZXMiOlsiUk9MRV9VU0VSIiwiUk9MRV9BRE1JTiJdLCJpYX" +
-                        "QiOjE1ODQ2MTAwMTcsImV4cCI6MTc0MjI5MDAxN30.5UNYM5Qtc4anyHrJXIuK0O" +
-                        "UlsbAPNyS9_vr-1QcOWnQ");
+                headers.put("Authorization", AUTHORIZATION_TOKEN);
                 return headers;
             }
         };
@@ -168,12 +183,12 @@ public class OrderActivity extends AppCompatActivity {
 
     /**
      * Subscribes to the server eventChannel for the given order
-     * and start polling for events in a polling service
+     * and launch the polling service to poll for events (order updates) from the server
      */
     public void getSubscriberId(int orderId) {
         // Instantiate the RequestQueue
         RequestQueue queue = Volley.newRequestQueue(this);
-        String url = "http://cobol.idlab.ugent.be:8093/registerSubscriber?types=o"+orderId;
+        String url = ServerConfig.EC_ADDRESS + "/registerSubscriber?types=o" + orderId;
 
         // Request a string response from the provided URL
         StringRequest stringRequest = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
@@ -200,10 +215,7 @@ public class OrderActivity extends AppCompatActivity {
             @Override
             public @NonNull Map<String, String> getHeaders()  throws AuthFailureError {
                 Map<String, String> headers = new HashMap<String, String>();
-                headers.put("Authorization", "Bearer " + "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOi" +
-                        "JmcmFuY2lzIiwicm9sZXMiOlsiUk9MRV9VU0VSIiwiUk9MRV9BRE1JTiJdLCJpYX" +
-                        "QiOjE1ODQ2MTAwMTcsImV4cCI6MTc0MjI5MDAxN30.5UNYM5Qtc4anyHrJXIuK0O" +
-                        "UlsbAPNyS9_vr-1QcOWnQ");
+                headers.put("Authorization", AUTHORIZATION_TOKEN);
                 return headers;
             }
         };

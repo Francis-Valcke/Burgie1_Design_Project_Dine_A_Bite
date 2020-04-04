@@ -1,44 +1,75 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Not used (yet) -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="horizontal">
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:paddingTop="10dp"
+    android:paddingBottom="20dp">
 
-    <TextView
-        android:id="@+id/order_header_id"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="10dp"
-        android:layout_marginEnd="25dp"
-        android:text="Total"
-        android:textColor="#000"
-        android:textSize="20sp"
-        android:textStyle="bold"
-        android:layout_gravity="center"
-        android:layout_weight="1" />
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        android:background="@color/colorPrimary"/>
 
-    <TextView
-        android:id="@+id/order_header_count"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="15dp"
-        android:text="TotalCount"
-        android:textColor="#000"
-        android:textSize="20sp"
-        android:textStyle="bold"
-        android:layout_gravity="center" />
+        android:orientation="horizontal"
+        android:paddingTop="10dp">
 
-    <TextView
-        android:id="@+id/order_header_price"
-        android:layout_width="105dp"
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:layout_marginEnd="10dp"
+            android:text="@string/chosen_stand"
+            android:textColor="#000"
+            android:textSize="20sp"
+            android:layout_gravity="center" />
+
+        <TextView
+            android:id="@+id/order_footer_stand"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="15dp"
+            android:text="chosenStand"
+            android:textColor="#000"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:layout_gravity="center"
+            android:layout_weight="1"
+            android:gravity="center"/>
+
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="15dp"
-        android:text="TotalPrice"
-        android:textColor="#000"
-        android:textSize="20sp"
-        android:textStyle="bold"
-        android:layout_gravity="center"
-        android:gravity="end" />
+        android:layout_marginTop="7dp"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:layout_marginEnd="7dp"
+            android:text="@string/chosen_brand"
+            android:textColor="#000"
+            android:textSize="18sp"
+            android:layout_gravity="center" />
+
+        <TextView
+            android:id="@+id/order_footer_brand"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="15dp"
+            android:text="chosenBrand"
+            android:textColor="#000"
+            android:textSize="18sp"
+            android:layout_gravity="center"
+            android:layout_weight="1" />
+
+    </LinearLayout>
 
 </LinearLayout>
