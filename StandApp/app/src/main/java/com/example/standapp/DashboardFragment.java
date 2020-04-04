@@ -94,7 +94,7 @@ public class DashboardFragment extends Fragment {
                         System.out.println(response.toString());
                         ObjectMapper mapper = new ObjectMapper();
                         mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-                        MenuItem[] parsedItems = mapper.readValue(response.toString(), MenuItem[].class);
+                        CommonFood[] parsedItems = mapper.readValue(response.toString(), CommonFood[].class);
                         Collections.addAll(items, parsedItems);
                         adapter.notifyDataSetChanged();
                     } catch (Exception e) {
