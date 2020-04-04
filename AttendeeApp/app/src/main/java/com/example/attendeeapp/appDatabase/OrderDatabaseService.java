@@ -1,10 +1,9 @@
-package com.example.attendeeapp.roomDB;
+package com.example.attendeeapp.appDatabase;
 
 import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
 
-import androidx.lifecycle.LiveData;
 import androidx.room.Room;
 
 import com.example.attendeeapp.order.CommonOrder;

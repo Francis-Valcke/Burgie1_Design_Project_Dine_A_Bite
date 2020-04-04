@@ -1,4 +1,4 @@
-package com.example.attendeeapp.roomDB;
+package com.example.attendeeapp.appDatabase;
 
 import androidx.room.Database;
 import androidx.room.RoomDatabase;

@@ -1,4 +1,4 @@
-package com.example.attendeeapp.roomDB;
+package com.example.attendeeapp.appDatabase;
 
 import androidx.room.TypeConverter;
 
@@ -9,7 +9,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 

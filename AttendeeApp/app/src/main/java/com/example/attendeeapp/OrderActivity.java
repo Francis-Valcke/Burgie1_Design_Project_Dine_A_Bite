@@ -26,13 +26,10 @@ import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.example.attendeeapp.order.CommonOrder;
 import com.example.attendeeapp.polling.PollingService;
-import com.example.attendeeapp.roomDB.OrderDatabaseService;
+import com.example.attendeeapp.appDatabase.OrderDatabaseService;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**

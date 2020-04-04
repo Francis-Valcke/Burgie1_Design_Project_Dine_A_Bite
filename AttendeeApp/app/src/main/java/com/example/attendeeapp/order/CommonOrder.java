@@ -1,12 +1,11 @@
 package com.example.attendeeapp.order;
 
 import androidx.room.Entity;
-import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
 import androidx.room.TypeConverters;
 
 import com.example.attendeeapp.MenuItem;
-import com.example.attendeeapp.roomDB.Converters;
+import com.example.attendeeapp.appDatabase.Converters;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import java.io.Serializable;

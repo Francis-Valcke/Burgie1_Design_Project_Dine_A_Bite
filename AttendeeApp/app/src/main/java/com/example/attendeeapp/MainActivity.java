@@ -6,9 +6,6 @@ import android.os.Handler;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.attendeeapp.order.CommonOrder;
-import com.example.attendeeapp.roomDB.OrderDatabaseService;
-
 /**
  * MainActivity to show splash-screen on startup
  */
