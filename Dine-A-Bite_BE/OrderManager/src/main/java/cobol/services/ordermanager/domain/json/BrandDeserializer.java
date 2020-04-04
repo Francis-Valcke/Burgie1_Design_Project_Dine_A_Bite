@@ -14,7 +14,7 @@ import java.io.IOException;
 public class BrandDeserializer extends JsonDeserializer<Brand> {
 
     @Override
-    public Brand deserialize(JsonParser p, DeserializationContext ctxt) throws IOException, JsonProcessingException {
+    public Brand deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
 
         JsonNode node = p.getCodec().readTree(p);
         Brand brand = new Brand(node.get("name").asText());

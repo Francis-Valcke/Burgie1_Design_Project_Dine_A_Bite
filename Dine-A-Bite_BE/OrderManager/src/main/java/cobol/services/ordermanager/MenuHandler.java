@@ -138,17 +138,17 @@ public class MenuHandler {
             });
         });
 
-        originalModifiedFoodMapping.entrySet().forEach(mapping -> {
+        originalModifiedFoodMapping.forEach((originalFood, modifiedFood) -> {
 
             // look in all other stands of the brand and find the one that needs to be adjusted
             standRepository.findStandsByBrand(commonStand.getBrandName()).stream()
                     .filter(s -> !s.equals(originalStand)) //get other stands of the brand
                     .map(Stand::getFoodList) // map every stand to its list of food items
                     .flatMap(Collection::stream) //bring lists in one stream
-                    .filter(food -> food.asCommonFood().equals(mapping.getKey().asCommonFood())) //Get all of the food items that match the one that needs to be adjusted
+                    .filter(food -> food.asCommonFood().equals(originalFood.asCommonFood())) //Get all of the food items that match the one that needs to be adjusted
                     .forEach(food -> {
 
-                        food.updateGlobalProperties(mapping.getValue());
+                        food.updateGlobalProperties(modifiedFood);
                         foodRepository.save(food);
                     });
 

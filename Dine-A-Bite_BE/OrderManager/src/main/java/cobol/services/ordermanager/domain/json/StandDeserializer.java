@@ -14,7 +14,7 @@ import java.io.IOException;
 public class StandDeserializer extends JsonDeserializer<Stand> {
 
     @Override
-    public Stand deserialize(JsonParser p, DeserializationContext ctxt) throws IOException, JsonProcessingException {
+    public Stand deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
 
 
         Brand brand = (Brand) ctxt.getAttribute("brand");

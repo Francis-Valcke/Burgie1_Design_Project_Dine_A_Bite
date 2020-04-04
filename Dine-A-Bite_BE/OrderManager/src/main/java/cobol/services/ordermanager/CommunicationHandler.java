@@ -29,6 +29,19 @@ public class CommunicationHandler {
     @Autowired
     CommunicationHandler communicationHandler;
 
+    private RestTemplate template;
+    private HttpHeaders headers;
+
+    public CommunicationHandler() {
+
+        //Configure all rest requests that will be sent by the CommunicationHandler
+        template = new RestTemplate();
+        headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.add("Authorization", "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJPcmRlck1hbmFnZXIiLCJyb2xlcyI6WyJST0xFX0FQUExJQ0FUSU9OIl0sImlhdCI6MTU4NDkxMTY3MSwiZXhwIjoxNzQyNTkxNjcxfQ.VmujsURhZaXRp5FQJXzmQMB-e6QSNF-OyPLeMEMOVvI");
+
+    }
+
 
     // ---- Communication with stand manager ---- //
 
@@ -209,11 +222,6 @@ public class CommunicationHandler {
         types.add(brand);
         Event e = new Event(itemJson, types, "MenuItem");
 
-        // Publish event to standmanager
-        RestTemplate template = new RestTemplate();
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.add("Authorization", "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJPcmRlck1hbmFnZXIiLCJyb2xlcyI6WyJST0xFX0FQUExJQ0FUSU9OIl0sImlhdCI6MTU4NDkxMTY3MSwiZXhwIjoxNzQyNTkxNjcxfQ.VmujsURhZaXRp5FQJXzmQMB-e6QSNF-OyPLeMEMOVvI");
 
         ObjectMapper objectMapper = new ObjectMapper();
         String jsonString = objectMapper.writeValueAsString(e);

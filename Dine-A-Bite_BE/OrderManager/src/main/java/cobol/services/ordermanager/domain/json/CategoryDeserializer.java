@@ -16,7 +16,7 @@ public class CategoryDeserializer extends JsonDeserializer<Category> {
 
 
     @Override
-    public Category deserialize(JsonParser p, DeserializationContext ctxt) throws IOException, JsonProcessingException {
+    public Category deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
         String name = p.getText();
         CategoryRepository categoryRepository = SpringContext.getBean(CategoryRepository.class);
         return categoryRepository.save(new Category(name));

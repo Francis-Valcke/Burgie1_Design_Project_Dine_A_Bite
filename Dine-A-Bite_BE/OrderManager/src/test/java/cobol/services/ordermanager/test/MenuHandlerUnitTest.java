@@ -34,55 +34,5 @@ public class MenuHandlerUnitTest {
     }
 
 
-    @Test
-    public void deleteAll() {
-    }
 
-    @Test
-    public void refreshCache() {
-    }
-
-    @Test
-    public void updateStandManager() {
-    }
-
-    @Test
-    public void getStands() {
-    }
-
-    @Test
-    public void getStandMenu() {
-    }
-
-    @Test
-    public void getStand() {
-    }
-
-    @Test
-    public void updateGlobalMenu() {
-    }
-
-    @Test
-    public void updateStand() {
-    }
-
-    @Test
-    public void addStand() {
-    }
-
-    @Test
-    public void deleteStand() {
-    }
-
-    @Test
-    public void sendRestCallToStandManager() {
-    }
-
-    @Test
-    public void distinctByKey() {
-    }
-
-    @Test
-    public void getGlobalMenu() {
-    }
 }
