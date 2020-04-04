@@ -13,7 +13,7 @@ import com.example.attendeeapp.roomDB.OrderDatabaseService;
  * MainActivity to show splash-screen on startup
  */
 public class MainActivity extends AppCompatActivity {
-    private static int SPLASH_TIME_OUT = 1000;
+    private static int SPLASH_TIME_OUT = 800;
 
     /**
      * Called when app is first instantiated
@@ -25,8 +25,8 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         // Clear db of all entries (for testing purposes)
-        OrderDatabaseService orderDatabaseService = new OrderDatabaseService(getApplicationContext());
-        orderDatabaseService.deleteOrder(new CommonOrder());
+        //OrderDatabaseService orderDatabaseService = new OrderDatabaseService(getApplicationContext());
+        //orderDatabaseService.deleteOrder(new CommonOrder());
 
         new Handler().postDelayed(new Runnable() {
             @Override
