@@ -42,7 +42,7 @@ public class OrderFragment extends Fragment {
     private HashMap<String, List<String>> listHash = new HashMap<>();
 
     // ID from the Event Channel
-    private volatile String subscriberId;
+    private String subscriberId;
 
     @Nullable
     @Override
@@ -63,7 +63,7 @@ public class OrderFragment extends Fragment {
 
         // subscribe to the Event Channel and get subscriberID
         // TODO when another stands logs in (erase subscriberID in activity_account?)
-        if (subscriberId == null || subscriberId.isEmpty()) {
+        if(subscriberId==null || subscriberId.equals("")){
             subscribeEC(standName, brandName);
         }
 
@@ -100,7 +100,8 @@ public class OrderFragment extends Fragment {
                             System.out.println(events.toString()); // CHECK
                             ArrayList<CommonOrder> orders = new ArrayList<>();
                             for (Event event : events) {
-                                orders.add(mapper.readValue(event.getEventData().toString(), CommonOrder.class));
+                                String order= event.getEventData().get("order").toString();
+                                orders.add(mapper.readValue(event.getEventData().get("order").toString(), CommonOrder.class));
                             }
                             for (CommonOrder order : orders) {
                                 String orderName = "Order# " + order.getId();

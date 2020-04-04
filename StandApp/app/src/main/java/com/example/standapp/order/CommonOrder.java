@@ -14,7 +14,7 @@ public class CommonOrder {
     private Calendar startTime;
     private Calendar expectedTime;
 
-    private status orderStatus;
+    private status orderState;
 
     private int standId;
     private String brandName;
@@ -48,7 +48,7 @@ public class CommonOrder {
         this.startTime=Calendar.getInstance();
         this.expectedTime=Calendar.getInstance();
 
-        this.orderStatus=status.SEND;
+        this.orderState =status.SEND;
 
         this.orderItems=new ArrayList<>();
         for (CommonFood menuItem : menuItems) {
@@ -65,8 +65,8 @@ public class CommonOrder {
         return (int) (expectedTime.getTimeInMillis()-startTime.getTimeInMillis());
     }
 
-    public status getOrderStatus() {
-        return orderStatus;
+    public status getOrderState() {
+        return orderState;
     }
 
     public int getStandId() {
@@ -93,6 +93,21 @@ public class CommonOrder {
         return longitude;
     }
 
+    public Calendar getStartTime() {
+        return startTime;
+    }
+
+    public void setStartTime(Calendar startTime) {
+        this.startTime = startTime;
+    }
+
+    public Calendar getExpectedTime() {
+        return expectedTime;
+    }
+
+    public void setExpectedTime(Calendar expectedTime) {
+        this.expectedTime = expectedTime;
+    }
 
 
 

@@ -2,6 +2,8 @@ package com.example.standapp.order;
 
 import androidx.annotation.NonNull;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
 import java.util.List;
 import org.json.JSONObject;
 
@@ -10,7 +12,7 @@ public class Event {
     private static int idCount = 0;
     private int myId;
     private String dataType;
-    private JSONObject eventData;
+    private JsonNode eventData;
     private List<String> types;
 
     public Event() {
@@ -20,7 +22,7 @@ public class Event {
     }
 
 
-    public Event(JSONObject data, List<String> types, String dataType) {
+    public Event(JsonNode data, List<String> types, String dataType) {
         myId = idCount;
         idCount++;
         eventData = data;
@@ -28,11 +30,11 @@ public class Event {
         this.dataType = dataType;
     }
 
-    public JSONObject getEventData() {
+    public JsonNode getEventData() {
         return this.eventData;
     }
 
-    public void setEventData(JSONObject data) {
+    public void setEventData(JsonNode data) {
         this.eventData = data;
     }
 
