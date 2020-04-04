@@ -10,9 +10,8 @@ import cobol.services.ordermanager.domain.repository.CategoryRepository;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.io.Resources;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -23,14 +22,11 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.web.context.WebApplicationContext;
-import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URL;
-import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -268,6 +264,30 @@ public class MenuHandlerTest {
                 .andReturn();
 
     }
+
+
+    @Test
+    public void deleteStandById() throws Exception {
+        this.mockMvc.perform(get("/deleteStand")
+                .queryParam("standName", "BurgerKing 1")
+                .queryParam("brandName", "BurgerKing")
+                .header("Authorization", token))
+                .andExpect(status().isOk()).andReturn();
+
+
+        Stand deleted=brandRepository.findById("BurgerKing").get()
+                .getStandList().stream()
+                .filter(stand -> stand.getName().equals("BurgerKing 1"))
+                .findAny().orElse(null);
+
+        Assert.assertNull(deleted);
+
+        brandRepository.deleteAll();
+
+
+    }
+
+
 
     @After
     public void clean() {

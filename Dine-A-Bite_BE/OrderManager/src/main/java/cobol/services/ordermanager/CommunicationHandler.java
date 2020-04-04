@@ -2,11 +2,12 @@ package cobol.services.ordermanager;
 
 import cobol.commons.CommonFood;
 import cobol.commons.Event;
-import cobol.services.ordermanager.domain.entity.Order;
+import cobol.commons.order.CommonOrder;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.json.simple.JSONObject;
+import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -55,8 +56,8 @@ public class CommunicationHandler {
      * @return response as String
      */
     public String sendRestCallToStandManager(String path, String jsonObject, Map<String, String> params) throws JsonProcessingException {
-        if(configurationBean.isUnitTest()) {
-            if(path.equals("/newStand")) return "{\"added\": true}";
+        if (configurationBean.isUnitTest()) {
+            if (path.equals("/newStand")) return "{\"added\": true}";
             else return "";
         }
         RestTemplate template = new RestTemplate();
@@ -92,7 +93,7 @@ public class CommunicationHandler {
      * @throws CommunicationException thrown when eventchannel can't be reached
      */
     public int getSubscriberIdFromEC() throws CommunicationException {
-        if(configurationBean.isUnitTest()) return 0;
+        if (configurationBean.isUnitTest()) return 0;
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.add("Authorization", OrderManager.authToken);
@@ -107,8 +108,8 @@ public class CommunicationHandler {
         }
     }
 
-    public List<Event> pollEventsFromEC(int subscriberId) throws CommunicationException, JsonProcessingException {
-        if(configurationBean.isUnitTest()) return new ArrayList<>();
+    public List<Event> pollEventsFromEC(int subscriberId) throws CommunicationException, JsonProcessingException, ParseException {
+        if (configurationBean.isUnitTest()) return new ArrayList<>();
 
         String uri = OrderManager.ECURL + "/events";
 
@@ -127,28 +128,29 @@ public class CommunicationHandler {
         // Handle Response
         ObjectMapper objectMapper = new ObjectMapper();
         if (response.getBody() != null) {
-            JSONObject responseObject = objectMapper.readValue(response.getBody(), JSONObject.class);
-            String details = (String) responseObject.get("details");
-            return objectMapper.readValue(details, new TypeReference<List<Event>>() {});
+
+            List<Event> events= objectMapper.readValue(response.getBody(), new TypeReference<List<Event>>() {});
+            return events;
         } else {
             throw new CommunicationException("EventChannel cannot be reached while polling events in ordermanager");
         }
-   }
+    }
 
     /**
      * Unsubscribe from channel of a certain order
+     *
      * @param subscriberId subscriber id from ordermanager
-     * @param orderId order id from order to unsubscribe from
+     * @param orderId      order id from order to unsubscribe from
      */
     public void deregisterFromOrder(int subscriberId, int orderId) {
-        if(configurationBean.isUnitTest()) return;
+        if (configurationBean.isUnitTest()) return;
 
         String uri = OrderManager.ECURL + "/deregisterSubscriber";
         String channelId = "o" + orderId;
-        RestTemplate restTemplate=new RestTemplate();
-        HttpHeaders httpHeaders= new HttpHeaders();
+        RestTemplate restTemplate = new RestTemplate();
+        HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.add("Authorization", OrderManager.authToken);
-        HttpEntity httpEntity= new HttpEntity(httpHeaders);
+        HttpEntity httpEntity = new HttpEntity(httpHeaders);
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(uri)
                 .queryParam("id", subscriberId)
                 .queryParam("type", channelId);
@@ -158,26 +160,27 @@ public class CommunicationHandler {
 
     /**
      * Subscribe to a channel of a certain order
+     *
      * @param subscriberId Subscriber id from the ordermanager
-     * @param orderId order id from order to subscribe to
+     * @param orderId      order id from order to subscribe to
      */
     public void registerOnOrder(int subscriberId, int orderId) {
-        if(configurationBean.isUnitTest()) return;
+        if (configurationBean.isUnitTest()) return;
 
         String uri = OrderManager.ECURL + "/registerSubscriber/toChannel";
         String channelId = "o_" + orderId;
-        RestTemplate restTemplate=new RestTemplate();
-        HttpHeaders httpHeaders= new HttpHeaders();
+        RestTemplate restTemplate = new RestTemplate();
+        HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.add("Authorization", OrderManager.authToken);
-        HttpEntity httpEntity= new HttpEntity(httpHeaders);
+        HttpEntity httpEntity = new HttpEntity(httpHeaders);
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(uri)
                 .queryParam("id", subscriberId)
                 .queryParam("type", channelId);
         ResponseEntity<String> responseEntity = restTemplate.exchange(builder.toUriString(), HttpMethod.GET, httpEntity, String.class);
     }
 
-    public String publishConfirmedStand(Order updatedOrder, String standName, String brandName) throws JsonProcessingException {
-        if(configurationBean.isUnitTest()) return "";
+    public String publishConfirmedStand(CommonOrder updatedOrder, String standName, String brandName) throws JsonProcessingException {
+        if (configurationBean.isUnitTest()) return "";
 
         // Create event for eventchannel
         JSONObject orderJson = new JSONObject();
@@ -188,20 +191,18 @@ public class CommunicationHandler {
         Event e = new Event(orderJson, types, "Order");
 
         // Send Request
-        ObjectMapper objectMapper= new ObjectMapper();
+        ObjectMapper objectMapper = new ObjectMapper();
         String jsonString = objectMapper.writeValueAsString(e);
-        HttpHeaders headers= new HttpHeaders();
+        HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.add("Authorization", OrderManager.authToken);
-        RestTemplate restTemplate= new RestTemplate();
+        RestTemplate restTemplate = new RestTemplate();
         String uri = OrderManager.ECURL + "/publishEvent";
 
         HttpEntity<String> entity = new HttpEntity<>(jsonString, headers);
         return restTemplate.postForObject(uri, entity, String.class);
 
     }
-
-
 
 
     // ---- TODO te verwijderen? ----//
@@ -230,7 +231,6 @@ public class CommunicationHandler {
         String response = template.postForObject(uri, entity, String.class);
         System.out.println(response);
     }
-
 
 
 }

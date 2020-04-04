@@ -13,6 +13,14 @@ public class CommonOrderItem {
         this.amount=amount;
     }
 
+    public void setFoodName(String foodName) {
+        this.foodName = foodName;
+    }
+
+    public void setAmount(int amount) {
+        this.amount = amount;
+    }
+
     public String getFoodName() {
         return foodName;
     }

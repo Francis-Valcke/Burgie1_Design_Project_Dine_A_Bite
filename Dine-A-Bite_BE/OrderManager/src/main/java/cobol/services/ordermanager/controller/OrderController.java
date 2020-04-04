@@ -1,29 +1,22 @@
 package cobol.services.ordermanager.controller;
 
-import cobol.commons.Event;
+import cobol.commons.exception.DoesNotExistException;
 import cobol.commons.order.CommonOrder;
 import cobol.commons.order.Recommendation;
 import cobol.commons.security.CommonUser;
 import cobol.services.ordermanager.CommunicationHandler;
-import cobol.services.ordermanager.OrderManager;
 import cobol.services.ordermanager.OrderProcessor;
 import cobol.services.ordermanager.domain.entity.Order;
-import cobol.commons.exception.DoesNotExistException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.RestTemplate;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -108,7 +101,7 @@ public class OrderController {
         Order updatedOrder = orderProcessor.confirmStand(orderId, standName, brandName);
 
         // Publish event to standmanager
-        String response= communicationHandler.publishConfirmedStand(updatedOrder, standName, brandName);
+        String response= communicationHandler.publishConfirmedStand(updatedOrder.asCommonOrder(), standName, brandName);
 
         return ResponseEntity.ok(response);
     }

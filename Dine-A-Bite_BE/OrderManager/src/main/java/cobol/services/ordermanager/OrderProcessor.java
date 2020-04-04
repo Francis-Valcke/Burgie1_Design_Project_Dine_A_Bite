@@ -1,6 +1,7 @@
 package cobol.services.ordermanager;
 
 import cobol.commons.Event;
+import cobol.commons.exception.DoesNotExistException;
 import cobol.commons.order.CommonOrder;
 import cobol.commons.order.Recommendation;
 import cobol.services.ordermanager.domain.entity.Food;
@@ -10,24 +11,22 @@ import cobol.services.ordermanager.domain.entity.Stand;
 import cobol.services.ordermanager.domain.repository.FoodRepository;
 import cobol.services.ordermanager.domain.repository.OrderRepository;
 import cobol.services.ordermanager.domain.repository.StandRepository;
-import cobol.commons.exception.DoesNotExistException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import org.json.simple.JSONObject;
-import org.junit.Before;
-import org.junit.Test;
+import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.annotation.Scope;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import javax.naming.CommunicationException;
-import java.beans.ConstructorProperties;
-import java.util.*;
+import java.util.Calendar;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Optional;
 
 /**
  * This is a Singleton
@@ -161,7 +160,7 @@ public class OrderProcessor {
     // ---- Scheduled Requests ---- //
 
     @Scheduled(fixedDelay = 500)
-    public void pollEvents() throws CommunicationException, JsonProcessingException {
+    public void pollEvents() throws CommunicationException, JsonProcessingException, ParseException {
         List<Event> newEvents= communicationHandler.pollEventsFromEC(subscriberId);
         eventQueue.addAll(newEvents);
     }
@@ -172,7 +171,7 @@ public class OrderProcessor {
     @Scheduled(fixedDelay = 500)
     public void processEvents() {
         while (!eventQueue.isEmpty()) {
-            Event e = eventQueue.poll();
+            Event e = eventQueue.getFirst();
             assert e != null;
             if (e.getDataType().equals("OrderStatusUpdate")) {
                 JSONObject eventData = e.getEventData();
