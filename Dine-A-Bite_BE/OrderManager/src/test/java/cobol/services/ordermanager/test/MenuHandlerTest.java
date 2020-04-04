@@ -7,6 +7,7 @@ import cobol.services.ordermanager.domain.entity.Food;
 import cobol.services.ordermanager.domain.entity.Stand;
 import cobol.services.ordermanager.domain.repository.BrandRepository;
 import cobol.services.ordermanager.domain.repository.CategoryRepository;
+import cobol.services.ordermanager.domain.repository.StandRepository;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.io.Resources;
@@ -29,8 +30,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
 
@@ -45,6 +45,9 @@ public class MenuHandlerTest {
 
     @Autowired
     BrandRepository brandRepository;
+
+    @Autowired
+    StandRepository standRepository;
 
     @Autowired
     CategoryRepository categoryRepository;
@@ -268,22 +271,14 @@ public class MenuHandlerTest {
 
     @Test
     public void deleteStandById() throws Exception {
-        this.mockMvc.perform(get("/deleteStand")
+        this.mockMvc.perform(delete("/deleteStand")
                 .queryParam("standName", "BurgerKing 1")
                 .queryParam("brandName", "BurgerKing")
                 .header("Authorization", token))
                 .andExpect(status().isOk()).andReturn();
 
-
-        Stand deleted=brandRepository.findById("BurgerKing").get()
-                .getStandList().stream()
-                .filter(stand -> stand.getName().equals("BurgerKing 1"))
-                .findAny().orElse(null);
-
-        Assert.assertNull(deleted);
-
-        brandRepository.deleteAll();
-
+        Stand stand= standRepository.findStandById("BurgerKing 1","BurgerKing").orElse(null);
+        Assert.assertNull(stand);
 
     }
 

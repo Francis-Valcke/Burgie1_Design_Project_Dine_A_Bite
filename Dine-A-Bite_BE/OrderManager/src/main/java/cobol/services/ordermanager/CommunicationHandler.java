@@ -58,6 +58,7 @@ public class CommunicationHandler {
     public String sendRestCallToStandManager(String path, String jsonObject, Map<String, String> params) throws JsonProcessingException {
         if (configurationBean.isUnitTest()) {
             if (path.equals("/newStand")) return "{\"added\": true}";
+            if(path.equals("/deleteScheduler")) return "{\"del\": true}";
             else return "";
         }
         RestTemplate template = new RestTemplate();
