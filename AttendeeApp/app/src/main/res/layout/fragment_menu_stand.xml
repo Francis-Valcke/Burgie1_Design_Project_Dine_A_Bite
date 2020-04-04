@@ -12,7 +12,6 @@
     android:orientation="horizontal"
     android:gravity="center">
     <TextView
-        android:id="@+id/stand_spinner_text"
         android:layout_width="wrap_content"
         android:layout_height="50dp"
         android:layout_marginStart="20dp"
