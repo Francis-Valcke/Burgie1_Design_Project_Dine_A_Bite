@@ -1,6 +1,7 @@
 package com.example.attendeeapp;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -66,31 +67,8 @@ public class MenuFragmentGlobal extends MenuFragment {
         menuItems.clear();
 
         menuItems.addAll(response);
-        //Log.v("response", "Response: " + response.toString());
-//        for (Iterator<String> iter = response.keys(); iter.hasNext(); ) {
-//            String key = iter.next();
-//            String[] item_name = key.split("_");
-//            String foodName = item_name[0];
-//            String brandName = item_name[1];
-//
-//            // Create the menuItem with price, food and brandName
-//            JSONArray jsonArray = response.getJSONArray(key);
-//            double price = jsonArray.getDouble(0);
-//            CommonFood item = new CommonFood(foodName, new BigDecimal(price), brandName);
-//
-//            // Add categories to the menuItem
-//            if(!jsonArray.getString(1).equals("null")) {
-//                JSONArray cat_array = jsonArray.getJSONArray(1);
-//                for (int j = 0; j < cat_array.length(); j++) {
-//                    item.addCategory((String) cat_array.get(j));
-//                }
-//            }
-//            // Add the description, if provided
-//            String description = jsonArray.getString(2);
-//            if (!description.equals("null")) item.setDescription(description);
-//
-//            menuItems.add(item);
-//        }
+//        Log.v("response", "Response: " + response.toString());
+
         menuAdapter.putList(menuItems);
         menuAdapter.notifyDataSetChanged();
     }

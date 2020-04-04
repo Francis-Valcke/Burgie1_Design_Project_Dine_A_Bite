@@ -72,7 +72,7 @@ public class StandController {
      * @return Success message or exception
      * @throws JsonProcessingException Json processing error
      */
-    @GetMapping(value = "/deleteStand")
+    @DeleteMapping(value = "/deleteStand")
     @ResponseBody
     public ResponseEntity<String> deleteStand(@RequestParam() String standName, @RequestParam String brandName) throws JsonProcessingException, DoesNotExistException {
         menuHandler.deleteStandById(standName, brandName);

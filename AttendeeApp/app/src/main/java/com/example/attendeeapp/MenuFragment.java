@@ -73,8 +73,6 @@ public abstract class MenuFragment extends Fragment {
                     url,
                     standName.replace("&","%26"),
                     brandName.replace("&","%26"));
-            //url = "http://localhost:8080/standmenu?standname=" + standName;
-            //url = url + "/standMenu";
         }
         // Remove spaces from the url
         url = url.replace(' ', '+');
@@ -135,13 +133,6 @@ public abstract class MenuFragment extends Fragment {
                 return headers;
             }
 
-//            @Override
-//            protected Map<String, String> getParams() throws AuthFailureError {
-//                Map<String, String> params = new HashMap<>();
-//                params.put("standName", standName);
-//                params.put("brandName", brandName);
-//                return params;
-//            }
         };
 
 

@@ -66,7 +66,7 @@ public class CommonFood implements Serializable {
 
     public CommonFood(String foodName, BigDecimal price, String brandName) {
         this.name = foodName;
-        this.price = price;
+        this.price = price.setScale(2, RoundingMode.HALF_UP);
         this.brandName = brandName;
     }
 
