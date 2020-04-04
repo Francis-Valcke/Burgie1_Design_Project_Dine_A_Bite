@@ -9,7 +9,6 @@ import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Objects;
 
 /**
  * Model for one menu item
@@ -24,11 +23,11 @@ public class CommonFood implements Serializable {
     private int stock;
     private String standName = "";
     private String brandName;
-    private List<String> category = new ArrayList<String>();
+    private List<String> category = new ArrayList<>();
     private String description = "";
 
     public CommonFood() {
-        super();//needed for ObjectMapper
+        super(); // needed for ObjectMapper
     }
 
     public CommonFood(String name, BigDecimal price, int preparationTime, int stock, String brandName, String desc, List<String> category) {
@@ -70,7 +69,6 @@ public class CommonFood implements Serializable {
         this.brandName = brandName;
     }
 
-
     public String getName() {
         return name;
     }
@@ -103,7 +101,7 @@ public class CommonFood implements Serializable {
      * Will only add distinct categories (set)
      *
      * @param cat: Category to add
-     * @return: if the add was successful
+     * @return if the add was successful
      */
     public boolean addCategory(String cat) {
         return category.add(cat);
@@ -132,7 +130,7 @@ public class CommonFood implements Serializable {
     /**
      * Return the price of a menu item with the euro symbol
      *
-     * @return: String of euro symbol with price
+     * @return String of euro symbol with price
      */
     @JsonIgnore
     public String getPriceEuro() {

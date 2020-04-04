@@ -1,14 +1,16 @@
 package com.example.standapp.order;
+
+import androidx.annotation.NonNull;
+
 import java.util.List;
 import org.json.JSONObject;
-//import org.json.simple.JSONObject;
 
 public class Event {
 
     private static int idCount = 0;
     private int myId;
     private String dataType;
-    protected JSONObject eventData;
+    private JSONObject eventData;
     private List<String> types;
 
     public Event() {
@@ -50,4 +52,14 @@ public class Event {
         return dataType;
     }
 
+    @NonNull
+    @Override
+    public String toString() {
+        return "Event{" +
+                "myId=" + myId +
+                ", dataType='" + dataType + '\'' +
+                ", eventData=" + eventData.toString() +
+                ", types=" + types +
+                '}';
+    }
 }

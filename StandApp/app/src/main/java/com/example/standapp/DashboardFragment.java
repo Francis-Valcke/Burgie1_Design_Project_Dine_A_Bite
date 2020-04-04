@@ -4,12 +4,12 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -71,7 +71,8 @@ public class DashboardFragment extends Fragment {
         menuList.setAdapter(adapter);
 
         // When logging into another stand account
-        if (!items.isEmpty() && !items.get(0).getBrandName().equals(brandName)) {
+        if (!items.isEmpty() && !items.get(0).getStandName().equals(standName)) {
+            System.out.println("Cleared the menu in the manager dashboard");
             items.clear();
         }
 
@@ -82,7 +83,8 @@ public class DashboardFragment extends Fragment {
 
             // Instantiate the RequestQueue
             RequestQueue queue = Volley.newRequestQueue(Objects.requireNonNull(getContext()));
-            String url = "http://cobol.idlab.ugent.be:8091/standmenu?standname=" + standName;
+            String url = ServerConfig.OM_ADDRESS + "/standMenu?brandName=" + brandName
+                    + "&standName=" + standName;
             url = url.replace(' ', '+');
 
             // Request menu from order manager on server
@@ -114,10 +116,7 @@ public class DashboardFragment extends Fragment {
                 public Map<String, String> getHeaders() {
                     HashMap<String, String> headers = new HashMap<>();
                     headers.put("Content-Type", "application/json");
-                    headers.put("Authorization", "Bearer" + " " + "eyJhbGciOiJIUzI1NiJ9.eyJzdW" +
-                            "IiOiJmcmFuY2lzIiwicm9sZXMiOlsiUk9MRV9VU0VSIiwiUk9MRV9BRE1JTiJdLCJ" +
-                            "pYXQiOjE1ODQ2MTAwMTcsImV4cCI6MTc0MjI5MDAxN30.5UNYM5Qtc4anyHrJXIuK" +
-                            "0OUlsbAPNyS9_vr-1QcOWnQ");
+                    headers.put("Authorization", ServerConfig.AUTHORIZATION_TOKEN);
                     return headers;
                 }
             };
@@ -125,6 +124,7 @@ public class DashboardFragment extends Fragment {
             queue.add(jsonRequest);
         }
 
+        @SuppressLint("InflateParams")
         final View addDialogLayout = inflater.inflate(R.layout.add_menu_item_dialog, null, false);
         final TextInputEditText nameInput = addDialogLayout.findViewById(R.id.menu_item_name);
         final TextInputEditText priceInput = addDialogLayout.findViewById(R.id.menu_item_price);

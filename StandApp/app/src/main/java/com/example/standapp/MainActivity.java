@@ -20,9 +20,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private OrderFragment order;
     private DashboardFragment dashboard;
 
-    //private int standId = 100; Why?
-    //private String subscriberId; Why?
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -48,6 +45,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         Bundle bundle = new Bundle();
         profile.setArguments(bundle);
         dashboard.setArguments(bundle);
+        order.setArguments(bundle);
 
         if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, profile).commit();
