@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static cobol.commons.ResponseModel.status.OK;
@@ -83,9 +84,7 @@ public class EventController {
         } else {
             List<String> typeList = new ArrayList<>();
             String[] tempList = type.split(",");
-            for (String t : tempList) {
-                typeList.add(t);
-            }
+            Collections.addAll(typeList, tempList);
             broker.unSubscribe(subscriber, typeList);
         }
     }
@@ -98,7 +97,7 @@ public class EventController {
      */
     @PostMapping(value = "/publishEvent", consumes = "application/json")
     public void publish(@RequestBody Event e) {
-        EventPublisher.Publish(e);
+        EventPublisher.publish(e);
     }
 
     /**
