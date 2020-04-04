@@ -2,10 +2,8 @@ package cobol.services.authentication.test;
 
 import cobol.services.authentication.domain.entity.User;
 import cobol.services.authentication.domain.repository.UserRepository;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.json.JSONObject;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -16,8 +14,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.context.WebApplicationContext;
-
-import java.util.Arrays;
 
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -118,7 +114,7 @@ public class ApplicationTest {
     private void createUser(String user) throws Exception {
         this.mockMvc
                 .perform(
-                        post("/authenticate")
+                        post("/create")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsBytes(
                                         User.builder().username(user).password(user).build()

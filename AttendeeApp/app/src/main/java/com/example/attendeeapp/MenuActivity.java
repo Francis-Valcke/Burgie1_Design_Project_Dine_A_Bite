@@ -14,6 +14,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.viewpager2.widget.ViewPager2;
 
+import com.example.attendeeapp.json.CommonFood;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
 
@@ -25,7 +26,7 @@ import java.util.ArrayList;
 public class MenuActivity extends AppCompatActivity implements OnCartChangeListener {
 
     private static final int MAX_CART_ITEM = 25;
-    private ArrayList<MenuItem> cartList = new ArrayList<MenuItem>();
+    private ArrayList<CommonFood> cartList = new ArrayList<CommonFood>();
     private int cartCount;
     private Toast mToast = null;
 
@@ -86,7 +87,7 @@ public class MenuActivity extends AppCompatActivity implements OnCartChangeListe
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == 1) {
             if(resultCode == RESULT_OK) {
-                cartList = (ArrayList<MenuItem>) data.getSerializableExtra("cartList");
+                cartList = (ArrayList<CommonFood>) data.getSerializableExtra("cartList");
                 cartCount = data.getIntExtra("cartCount", 0);
                 TextView totalCount = (TextView)findViewById(R.id.cart_count);
                 totalCount.setText("" + cartCount);
@@ -105,12 +106,12 @@ public class MenuActivity extends AppCompatActivity implements OnCartChangeListe
      * @return the (updated) cartCount
      * TODO: enforce unique name when creating menu items
      */
-    public int onCartChangedAdd(MenuItem cartItem) {
+    public int onCartChangedAdd(CommonFood cartItem) {
         if (cartCount < MAX_CART_ITEM) {
             try {
                 boolean contains = false;
-                for (MenuItem i : cartList) {
-                    if (i.getFoodName().equals(cartItem.getFoodName()) &&
+                for (CommonFood i : cartList) {
+                    if (i.getName().equals(cartItem.getName()) &&
                             i.getStandName().equals(cartItem.getStandName()) &&
                             i.getBrandName().equals(cartItem.getBrandName())) {
                         // cartItems have a unique ((foodName, brandName), standName)
@@ -120,7 +121,7 @@ public class MenuActivity extends AppCompatActivity implements OnCartChangeListe
                     }
                 }
                 if(!contains){
-                    MenuItem newItem = new MenuItem(cartItem);
+                    CommonFood newItem = new CommonFood(cartItem);
                     newItem.increaseCount();
                     cartList.add(newItem);
                 }
@@ -152,12 +153,12 @@ public class MenuActivity extends AppCompatActivity implements OnCartChangeListe
      * @return the (updated) cartCount
      * TODO: enforce unique name when creating menu items
      */
-    public int onCartChangedRemove(MenuItem cartItem) {
+    public int onCartChangedRemove(CommonFood cartItem) {
         if (cartCount > 0) {
             try {
                 boolean contains = false;
-                for (MenuItem i : cartList) {
-                    if (i.getFoodName().equals(cartItem.getFoodName()) &&
+                for (CommonFood i : cartList) {
+                    if (i.getName().equals(cartItem.getName()) &&
                             i.getStandName().equals(cartItem.getStandName()) &&
                             i.getBrandName().equals(cartItem.getBrandName())) {
                         // cartItems have a unique ((foodName, brandName), standName)

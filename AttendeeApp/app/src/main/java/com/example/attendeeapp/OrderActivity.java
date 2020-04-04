@@ -112,6 +112,7 @@ public class OrderActivity extends AppCompatActivity {
         // Instantiate the RequestQueue
         RequestQueue queue = Volley.newRequestQueue(this);
         String om_url = String.format("http://cobol.idlab.ugent.be:8091/confirmStand?order_id=%1$s&stand_id=%2$s", newOrder.getId(), stand);
+        String om_url = ServerConfig.OM_ADDRESS + "/pingOM";
 
         // Request a string response from the provided URL
         StringRequest stringRequest = new StringRequest(Request.Method.GET, om_url, new Response.Listener<String>() {

@@ -23,7 +23,7 @@ allprojects {
 
 subprojects {
     apply plugin: 'java'
-    if (!project.name.equals("Commons".toString())) {
+    if (!project.name.equals("Commons".toString()) && !project.name.equals("DatasetGenerator".toString())) {
         apply plugin: 'org.sonarqube'
         apply plugin: 'org.springframework.boot'
         apply plugin: 'io.spring.dependency-management'
@@ -69,12 +69,12 @@ subprojects {
 
 sonarqube {
     //Process process = Runtime.getRuntime().exec( "git rev-parse --abbrev-ref HEAD" );
-    Process process = Runtime.getRuntime().exec("git name-rev --name-only HEAD");
-    process.waitFor();
-    BufferedReader reader = new BufferedReader(new InputStreamReader( process.getInputStream() ) );
-    String branchName = reader.readLine();
+    Process process = Runtime.getRuntime().exec("git name-rev --name-only HEAD")
+    process.waitFor()
+    BufferedReader reader = new BufferedReader(new InputStreamReader( process.getInputStream() ) )
+    String branchName = reader.readLine()
     String component = "BackEnd"
-    String name = component + ":" + branchName;
+    String name = component + ":" + branchName
     properties {
         property 'sonar.host.url', 'http://cobol.idlab.ugent.be:9090'
         property 'sonar.login', 'a180680e1095eaed6d64c453314116eebc6e758a'
@@ -120,7 +120,6 @@ project(':AuthenticationService'){
 
         //Support for json web tokens in java
         implementation group: 'io.jsonwebtoken', name: 'jjwt', version: '0.9.1'
-
         //Library for removing lots of boilerplate code, use in combination with intellij plugin
         compileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.12'
         annotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.12'
@@ -139,6 +138,9 @@ project(':AuthenticationService'){
         //Library for removing lots of boilerplate code, use in combination with intellij plugin
         testCompileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.12'
         testAnnotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.12'
+
+        testCompile group: 'com.h2database', name: 'h2', version: '1.4.200'
+
     }
 }
 
@@ -147,15 +149,22 @@ project(':OrderManager'){
     dependencies {
         //-----INTERNAL-----
         implementation project(':Commons')
-        //Mysql jdbc driver
-        implementation group: 'mysql', name: 'mysql-connector-java', version: '8.0.19'
 
+        implementation group: 'com.google.guava', name: 'guava', version: '23.5-jre'
         //Spring related imports
         implementation group: 'org.springframework.boot', name: 'spring-boot-starter-data-jpa', version: '2.2.5.RELEASE'
-        //-----PRODUCTION-----
-        //Spring related imports
         implementation group: 'org.springframework.boot', name: 'spring-boot-starter-security', version: '2.2.5.RELEASE'
         implementation group: 'org.springframework.boot', name: 'spring-boot-starter-web', version: '2.2.5.RELEASE'
+
+        //Support for json web tokens in java
+        implementation group: 'io.jsonwebtoken', name: 'jjwt', version: '0.9.1'
+        //Library for removing lots of boilerplate code, use in combination with intellij plugin
+        compileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.12'
+        annotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.12'
+        implementation group: 'org.springframework.boot', name: 'spring-boot-configuration-processor', version: '2.2.6.RELEASE'
+
+        implementation "org.springframework.boot:spring-boot-configuration-processor"
+        //-----TESTING-----
 
         //For testing REST API
         testImplementation 'io.rest-assured:rest-assured:4.2.0'
@@ -169,6 +178,9 @@ project(':OrderManager'){
         //Library for removing lots of boilerplate code, use in combination with intellij plugin
         testCompileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.12'
         testAnnotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.12'
+
+        testCompile group: 'com.h2database', name: 'h2', version: '1.4.200'
+
     }
 }
 
@@ -181,9 +193,11 @@ project(':StandManager'){
         //Spring related imports
         implementation group: 'org.springframework.boot', name: 'spring-boot-starter-security', version: '2.2.5.RELEASE'
         implementation group: 'org.springframework.boot', name: 'spring-boot-starter-web', version: '2.2.5.RELEASE'
+
+        testCompile group: 'com.h2database', name: 'h2', version: '1.4.200'
+
     }
 }
-
 
 project(':EventChannel'){
 
@@ -204,5 +218,7 @@ project(':EventChannel'){
         testImplementation('org.springframework.boot:spring-boot-starter-test') {
             exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
         }
+
+        testCompile group: 'com.h2database', name: 'h2', version: '1.4.200'
     }
 }

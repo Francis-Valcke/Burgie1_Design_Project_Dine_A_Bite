@@ -9,6 +9,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
 
@@ -18,14 +19,18 @@ import static java.util.stream.Collectors.toList;
  * The non entity version of the User class that is used across all modules to represent users.
  */
 @Data
-@Builder
+@SuperBuilder
 @AllArgsConstructor
 @NoArgsConstructor
-public class CommonUser implements UserDetails {
+public class CommonUser implements UserDetails, Serializable {
 
     String username;
-    String password;
     List<String> role;
+
+    @Override
+    public String getPassword() {
+        return null;
+    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -51,4 +56,6 @@ public class CommonUser implements UserDetails {
     public boolean isEnabled() {
         return true;
     }
+
+
 }

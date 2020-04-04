@@ -3,9 +3,8 @@ package cobol.commons.order;
 public class Recommendation {
 
     // standId of recommendation
-    private int standId;
     private String standName;
-
+    private String brandName;
 
     // meters
     private double distance;
@@ -16,11 +15,19 @@ public class Recommendation {
     public Recommendation() {
     }
 
-    public Recommendation(int standId,String standName, double distance, int timeEstimate) {
-        this.standId = standId;
+    public Recommendation(String standName, String brandName, double distance, int timeEstimate) {
         this.standName=standName;
+        this.brandName=brandName;
         this.distance = distance;
         this.timeEstimate = timeEstimate;
+    }
+
+    public String getBrandName() {
+        return brandName;
+    }
+
+    public void setBrandName(String brandName) {
+        this.brandName = brandName;
     }
 
     public String getStandName() {
@@ -29,14 +36,6 @@ public class Recommendation {
 
     public void setStandName(String standName) {
         this.standName = standName;
-    }
-
-    public int getStandId() {
-        return standId;
-    }
-
-    public void setStandId(int standId) {
-        this.standId = standId;
     }
 
     public double getDistance() {

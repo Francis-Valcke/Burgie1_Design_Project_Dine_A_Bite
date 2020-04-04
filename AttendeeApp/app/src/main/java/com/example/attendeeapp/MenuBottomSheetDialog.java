@@ -10,6 +10,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.example.attendeeapp.json.CommonFood;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 
 /**
@@ -18,10 +19,10 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
  */
 public class MenuBottomSheetDialog extends BottomSheetDialogFragment {
 
-    private MenuItem item;
+    private CommonFood item;
     private OnCartChangeListener cartListener;
 
-    public MenuBottomSheetDialog(MenuItem menuItem) {
+    public MenuBottomSheetDialog(CommonFood menuItem) {
         item = menuItem;
     }
 
@@ -34,7 +35,7 @@ public class MenuBottomSheetDialog extends BottomSheetDialogFragment {
 
         // Handle TextView to display the menu item name, if this name has a stand, display it too
         TextView listItemText = (TextView)view.findViewById(R.id.menu_item_bottom);
-        String name = item.getFoodName();
+        String name = item.getName();
         if(!item.getStandName().equals("")) name += " (" + item.getStandName() + ")";
         listItemText.setText(name);
 
