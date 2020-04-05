@@ -35,13 +35,16 @@ import java.util.Map;
 import java.util.Objects;
 
 // TODO polling of events instead of pressing button
-// TODO set/change progress of orders and send to server
+// TODO set/change progress of orders and send to server (in ExpandableListAdapter)
+// TODO (optional) change polling to FCM
 
 public class OrderFragment extends Fragment {
 
     private ExpandableListAdapter listAdapter;
     private List<String> listDataHeader = new ArrayList<>();
     private HashMap<String, List<String>> listHash = new HashMap<>();
+    private ArrayList<Event> listEvents = new ArrayList<>();
+    private ArrayList<CommonOrder> listOrders = new ArrayList<>();
 
     private String oldStand;
 
@@ -76,7 +79,7 @@ public class OrderFragment extends Fragment {
         ExpandableListView listView = view.findViewById(R.id.expandable_list_view);
         listDataHeader = new ArrayList<>();
         listHash = new HashMap<>();
-        listAdapter = new ExpandableListAdapter(listDataHeader, listHash);
+        listAdapter = new ExpandableListAdapter(listDataHeader, listHash, listEvents, listOrders);
         listView.setAdapter(listAdapter);
 
         refreshButton.setOnClickListener(new View.OnClickListener() {
@@ -99,10 +102,12 @@ public class OrderFragment extends Fragment {
 
                         try {
                             List<Event> events = mapper.readValue(response.toString(), new TypeReference<List<Event>>() {});
+                            listEvents.addAll(events);
                             ArrayList<CommonOrder> orders = new ArrayList<>();
                             for (Event event : events) {
                                 orders.add(mapper.readValue(event.getEventData().get("order").toString(), CommonOrder.class));
                             }
+                            listOrders.addAll(orders);
                             for (CommonOrder order : orders) {
                                 String orderName = "#" + order.getId();
                                 listDataHeader.add(orderName);
