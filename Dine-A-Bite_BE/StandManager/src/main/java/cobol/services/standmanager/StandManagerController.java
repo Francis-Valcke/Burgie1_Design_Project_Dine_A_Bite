@@ -1,22 +1,26 @@
 package cobol.services.standmanager;
 
-
-
+import cobol.commons.CommonStand;
 import cobol.commons.ResponseModel;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import cobol.commons.exception.CommunicationException;
+import cobol.commons.order.CommonOrder;
+import cobol.commons.order.Recommendation;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
+import java.util.Optional;
 
 import static cobol.commons.ResponseModel.status.OK;
 
 @RestController
 public class StandManagerController {
+    @Autowired
+    private SchedulerHandler schedulerHandler;
 
     /**
      * API endpoint to test if the server is still alive.
@@ -34,55 +38,67 @@ public class StandManagerController {
     }
 
     /**
-     * The controller has a list of all schedulers.
-     * More information on schedulers in class Scheduler
+     * adds schedulers to SM
+     * @param stands
+     * @throws JsonProcessingException when wrong input param
      */
-    private List<Scheduler> schedulers = new ArrayList<Scheduler>();
+    @PostMapping("/update")
+    public void update(@RequestBody List<CommonStand> stands) throws CommunicationException {
 
-
-
-    /**
-     * @return the name of the recommended stand in JSON format.
-     * @RequestParam() String foodtype: post a type of food
-     * (In Postman: Select POST, go to params, enter "foodtype" as KEY and enter a menu item as value)
-     * (ex:localhost:8080/post?foodtype=pizza)
-     * (in current test above: "pizza", "apple", "burger" and "pizza with salami" are menu items)
-     */
-    @RequestMapping(value ="/post", method = RequestMethod.POST)
-    @ResponseBody
-    public JSONObject postOrder(@RequestParam() String foodtype) {
-        System.out.println(foodtype);
-        return recommend(foodtype);
-    }
-
-
-    /**
-     * @param type: type of food for which attendee seeks stand recommendation
-     * @return JSON object with standname
-     * Iterates over schedulers and looks for scheduler (that has the requested food item in menu) with shortest queue
-     * TODO: instead of returning 1 stand: return list of stands in recommended order
-     */
-    public JSONObject recommend(String type) {
-        JSONObject obj = new JSONObject();
-        int s = 1000;
-        String standname="";
-        for (int i = 0; i < schedulers.size(); i++) {
-            if (schedulers.get(i).checkType(type)) {
-                int n = schedulers.get(i).timeSum();
-                if (n < s) {
-                    s = n;
-                    standname = schedulers.get(i).getStandname();
-                }
-            }
+        for (CommonStand stand : stands) {
+            schedulerHandler.updateSchedulers(stand);
         }
-        obj.put("stand", standname);
-        //obj.put("stand2", "foo");
-        //obj.put("stand3", "foo");
-        //obj.put("stand4", "foo");
-        //obj.put("stand5", "foo");
 
-        System.out.print(obj);
-        return obj;
+
     }
+
+    @PostMapping("/deleteScheduler")
+    public void deleteScheduler(@RequestParam String standName, @RequestParam String brandName){
+
+
+
+        Optional<Scheduler> schedulerOptional= schedulerHandler.getSchedulers().stream()
+                .filter(s -> s.getStandName().equals(standName) &&
+                        s.getBrand().equals(brandName)).findAny();
+        schedulerOptional.ifPresent(scheduler -> schedulerHandler.removeScheduler(scheduler));
+    }
+
+
+
+   
+    /**
+     * @param stand class object StandInfo which is used to start a scheduler for stand added in order manager
+     *             available at localhost:8081/newStand
+     * @return true (if no errors)
+     */
+    @RequestMapping(value = "/newStand", consumes = "application/json")
+    public JSONObject addNewStand(@RequestBody() CommonStand stand) throws CommunicationException {
+            return schedulerHandler.updateSchedulers(stand);
+    }
+
+
+    /**
+     * @param order order which wants to be placed
+     *              TODO: really implement this
+     */
+    @RequestMapping(value = "/placeOrder", consumes = "application/json")
+    public void placeOrder(@RequestBody() CommonOrder order) {
+        //add order to right scheduler
+    }
+
+
+    /**
+     * @param order order object for which the Order Manager wants a recommendation
+     * @return recommendation in JSON format
+     */
+    @RequestMapping(value = "/getRecommendation", consumes = "application/json")
+    @ResponseBody
+    public List<Recommendation> postCommonOrder(@RequestBody() CommonOrder order) throws JsonProcessingException {
+        System.out.println("User requested recommended stand for " + order.getId());
+        return schedulerHandler.recommend(order);
+    }
+
+
+
 
 }

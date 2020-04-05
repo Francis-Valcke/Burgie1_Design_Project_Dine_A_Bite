@@ -1,18 +1,10 @@
 package com.example.attendeeapp;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.View;
@@ -20,39 +12,36 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.android.volley.AuthFailureError;
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.Volley;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+
+import com.example.attendeeapp.json.CommonFood;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.NumberFormat;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Locale;
-import java.util.Map;
 
 /**
  * Activity to handle the view cart page
  */
 public class CartActivity extends AppCompatActivity {
 
-    ArrayList<MenuItem> ordered;
     private FusedLocationProviderClient fusedLocationClient;
     private Location lastLocation;
+    private CartItemAdapter cartAdapter;
     private Toast mToast;
+    private Intent returnIntent;
+    private BigDecimal totalPrice = new BigDecimal(0);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,23 +60,27 @@ public class CartActivity extends AppCompatActivity {
         ab.setDisplayHomeAsUpEnabled(true);
 
         // Get the ordered items from the cart in the menu view
-        ordered = (ArrayList<MenuItem>) getIntent().getSerializableExtra("cartList");
+        final ArrayList<CommonFood> ordered = (ArrayList<CommonFood>) getIntent().getSerializableExtra("cartList");
 
-        // Instantiates cart item list
+        // Instantiates cart item list, get the cartCount from menuActivity
         ListView lView = (ListView)findViewById(R.id.cart_list);
-        CartItemAdapter cartAdapter = new CartItemAdapter(ordered, this);
+        cartAdapter = new CartItemAdapter(ordered, this);
+        cartAdapter.setCartCount(getIntent().getIntExtra("cartCount", 0));
         lView.setAdapter(cartAdapter);
 
+        // Set up the returning possible edited cart list and count
+        returnIntent = new Intent();
+        returnIntent.putExtra("cartList", cartAdapter.getCartList());
+        returnIntent.putExtra("cartCount", cartAdapter.getCartCount());
+        setResult(RESULT_OK, returnIntent);
+
+
         // Handle TextView to display total cart amount (price)
-        TextView total = (TextView)findViewById(R.id.cart_total_price);
         BigDecimal amount = new BigDecimal(0).setScale(2, RoundingMode.HALF_UP);
-        for(MenuItem i : ordered) {
+        for(CommonFood i : ordered) {
             amount = amount.add(i.getPrice().multiply(new BigDecimal((i.getCount()))));
         }
-        NumberFormat euro = NumberFormat.getCurrencyInstance(Locale.FRANCE);
-        euro.setMinimumFractionDigits(2);
-        String symbol = euro.getCurrency().getSymbol();
-        total.setText(symbol + amount);
+        updatePrice(amount);
 
         // Handle clickable TextView to confirm order
         // Only if there are items in the cart, the order can continue
@@ -97,11 +90,25 @@ public class CartActivity extends AppCompatActivity {
             public void onClick(View v) {
                 // confirm order -> go to order view (test view for now)
                 // Send order with JSON + location
-                if (ordered.size() > 0) {
+                if (cartAdapter.getCartList().size() > 0) {
                     checkLocationPermission();
-                    requestOrderRecommend();
-                    Intent intent = new Intent(CartActivity.this, OrderActivity.class);
-                    startActivity(intent);
+                    //if(cartAdapter.getCartList().get(0).getStandName().equals("")) {
+                        Intent intent = new Intent(CartActivity.this, ConfirmActivity.class);
+                        intent.putExtra("order", ordered);
+                        intent.putExtra("location", lastLocation);
+                        intent.putExtra("totalPrice", totalPrice);
+                        intent.putExtra("cartCount", cartAdapter.getCartCount());
+                        startActivity(intent);
+                    /*} else {
+
+
+
+                        Intent intent = new Intent(CartActivity.this, OrderActivity.class);
+                        intent.putExtra("order_list", ordered);
+                        intent.putExtra("cartCount", cartAdapter.getCartCount());
+                        startActivity(intent);
+                    }*/
+
                 } else {
                     if (mToast != null) mToast.cancel();
                     mToast = Toast.makeText(CartActivity.this, "No items in your cart!",
@@ -121,6 +128,13 @@ public class CartActivity extends AppCompatActivity {
         super.onStart();
         // Ask for location permission
         checkLocationPermission();
+    }
+
+    @Override
+    public void onBackPressed() {
+        returnIntent.putExtra("cartList", cartAdapter.getCartList());
+        returnIntent.putExtra("cartCount", cartAdapter.getCartCount());
+        super.onBackPressed();
     }
 
     /**
@@ -191,78 +205,17 @@ public class CartActivity extends AppCompatActivity {
         }
     }
 
-
     /**
-     * Sends order of user to the server in JSON to request a recommendation
-     * Send a JSON object with ordered items and user location
-     * Format: "location" (latitude, longitude), "order" (item1, ...)
-     * Format or order: ("itemName_brandName": [count, "standName1], ...)
-     * Location is (360, 360) when user location is unknown
+     * Function to handle price updates when the cart updates its items
+     * @param amount: amount to be added, can be positive or negative
      */
-    private void requestOrderRecommend() {
-
-        // Make JSON Object with ordered items and location
-        JSONObject js = new JSONObject();
-        JSONObject js_items = new JSONObject();
-        JSONObject js_location = new JSONObject();
-        try {
-            for(MenuItem i : ordered) {
-                    JSONArray js_array = new JSONArray();
-                    js_array.put(i.getCount());
-                    js_array.put(i.getStandName());
-                    String key = i.getFoodName() + "_" + i.getBrandName();
-                    js_items.put(key, js_array);
-            }
-
-            if(lastLocation != null) {
-                js_location.put("latitude", lastLocation.getLatitude());
-                js_location.put("longitude", lastLocation.getLongitude());
-            } else { //360 is value for location unknown
-                js_location.put("latitude", 360);
-                js_location.put("longitude", 360);
-            }
-            js.put("location", js_location);
-            js.put("order", js_items);
-
-        } catch (JSONException e){
-            Log.v("JSONException in cart", e.toString());
-        }
-        // Instantiate the RequestQueue
-        RequestQueue queue = Volley.newRequestQueue(this);
-        String url = "http://cobol.idlab.ugent.be:8092/post?foodtype";
-        //String url = "http://localhost:8080/post?foodtype";
-
-        // Request recommendation from server for sent order (both in JSON)
-        JsonObjectRequest jsonRequest = new JsonObjectRequest(Request.Method.POST, url, js,
-                                                            new Response.Listener<JSONObject>() {
-            @Override
-            public void onResponse(JSONObject response) {
-                Toast mToast = Toast.makeText(CartActivity.this, "Ordering succesful!",
-                                                Toast.LENGTH_SHORT);
-                mToast.show();
-            }
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                Toast mToast = Toast.makeText(CartActivity.this, "Ordering failed",
-                                                Toast.LENGTH_SHORT);
-                mToast.show();
-            }
-        }) { // Add JSON headers
-            @Override
-            public @NonNull Map<String, String> getHeaders()  throws AuthFailureError {
-                Map<String, String>  headers  = new HashMap<String, String>();
-                headers.put("Content-Type", "application/json");
-                headers.put("Authorization", "Bearer " + "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOi" +
-                        "JmcmFuY2lzIiwicm9sZXMiOlsiUk9MRV9VU0VSIiwiUk9MRV9BRE1JTiJdLCJpYX" +
-                        "QiOjE1ODQ2MTAwMTcsImV4cCI6MTc0MjI5MDAxN30.5UNYM5Qtc4anyHrJXIuK0O" +
-                        "UlsbAPNyS9_vr-1QcOWnQ");
-                return headers;
-            }
-        };
-
-        // Add the request to the RequestQueue
-        queue.add(jsonRequest);
+    public void updatePrice(BigDecimal amount) {
+        TextView total = (TextView)findViewById(R.id.cart_total_price);
+        NumberFormat euro = NumberFormat.getCurrencyInstance(Locale.FRANCE);
+        euro.setMinimumFractionDigits(2);
+        String symbol = euro.getCurrency().getSymbol();
+        totalPrice = totalPrice.add(amount);
+        total.setText(symbol + totalPrice);
     }
 
     @Override
@@ -278,7 +231,7 @@ public class CartActivity extends AppCompatActivity {
             case android.R.id.home:
                 // This takes the user 'back', as if they pressed the left-facing triangle icon
                 // on the main android toolbar.
-                super.onBackPressed();
+                onBackPressed();
                 return true;
             case R.id.orders_action:
                 // User chooses the "My Orders" item

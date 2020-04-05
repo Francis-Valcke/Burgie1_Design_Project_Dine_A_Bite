@@ -1,0 +1,33 @@
+{
+  "name": "BurgerKing 1",
+  "brandName": "BurgerKing",
+  "latitude": 0,
+  "longitude": 0,
+  "menu": [
+    {
+      "name": "Burger One",
+      "standName": "BurgerKing 1",
+      "brandName": "BurgerKing",
+      "price": 2,
+      "preparationTime": 150,
+      "stock": 20,
+      "description": "Good Burger",
+      "category": [
+        "BURGER"
+      ]
+    },
+    {
+      "name": "Chicken Pepper King",
+      "price": 8.3,
+      "stock": 5,
+      "standName": "BurgerKing 1",
+      "brandName": "BurgerKing",
+      "category": [
+        "SNACK",
+        "BURGER"
+      ],
+      "description": "Pepper king with chicken",
+      "preparationTime": 500
+    }
+  ]
+}

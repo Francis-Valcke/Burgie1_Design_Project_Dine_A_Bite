@@ -1,4 +1,4 @@
 rootProject.name = 'StandManager'
-include 'EventChannel'
 
-//(':EventChannel').projectDir = file('../EventChannel')
+include 'EventChannel'
+include 'OrderManager'

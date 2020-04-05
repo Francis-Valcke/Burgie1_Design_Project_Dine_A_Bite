@@ -24,15 +24,14 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 
-import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+
+import static com.example.attendeeapp.ServerConfig.AUTHORIZATION_TOKEN;
 
 /**
  * Handles the view for the stand menu's
@@ -40,7 +39,7 @@ import java.util.Map;
 public class MenuFragmentStand extends MenuFragment implements AdapterView.OnItemSelectedListener {
 
     private ArrayAdapter<String> standListAdapter;
-    // List of stand and brands: key = standName, value = brandName
+    // List of stand and brands: key = brandName, value = multiple standNames
     private HashMap<String, String> standList = new HashMap<String, String>();
 
     @Nullable
@@ -90,7 +89,7 @@ public class MenuFragmentStand extends MenuFragment implements AdapterView.OnIte
                                int pos, long id) {
         // An item was selected in the spinner, fetch the menu of the selected stand
         String standName = (String) parent.getItemAtPosition(pos);
-        fetchMenu(standName);
+        fetchMenu(standName, standList.get(standName));
     }
 
     public void onNothingSelected(AdapterView<?> parent) {
@@ -103,7 +102,7 @@ public class MenuFragmentStand extends MenuFragment implements AdapterView.OnIte
     public void fetchStandNames() {
         // Instantiate the RequestQueue
         RequestQueue queue = Volley.newRequestQueue(getActivity());
-        String url = "http://cobol.idlab.ugent.be:8091/stands";
+        String url = ServerConfig.OM_ADDRESS + "/stands";
 
         // Request the stand names in JSON from the order manager
         // Handle no network connection or server not reachable
@@ -126,7 +125,7 @@ public class MenuFragmentStand extends MenuFragment implements AdapterView.OnIte
                         } catch (Exception e) { // Catch all exceptions TODO: only specific ones
                             Log.v("Exception fetchMenu", e.toString());
                             if (mToast != null) mToast.cancel();
-                            mToast = Toast.makeText(getActivity(), "An error occurred when fetching the menu!",
+                            mToast = Toast.makeText(getActivity(), "A parsing error occurred when fetching the stands!",
                                     Toast.LENGTH_LONG);
                             mToast.show();
                         }
@@ -142,7 +141,7 @@ public class MenuFragmentStand extends MenuFragment implements AdapterView.OnIte
                             Toast.LENGTH_LONG);
 
                 } else {
-                    mToast = Toast.makeText(getActivity(), "Server cannot be reached. Try again later.",
+                    mToast = Toast.makeText(getActivity(), "Server cannot be reached. No stands available.",
                             Toast.LENGTH_LONG);
                 }
                 mToast.show();
@@ -152,10 +151,7 @@ public class MenuFragmentStand extends MenuFragment implements AdapterView.OnIte
             public @NonNull
             Map<String, String> getHeaders()  throws AuthFailureError {
                 Map<String, String>  headers  = new HashMap<String, String>();
-                headers.put("Authorization", "Bearer " + "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOi" +
-                        "JmcmFuY2lzIiwicm9sZXMiOlsiUk9MRV9VU0VSIiwiUk9MRV9BRE1JTiJdLCJpYX" +
-                        "QiOjE1ODQ2MTAwMTcsImV4cCI6MTc0MjI5MDAxN30.5UNYM5Qtc4anyHrJXIuK0O" +
-                        "UlsbAPNyS9_vr-1QcOWnQ");
+                headers.put("Authorization", AUTHORIZATION_TOKEN);
                 return headers;
             }
         };
@@ -164,40 +160,4 @@ public class MenuFragmentStand extends MenuFragment implements AdapterView.OnIte
         queue.add(jsonRequest);
     }
 
-    /**
-     * Updates a specific stand menu from the server response
-     * Error are handled in the fetchMenu (superclass) function
-     * @param response: the JSON response from the server
-     * @param standName: the requested menu standName, "" is global
-     * @throws JSONException
-     */
-    public void updateMenu(JSONObject response, String standName) throws JSONException {
-        // Renew the list
-        menuItems.clear();
-        //Log.v("response", "Response: " + response.toString());
-        for (Iterator<String> iter = response.keys(); iter.hasNext(); ) {
-            String foodName = iter.next();
-
-            // Create the menuItem with price, food and brandName
-            JSONArray jsonArray = response.getJSONArray(foodName);
-            String brandName = jsonArray.getString(0);
-            double price = jsonArray.getDouble(1);
-            MenuItem item = new MenuItem(foodName, new BigDecimal(price), brandName);
-            item.setStandName(standName);
-
-            // Add categories to the menuItem
-            JSONArray cat_array = jsonArray.getJSONArray(2);
-            for (int j = 0; j < cat_array.length(); j++) {
-                item.addCategory((String) cat_array.get(j));
-            }
-
-            // Add the description, if provided
-            String description = jsonArray.getString(3);
-            if (!description.equals("null")) item.setDescription(description);
-
-            menuItems.add(item);
-        }
-        menuAdapter.putList(menuItems);
-        menuAdapter.notifyDataSetChanged();
-    }
 }

@@ -11,10 +11,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-
-import javax.sql.DataSource;
 
 /**
  * Configuration class for configuring Spring Security filters.
@@ -25,9 +22,7 @@ import javax.sql.DataSource;
 @ComponentScan({"cobol.services.eventchannel", "cobol.commons"})
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
-    private DataSource dataSource;
     private JwtAuthenticationFilter jwtAuthenticationFilter;
-    private UserDetailsService userDetailsService;
 
     /**
      * Overridden method for configuring the AuthenticationManagerBuilder.
@@ -58,11 +53,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .and()
                 .authorizeRequests()
                 .antMatchers("/pingEC").permitAll()
-                .antMatchers("/publishEvent").permitAll()
-                .antMatchers("/registerSubscriber").permitAll()
-                .antMatchers("/registerSubscriber/toChannel").permitAll()
-                .antMatchers("/deregisterSubscriber").permitAll()
-
                 .anyRequest().authenticated()
                 .and()
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

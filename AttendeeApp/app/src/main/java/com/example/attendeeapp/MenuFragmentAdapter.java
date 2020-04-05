@@ -21,7 +21,7 @@ public class MenuFragmentAdapter extends FragmentStateAdapter {
     /**
      * Creates global or stand fragment depending on the slider position
      * @param position: 0 = global fragment, 1 = stand fragment
-     * @return: the newly created fragment
+     * @return the newly created fragment
      */
     @Override
     public MenuFragment createFragment(int position) {

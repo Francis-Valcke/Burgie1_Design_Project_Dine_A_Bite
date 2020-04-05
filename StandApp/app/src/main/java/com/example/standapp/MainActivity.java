@@ -16,13 +16,10 @@ import com.google.android.material.navigation.NavigationView;
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
     private DrawerLayout drawer;
-    private static ProfileFragment profile;
-    private static OrderFragment order;
-    private static DashboardFragment dashboard;
+    private ProfileFragment profile;
+    private OrderFragment order;
+    private DashboardFragment dashboard;
 
-    /**
-     * This onCreate function is the first function that will be run when the MainActivity opens up
-     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -35,7 +32,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawer,
+                toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.addDrawerListener(toggle);
         toggle.syncState();
 
@@ -43,14 +41,22 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         order = new OrderFragment();
         dashboard = new DashboardFragment();
 
+        // To pass data in between fragments
+        Bundle bundle = new Bundle();
+        profile.setArguments(bundle);
+        dashboard.setArguments(bundle);
+        order.setArguments(bundle);
+
         if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, profile).commit();
             navigationView.setCheckedItem(R.id.nav_profile);
         }
+
     }
 
     /**
-     * This function is called when an item is clicked in the navigation drawer, and depending on the item clicked, the corresponding switch case will be selected
+     * This function is called when an item is clicked in the navigation drawer,
+     * and depending on the item clicked, the corresponding switch case will be selected
      * @param item the item in navigation drawer that was selected by the user
      */
     @Override
@@ -64,7 +70,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, order).commit();
                 break;
             case R.id.nav_dashboard:
-                //if (items != null) dashboard.setItems(items);
                 getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, dashboard).commit();
                 break;
         }

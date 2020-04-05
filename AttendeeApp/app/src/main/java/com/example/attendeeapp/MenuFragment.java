@@ -13,15 +13,22 @@ import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.Volley;
+import com.example.attendeeapp.json.CommonFood;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
-import org.json.JSONException;
-import org.json.JSONObject;
+import org.json.JSONArray;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+
+import static com.example.attendeeapp.ServerConfig.AUTHORIZATION_TOKEN;
 
 /**
  * Abstract parent class of global and stand menuFragments
@@ -29,19 +36,26 @@ import java.util.Map;
  */
 public abstract class MenuFragment extends Fragment {
 
-    protected ArrayList<MenuItem> menuItems = new ArrayList<MenuItem>();
+    protected ArrayList<CommonFood> menuItems = new ArrayList<CommonFood>();
     protected MenuItemAdapter menuAdapter;
     protected SwipeRefreshLayout pullToRefresh;
     protected Toast mToast;
 
     /**
      * Updates the current global/stand menu with the updated version returned from the server
-     * The global and stand fragment handle the adding of the menu items themselves
+     * Error are handled in the fetchMenu function
      * @param response: the JSON response from the server
-     * @param standName: the requested menu standName, "" is global
-     * @throws JSONException
      */
-    public abstract void updateMenu(JSONObject response, String standName) throws JSONException;
+    public void updateMenu(List<CommonFood> response) {
+        // Renew the list
+        menuItems.clear();
+
+        menuItems.addAll(response);
+        //Log.v("response", "Response: " + response.toString());
+
+        menuAdapter.putList(menuItems);
+        menuAdapter.notifyDataSetChanged();
+    }
 
     /**
      * Function to fetch the global or stand menu from the server in JSON
@@ -52,32 +66,47 @@ public abstract class MenuFragment extends Fragment {
      * @param standName: the name of the stand to request the menu of,
      *                "" if the global menu is required
      */
-    protected void fetchMenu(final String standName){
+    protected void fetchMenu(final String standName, final String brandName){
         // Instantiate the RequestQueue
         RequestQueue queue = Volley.newRequestQueue(getActivity());
-        String url = "http://cobol.idlab.ugent.be:8091/";
+        String url = ServerConfig.OM_ADDRESS;
         int req = Request.Method.GET;
-        if(standName.equals("")){
-            url = url + "menu";
+        if (standName.equals("")) {
+            url = url + "/menu";
         } else {
-            //url = "http://localhost:8080/standmenu?standname=" + standName;
-            url = url + "standmenu?standname=" + standName;
+
+            url = String.format("%1$s/standMenu?standName=%2$s&brandName=%3$s",
+                    url,
+                    standName.replace("&","%26"),
+                    brandName.replace("&","%26"));
         }
+        // Remove spaces from the url
+        url = url.replace(' ', '+');
 
         // Request the global/stand menu in JSON from the order manager
         // Handle no network connection or server not reachable
-        JsonObjectRequest jsonRequest = new JsonObjectRequest(req, url, null,
-                                                            new Response.Listener<JSONObject>() {
+        JsonArrayRequest jsonRequest = new JsonArrayRequest(req, url, null,
+                                                            new Response.Listener<JSONArray>() {
             @Override
-            public void onResponse(JSONObject response) {
+            public void onResponse(JSONArray response) {
 
                 try {
+                    ObjectMapper om = new ObjectMapper();
+                    List<CommonFood> foodList=om.readValue(response.toString(), new TypeReference<List<CommonFood>>() {});
+
+                    // For global menu, set stand names to ""
+                    if (standName.equals("")) {
+                        for (CommonFood food : foodList) {
+                            food.setStandName("");
+                        }
+                    }
+
                     // Let fragments handle the response
-                    updateMenu(response, standName);
+                    updateMenu(foodList);
                 } catch (Exception e) { // Catch all exceptions TODO: only specific ones
                     Log.v("Exception fetchMenu", e.toString());
                     if (mToast != null) mToast.cancel();
-                    mToast = Toast.makeText(getActivity(), "An error occurred when fetching the menu!",
+                    mToast = Toast.makeText(getActivity(), "A parsing error occurred when fetching the menu!",
                             Toast.LENGTH_LONG);
                     mToast.show();
                 }
@@ -85,6 +114,16 @@ public abstract class MenuFragment extends Fragment {
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
+
+
+                // Hardcoded test menuItem to add when server is unavailable
+                /*MenuItem item = new MenuItem("foodName", new BigDecimal(5.5), "brandName");
+                menuItems.add(item);
+                MenuItem item2 = new MenuItem("foody", new BigDecimal(6.11), "brand2");
+                menuItems.add(item2);
+                menuAdapter.putList(menuItems);
+                menuAdapter.notifyDataSetChanged();*/
+
                 // NoConnectionError = no network connection
                 // other = server not reachable
                 if (mToast != null) mToast.cancel();
@@ -93,7 +132,7 @@ public abstract class MenuFragment extends Fragment {
                                             Toast.LENGTH_LONG);
 
                 } else {
-                    mToast = Toast.makeText(getActivity(), "Server cannot be reached. Try again later.",
+                    mToast = Toast.makeText(getActivity(), "Server cannot be reached. No menu available.",
                                             Toast.LENGTH_LONG);
                 }
                 mToast.show();
@@ -103,14 +142,15 @@ public abstract class MenuFragment extends Fragment {
             public @NonNull
             Map<String, String> getHeaders()  throws AuthFailureError {
                 Map<String, String>  headers  = new HashMap<String, String>();
-                headers.put("Authorization", "Bearer " + "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOi" +
-                        "JmcmFuY2lzIiwicm9sZXMiOlsiUk9MRV9VU0VSIiwiUk9MRV9BRE1JTiJdLCJpYX" +
-                        "QiOjE1ODQ2MTAwMTcsImV4cCI6MTc0MjI5MDAxN30.5UNYM5Qtc4anyHrJXIuK0O" +
-                        "UlsbAPNyS9_vr-1QcOWnQ");
+                headers.put("Authorization", AUTHORIZATION_TOKEN);
                 return headers;
             }
+
         };
 
+
+        String test1 = jsonRequest.getUrl();
+        String test2 = jsonRequest.toString();
         // Add the request to the RequestQueue
         queue.add(jsonRequest);
     }

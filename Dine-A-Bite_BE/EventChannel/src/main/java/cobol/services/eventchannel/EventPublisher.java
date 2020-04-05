@@ -4,12 +4,14 @@ import cobol.commons.Event;
 
 public class EventPublisher {
 
+    private EventPublisher() {}
+
     /**
-     * @param e the event
-     *
      * publishes an event
+     *
+     * @param e the event
      */
-    static void Publish(Event e) {
+    static void publish(Event e) {
         EventBroker.getInstance().addEvent(e);
     }
 }
