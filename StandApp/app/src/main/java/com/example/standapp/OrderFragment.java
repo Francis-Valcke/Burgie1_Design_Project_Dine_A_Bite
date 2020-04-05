@@ -1,5 +1,6 @@
 package com.example.standapp;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -41,6 +42,7 @@ import java.util.Objects;
 public class OrderFragment extends Fragment {
 
     private ExpandableListAdapter listAdapter;
+    private Context mContext;
     private List<String> listDataHeader = new ArrayList<>();
     private HashMap<String, List<String>> listHash = new HashMap<>();
     private ArrayList<Event> listEvents = new ArrayList<>();
@@ -62,10 +64,10 @@ public class OrderFragment extends Fragment {
         final Bundle bundle = getArguments();
         String standName = "";
         String brandName = "";
-        if (bundle != null && Utils.isLoggedIn(getContext(), bundle)) {
+        if (bundle != null && Utils.isLoggedIn(mContext, bundle)) {
             standName = bundle.getString("standName");
             brandName = bundle.getString("brandName");
-            Toast.makeText(getContext(), standName, Toast.LENGTH_SHORT).show();
+            Toast.makeText(mContext, standName, Toast.LENGTH_SHORT).show();
         }
 
         // Subscribe to the Event Channel and get subscriberID
@@ -87,7 +89,7 @@ public class OrderFragment extends Fragment {
             public void onClick(View v) {
 
                 //Instantiate the RequestQueue
-                RequestQueue queue = Volley.newRequestQueue(Objects.requireNonNull(getContext()));
+                RequestQueue queue = Volley.newRequestQueue(Objects.requireNonNull(mContext));
                 String url = ServerConfig.EC_ADDRESS + "/events?id=" + subscriberId;
                 System.out.println("URL: " + url);
 
@@ -126,7 +128,7 @@ public class OrderFragment extends Fragment {
                     @Override
                     public void onErrorResponse(VolleyError error) {
                         error.printStackTrace();
-                        Toast.makeText(getContext(), error.toString(), Toast.LENGTH_SHORT).show();
+                        Toast.makeText(mContext, error.toString(), Toast.LENGTH_SHORT).show();
                     }
                 }) {
                     @Override
@@ -152,14 +154,14 @@ public class OrderFragment extends Fragment {
 
         // Step 1: Get subscriber ID
         // Instantiate the RequestQueue
-        RequestQueue queue = Volley.newRequestQueue(Objects.requireNonNull(getContext()));
+        RequestQueue queue = Volley.newRequestQueue(Objects.requireNonNull(mContext));
         String url = ServerConfig.EC_ADDRESS + "/registerSubscriber";
 
         // GET request to server
         StringRequest request = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
-                Toast.makeText(getContext(), "SubscriberId: " + response, Toast.LENGTH_SHORT)
+                Toast.makeText(mContext, "SubscriberId: " + response, Toast.LENGTH_SHORT)
                         .show();
                 subscriberId = response;
 
@@ -180,7 +182,7 @@ public class OrderFragment extends Fragment {
                     @Override
                     public void onErrorResponse(VolleyError error) {
                         error.printStackTrace();
-                        Toast.makeText(getContext(), error.toString(), Toast.LENGTH_SHORT).show();
+                        Toast.makeText(mContext, error.toString(), Toast.LENGTH_SHORT).show();
                     }
                 }) {
                     @Override
@@ -191,14 +193,14 @@ public class OrderFragment extends Fragment {
                         return headers;
                     }
                 };
-                RequestQueue queue2 = Volley.newRequestQueue(Objects.requireNonNull(getContext()));
+                RequestQueue queue2 = Volley.newRequestQueue(Objects.requireNonNull(mContext));
                 queue2.add(request2);
             }
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
                 error.printStackTrace();
-                Toast.makeText(getContext(), error.toString(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(mContext, error.toString(), Toast.LENGTH_SHORT).show();
             }
         }) {
             @Override
@@ -212,5 +214,11 @@ public class OrderFragment extends Fragment {
 
         queue.add(request);
 
+    }
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        mContext = context;
     }
 }
