@@ -18,7 +18,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private DrawerLayout drawer;
     private ProfileFragment profile;
     private OrderFragment order;
-    private DashboardFragment2 dashboard;
+    private DashboardFragment dashboard;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,17 +39,19 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         profile = new ProfileFragment();
         order = new OrderFragment();
-        dashboard = new DashboardFragment2();
+        dashboard = new DashboardFragment();
 
         // To pass data in between fragments
         Bundle bundle = new Bundle();
         profile.setArguments(bundle);
         dashboard.setArguments(bundle);
+        order.setArguments(bundle);
 
         if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, profile).commit();
             navigationView.setCheckedItem(R.id.nav_profile);
         }
+
     }
 
     /**

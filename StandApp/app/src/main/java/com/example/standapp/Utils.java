@@ -14,6 +14,8 @@ import com.android.volley.toolbox.Volley;
 
 class Utils {
 
+    private static boolean isConnected = false;
+
     /**
      * Show if internet connection and server connection are online
      * and show in a toast message to user
@@ -21,8 +23,6 @@ class Utils {
      * @return boolean is connected or not
      */
     static boolean isConnected(final Context context) {
-
-        final boolean[] isConnected = {false};
 
         // Instantiate the RequestQueue
         RequestQueue queue = Volley.newRequestQueue(context);
@@ -32,12 +32,13 @@ class Utils {
         StringRequest stringRequest = new StringRequest(Request.Method.GET, om_url, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
-                isConnected[0] = true;
+                isConnected = true;
+                System.out.println(response);
             }
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                isConnected[0] = false;
+                isConnected = false;
                 if (error instanceof NoConnectionError) {
                     Toast.makeText(context, "No network connection", Toast.LENGTH_LONG).show();
                 } else {
@@ -49,7 +50,7 @@ class Utils {
         // Add the request to the RequestQueue
         queue.add(stringRequest);
 
-        return isConnected[0];
+        return isConnected;
     }
 
     /**

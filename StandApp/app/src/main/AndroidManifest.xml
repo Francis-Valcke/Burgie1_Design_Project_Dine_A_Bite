@@ -13,7 +13,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="true">
-        <activity android:name=".DashboardFragment2"
+        <activity android:name=".DashboardFragment"
             android:parentActivityName=".MainActivity"/>
         <activity android:name=".SplashScreenActivity">
             <intent-filter>

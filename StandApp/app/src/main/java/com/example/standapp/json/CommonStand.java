@@ -8,8 +8,8 @@ import java.util.List;
  * Model for info about the stand
  */
 public class CommonStand implements Serializable {
-    private List<CommonFood> menu = new ArrayList<>();
 
+    private List<CommonFood> menu = new ArrayList<>();
     private String name;
     private String brandName;
     private double latitude;
