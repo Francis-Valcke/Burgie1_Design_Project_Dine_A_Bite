@@ -71,7 +71,7 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
     }
 
     @Override
-    public View getGroupView(final int groupPosition, boolean isExpanded, View convertView,
+    public View getGroupView(int groupPosition, boolean isExpanded, View convertView,
                              ViewGroup parent) {
         View view = convertView;
         if (convertView == null) {
@@ -83,6 +83,7 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
         TextView listHeader = view.findViewById(R.id.order_number);
         listHeader.setText(headerTitle);
 
+        final int finalGroupPosition = groupPosition;
         MaterialButtonToggleGroup toggleGroup = view.findViewById(R.id.status_toggle_button);
         toggleGroup.addOnButtonCheckedListener(new MaterialButtonToggleGroup.OnButtonCheckedListener() {
             @Override
@@ -90,19 +91,15 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
                 group.setSelectionRequired(true);
                 if (checkedId == R.id.button_start && isChecked) {
                     Toast.makeText(group.getContext(), "Start", Toast.LENGTH_SHORT).show();
-                    sendOrderStatusUpdate(groupPosition, checkedId);
+                    sendOrderStatusUpdate(finalGroupPosition, checkedId);
                 } else if (checkedId == R.id.button_done && isChecked) {
                     Toast.makeText(group.getContext(), "Done", Toast.LENGTH_SHORT).show();
-                    sendOrderStatusUpdate(groupPosition, checkedId);
+                    sendOrderStatusUpdate(finalGroupPosition, checkedId);
                 } else if (checkedId == R.id.button_picked_up && isChecked) {
                     // TODO delete picked up, or put in other list (picked up orders list) ?
                     // TODO that can be shown in a history view for example ?
                     // TODO sent this change to server ?
-                    // Remove order when picked up
-                    Toast.makeText(group.getContext(), "Picked up", Toast.LENGTH_SHORT).show();
-                    listHashMap.remove(listDataHeader.get(groupPosition));
-                    listDataHeader.remove(groupPosition);
-                    notifyDataSetChanged();
+                    // TODO Remove order when picked up
                 }
             }
         });
@@ -142,5 +139,6 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
         ObjectMapper mapper = new ObjectMapper();
         JsonNode eventData = mapper.valueToTree(orderStatusUpdate);
         Event event = new Event(eventData, listEvents.get(groupPosition).getTypes(), "OrderStatusUpdate");
+        // TODO not finished
     }
 }
