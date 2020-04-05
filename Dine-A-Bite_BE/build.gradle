@@ -6,7 +6,7 @@ plugins {
         id 'jacoco'
 }
 
-version = '0.3'
+version = '0.4'
 
 def outputDir = "$rootDir/jars"
 project.ext.outDir = outputDir
