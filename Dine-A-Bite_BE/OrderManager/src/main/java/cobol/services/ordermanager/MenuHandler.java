@@ -129,7 +129,8 @@ public class MenuHandler {
 
         // This will create a new stand based on a common stand
         // This will just take over the stock value, but as stock is given in an incremental fashion, this needs to be adjusted
-        Stand modifiedStand = new Stand(commonStand);
+        Stand modifiedStand = originalStand.update(commonStand);
+
 
         // Now we need to adjust the stock of the food items of the new stand
         //This map will contain mapping between the hash of the original food item and the adjusted food item
@@ -139,7 +140,7 @@ public class MenuHandler {
             foodRepository.findFoodById(modifiedFood.getName(), modifiedFood.getStandName(), modifiedFood.getBrandName()).ifPresent(originalFood -> {
                 originalModifiedFoodMapping.put(originalFood, modifiedFood);
                 // Also update the stock
-                modifiedFood.updateStock(originalFood.getStock());
+                //modifiedFood.updateStock(originalFood.getStock());
             });
         });
 

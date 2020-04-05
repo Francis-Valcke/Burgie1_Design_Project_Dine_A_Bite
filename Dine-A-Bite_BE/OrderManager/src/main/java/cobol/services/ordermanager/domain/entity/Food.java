@@ -99,21 +99,24 @@ public class Food {
     public Food update(CommonFood cf){
 
         //Setting general fields
-        this.description = cf.getDescription();
-        this.price = cf.getPrice().floatValue();
-        this.preparationTime = cf.getPreparationTime();
-        this.stock = cf.getStock();
+        this.description = cf.getDescription().equals("") ? this.description : cf.getDescription();
+        this.price = cf.getPrice().floatValue() < 0 ? this.price : cf.getPrice().floatValue();
+        this.preparationTime = cf.getPreparationTime() < 0 ? this.preparationTime : cf.getPreparationTime();
+        //Stock will be 0 if no stock has changed
+        this.stock += cf.getStock();
 
+        //TODO: Think about how category will be sent to backend. Always complete or not?
         //Setting categories
         this.category.clear();
         CategoryRepository categoryRepository = SpringContext.getBean(CategoryRepository.class);
         cf.getCategory().forEach(c -> category.add(categoryRepository.findById(c).orElse(categoryRepository.save(new Category(c)))));
 
+        //The food should already be attached to a stand as it is pulled from the food repository.
         //Setting foodId
-        StandRepository standRepository = SpringContext.getBean(StandRepository.class);
-        Stand stand = standRepository.findStandById(cf.getStandName(), cf.getBrandName())
-                .orElse(new Stand(cf.getStandName(), cf.getBrandName()));
-        this.foodId = new FoodId(cf.getName(), stand);
+        //StandRepository standRepository = SpringContext.getBean(StandRepository.class);
+        //Stand stand = standRepository.findStandById(cf.getStandName(), cf.getBrandName())
+        //        .orElse(new Stand(cf.getStandName(), cf.getBrandName()));
+        //this.foodId = new FoodId(cf.getName(), stand);
 
         return this;
     }
