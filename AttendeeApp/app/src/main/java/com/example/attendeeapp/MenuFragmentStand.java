@@ -23,17 +23,12 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
-import com.example.attendeeapp.json.CommonFood;
 
-import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 
 import static com.example.attendeeapp.ServerConfig.AUTHORIZATION_TOKEN;
@@ -44,7 +39,7 @@ import static com.example.attendeeapp.ServerConfig.AUTHORIZATION_TOKEN;
 public class MenuFragmentStand extends MenuFragment implements AdapterView.OnItemSelectedListener {
 
     private ArrayAdapter<String> standListAdapter;
-    // List of stand and brands: key = standName, value = brandName
+    // List of stand and brands: key = brandName, value = multiple standNames
     private HashMap<String, String> standList = new HashMap<String, String>();
 
     @Nullable
@@ -130,7 +125,7 @@ public class MenuFragmentStand extends MenuFragment implements AdapterView.OnIte
                         } catch (Exception e) { // Catch all exceptions TODO: only specific ones
                             Log.v("Exception fetchMenu", e.toString());
                             if (mToast != null) mToast.cancel();
-                            mToast = Toast.makeText(getActivity(), "An error occurred when fetching the menu!",
+                            mToast = Toast.makeText(getActivity(), "A parsing error occurred when fetching the stands!",
                                     Toast.LENGTH_LONG);
                             mToast.show();
                         }
@@ -146,7 +141,7 @@ public class MenuFragmentStand extends MenuFragment implements AdapterView.OnIte
                             Toast.LENGTH_LONG);
 
                 } else {
-                    mToast = Toast.makeText(getActivity(), "Server cannot be reached. Try again later.",
+                    mToast = Toast.makeText(getActivity(), "Server cannot be reached. No stands available.",
                             Toast.LENGTH_LONG);
                 }
                 mToast.show();
@@ -165,20 +160,4 @@ public class MenuFragmentStand extends MenuFragment implements AdapterView.OnIte
         queue.add(jsonRequest);
     }
 
-    /**
-     * Updates a specific stand menu from the server response
-     * Error are handled in the fetchMenu (superclass) function
-     * @param response: the JSON response from the server
-     * @param standName: the requested menu standName, "" is global
-     * @throws JSONException
-     */
-    public void updateMenu(List<CommonFood> response, String standName) throws JSONException {
-        // Renew the list
-        menuItems.clear();
-        menuItems.addAll(response);
-//        Log.v("response", "Response: " + response.toString());
-
-        menuAdapter.putList(menuItems);
-        menuAdapter.notifyDataSetChanged();
-    }
 }

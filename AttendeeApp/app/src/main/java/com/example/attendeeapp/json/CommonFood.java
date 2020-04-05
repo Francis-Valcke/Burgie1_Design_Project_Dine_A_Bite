@@ -102,7 +102,7 @@ public class CommonFood implements Serializable {
      * Will only add distinct categories (set)
      *
      * @param cat: Category to add
-     * @return: if the add was successful
+     * @return if the add was successful
      */
     public boolean addCategory(String cat) {
         return category.add(cat);
@@ -131,14 +131,14 @@ public class CommonFood implements Serializable {
     /**
      * Return the price of a menu item with the euro symbol
      *
-     * @return: String of euro symbol with price
+     * @return String of euro symbol with price
      */
     @JsonIgnore
     public String getPriceEuro() {
         NumberFormat euro = NumberFormat.getCurrencyInstance(Locale.FRANCE);
         euro.setMinimumFractionDigits(2);
         String symbol = euro.getCurrency().getSymbol();
-        return symbol + price.toString();
+        return symbol + " " + price.toString();
     }
 
     public int getCount() {
