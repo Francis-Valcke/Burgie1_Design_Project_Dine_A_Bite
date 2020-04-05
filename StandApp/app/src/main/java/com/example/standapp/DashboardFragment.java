@@ -19,6 +19,7 @@ import android.widget.Toast;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
+import com.android.volley.ServerError;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.StringRequest;
@@ -41,7 +42,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-// TODO add discription input fields
+// TODO add description input fields
 // TODO add prep time input fields
 // TODO fix sending and showing and storing stock
 // TODO change stock based on incoming orders
@@ -115,6 +116,10 @@ public class DashboardFragment extends Fragment {
                 @Override
                 public void onErrorResponse(VolleyError error) {
                     error.printStackTrace();
+                    if (error instanceof ServerError) {
+                        // TODO server should handle this exception and send a response
+                        Toast.makeText(getContext(), "Server could not find menu of stand", Toast.LENGTH_LONG).show();
+                    }
                     Toast.makeText(getContext(), error.toString(), Toast.LENGTH_LONG).show();
                 }
             }) {
@@ -212,7 +217,13 @@ public class DashboardFragment extends Fragment {
 
                     // Instantiate the RequestQueue
                     RequestQueue queue = Volley.newRequestQueue(Objects.requireNonNull(getContext()));
-                    String url = ServerConfig.OM_ADDRESS + "/addStand";
+                    String url;
+                    // Check if stand is new or not
+                    if (items.isEmpty()) {
+                        url = ServerConfig.OM_ADDRESS + "/addStand";
+                    } else {
+                        url = ServerConfig.OM_ADDRESS + "/updateStand";
+                    }
 
                     // POST to server
                     final String finalJsonString = jsonString;
