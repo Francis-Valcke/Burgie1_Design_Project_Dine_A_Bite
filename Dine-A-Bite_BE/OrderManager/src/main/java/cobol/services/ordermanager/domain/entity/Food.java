@@ -105,18 +105,13 @@ public class Food {
         //Stock will be 0 if no stock has changed
         this.stock += cf.getStock();
 
-        //TODO: Think about how category will be sent to backend. Always complete or not?
-        //Setting categories
-        this.category.clear();
-        CategoryRepository categoryRepository = SpringContext.getBean(CategoryRepository.class);
-        cf.getCategory().forEach(c -> category.add(categoryRepository.findById(c).orElse(categoryRepository.save(new Category(c)))));
-
-        //The food should already be attached to a stand as it is pulled from the food repository.
-        //Setting foodId
-        //StandRepository standRepository = SpringContext.getBean(StandRepository.class);
-        //Stand stand = standRepository.findStandById(cf.getStandName(), cf.getBrandName())
-        //        .orElse(new Stand(cf.getStandName(), cf.getBrandName()));
-        //this.foodId = new FoodId(cf.getName(), stand);
+        // When categories is empty the categories should remain unchanged
+        if (!cf.getCategory().isEmpty()){
+            //Setting categories
+            this.category.clear();
+            CategoryRepository categoryRepository = SpringContext.getBean(CategoryRepository.class);
+            cf.getCategory().forEach(c -> category.add(categoryRepository.findById(c).orElse(categoryRepository.save(new Category(c)))));
+        }
 
         return this;
     }
