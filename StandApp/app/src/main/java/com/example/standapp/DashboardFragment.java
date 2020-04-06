@@ -42,7 +42,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-// TODO add description input fields
 // TODO add prep time input fields
 // TODO fix sending and showing and storing stock
 // TODO change stock based on incoming orders
