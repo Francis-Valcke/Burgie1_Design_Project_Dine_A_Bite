@@ -143,6 +143,7 @@ public class DashboardFragment extends Fragment {
         final TextInputEditText nameInput = addDialogLayout.findViewById(R.id.menu_item_name);
         final TextInputEditText priceInput = addDialogLayout.findViewById(R.id.menu_item_price);
         final TextInputEditText stockInput = addDialogLayout.findViewById(R.id.menu_item_stock);
+        final TextInputEditText descriptionInput = addDialogLayout.findViewById(R.id.menu_item_description);
         final View finalView = view;
 
         // Adding a new menu item to the menu list of the stand
@@ -151,6 +152,7 @@ public class DashboardFragment extends Fragment {
                 .setPositiveButton("Save", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
+                        // Check if fields are filled in (except for description)
                         if (Objects.requireNonNull(nameInput.getText()).toString().isEmpty()
                                 || Objects.requireNonNull(priceInput.getText()).toString().isEmpty()
                                 || Objects.requireNonNull(stockInput.getText()).toString().isEmpty()) {
@@ -163,14 +165,16 @@ public class DashboardFragment extends Fragment {
                             String name = Objects.requireNonNull(nameInput.getText()).toString();
                             BigDecimal price = new BigDecimal(Objects.requireNonNull(priceInput.getText()).toString());
                             int stock = Integer.parseInt(Objects.requireNonNull(stockInput.getText()).toString());
+                            String description = Objects.requireNonNull(descriptionInput.getText()).toString();
                             List<String> category = new ArrayList<>();
                             category.add("");
-                            CommonFood item = new CommonFood(name, price, 150, stock, "", "", category);
+                            CommonFood item = new CommonFood(name, price, 150, stock, "", description, category);
                             items.add(item);
                             adapter.notifyDataSetChanged();
                             nameInput.setText("");
                             priceInput.setText("");
                             stockInput.setText("");
+                            descriptionInput.setText("");
                         }
                         ViewGroup parent = (ViewGroup) addDialogLayout.getParent();
                         if (parent != null) parent.removeView(addDialogLayout);

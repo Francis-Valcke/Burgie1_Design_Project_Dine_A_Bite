@@ -39,6 +39,7 @@ class Utils {
             @Override
             public void onErrorResponse(VolleyError error) {
                 isConnected = false;
+                System.out.println(error.toString());
                 if (error instanceof NoConnectionError) {
                     Toast.makeText(context, "No network connection", Toast.LENGTH_LONG).show();
                 } else {
