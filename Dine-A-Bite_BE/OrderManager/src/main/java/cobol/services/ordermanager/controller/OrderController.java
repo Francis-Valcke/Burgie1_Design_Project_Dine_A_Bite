@@ -3,6 +3,7 @@ package cobol.services.ordermanager.controller;
 import cobol.commons.exception.DoesNotExistException;
 import cobol.commons.order.CommonOrder;
 import cobol.commons.order.Recommendation;
+import cobol.commons.order.SuperOrder;
 import cobol.commons.security.CommonUser;
 import cobol.services.ordermanager.CommunicationHandler;
 import cobol.services.ordermanager.OrderProcessor;
@@ -10,6 +11,7 @@ import cobol.services.ordermanager.domain.entity.Order;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -83,6 +85,38 @@ public class OrderController {
         completeResponse.put("order", newOrder.asCommonOrder());
         completeResponse.put("recommendations", recommendations);
         return ResponseEntity.ok(completeResponse);
+    }
+
+    /**
+     * This method will handle an order from different stands in a certain brand
+     *
+     * @param superOrder SuperOrder object containing a list of CommonOrderItems of a certain brand
+     * @return JSONArray each element containing a field "recommendations" and a field "order" similar to return of placeOrder
+     */
+    @PostMapping(value="/placeSuperOrder", consumes = "application/json", produces = "application/json")
+    public ResponseEntity<JSONArray> placeSuperOrder(@RequestBody SuperOrder superOrder) {
+
+        /*
+         * NOTE:
+         * Only one recommendation per splitted order will be returned since the combination
+         * of recommendations will make this superorder optimal
+         * If you let a user choose a recommendation per (splitted) order, the combination of manually chosen stands
+         * can be far from optimal which is not the purpose of using this "superorder" feature
+         */
+
+        // ask StandManger to split these orderItems in Orders and give A recommendation
+
+
+
+
+        // add all seperate orders to orderprocessor, this will give them an orderId and initial values
+
+
+        // parse the response, add the recommendations to the hashmap of recommendations with the new orderIds
+
+
+        // return all the updated orders in a JSONArray with the recommendations
+        return ResponseEntity.ok(new JSONArray());
     }
 
 

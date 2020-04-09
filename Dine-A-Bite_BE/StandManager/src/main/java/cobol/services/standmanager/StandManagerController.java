@@ -5,7 +5,9 @@ import cobol.commons.ResponseModel;
 import cobol.commons.exception.CommunicationException;
 import cobol.commons.order.CommonOrder;
 import cobol.commons.order.Recommendation;
+import cobol.commons.order.SuperOrder;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -84,6 +86,22 @@ public class StandManagerController {
     @RequestMapping(value = "/placeOrder", consumes = "application/json")
     public void placeOrder(@RequestBody() CommonOrder order) {
         //add order to right scheduler
+    }
+
+    /**
+     * This method will split a superorder and give a recommendation for all the orders
+     *
+     * @param superOrder List with orderitems and corresponding brand
+     * @return JSONArray each element containing a field "recommendation" and a field "order" similar to return of placeOrder
+     */
+    @PostMapping(value="/getSuperRecommendation", consumes = "application/json", produces = "application/json")
+    public ResponseEntity<JSONArray> getSuperRecommendation(@RequestBody SuperOrder superOrder){
+
+        // split the items in seperate orders, find best stands
+
+
+        // return list of commonorderitems with corresponding recommendation
+        return ResponseEntity.ok(new JSONArray());
     }
 
 
