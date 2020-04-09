@@ -17,9 +17,7 @@ import org.springframework.beans.factory.annotation.Configurable;
 
 import javax.persistence.*;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Data
@@ -145,6 +143,13 @@ public class Stand implements Serializable {
 
     public String getName(){
         return standId.name;
+    }
+
+    public Map<String, Double> getLocation() {
+        Map<String, Double> location = new HashMap<>();
+        location.put("latitude", this.latitude);
+        location.put("longitude", this.longitude);
+        return location;
     }
 
     public String getBrandName(){
