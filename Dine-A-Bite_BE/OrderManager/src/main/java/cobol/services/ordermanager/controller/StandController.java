@@ -90,6 +90,12 @@ public class StandController {
         return ResponseEntity.ok(standRepository.findAll()
                 .stream().collect(Collectors.toMap(Stand::getName, stand -> stand.getBrand().getName())));
     }
+
+    @GetMapping(value = "/standLocations")
+    public ResponseEntity<Map<String, Map<String, Double>>> requestStandLocations() {
+        return ResponseEntity.ok(standRepository.findAll()
+                .stream().collect(Collectors.toMap(Stand::getName, Stand::getLocation)));
+    }
 }
 
 
