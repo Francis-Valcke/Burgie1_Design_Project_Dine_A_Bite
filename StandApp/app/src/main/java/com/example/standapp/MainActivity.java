@@ -203,4 +203,12 @@ public class MainActivity extends AppCompatActivity
             e.printStackTrace();
         }
     }
+
+    public MenuItem getItem() {
+        return navigationView.getCheckedItem();
+    }
+
+    public void setItem(int ID) {
+        navigationView.setCheckedItem(ID);
+    }
 }
