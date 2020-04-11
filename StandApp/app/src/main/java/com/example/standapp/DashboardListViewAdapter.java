@@ -28,7 +28,7 @@ public class DashboardListViewAdapter extends BaseAdapter {
     DashboardListViewAdapter(Activity context, List<CommonFood> items) {
         super();
         this.items = items;
-        this.inflater = (LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        this.inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
     }
 
     @Override
@@ -64,7 +64,8 @@ public class DashboardListViewAdapter extends BaseAdapter {
         // Editing or deleting an already existing menu item in the manager dashboard
         Button editButton = view.findViewById(R.id.edit_menu_item_button);
         final View finalView = view;
-        final View editDialogLayout = inflater.inflate(R.layout.add_menu_item_dialog, parent, false);
+        final View editDialogLayout = inflater.inflate(R.layout.add_menu_item_dialog, parent,
+                false);
         final TextInputEditText nameInput = editDialogLayout.findViewById(R.id.menu_item_name);
         final TextInputEditText priceInput = editDialogLayout.findViewById(R.id.menu_item_price);
         final TextInputEditText stockInput = editDialogLayout.findViewById(R.id.menu_item_stock);

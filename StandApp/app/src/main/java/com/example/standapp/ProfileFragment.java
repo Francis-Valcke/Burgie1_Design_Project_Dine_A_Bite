@@ -1,5 +1,6 @@
 package com.example.standapp;
 
+import android.content.Context;
 import android.annotation.SuppressLint;
 import android.content.DialogInterface;
 import android.os.Bundle;
@@ -57,6 +58,15 @@ public class ProfileFragment extends Fragment {
     // it does not ask for another subscriber ID from the Event Channel
     private String oldStand;
 
+    private Context mContext;
+
+    @Override
+    public void onAttach(@NonNull Context context) {
+        // Called when a fragment is first attached to its context.
+        super.onAttach(context);
+        mContext = context;
+    }
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
@@ -76,11 +86,10 @@ public class ProfileFragment extends Fragment {
         if (bundle != null) brandNameTextView.setText(bundle.getString("brandName"));
 
         // Dialog for editing stand name
-        @SuppressLint("InflateParams")
-        final View inputStandNameLayout = inflater.inflate(R.layout.edit_name_dialog, null, false);
+        final View inputStandNameLayout = inflater.inflate(R.layout.edit_name_dialog, container, false);
         final TextInputEditText editTextStandName = inputStandNameLayout.findViewById(R.id.edit_text_name);
         final MaterialAlertDialogBuilder dialogStandName =
-                new MaterialAlertDialogBuilder(Objects.requireNonNull(this.getContext()))
+                new MaterialAlertDialogBuilder(mContext)
                 .setView(inputStandNameLayout)
                 .setPositiveButton("Save", new DialogInterface.OnClickListener() {
                     @Override
@@ -112,11 +121,10 @@ public class ProfileFragment extends Fragment {
         });
 
         // Dialog for editing brand name
-        @SuppressLint("InflateParams")
-        final View inputBrandNameLayout = inflater.inflate(R.layout.edit_name_dialog, null, false);
+        final View inputBrandNameLayout = inflater.inflate(R.layout.edit_name_dialog, container, false);
         final TextInputEditText editTextBrandName = inputBrandNameLayout.findViewById(R.id.edit_text_name);
         final MaterialAlertDialogBuilder dialogBrandName =
-                new MaterialAlertDialogBuilder(Objects.requireNonNull(this.getContext()))
+                new MaterialAlertDialogBuilder(mContext)
                 .setView(inputBrandNameLayout)
                 .setPositiveButton("Save", new DialogInterface.OnClickListener() {
                     @Override
@@ -211,6 +219,8 @@ public class ProfileFragment extends Fragment {
         // Checks
         Utils.isConnected(this.getContext());
         if (bundle != null) Utils.isLoggedIn(this.getContext(), bundle);
+        Utils.isConnected(mContext);
+        if (bundle != null) Utils.isLoggedIn(mContext, bundle);
 
         return view;
     }

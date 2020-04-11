@@ -16,7 +16,8 @@ import android.os.Bundle;
 import com.example.standapp.ui.login.LoginActivity;
 import com.google.android.material.navigation.NavigationView;
 
-public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
+public class MainActivity extends AppCompatActivity
+        implements NavigationView.OnNavigationItemSelectedListener {
 
     private DrawerLayout drawer;
     private ProfileFragment profile;
@@ -70,13 +71,19 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         switch (item.getItemId()) {
             case R.id.nav_profile:
-                getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, profile).commit();
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.fragment_container, profile)
+                        .commit();
                 break;
             case R.id.nav_orders:
-                getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, order).commit();
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.fragment_container, order)
+                        .commit();
                 break;
             case R.id.nav_dashboard:
-                getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, dashboard).commit();
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.fragment_container, dashboard)
+                        .commit();
                 break;
         }
 

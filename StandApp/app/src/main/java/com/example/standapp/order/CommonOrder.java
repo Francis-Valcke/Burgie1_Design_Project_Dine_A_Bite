@@ -38,7 +38,8 @@ public class CommonOrder implements Serializable {
 
     public CommonOrder() {}
 
-    public CommonOrder(List<CommonFood> menuItems, String standName, String brandName, double latitude, double longitude){
+    public CommonOrder(List<CommonFood> menuItems, String standName, String brandName,
+                       double latitude, double longitude){
         this.id=0;
         this.latitude=latitude;
         this.longitude=longitude;

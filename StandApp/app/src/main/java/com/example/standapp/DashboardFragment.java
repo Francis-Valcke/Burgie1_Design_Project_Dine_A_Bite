@@ -9,6 +9,7 @@ import androidx.fragment.app.Fragment;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.location.Location;
@@ -56,12 +57,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-// TODO fix sending and showing and storing stock
-// TODO change stock based on incoming orders
-// TODO set location data
+// TODO fix sending and showing and storing stock (branch feature/stand_app/stock)
+// TODO change stock based on incoming orders (branch feature/stand_app/stock)
 
 public class DashboardFragment extends Fragment {
 
+    private Context mContext;
     private boolean newStand = false;
     private ArrayList<CommonFood> items = new ArrayList<>();
 
@@ -69,13 +70,21 @@ public class DashboardFragment extends Fragment {
     private FusedLocationProviderClient fusedLocationClient;
     private Location lastLocation;
 
+    @Override
+    public void onAttach(@NonNull Context context) {
+        // Called when a fragment is first attached to its context.
+        super.onAttach(context);
+        mContext = context;
+    }
+
     @Nullable
     @Override
     public View onCreateView(@NonNull final LayoutInflater inflater,
                              @Nullable final ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
 
-        View view = inflater.inflate(R.layout.activity_dashboard_fragment, container, false);
+        View view = inflater.inflate(R.layout.activity_dashboard_fragment, container,
+                false);
         Button submitButton = view.findViewById(R.id.submit_menu_button);
         Button addButton = view.findViewById(R.id.add_menu_item_button);
         ListView menuList = view.findViewById(R.id.menu_list);
@@ -89,7 +98,7 @@ public class DashboardFragment extends Fragment {
         if (bundle != null && Utils.isLoggedIn(getContext(), bundle)) {
             standName = bundle.getString("standName");
             brandName = bundle.getString("brandName");
-            Toast.makeText(getContext(), standName, Toast.LENGTH_SHORT).show();
+            Toast.makeText(mContext, standName, Toast.LENGTH_SHORT).show();
 
             // Ask for permission to get location data and set lastLocation variable
             checkLocationPermission();
@@ -104,7 +113,8 @@ public class DashboardFragment extends Fragment {
         menuList.setAdapter(adapter);
 
         @SuppressLint("InflateParams")
-        final View addDialogLayout = inflater.inflate(R.layout.add_menu_item_dialog, null, false);
+        final View addDialogLayout = inflater.inflate(R.layout.add_menu_item_dialog, null,
+                false);
         final TextInputEditText nameInput = addDialogLayout.findViewById(R.id.menu_item_name);
         final TextInputEditText priceInput = addDialogLayout.findViewById(R.id.menu_item_price);
         final TextInputEditText stockInput = addDialogLayout.findViewById(R.id.menu_item_stock);
@@ -113,7 +123,7 @@ public class DashboardFragment extends Fragment {
         final View finalView = view;
 
         // Adding a new menu item to the menu list of the stand
-        final MaterialAlertDialogBuilder dialog = new MaterialAlertDialogBuilder(Objects.requireNonNull(this.getContext()))
+        final MaterialAlertDialogBuilder dialog = new MaterialAlertDialogBuilder(mContext)
                 .setView(addDialogLayout)
                 .setPositiveButton("Save", new DialogInterface.OnClickListener() {
                     @Override
@@ -172,8 +182,8 @@ public class DashboardFragment extends Fragment {
 
             @Override
             public void onClick(View v) {
-                if (bundle != null && Utils.isLoggedIn(getContext(), bundle)
-                        && Utils.isConnected(getContext())) {
+                if (bundle != null && Utils.isLoggedIn(mContext, bundle)
+                        && Utils.isConnected(mContext)) {
 
                     for (CommonFood item : items) {
                         item.setBrandName(finalBrandName);
@@ -190,7 +200,8 @@ public class DashboardFragment extends Fragment {
                     }
 
                     // create JSON string containing the information of the menu and the stand
-                    CommonStand commonStand = new CommonStand(finalStandName, finalBrandName, latitude, longitude, items);
+                    CommonStand commonStand = new CommonStand(finalStandName, finalBrandName,
+                            latitude, longitude, items);
                     ObjectMapper mapper = new ObjectMapper();
                     String jsonString = "";
                     try {
@@ -200,7 +211,7 @@ public class DashboardFragment extends Fragment {
                     }
 
                     // Instantiate the RequestQueue
-                    RequestQueue queue = Volley.newRequestQueue(Objects.requireNonNull(getContext()));
+                    RequestQueue queue = Volley.newRequestQueue(mContext);
                     String url;
                     // Check if stand is new or not
                     if (items.isEmpty() || newStand) {
@@ -222,7 +233,7 @@ public class DashboardFragment extends Fragment {
                                         Toast.LENGTH_LONG).show();
                             } catch (JSONException e) {
                                 e.printStackTrace();
-                                Toast.makeText(getContext(), "Error with JSON parsing: "
+                                Toast.makeText(mContext, "Error with JSON parsing: "
                                         + e.toString(), Toast.LENGTH_SHORT).show();
                             }
                         }
@@ -230,7 +241,7 @@ public class DashboardFragment extends Fragment {
                         @Override
                         public void onErrorResponse(VolleyError error) {
                             error.printStackTrace();
-                            Toast.makeText(getContext(), error.toString(), Toast.LENGTH_LONG).show();
+                            Toast.makeText(mContext, error.toString(), Toast.LENGTH_LONG).show();
                         }
                     }) {
                         @Override
@@ -259,7 +270,7 @@ public class DashboardFragment extends Fragment {
             }
         });
 
-        Utils.isConnected(getContext());
+        Utils.isConnected(mContext);
 
         return view;
     }

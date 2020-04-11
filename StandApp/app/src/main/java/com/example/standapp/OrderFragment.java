@@ -28,6 +28,7 @@ import com.example.standapp.data.LoginRepository;
 import com.example.standapp.data.model.LoggedInUser;
 import com.example.standapp.order.CommonOrder;
 import com.example.standapp.order.CommonOrderItem;
+import com.example.standapp.order.CommonOrderStatusUpdate;
 import com.example.standapp.order.Event;
 import com.example.standapp.polling.PollingService;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -47,16 +48,25 @@ import java.util.Objects;
 
 public class OrderFragment extends Fragment {
 
-    private ExpandableListAdapter listAdapter;
     private Context mContext;
-    private List<String> listDataHeader = new ArrayList<>();
+
+    private ExpandableListAdapter listAdapter;
+    private ArrayList<String> listDataHeader = new ArrayList<>();
     private HashMap<String, List<String>> listHash = new HashMap<>();
     private ArrayList<Event> listEvents = new ArrayList<>();
     private ArrayList<CommonOrder> listOrders = new ArrayList<>();
+    private HashMap<String, CommonOrderStatusUpdate.status> listStatus = new HashMap<>();
     private Intent intent;
 
     // ID from the Event Channel
     private String subscriberId;
+
+    @Override
+    public void onAttach(@NonNull Context context) {
+        // Called when a fragment is first attached to its context.
+        super.onAttach(context);
+        mContext = context;
+    }
 
     @Nullable
     @Override
@@ -80,17 +90,17 @@ public class OrderFragment extends Fragment {
         Button refreshButton = view.findViewById(R.id.refresh_button);
         ExpandableListView listView = view.findViewById(R.id.expandable_list_view);
         if (listAdapter == null) listAdapter =
-                new ExpandableListAdapter(listDataHeader, listHash, listEvents, listOrders);
+                new ExpandableListAdapter(listDataHeader, listHash, listEvents, listOrders, listStatus);
         listView.setAdapter(listAdapter);
 
         refreshButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
-                //Instantiate the RequestQueue
-                RequestQueue queue = Volley.newRequestQueue(Objects.requireNonNull(mContext));
+                // Instantiate the RequestQueue
+                RequestQueue queue = Volley.newRequestQueue(mContext);
                 String url = ServerConfig.EC_ADDRESS + "/events?id=" + subscriberId;
-                System.out.println("URL: " + url);
+                System.out.println("Getting orders, URL: " + url);
 
                 // GET request to server
                 final JsonArrayRequest jsonRequest = new JsonArrayRequest(Request.Method.GET, url,
@@ -112,12 +122,15 @@ public class OrderFragment extends Fragment {
                             }
                             listOrders.addAll(orders);
                             for (CommonOrder order : orders) {
+                                // TODO: or keep a separate order number count per stand?
                                 String orderName = "#" + order.getId();
                                 listDataHeader.add(orderName);
+                                listStatus.put(orderName, CommonOrderStatusUpdate.status.PENDING);
                                 List<String> orderItems = new ArrayList<>();
                                 for (CommonOrderItem item : order.getOrderItems()) {
                                     orderItems.add(item.getAmount() + " : " + item.getFoodName());
                                 }
+                                // Orders should have different order numbers (orderName)
                                 listHash.put(orderName, orderItems);
                             }
                             listAdapter.notifyDataSetChanged();
@@ -173,11 +186,6 @@ public class OrderFragment extends Fragment {
         mContext.stopService(intent); // calls the onDestroy() function of PollingService
     }
 
-    @Override
-    public void onAttach(@NonNull  Context context) {
-        super.onAttach(context);
-        mContext = context;
-    }
 
     // Receives the order updates from the polling service
     private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
