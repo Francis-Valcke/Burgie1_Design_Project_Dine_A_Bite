@@ -50,6 +50,7 @@ import java.util.Objects;
 
 public class DashboardFragment extends Fragment {
 
+    private boolean newStand = false;
     private ArrayList<CommonFood> items = new ArrayList<>();
 
     @Nullable
@@ -119,8 +120,10 @@ public class DashboardFragment extends Fragment {
                     if (error instanceof ServerError) {
                         // TODO server should handle this exception and send a response
                         Toast.makeText(getContext(), "Server could not find menu of stand", Toast.LENGTH_LONG).show();
+                        newStand = true;
+                    } else {
+                        Toast.makeText(getContext(), error.toString(), Toast.LENGTH_LONG).show();
                     }
-                    Toast.makeText(getContext(), error.toString(), Toast.LENGTH_LONG).show();
                 }
             }) {
                 @Override
@@ -219,8 +222,9 @@ public class DashboardFragment extends Fragment {
                     RequestQueue queue = Volley.newRequestQueue(Objects.requireNonNull(getContext()));
                     String url;
                     // Check if stand is new or not
-                    if (items.isEmpty()) {
+                    if (items.isEmpty() || newStand) {
                         url = ServerConfig.OM_ADDRESS + "/addStand";
+                        newStand = false;
                     } else {
                         url = ServerConfig.OM_ADDRESS + "/updateStand";
                     }
