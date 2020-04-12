@@ -47,6 +47,8 @@ import java.util.Objects;
 
 // TODO set/change progress of orders and send to server (in ExpandableListAdapter)
 // TODO (optional) change polling to FCM
+// TODO or keep a separate order number count per stand?
+// TODO set subscribe method in profile fragment, call right after logging in
 
 public class OrderFragment extends Fragment {
 

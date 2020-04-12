@@ -28,8 +28,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-// TODO JSON parse error with publish event request to server
-
 public class ExpandableListAdapter extends BaseExpandableListAdapter {
 
     private ArrayList<String> listDataHeader;
@@ -183,10 +181,12 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
         CommonOrderStatusUpdate.status newStatus = listStatus.get(listDataHeader.get(groupPosition));
         ObjectMapper mapper = new ObjectMapper();
 
-        CommonOrderStatusUpdate orderStatusUpdate = new CommonOrderStatusUpdate(listOrders.get(groupPosition).getId(), newStatus);
+        CommonOrderStatusUpdate orderStatusUpdate
+                = new CommonOrderStatusUpdate(listOrders.get(groupPosition).getId(), newStatus);
         JsonNode eventData = mapper.valueToTree(orderStatusUpdate);
 
-        Event event = new Event(eventData, listEvents.get(groupPosition).getTypes(), "OrderStatusUpdate");
+        Event event = new Event(eventData, listEvents.get(groupPosition).getTypes(),
+                "OrderStatusUpdate");
         String jsonString = "";
         try {
             jsonString = mapper.writeValueAsString(event);
