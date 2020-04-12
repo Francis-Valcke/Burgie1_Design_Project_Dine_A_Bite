@@ -69,10 +69,15 @@ public class DashboardListViewAdapter extends BaseAdapter {
         final TextInputEditText priceInput = editDialogLayout.findViewById(R.id.menu_item_price);
         final TextInputEditText stockInput = editDialogLayout.findViewById(R.id.menu_item_stock);
         final TextInputEditText descriptionInput = editDialogLayout.findViewById(R.id.menu_item_description);
+
+        // Editing preparation time is disabled, because the backend will re-calculate this time
+        editDialogLayout.findViewById(R.id.menu_item_prep_time).setEnabled(false);
+
         nameInput.setText(item.getName());
         priceInput.setText(item.getPrice().toString());
         stockInput.setText(Integer.toString(item.getStock()));
         descriptionInput.setText(item.getDescription());
+
         editButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

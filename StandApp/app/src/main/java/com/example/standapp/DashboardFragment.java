@@ -42,7 +42,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-// TODO add prep time input fields
 // TODO fix sending and showing and storing stock
 // TODO change stock based on incoming orders
 // TODO set location data
@@ -143,6 +142,7 @@ public class DashboardFragment extends Fragment {
         final TextInputEditText priceInput = addDialogLayout.findViewById(R.id.menu_item_price);
         final TextInputEditText stockInput = addDialogLayout.findViewById(R.id.menu_item_stock);
         final TextInputEditText descriptionInput = addDialogLayout.findViewById(R.id.menu_item_description);
+        final TextInputEditText prepTimeInput = addDialogLayout.findViewById(R.id.menu_item_prep_time);
         final View finalView = view;
 
         // Adding a new menu item to the menu list of the stand
@@ -154,7 +154,8 @@ public class DashboardFragment extends Fragment {
                         // Check if fields are filled in (except for description)
                         if (Objects.requireNonNull(nameInput.getText()).toString().isEmpty()
                                 || Objects.requireNonNull(priceInput.getText()).toString().isEmpty()
-                                || Objects.requireNonNull(stockInput.getText()).toString().isEmpty()) {
+                                || Objects.requireNonNull(stockInput.getText()).toString().isEmpty()
+                                || Objects.requireNonNull(prepTimeInput.getText()).toString().isEmpty()) {
                             AlertDialog.Builder alertDialog = new AlertDialog.Builder(finalView.getContext())
                                     .setTitle("Invalid menu item")
                                     .setMessage("The menu item you tried to add is invalid, please try again.")
@@ -162,18 +163,20 @@ public class DashboardFragment extends Fragment {
                             alertDialog.show();
                         } else {
                             String name = Objects.requireNonNull(nameInput.getText()).toString();
-                            BigDecimal price = new BigDecimal(Objects.requireNonNull(priceInput.getText()).toString());
-                            int stock = Integer.parseInt(Objects.requireNonNull(stockInput.getText()).toString());
+                            BigDecimal price = new BigDecimal(priceInput.getText().toString());
+                            int stock = Integer.parseInt(stockInput.getText().toString());
                             String description = Objects.requireNonNull(descriptionInput.getText()).toString();
+                            int preparationTime = Integer.parseInt(prepTimeInput.getText().toString()) * 60;
                             List<String> category = new ArrayList<>();
                             category.add("");
-                            CommonFood item = new CommonFood(name, price, 150, stock, "", description, category);
+                            CommonFood item = new CommonFood(name, price, preparationTime, stock, "", description, category);
                             items.add(item);
                             adapter.notifyDataSetChanged();
                             nameInput.setText("");
                             priceInput.setText("");
                             stockInput.setText("");
                             descriptionInput.setText("");
+                            prepTimeInput.setText("");
                         }
                         ViewGroup parent = (ViewGroup) addDialogLayout.getParent();
                         if (parent != null) parent.removeView(addDialogLayout);
