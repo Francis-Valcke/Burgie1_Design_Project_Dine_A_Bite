@@ -57,7 +57,7 @@ import java.util.Objects;
 public class DashboardFragment extends Fragment {
 
     private Context mContext;
-    private boolean newStand = false;
+    private boolean isNewStand = false;
     private ArrayList<CommonFood> items = new ArrayList<>();
 
     // Location data of stand
@@ -103,7 +103,7 @@ public class DashboardFragment extends Fragment {
 
             // Ignore warning
             items = (ArrayList<CommonFood>) bundle.getSerializable("items");
-            newStand = bundle.getBoolean("newStand");
+            isNewStand = bundle.getBoolean("newStand");
         }
 
         final DashboardListViewAdapter adapter
@@ -226,9 +226,9 @@ public class DashboardFragment extends Fragment {
                     RequestQueue queue = Volley.newRequestQueue(mContext);
                     String url;
                     // Check if stand is new or not
-                    if (items.isEmpty() || newStand) {
+                    if (items.isEmpty() || isNewStand) {
                         url = ServerConfig.OM_ADDRESS + "/addStand";
-                        newStand = false;
+                        isNewStand = false;
                     } else {
                         url = ServerConfig.OM_ADDRESS + "/updateStand";
                     }
