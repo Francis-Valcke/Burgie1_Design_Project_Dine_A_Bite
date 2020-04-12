@@ -46,5 +46,7 @@
     <string name="refresh">Refresh</string>
     <string name="your_active_orders">Your active orders</string>
     <string name="order_number">Order#</string>
+    <string name="description_of_menu_item">Description of menu item</string>
+    <string name="description">Description</string>
 
 </resources>
