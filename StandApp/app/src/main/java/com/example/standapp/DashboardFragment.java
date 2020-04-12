@@ -71,6 +71,10 @@ public class DashboardFragment extends Fragment {
         mContext = context;
     }
 
+    // Stores the current stock of the menu items;
+    // this way the stock send to the backend is calculated to be equal to added stock
+    private HashMap<String, Integer> addedStockMap = new HashMap<>();
+
     @Nullable
     @Override
     public View onCreateView(@NonNull final LayoutInflater inflater,
@@ -102,8 +106,8 @@ public class DashboardFragment extends Fragment {
             newStand = bundle.getBoolean("newStand");
         }
 
-        final DashboardListViewAdapter adapter =
-                new DashboardListViewAdapter(Objects.requireNonNull(getActivity()), items);
+        final DashboardListViewAdapter adapter
+                = new DashboardListViewAdapter(Objects.requireNonNull(getActivity()), items, addedStockMap);
         menuList.setAdapter(adapter);
 
         @SuppressLint("InflateParams")
@@ -142,6 +146,7 @@ public class DashboardFragment extends Fragment {
                             category.add("");
                             CommonFood item = new CommonFood(name, price, preparationTime, stock, "", description, category);
                             items.add(item);
+                            addedStockMap.put(name, stock);
                             adapter.notifyDataSetChanged();
                             nameInput.setText("");
                             priceInput.setText("");
@@ -179,9 +184,22 @@ public class DashboardFragment extends Fragment {
                 if (bundle != null && Utils.isLoggedIn(mContext, bundle)
                         && Utils.isConnected(mContext)) {
 
+                    HashMap<String, Integer> stock = new HashMap<>();
+
                     for (CommonFood item : items) {
                         item.setBrandName(finalBrandName);
                         item.setStandName(finalStandName);
+
+                        // Temporarily set stock to added stock,
+                        // because that is what the backend expects,
+                        // change back after sending to backend
+                        // (ask Julien Van den Avenne)
+                        stock.put(item.getName(), item.getStock());
+                        if (addedStockMap.containsKey(item.getName())) {
+                            item.setStock(Objects.requireNonNull(addedStockMap.get(item.getName())));
+                        } else {
+                            item.setStock(0);
+                        }
                     }
 
                     // Set location data
@@ -260,6 +278,12 @@ public class DashboardFragment extends Fragment {
                     // Add the request to the RequestQueue
                     queue.add(jsonRequest);
                     System.out.println(jsonString);
+
+                    // Revert stock change
+                    for (CommonFood item : items) {
+                        item.setStock(Objects.requireNonNull(stock.get(item.getName())));
+                    }
+                    addedStockMap.clear();
                 }
             }
         });

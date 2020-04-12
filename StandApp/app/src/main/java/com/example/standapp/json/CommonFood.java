@@ -22,7 +22,7 @@ public class CommonFood implements Serializable {
     private int preparationTime;
     private int stock;
     private String standName = "";
-    private String brandName;
+    private String brandName = "";
     private List<String> category = new ArrayList<>();
     private String description = "";
 
@@ -61,7 +61,7 @@ public class CommonFood implements Serializable {
         this.count = copy.count;
         this.standName = copy.standName;
         this.brandName = copy.brandName;
-        this.category = new ArrayList<String>(copy.category);
+        this.category = new ArrayList<>(copy.category);
         this.description = copy.description;
     }
 
