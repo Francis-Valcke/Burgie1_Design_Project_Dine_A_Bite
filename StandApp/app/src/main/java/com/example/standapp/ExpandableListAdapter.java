@@ -1,7 +1,6 @@
 package com.example.standapp;
 
 import android.content.Context;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,7 +12,7 @@ import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.example.standapp.order.CommonOrder;
 import com.example.standapp.order.CommonOrderStatusUpdate;
@@ -21,12 +20,7 @@ import com.example.standapp.order.Event;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.google.android.material.button.MaterialButton;
 import com.google.android.material.button.MaterialButtonToggleGroup;
-
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -187,39 +181,31 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
      */
     private void sendOrderStatusUpdate(int groupPosition, final Context context) {
         CommonOrderStatusUpdate.status newStatus = listStatus.get(listDataHeader.get(groupPosition));
-        //CommonOrderStatusUpdate orderStatusUpdate = new CommonOrderStatusUpdate(listOrders.get(groupPosition).getId(), newStatus);
         ObjectMapper mapper = new ObjectMapper();
-        //JsonNode eventData = mapper.valueToTree(orderStatusUpdate);
-        JSONObject eventData = new JSONObject();
+
+        CommonOrderStatusUpdate orderStatusUpdate = new CommonOrderStatusUpdate(listOrders.get(groupPosition).getId(), newStatus);
+        JsonNode eventData = mapper.valueToTree(orderStatusUpdate);
+
+        Event event = new Event(eventData, listEvents.get(groupPosition).getTypes(), "OrderStatusUpdate");
+        String jsonString = "";
         try {
-            eventData.put("orderId", listOrders.get(groupPosition).getId());
-            if (newStatus != null) eventData.put("newStatus", newStatus.toString());
-            else eventData.put("newStatus", "PENDING");
-        } catch (JSONException e) {
+            jsonString = mapper.writeValueAsString(event);
+        } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
 
-        Event event = new Event(eventData, listEvents.get(groupPosition).getTypes(), "OrderStatusUpdate");
-        JSONObject jsonObject = null;
-        try {
-            String jsonString = mapper.writeValueAsString(event);
-            jsonObject = new JSONObject(jsonString);
-        } catch (JsonProcessingException | JSONException e) {
-            e.printStackTrace();
-            Log.v("JsonException in order", e.toString());
-            // Better exception handling needed
-        }
-        if (jsonObject!= null) System.out.println(jsonObject.toString());
+        System.out.println(jsonString);
 
         RequestQueue queue = Volley.newRequestQueue(context);
         String url = ServerConfig.EC_ADDRESS + "/publishEvent";
 
-        JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, url, jsonObject,
-                new Response.Listener<JSONObject>() {
+        final String finalJsonString = jsonString;
+        StringRequest request = new StringRequest(Request.Method.POST, url,
+                new Response.Listener<String>() {
             @Override
-            public void onResponse(JSONObject response) {
+            public void onResponse(String response) {
                 // There is no response (for now)
-                System.out.println(response.toString());
+                System.out.println(response);
             }
         }, new Response.ErrorListener() {
             @Override
@@ -230,6 +216,16 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
                         Toast.LENGTH_LONG).show();
             }
         }) {
+            @Override
+            public byte[] getBody() {
+                return finalJsonString.getBytes();
+            }
+
+            @Override
+            public String getBodyContentType() {
+                return "application/json";
+            }
+
             @Override
             public Map<String, String> getHeaders() {
                 HashMap<String, String> headers = new HashMap<>();

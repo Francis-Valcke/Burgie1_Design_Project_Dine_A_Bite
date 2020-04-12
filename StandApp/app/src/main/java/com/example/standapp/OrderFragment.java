@@ -32,12 +32,12 @@ import com.example.standapp.order.CommonOrderStatusUpdate;
 import com.example.standapp.order.Event;
 import com.example.standapp.polling.PollingService;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -111,37 +111,37 @@ public class OrderFragment extends Fragment {
                     @Override
                     public void onResponse(JSONArray response) {
                         System.out.println(response.toString());
-                        ObjectMapper mapper = new ObjectMapper()
-                                .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-                        try {
-                            List<Event> events = mapper.readValue(response.toString(),
-                                    new TypeReference<List<Event>>() {});
-                            listEvents.addAll(events);
-                            System.out.println(listEvents.toString());
-                            ArrayList<CommonOrder> orders = new ArrayList<>();
-                            for (Event event : events) {
-                                System.out.println(event.getEventData().toString());
-                                System.out.println(event.getEventData().get("order").toString());
-                                orders.add(mapper.readValue(event.getEventData().get("order").toString(),
-                                        CommonOrder.class));
+                        ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+                        ArrayList<CommonOrder> orders = new ArrayList<>();
+
+                        for (int i = 0; i < response.length(); i++) {
+                            try {
+                                JSONObject event = (JSONObject) response.get(i);
+                                listEvents.add(mapper.readValue(event.toString(), Event.class));
+
+                                JSONObject eventData = (JSONObject) event.get("eventData");
+                                JSONObject order = (JSONObject) eventData.get("order");
+                                orders.add(mapper.readValue(order.toString(), CommonOrder.class));
+                            } catch (JSONException | JsonProcessingException e) {
+                                e.printStackTrace();
                             }
-                            listOrders.addAll(orders);
-                            for (CommonOrder order : orders) {
-                                // TODO: or keep a separate order number count per stand?
-                                String orderName = "#" + order.getId();
-                                listDataHeader.add(orderName);
-                                listStatus.put(orderName, CommonOrderStatusUpdate.status.PENDING);
-                                List<String> orderItems = new ArrayList<>();
-                                for (CommonOrderItem item : order.getOrderItems()) {
-                                    orderItems.add(item.getAmount() + " : " + item.getFoodName());
-                                }
-                                // Orders should have different order numbers (orderName)
-                                listHash.put(orderName, orderItems);
-                            }
-                            listAdapter.notifyDataSetChanged();
-                        } catch (JsonProcessingException | JSONException e) {
-                            e.printStackTrace();
                         }
+
+                        listOrders.addAll(orders);
+
+                        for (CommonOrder order : orders) {
+                            // TODO: or keep a separate order number count per stand?
+                            String orderName = "#" + order.getId();
+                            listDataHeader.add(orderName);
+                            listStatus.put(orderName, CommonOrderStatusUpdate.status.PENDING);
+                            List<String> orderItems = new ArrayList<>();
+                            for (CommonOrderItem item : order.getOrderItems()) {
+                                orderItems.add(item.getAmount() + " : " + item.getFoodName());
+                            }
+                            // Orders should have different order numbers (orderName)
+                            listHash.put(orderName, orderItems);
+                        }
+                        listAdapter.notifyDataSetChanged();
                     }
                 }, new Response.ErrorListener() {
                     @Override
