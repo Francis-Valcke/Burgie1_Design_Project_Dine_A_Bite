@@ -21,6 +21,7 @@ import com.example.standapp.order.Event;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.button.MaterialButtonToggleGroup;
 
@@ -186,9 +187,18 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
      */
     private void sendOrderStatusUpdate(int groupPosition, final Context context) {
         CommonOrderStatusUpdate.status newStatus = listStatus.get(listDataHeader.get(groupPosition));
-        CommonOrderStatusUpdate orderStatusUpdate = new CommonOrderStatusUpdate(listOrders.get(groupPosition).getId(), newStatus);
+        //CommonOrderStatusUpdate orderStatusUpdate = new CommonOrderStatusUpdate(listOrders.get(groupPosition).getId(), newStatus);
         ObjectMapper mapper = new ObjectMapper();
-        JsonNode eventData = mapper.valueToTree(orderStatusUpdate);
+        //JsonNode eventData = mapper.valueToTree(orderStatusUpdate);
+        JSONObject eventData = new JSONObject();
+        try {
+            eventData.put("orderId", listOrders.get(groupPosition).getId());
+            if (newStatus != null) eventData.put("newStatus", newStatus.toString());
+            else eventData.put("newStatus", "PENDING");
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
         Event event = new Event(eventData, listEvents.get(groupPosition).getTypes(), "OrderStatusUpdate");
         JSONObject jsonObject = null;
         try {

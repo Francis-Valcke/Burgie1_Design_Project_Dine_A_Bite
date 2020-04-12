@@ -4,6 +4,8 @@ import androidx.annotation.NonNull;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import org.json.JSONObject;
+
 import java.util.List;
 
 public class Event {
@@ -11,7 +13,8 @@ public class Event {
     private static int idCount = 0;
     private int myId;
     private String dataType;
-    private JsonNode eventData;
+    //private JsonNode eventData;
+    private JSONObject eventData;
     private List<String> types;
 
     public Event() {
@@ -20,7 +23,7 @@ public class Event {
         eventData = null;
     }
 
-    public Event(JsonNode data, List<String> types, String dataType) {
+    public Event(JSONObject data, List<String> types, String dataType) {
         myId = idCount;
         idCount++;
         eventData = data;
@@ -28,11 +31,11 @@ public class Event {
         this.dataType = dataType;
     }
 
-    public JsonNode getEventData() {
+    public JSONObject getEventData() {
         return this.eventData;
     }
 
-    public void setEventData(JsonNode data) {
+    public void setEventData(JSONObject data) {
         this.eventData = data;
     }
 

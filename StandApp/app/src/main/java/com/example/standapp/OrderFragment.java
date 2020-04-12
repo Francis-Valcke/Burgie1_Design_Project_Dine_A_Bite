@@ -33,9 +33,11 @@ import com.example.standapp.order.Event;
 import com.example.standapp.polling.PollingService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -109,16 +111,19 @@ public class OrderFragment extends Fragment {
                     @Override
                     public void onResponse(JSONArray response) {
                         System.out.println(response.toString());
-                        ObjectMapper mapper = new ObjectMapper();
-
+                        ObjectMapper mapper = new ObjectMapper()
+                                .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
                         try {
                             List<Event> events = mapper.readValue(response.toString(),
                                     new TypeReference<List<Event>>() {});
                             listEvents.addAll(events);
+                            System.out.println(listEvents.toString());
                             ArrayList<CommonOrder> orders = new ArrayList<>();
                             for (Event event : events) {
-                                orders.add(mapper.readValue(event.getEventData().get("order")
-                                        .toString(), CommonOrder.class));
+                                System.out.println(event.getEventData().toString());
+                                System.out.println(event.getEventData().get("order").toString());
+                                orders.add(mapper.readValue(event.getEventData().get("order").toString(),
+                                        CommonOrder.class));
                             }
                             listOrders.addAll(orders);
                             for (CommonOrder order : orders) {
@@ -134,7 +139,7 @@ public class OrderFragment extends Fragment {
                                 listHash.put(orderName, orderItems);
                             }
                             listAdapter.notifyDataSetChanged();
-                        } catch (JsonProcessingException e) {
+                        } catch (JsonProcessingException | JSONException e) {
                             e.printStackTrace();
                         }
                     }
