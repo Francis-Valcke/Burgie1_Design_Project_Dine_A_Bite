@@ -1,9 +1,11 @@
 package cobol.services.ordermanager.controller;
 
 import cobol.commons.CommonStand;
+import cobol.commons.ResponseModel;
 import cobol.commons.exception.CommunicationException;
 import cobol.services.ordermanager.MenuHandler;
 import cobol.services.ordermanager.domain.entity.Stand;
+import cobol.services.ordermanager.domain.entity.User;
 import cobol.services.ordermanager.domain.repository.StandRepository;
 import cobol.commons.exception.DoesNotExistException;
 import cobol.commons.exception.DuplicateStandException;
@@ -11,10 +13,16 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import static cobol.commons.ResponseModel.status.ERROR;
+import static cobol.commons.ResponseModel.status.OK;
 
 @RestController
 public class StandController {
@@ -24,6 +32,35 @@ public class StandController {
 
     @Autowired
     private StandRepository standRepository;
+
+    @GetMapping(path = "/verify")
+    public ResponseEntity<HashMap<Object,Object>> verify(@RequestParam String standName, @RequestParam String brandName, @AuthenticationPrincipal User user){
+
+        Stand stand = standRepository.findStandById(standName, brandName).orElse(null);
+
+        if (stand == null) {
+            return ResponseEntity.ok(
+                    ResponseModel.builder()
+                            .status(OK.toString())
+                            .details("The stand does not exist and is free to be created.")
+                            .build().generateResponse()
+            );
+        } else if (stand.getOwners().contains(user)) {
+            return ResponseEntity.ok(
+                    ResponseModel.builder()
+                            .status(OK.toString())
+                            .details("The currently authenticated user is a verified owner of this stand.")
+                            .build().generateResponse()
+            );
+        } else {
+            return ResponseEntity.ok(
+                    ResponseModel.builder()
+                            .status(ERROR.toString())
+                            .details("This currently authenticated user is not a owner of this stand.")
+                            .build().generateResponse()
+            );
+        }
+    }
 
     /**
      * This API will add a stand to:
@@ -38,9 +75,14 @@ public class StandController {
      */
     @PostMapping(path = "/addStand")
     @ResponseBody
-    public ResponseEntity<String> addStand(@RequestBody CommonStand stand) throws JsonProcessingException, ParseException, DuplicateStandException, CommunicationException {
+    public ResponseEntity<HashMap<Object,Object>> addStand(@RequestBody CommonStand stand) throws JsonProcessingException, ParseException, DuplicateStandException, CommunicationException {
         menuHandler.addStand(stand);
-        return ResponseEntity.ok("The stand was created.");
+        return ResponseEntity.ok(
+                ResponseModel.builder()
+                        .status(OK.toString())
+                        .details("The stand was added.")
+                        .build().generateResponse()
+        );
     }
 
 
@@ -54,9 +96,14 @@ public class StandController {
      */
     @PostMapping(path = "/updateStand")
     @ResponseBody
-    public ResponseEntity<String> updateStand(@RequestBody CommonStand stand) throws DoesNotExistException, JsonProcessingException {
+    public ResponseEntity<HashMap<Object,Object>> updateStand(@RequestBody CommonStand stand) throws DoesNotExistException, JsonProcessingException {
         menuHandler.updateStand(stand);
-        return ResponseEntity.ok("The stand was updated.");
+        return ResponseEntity.ok(
+                ResponseModel.builder()
+                        .status(OK.toString())
+                        .details("The stand was updated.")
+                        .build().generateResponse()
+        );
     }
 
 
@@ -74,9 +121,14 @@ public class StandController {
      */
     @DeleteMapping(value = "/deleteStand")
     @ResponseBody
-    public ResponseEntity<String> deleteStand(@RequestParam() String standName, @RequestParam String brandName) throws JsonProcessingException, DoesNotExistException {
+    public ResponseEntity<HashMap<Object,Object>> deleteStand(@RequestParam String standName, @RequestParam String brandName) throws JsonProcessingException, DoesNotExistException {
         menuHandler.deleteStandById(standName, brandName);
-        return ResponseEntity.ok("The stand was removed.");
+        return ResponseEntity.ok(
+                ResponseModel.builder()
+                        .status(OK.toString())
+                        .details("The stand was removed.")
+                        .build().generateResponse()
+        );
     }
 
 
