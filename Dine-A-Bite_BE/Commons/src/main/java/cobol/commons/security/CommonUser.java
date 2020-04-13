@@ -1,7 +1,6 @@
 package cobol.commons.security;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
@@ -25,7 +24,8 @@ import static java.util.stream.Collectors.toList;
 public class CommonUser implements UserDetails, Serializable {
 
     String username;
-    List<String> role;
+
+    List<String> roles;
 
     @Override
     public String getPassword() {
@@ -34,7 +34,7 @@ public class CommonUser implements UserDetails, Serializable {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return this.role.stream().map(SimpleGrantedAuthority::new).collect(toList());
+        return this.roles.stream().map(role -> new SimpleGrantedAuthority("ROLE_" + role)).collect(toList());
     }
 
     @Override
