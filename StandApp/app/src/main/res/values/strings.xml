@@ -48,5 +48,7 @@
     <string name="order_number">Order#</string>
     <string name="description_of_menu_item">Description of menu item</string>
     <string name="description">Description</string>
+    <string name="estimates_prep_time_of_item">Estimated preparation time of menu item in minutes</string>
+    <string name="preparation_time">Preparation time</string>
 
 </resources>
