@@ -82,4 +82,25 @@ public class DashboardListViewAdapter extends BaseAdapter {
 
         return view;
     }
+
+    /**
+     * Removes item from menu (for testing purposes)
+     * @param position position of the item that needs to be removed
+     */
+    public void removeItem(int position) {
+        items.remove(position);
+    }
+
+    /**
+     * Edits item in menu (for testing purposes)
+     * @param position position of the item that needs to be edited
+     * @param name new name
+     * @param price new price
+     * @param stock new stock
+     */
+    public void editItem(int position, String name, BigDecimal price, int stock) {
+        items.get(position).setName(name);
+        items.get(position).setPrice(price);
+        items.get(position).setStock(stock);
+    }
 }

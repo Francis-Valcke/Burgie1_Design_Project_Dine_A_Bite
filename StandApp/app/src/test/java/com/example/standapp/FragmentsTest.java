@@ -9,6 +9,7 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
+import com.example.standapp.json.CommonFood;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textfield.TextInputEditText;
@@ -22,6 +23,11 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.Shadows;
 import org.robolectric.shadows.ShadowAlertDialog;
 import org.robolectric.shadows.ShadowLooper;
+
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
 import static androidx.test.platform.app.InstrumentationRegistry.getArguments;
 import static org.junit.Assert.*;
@@ -90,16 +96,49 @@ public class FragmentsTest {
         TextInputEditText edit_text_name = dialog.findViewById(R.id.edit_text_name);
         edit_text_name.setText("Levis Burgers");
         assertEquals("Levis Burgers", edit_text_name.getText().toString());
-        //unable to performClick on the dialog
+        //TODO: unable to performClick on the dialog (because MaterialAlertDialogBuilder has no button which I can find with FindViewById and click on)
         //dialog.getButton(DialogInterface.BUTTON_POSITIVE).performClick();
     }
 
     /**
-     * Tests if adding menu items to the manager dashboard works
+     * Tests if adding, deleting and editing menu items works
      */
     @Test
-    public void addItemsDashboard() {
-        //int amount_items =
+    public void addDeleteEditItemsDashboard() {
+        DashboardListViewAdapter adapter = dashboardFragment.getAdapter();
+
+        // Test adding items
+
+        BigDecimal price = new BigDecimal(5);
+        List<String> category = new ArrayList<>();
+        CommonFood item = new CommonFood("Burger", price, 150, 20, "", "", category);
+        dashboardFragment.addFoodToMenu(item);
+        assertEquals(1, dashboardFragment.getItems().size());
+        assertEquals(price.intValue(), dashboardFragment.getItems().get(0).getPrice().intValue());
+        assertEquals("Burger", dashboardFragment.getItems().get(0).getName());
+        assertEquals(150, dashboardFragment.getItems().get(0).getPreparationTime());
+        assertEquals(20, dashboardFragment.getItems().get(0).getStock());
+
+        for (int i = 0; i < 15; i++) {
+            CommonFood item_next = new CommonFood("Burger"+i, price, 150, 20, "", "", category);
+            dashboardFragment.addFoodToMenu(item_next);
+        }
+        assertEquals(1 + 15, dashboardFragment.getItems().size());
+
+        // Test deleting items
+
+        for (int i = 0; i < 5; i++) {
+            adapter.removeItem(0);
+        }
+        assertEquals(16 - 5, dashboardFragment.getItems().size());
+
+        // Test editing items
+
+        BigDecimal price_edit = new BigDecimal(5000);
+        adapter.editItem(0, "BURGER EDIT", price_edit, 22075);
+        assertEquals("BURGER EDIT", dashboardFragment.getItems().get(0).getName());
+        assertEquals(price_edit.intValue(), dashboardFragment.getItems().get(0).getPrice().intValue());
+        assertEquals(22075, dashboardFragment.getItems().get(0).getStock());
     }
 
     private void startFragment( Fragment fragment ) {
@@ -108,6 +147,4 @@ public class FragmentsTest {
         fragmentTransaction.add(fragment, null );
         fragmentTransaction.commit();
     }
-
-
 }

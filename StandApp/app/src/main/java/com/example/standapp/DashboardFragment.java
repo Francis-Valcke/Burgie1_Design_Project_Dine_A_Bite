@@ -395,4 +395,31 @@ public class DashboardFragment extends Fragment
             addedStockMap.clear();
         }
     }
+
+
+    /******************************************************  FOR TESTING PURPOSES   ********************************************************************************
+
+    /**
+     * Adds food item to menu (for testing purposes)
+     * @param item food item
+     */
+    public void addFoodToMenu(CommonFood item) {
+        items.add(item);
+    }
+
+    /**
+     * getter function (for testing purposes)
+     * @return returns the items of the menu
+     */
+    public ArrayList<CommonFood> getItems() {
+        return items;
+    }
+
+    /**
+     * getter function (for testing purposes)
+     * @return returns the adapter
+     */
+    public DashboardListViewAdapter getAdapter() {
+        return adapter;
+    }
 }
