@@ -13,6 +13,9 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import com.example.standapp.data.LoginDataSource;
+import com.example.standapp.data.LoginRepository;
+import com.example.standapp.data.model.LoggedInUser;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textfield.TextInputEditText;
 
@@ -30,6 +33,8 @@ public class ProfileFragment extends Fragment {
         final TextView brandName = view.findViewById(R.id.brand_name);
         Button editStandNameButton = view.findViewById(R.id.edit_stand_name_button);
         Button editBrandNameButton = view.findViewById(R.id.edit_brand_name_button);
+
+        final LoggedInUser user = LoginRepository.getInstance(new LoginDataSource()).getLoggedInUser();
 
         final Bundle bundle = getArguments();
         if (bundle != null) standName.setText(bundle.getString("standName"));

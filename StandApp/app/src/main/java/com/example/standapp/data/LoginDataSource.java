@@ -4,6 +4,8 @@ import android.util.Log;
 
 import com.example.standapp.ServerConfig;
 import com.example.standapp.data.model.LoggedInUser;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONException;
@@ -26,7 +28,7 @@ import okhttp3.ResponseBody;
  */
 public class LoginDataSource {
 
-    private volatile JSONObject jsonResponse;
+    private volatile String mResponseBody;
 
     // only one client, singleton,
     // multiple instances will create more memory.
@@ -67,8 +69,8 @@ public class LoginDataSource {
             public void onResponse(@NotNull Call call, @NotNull Response response) {
                 try (ResponseBody responseBody = response.body()) {
                     if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
-                    if (responseBody != null) System.out.println(responseBody.string());
                     Log.d("LoginDataSource", "/createStandManager response");
+                    if (responseBody != null) System.out.println(responseBody.string());
 
                     // Authenticate user POST request to Authentication service
                     Request request2 = new Request.Builder()
@@ -86,11 +88,11 @@ public class LoginDataSource {
                         public void onResponse(@NotNull Call call, @NotNull Response response) {
                             try (ResponseBody responseBody2 = response.body()) {
                                 if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
-                                if (responseBody2 != null) System.out.println(responseBody2.string());
-                                Log.d("LoginDataSource", "/createStandManager response");
+                                Log.d("LoginDataSource", "/authenticate response");
 
-                                if (responseBody2 != null) jsonResponse = new JSONObject(responseBody2.string());
-                            } catch (IOException | JSONException e) {
+                                // ResponseBody can only be accessed once
+                                if (responseBody2 != null) mResponseBody = responseBody2.string();
+                            } catch (IOException e) {
                                 e.printStackTrace();
                             }
                         }
@@ -102,27 +104,35 @@ public class LoginDataSource {
         });
 
         // Wait for responses from Authentication service
-        while(jsonResponse == null) {
+        while(mResponseBody == null) {
             try {
-                Thread.sleep(1000);
+                Thread.sleep(500);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
             System.out.println("Waiting for response from server...");
         }
 
-        // Create new user or return error
+        // Getting the information from the authentication response
+        ObjectMapper mapper = new ObjectMapper();
+        String token;
+        String status;
         try {
-            // TODO: handle loggedInUser authentication
-            LoggedInUser fakeUser =
-                    new LoggedInUser(
-                            java.util.UUID.randomUUID().toString(),
-                            "Jane Doe");
-            return new Result.Success<>(fakeUser);
-        } catch (Exception e) {
+            JsonNode jsonNode = mapper.readTree(mResponseBody);
+            status = jsonNode.get("status").textValue();
+            if (status.equals("ERROR")) throw new IOException(status);
+            token = jsonNode.get("details").get("token").textValue();
+        } catch (IOException e) {
+            mResponseBody = null;
+            e.printStackTrace();
+            // Ignore warning
             return new Result.Error(new IOException("Error logging in", e));
         }
 
+        // Create new LoggedInUser and save in LoginRepository
+        LoggedInUser user = new LoggedInUser(token, username);
+        // Ignore warning
+        return new Result.Success<>(user);
     }
 
     void logout() {

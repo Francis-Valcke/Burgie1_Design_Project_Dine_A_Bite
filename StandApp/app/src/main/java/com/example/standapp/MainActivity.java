@@ -1,6 +1,7 @@
 package com.example.standapp;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -49,15 +50,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         dashboard.setArguments(bundle);
         order.setArguments(bundle);
 
+        // Start logging in activity
         Intent intent = new Intent(this, LoginActivity.class);
-        startActivity(intent);
+        startActivityForResult(intent, 1);
 
-        /*
         if (savedInstanceState == null) {
-            getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, profile).commit();
             navigationView.setCheckedItem(R.id.nav_profile);
         }
-         */
 
     }
 
@@ -92,5 +91,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         } else {
             super.onBackPressed();
         }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        // Start profile fragment after successfully logging in
+        getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, profile).commit();
     }
 }

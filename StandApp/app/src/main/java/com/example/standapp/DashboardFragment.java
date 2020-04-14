@@ -24,10 +24,14 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+import com.example.standapp.data.LoginDataSource;
+import com.example.standapp.data.LoginRepository;
+import com.example.standapp.data.model.LoggedInUser;
 import com.example.standapp.json.CommonStand;
 import com.example.standapp.json.CommonFood;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textfield.TextInputEditText;
@@ -61,6 +65,8 @@ public class DashboardFragment extends Fragment {
         Button submitButton = view.findViewById(R.id.submit_menu_button);
         Button addButton = view.findViewById(R.id.add_menu_item_button);
         ListView menuList = view.findViewById(R.id.menu_list);
+
+        final LoggedInUser user = LoginRepository.getInstance(new LoginDataSource()).getLoggedInUser();
 
         // Getting the log in information from profile fragment
         final Bundle bundle = getArguments();
@@ -130,7 +136,7 @@ public class DashboardFragment extends Fragment {
                 public Map<String, String> getHeaders() {
                     HashMap<String, String> headers = new HashMap<>();
                     headers.put("Content-Type", "application/json");
-                    headers.put("Authorization", ServerConfig.AUTHORIZATION_TOKEN);
+                    headers.put("Authorization", user.getAutorizationToken());
                     return headers;
                 }
             };
@@ -266,7 +272,7 @@ public class DashboardFragment extends Fragment {
                         public Map<String, String> getHeaders() {
                             HashMap<String, String> headers = new HashMap<>();
                             headers.put("Content-Type", "application/json");
-                            headers.put("Authorization", ServerConfig.AUTHORIZATION_TOKEN);
+                            headers.put("Authorization", user.getAutorizationToken());
                             return headers;
                         }
                     };

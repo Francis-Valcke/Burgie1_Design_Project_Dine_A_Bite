@@ -20,6 +20,9 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+import com.example.standapp.data.LoginDataSource;
+import com.example.standapp.data.LoginRepository;
+import com.example.standapp.data.model.LoggedInUser;
 import com.example.standapp.order.CommonOrder;
 import com.example.standapp.order.CommonOrderItem;
 import com.example.standapp.order.Event;
@@ -60,6 +63,8 @@ public class OrderFragment extends Fragment {
 
         View view = inflater.inflate(R.layout.activity_order, container, false);
 
+        final LoggedInUser user = LoginRepository.getInstance(new LoginDataSource()).getLoggedInUser();
+
         // Getting the log in information from profile fragment
         final Bundle bundle = getArguments();
         String standName = "";
@@ -74,7 +79,7 @@ public class OrderFragment extends Fragment {
         // Subscribe to the Event Channel and get subscriberID
         if (subscriberId == null || subscriberId.equals("") || !oldStand.equals(standName)
                 && bundle != null && Utils.isLoggedIn(mContext, bundle)){
-            subscribeEC(standName, brandName);
+            subscribeEC(standName, brandName, user);
             oldStand = standName;
         }
 
@@ -137,7 +142,7 @@ public class OrderFragment extends Fragment {
                     public Map<String, String> getHeaders() {
                         HashMap<String, String> headers = new HashMap<>();
                         headers.put("Content-Type", "application/json");
-                        headers.put("Authorization", ServerConfig.AUTHORIZATION_TOKEN);
+                        headers.put("Authorization", user.getAutorizationToken());
                     return headers;
                     }
                 };
@@ -152,7 +157,7 @@ public class OrderFragment extends Fragment {
     /**
      * This function will subscribe to the Event Channel
      */
-    private void subscribeEC(final String standName, final String brandName) {
+    private void subscribeEC(final String standName, final String brandName, final LoggedInUser user) {
 
         // Step 1: Get subscriber ID
         // Instantiate the RequestQueue
@@ -191,7 +196,7 @@ public class OrderFragment extends Fragment {
                     public Map<String, String> getHeaders() {
                         HashMap<String, String> headers = new HashMap<>();
                         headers.put("Content-Type", "application/json");
-                        headers.put("Authorization", ServerConfig.AUTHORIZATION_TOKEN);
+                        headers.put("Authorization", user.getAutorizationToken());
                         return headers;
                     }
                 };
@@ -209,7 +214,7 @@ public class OrderFragment extends Fragment {
             public Map<String, String> getHeaders() {
                 HashMap<String, String> headers = new HashMap<>();
                 headers.put("Content-Type", "application/json");
-                headers.put("Authorization", ServerConfig.AUTHORIZATION_TOKEN);
+                headers.put("Authorization", user.getAutorizationToken());
                 return headers;
             }
         };

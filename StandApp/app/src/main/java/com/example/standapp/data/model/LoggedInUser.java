@@ -5,7 +5,7 @@ package com.example.standapp.data.model;
  */
 public class LoggedInUser {
 
-    private String userId;
+    private String userId; // authentication token
     private String displayName;
 
     public LoggedInUser(String userId, String displayName) {
@@ -19,5 +19,9 @@ public class LoggedInUser {
 
     public String getDisplayName() {
         return displayName;
+    }
+
+    public String getAutorizationToken() {
+        return "Bearer " + getUserId();
     }
 }

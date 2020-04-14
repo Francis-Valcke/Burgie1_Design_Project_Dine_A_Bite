@@ -1,8 +1,5 @@
 package com.example.standapp.data;
 
-import android.app.Activity;
-import android.content.Context;
-
 import com.example.standapp.data.model.LoggedInUser;
 
 /**
@@ -53,6 +50,11 @@ public class LoginRepository {
             setLoggedInUser(((Result.Success<LoggedInUser>) result).getData());
         }
         return result;
+    }
+
+    // Added getter (maybe there is a more secure way of accessing user info)
+    public LoggedInUser getLoggedInUser() {
+        return user;
     }
 
 }
