@@ -21,12 +21,11 @@ import static java.util.stream.Collectors.toList;
  */
 @Entity
 @Table(name = "user")
-@SuperBuilder
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(callSuper=true)
-public class User extends CommonUser {
+public class User {
 
     @Id
     @NotNull
@@ -52,8 +51,7 @@ public class User extends CommonUser {
     @Column(name = "role_role")
     private List<String> roles = new ArrayList<>();
 
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return this.roles.stream().map(role -> new SimpleGrantedAuthority("ROLE_" + role)).collect(toList());
+    public CommonUser asCommonUser() {
+        return new CommonUser(username, password, email, surname, name, roles);
     }
 }

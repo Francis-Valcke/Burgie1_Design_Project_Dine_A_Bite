@@ -1,6 +1,7 @@
 package cobol.commons.security;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
@@ -8,9 +9,12 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import javax.validation.constraints.NotNull;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 
 import static java.util.stream.Collectors.toList;
 
@@ -23,13 +27,16 @@ import static java.util.stream.Collectors.toList;
 @NoArgsConstructor
 public class CommonUser implements UserDetails, Serializable {
 
-    String username;
+    private String username;
+    private String password;
+    private String email;
+    private String surname;
+    private String name;
+    private List<String> roles = new ArrayList<>();
 
-    List<String> roles;
-
-    @Override
-    public String getPassword() {
-        return null;
+    public CommonUser(String username, List<String> roles) {
+        this.username = username;
+        this.roles = roles;
     }
 
     @Override
@@ -57,5 +64,16 @@ public class CommonUser implements UserDetails, Serializable {
         return true;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        CommonUser that = (CommonUser) o;
+        return username.equals(that.username);
+    }
 
+    @Override
+    public int hashCode() {
+        return Objects.hash(username);
+    }
 }

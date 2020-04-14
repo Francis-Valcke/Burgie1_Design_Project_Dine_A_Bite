@@ -47,7 +47,7 @@ public class DataInitializer implements CommandLineRunner {
         users.saveAndFlush(
                 User.builder()
                         .username("stand")
-                        .password(passwordEncoder.encode("user"))
+                        .password(passwordEncoder.encode("stand"))
                         .roles(Arrays.asList(Role.USER, Role.STAND))
                         .build()
         );

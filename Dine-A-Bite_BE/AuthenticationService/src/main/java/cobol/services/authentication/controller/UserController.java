@@ -1,5 +1,7 @@
 package cobol.services.authentication.controller;
 
+import cobol.commons.exception.DoesNotExistException;
+import cobol.commons.security.CommonUser;
 import cobol.services.authentication.domain.entity.User;
 import cobol.services.authentication.domain.repository.UserRepository;
 import cobol.commons.ResponseModel;
@@ -30,16 +32,16 @@ public class UserController {
      * @return ResponseEntity
      */
     @GetMapping("")
-    public ResponseEntity info(@AuthenticationPrincipal UserDetails userDetails){
+    public ResponseEntity<CommonUser> info(@AuthenticationPrincipal CommonUser userDetails){
         User user = users.findById(userDetails.getUsername())
                 .orElseThrow(() -> new UsernameNotFoundException(userDetails.getUsername() + " not found!"));
 
-        return ResponseEntity.ok(
-                ResponseModel.builder()
-                        .status(OK.toString())
-                        .details(user)
-                        .build().generateResponse()
-        );
+        return ResponseEntity.ok(user.asCommonUser());
+    }
+
+    @GetMapping("getUser")
+    public ResponseEntity<CommonUser> getUser(@RequestParam String username) throws DoesNotExistException {
+        return ResponseEntity.ok(users.findById(username).orElseThrow(() -> new DoesNotExistException("The user does not exist.")).asCommonUser());
     }
 
     /**

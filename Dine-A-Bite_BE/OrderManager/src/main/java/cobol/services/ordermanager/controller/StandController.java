@@ -3,6 +3,7 @@ package cobol.services.ordermanager.controller;
 import cobol.commons.CommonStand;
 import cobol.commons.ResponseModel;
 import cobol.commons.exception.CommunicationException;
+import cobol.commons.security.CommonUser;
 import cobol.services.ordermanager.MenuHandler;
 import cobol.services.ordermanager.domain.entity.Stand;
 import cobol.services.ordermanager.domain.entity.User;
@@ -15,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.parameters.P;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -34,9 +36,10 @@ public class StandController {
     private StandRepository standRepository;
 
     @GetMapping(path = "/verify")
-    public ResponseEntity<HashMap<Object,Object>> verify(@RequestParam String standName, @RequestParam String brandName, @AuthenticationPrincipal User user){
+    public ResponseEntity<HashMap<Object,Object>> verify(@RequestParam String standName, @RequestParam String brandName, @AuthenticationPrincipal CommonUser authenticatedUser){
 
         Stand stand = standRepository.findStandById(standName, brandName).orElse(null);
+        User user = new User(authenticatedUser); //Convert to real User object to be able to compare
 
         if (stand == null) {
             return ResponseEntity.ok(
@@ -75,8 +78,10 @@ public class StandController {
      */
     @PostMapping(path = "/addStand")
     @ResponseBody
-    public ResponseEntity<HashMap<Object,Object>> addStand(@RequestBody CommonStand stand) throws JsonProcessingException, ParseException, DuplicateStandException, CommunicationException {
-        menuHandler.addStand(stand);
+    public ResponseEntity<HashMap<Object,Object>> addStand(@RequestBody CommonStand stand, @AuthenticationPrincipal CommonUser user) throws JsonProcessingException, ParseException, DuplicateStandException, CommunicationException {
+
+        menuHandler.addStand(stand, user);
+
         return ResponseEntity.ok(
                 ResponseModel.builder()
                         .status(OK.toString())

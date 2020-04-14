@@ -12,6 +12,7 @@ import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 
 import static java.util.stream.Collectors.toList;
 
@@ -21,19 +22,16 @@ import static java.util.stream.Collectors.toList;
  */
 @Entity
 @Table(name = "user")
-@SuperBuilder
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(callSuper=true)
-public class User extends CommonUser {
+public class User {
 
     @Id
     @NotNull
     @Column
     private String username;
 
-    @NotNull
     @Column
     private String password;
 
@@ -46,17 +44,27 @@ public class User extends CommonUser {
     @Column
     private String name;
 
-    @ElementCollection(fetch = FetchType.EAGER)
-    @Builder.Default
-    @JoinTable(name = "user_role")
-    @Column(name = "role_role")
-    private List<String> roles = new ArrayList<>();
-
     @ManyToMany(mappedBy = "owners")
     private List<Stand> stands = new ArrayList<>();
 
+    public User(CommonUser user){
+        this.username = user.getUsername();
+        this.password = user.getPassword();
+        this.email = user.getEmail();
+        this.surname = user.getSurname();
+        this.name = user.getName();
+    }
+
     @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return this.roles.stream().map(role -> new SimpleGrantedAuthority("ROLE_" + role)).collect(toList());
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        User user = (User) o;
+        return username.equals(user.username);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(username);
     }
 }

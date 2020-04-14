@@ -3,14 +3,17 @@ package cobol.services.ordermanager;
 import cobol.commons.CommonFood;
 import cobol.commons.CommonStand;
 import cobol.commons.exception.CommunicationException;
+import cobol.commons.security.CommonUser;
 import cobol.services.ordermanager.domain.entity.Brand;
 import cobol.services.ordermanager.domain.entity.Food;
 import cobol.services.ordermanager.domain.entity.Stand;
+import cobol.services.ordermanager.domain.entity.User;
 import cobol.services.ordermanager.domain.repository.BrandRepository;
 import cobol.services.ordermanager.domain.repository.FoodRepository;
 import cobol.services.ordermanager.domain.repository.StandRepository;
 import cobol.commons.exception.DoesNotExistException;
 import cobol.commons.exception.DuplicateStandException;
+import cobol.services.ordermanager.domain.repository.UserRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
@@ -40,6 +43,8 @@ public class MenuHandler {
     private FoodRepository foodRepository;
     @Autowired
     private BrandRepository brandRepository;
+    @Autowired
+    private UserRepository userRepository;
 
     @Autowired
     private CommunicationHandler communicationHandler;
@@ -172,7 +177,7 @@ public class MenuHandler {
      * @throws ParseException          A json parsing error
      * @throws DuplicateStandException Duplicate stand detected
      */
-    public void addStand(CommonStand newCommonStand) throws JsonProcessingException, ParseException, DuplicateStandException, CommunicationException {
+    public void addStand(CommonStand newCommonStand, CommonUser user) throws JsonProcessingException, ParseException, DuplicateStandException, CommunicationException {
 
         // look if stands already exists
         Stand stand = standRepository.findStandById(newCommonStand.getName(), newCommonStand.getBrandName()).orElse(null);
@@ -188,6 +193,13 @@ public class MenuHandler {
         // create stand object
         Stand newStand = new Stand(newCommonStand, brand);
         brand.getStandList().add(newStand);
+
+        //Try to find user and it he doesnt exist, create a new user
+        User userEntity = userRepository.save(new User(user));
+
+        newStand.getOwners().add(userEntity);
+        userEntity.getStands().add(newStand);
+
         brandRepository.save(brand);
 
         // Also send the new stand to the StandManager
