@@ -2,11 +2,12 @@ package com.example.standapp.order;
 
 import com.example.standapp.json.CommonFood;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
-public class CommonOrder {
+public class CommonOrder implements Serializable {
 
     // unique id for this order
     private int id;
