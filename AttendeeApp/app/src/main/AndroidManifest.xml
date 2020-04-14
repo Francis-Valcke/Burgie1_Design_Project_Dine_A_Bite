@@ -47,6 +47,13 @@
                 android:value=".MenuActivity" />
         </activity>
 
+        <activity android:name=".MapActivity"
+            android:parentActivityName=".MenuActivity" >
+            <meta-data
+                android:name="adroid.support.PARENT_ACTIVITY"
+                android:value=".MenuActivity" />
+        </activity>
+
         <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
