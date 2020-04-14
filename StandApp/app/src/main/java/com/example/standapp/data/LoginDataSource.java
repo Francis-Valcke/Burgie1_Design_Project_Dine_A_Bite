@@ -2,6 +2,7 @@ package com.example.standapp.data;
 
 import android.util.Log;
 
+import com.example.standapp.ServerConfig;
 import com.example.standapp.data.model.LoggedInUser;
 
 import org.jetbrains.annotations.NotNull;
@@ -52,7 +53,7 @@ public class LoginDataSource {
                 MediaType.parse("application/json; charset=utf-8"));
 
         Request request = new Request.Builder()
-                .url("http://cobol.idlab.ugent.be:8090/createUser")
+                .url(ServerConfig.AS_ADDRESS + "/createStandManager")
                 .post(body)
                 .build();
 
@@ -71,7 +72,7 @@ public class LoginDataSource {
 
                     // Authenticate user POST request to Authentication service
                     Request request2 = new Request.Builder()
-                            .url("http://cobol.idlab.ugent.be:8090/authenticate")
+                            .url(ServerConfig.AS_ADDRESS + "/authenticate")
                             .post(body)
                             .build();
 
