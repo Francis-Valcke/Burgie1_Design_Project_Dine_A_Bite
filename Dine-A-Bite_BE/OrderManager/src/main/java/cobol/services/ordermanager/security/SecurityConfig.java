@@ -61,8 +61,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 //Requests that should not be authenticated
                 .antMatchers("/pingOM").permitAll()
                 //Permissions for the DBController
-                //.antMatchers("/db/*").hasRole(Role.ADMIN)
-                .antMatchers("/db/*").permitAll()
+                .antMatchers("/db/*").hasRole(Role.ADMIN)
+                //.antMatchers("/db/*").permitAll()
                 //Permissions for StandController
                 .antMatchers("/verify", "/addStand", "/updateStand", "/deleteStand").hasRole(Role.STAND)
                 //Others

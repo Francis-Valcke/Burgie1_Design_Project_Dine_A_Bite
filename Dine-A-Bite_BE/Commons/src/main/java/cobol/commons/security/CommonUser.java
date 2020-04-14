@@ -22,7 +22,7 @@ import static java.util.stream.Collectors.toList;
  * The non entity version of the User class that is used across all modules to represent users.
  */
 @Data
-@SuperBuilder
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 public class CommonUser implements UserDetails, Serializable {
@@ -32,6 +32,7 @@ public class CommonUser implements UserDetails, Serializable {
     private String email;
     private String surname;
     private String name;
+    @Builder.Default
     private List<String> roles = new ArrayList<>();
 
     public CommonUser(String username, List<String> roles) {

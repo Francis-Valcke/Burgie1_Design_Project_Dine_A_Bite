@@ -32,7 +32,7 @@ public class DataInitializer implements CommandLineRunner {
                 User.builder()
                         .username("admin")
                         .password(passwordEncoder.encode("admin"))
-                        .roles(Arrays.asList(Role.USER, Role.ADMIN))
+                        .roles(Arrays.asList(Role.USER, Role.STAND, Role.ADMIN))
                         .build()
         );
 
