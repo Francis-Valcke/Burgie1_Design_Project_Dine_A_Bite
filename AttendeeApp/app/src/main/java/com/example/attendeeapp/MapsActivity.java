@@ -37,6 +37,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        requestStandLocations();
         setContentView(R.layout.activity_maps);
         /*// Custom Toolbar (instead of standard actionbar)
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -48,32 +49,36 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         // Enable the Up button
         assert ab != null;
         ab.setDisplayHomeAsUpEnabled(true);*/
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-                .findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);
+        //SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+        //        .findFragmentById(R.id.map);
+        //mapFragment.getMapAsync(this);
     }
 
     @Override
     protected void onStart() {
         super.onStart();
         requestStandLocations();
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.map);
+        mapFragment.getMapAsync(this);
     }
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-        /*if (standLocations.isEmpty()) {
-            // Add a marker in Sydney, Australia, and move the camera.
-            LatLng sydney = new LatLng(-34, 151);
-            mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
-            mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
-        } else {*/
-            for (String standName : standLocations.keySet()) {
-                Map<String, Double> coordinates = standLocations.get(standName);
-                LatLng newStand = new LatLng(-34, 151);
-                mMap.addMarker(new MarkerOptions().position(newStand).title(standName));
-                mMap.moveCamera(CameraUpdateFactory.newLatLng(newStand));
-            //}
+        if (standLocations.isEmpty()) {
+            LatLng test = new LatLng(-41, 151);
+            mMap.addMarker(new MarkerOptions().position(test).title("Heyo"));
+            mMap.moveCamera(CameraUpdateFactory.newLatLng(test));
+        }
+        for (String standName : standLocations.keySet()) {
+            Map<String, Double> coordinates = standLocations.get(standName);
+            System.out.println(standLocations);
+            double lat = coordinates.get("latitude");
+            double lon = coordinates.get("longitude");
+            LatLng newStand = new LatLng(lat, lon);
+            mMap.addMarker(new MarkerOptions().position(newStand).title(standName));
+            mMap.moveCamera(CameraUpdateFactory.newLatLng(newStand));
         }
     }
 
