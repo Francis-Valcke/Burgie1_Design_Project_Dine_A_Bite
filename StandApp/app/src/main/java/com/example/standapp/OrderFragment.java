@@ -70,8 +70,10 @@ public class OrderFragment extends Fragment {
             Toast.makeText(mContext, standName, Toast.LENGTH_SHORT).show();
         }
 
+        // TODO to Profile fragment
         // Subscribe to the Event Channel and get subscriberID
-        if (subscriberId == null || subscriberId.equals("") || !oldStand.equals(standName)){
+        if (subscriberId == null || subscriberId.equals("") || !oldStand.equals(standName)
+                && bundle != null && Utils.isLoggedIn(mContext, bundle)){
             subscribeEC(standName, brandName);
             oldStand = standName;
         }

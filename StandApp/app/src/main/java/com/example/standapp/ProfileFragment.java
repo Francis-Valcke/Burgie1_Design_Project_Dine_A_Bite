@@ -1,5 +1,6 @@
 package com.example.standapp;
 
+import android.annotation.SuppressLint;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -23,17 +24,19 @@ public class ProfileFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
+
         final View view = inflater.inflate(R.layout.activity_account, container, false);
         final TextView standName = view.findViewById(R.id.stand_name);
         final TextView brandName = view.findViewById(R.id.brand_name);
         Button editStandNameButton = view.findViewById(R.id.edit_stand_name_button);
         Button editBrandNameButton = view.findViewById(R.id.edit_brand_name_button);
 
-        final Bundle bundle = this.getArguments();
+        final Bundle bundle = getArguments();
         if (bundle != null) standName.setText(bundle.getString("standName"));
         if (bundle != null) brandName.setText(bundle.getString("brandName"));
 
         // Dialog for editing stand name
+        @SuppressLint("InflateParams")
         final View inputStandNameLayout = inflater.inflate(R.layout.edit_name_dialog, null, false);
         final TextInputEditText editTextStandName = inputStandNameLayout.findViewById(R.id.edit_text_name);
         final MaterialAlertDialogBuilder dialogStandName =
@@ -66,6 +69,7 @@ public class ProfileFragment extends Fragment {
         });
 
         // Dialog for editing brand name
+        @SuppressLint("InflateParams")
         final View inputBrandNameLayout = inflater.inflate(R.layout.edit_name_dialog, null, false);
         final TextInputEditText editTextBrandName = inputBrandNameLayout.findViewById(R.id.edit_text_name);
         final MaterialAlertDialogBuilder dialogBrandName =

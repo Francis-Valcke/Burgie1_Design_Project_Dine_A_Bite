@@ -76,12 +76,14 @@ public class DashboardFragment extends Fragment {
                 new DashboardListViewAdapter(Objects.requireNonNull(getActivity()), items);
         menuList.setAdapter(adapter);
 
+        // TODO to Profile fragment
         // When logging into another stand account
         if (!items.isEmpty() && !items.get(0).getStandName().equals(standName)) {
             System.out.println("Cleared the menu in the manager dashboard");
             items.clear();
         }
 
+        // TODO to Profile fragment
         // Getting the stand menu from the server after logging in
         // when the stand has a menu saved on the server
         if (items.isEmpty() && bundle != null && Utils.isLoggedIn(getContext(), bundle)
