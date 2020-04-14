@@ -219,7 +219,7 @@ public class MenuActivity extends AppCompatActivity implements OnCartChangeListe
                 // TODO make settings activity
             case R.id.map_action:
                 //User chooses the "Map" item
-                Intent mapIntent = new Intent(MenuActivity.this, MapActivity.class);
+                Intent mapIntent = new Intent(MenuActivity.this, MapsActivity.class);
                 startActivity(mapIntent);
             default:
                 return super.onOptionsItemSelected(item);
