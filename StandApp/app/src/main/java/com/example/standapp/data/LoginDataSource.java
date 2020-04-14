@@ -68,7 +68,7 @@ public class LoginDataSource {
                 try (ResponseBody responseBody = response.body()) {
                     if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
                     if (responseBody != null) System.out.println(responseBody.string());
-                    Log.d("LoginDataSource", "/createUser response");
+                    Log.d("LoginDataSource", "/createStandManager response");
 
                     // Authenticate user POST request to Authentication service
                     Request request2 = new Request.Builder()
@@ -87,7 +87,7 @@ public class LoginDataSource {
                             try (ResponseBody responseBody2 = response.body()) {
                                 if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
                                 if (responseBody2 != null) System.out.println(responseBody2.string());
-                                Log.d("LoginDataSource", "/createUser response");
+                                Log.d("LoginDataSource", "/createStandManager response");
 
                                 if (responseBody2 != null) jsonResponse = new JSONObject(responseBody2.string());
                             } catch (IOException | JSONException e) {
