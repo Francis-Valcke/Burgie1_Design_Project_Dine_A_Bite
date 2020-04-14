@@ -1,12 +1,9 @@
 package com.example.attendeeapp;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.FragmentActivity;
 
 import com.android.volley.AuthFailureError;
@@ -51,20 +48,33 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         // Enable the Up button
         assert ab != null;
         ab.setDisplayHomeAsUpEnabled(true);*/
-
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
     }
 
     @Override
+    protected void onStart() {
+        super.onStart();
+        requestStandLocations();
+    }
+
+    @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-
-        // Add a marker in Sydney, Australia, and move the camera.
-        LatLng sydney = new LatLng(-34, 151);
-        mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
+        /*if (standLocations.isEmpty()) {
+            // Add a marker in Sydney, Australia, and move the camera.
+            LatLng sydney = new LatLng(-34, 151);
+            mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
+            mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
+        } else {*/
+            for (String standName : standLocations.keySet()) {
+                Map<String, Double> coordinates = standLocations.get(standName);
+                LatLng newStand = new LatLng(-34, 151);
+                mMap.addMarker(new MarkerOptions().position(newStand).title(standName));
+                mMap.moveCamera(CameraUpdateFactory.newLatLng(newStand));
+            //}
+        }
     }
 
     /**
@@ -105,9 +115,4 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         queue.add(request);
     }
 
-    @Override
-    public void onBackPressed() {
-        Intent intent = new Intent(MapsActivity.this, MenuActivity.class);
-        startActivity(intent);
-    }
 }
