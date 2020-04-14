@@ -31,12 +31,13 @@ import com.example.standapp.json.CommonStand;
 import com.example.standapp.json.CommonFood;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textfield.TextInputEditText;
 
 import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -76,73 +77,15 @@ public class DashboardFragment extends Fragment {
             standName = bundle.getString("standName");
             brandName = bundle.getString("brandName");
             Toast.makeText(getContext(), standName, Toast.LENGTH_SHORT).show();
+
+            // Ignore warning
+            items = (ArrayList<CommonFood>) bundle.getSerializable("items");
+            newStand = bundle.getBoolean("newStand");
         }
 
         final DashboardListViewAdapter adapter =
                 new DashboardListViewAdapter(Objects.requireNonNull(getActivity()), items);
         menuList.setAdapter(adapter);
-
-        // TODO to Profile fragment
-        // When logging into another stand account
-        if (!items.isEmpty() && !items.get(0).getStandName().equals(standName)) {
-            System.out.println("Cleared the menu in the manager dashboard");
-            items.clear();
-        }
-
-        // TODO to Profile fragment
-        // Getting the stand menu from the server after logging in
-        // when the stand has a menu saved on the server
-        if (items.isEmpty() && bundle != null && Utils.isLoggedIn(getContext(), bundle)
-                && Utils.isConnected(getContext())) {
-
-            // Instantiate the RequestQueue
-            RequestQueue queue = Volley.newRequestQueue(Objects.requireNonNull(getContext()));
-            String url = ServerConfig.OM_ADDRESS + "/standMenu?brandName=" + brandName
-                    + "&standName=" + standName;
-            url = url.replace(' ', '+');
-
-            // Request menu from order manager on server
-            JsonArrayRequest jsonRequest = new JsonArrayRequest(Request.Method.GET, url,
-                    null, new Response.Listener<JSONArray>() {
-                @Override
-                public void onResponse(JSONArray response) {
-                    try {
-                        System.out.println(response.toString());
-                        ObjectMapper mapper = new ObjectMapper();
-                        mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-                        CommonFood[] parsedItems = mapper.readValue(response.toString(), CommonFood[].class);
-                        Collections.addAll(items, parsedItems);
-                        adapter.notifyDataSetChanged();
-                    } catch (Exception e) {
-                        Log.v("Exception fetch menu:", e.toString());
-                        Toast.makeText(getContext(), "Could not get menu from server!",
-                                Toast.LENGTH_LONG).show();
-                    }
-                }
-            }, new Response.ErrorListener() {
-                @Override
-                public void onErrorResponse(VolleyError error) {
-                    error.printStackTrace();
-                    if (error instanceof ServerError) {
-                        // TODO server should handle this exception and send a response
-                        Toast.makeText(getContext(), "Server could not find menu of stand", Toast.LENGTH_LONG).show();
-                        newStand = true;
-                    } else {
-                        Toast.makeText(getContext(), error.toString(), Toast.LENGTH_LONG).show();
-                    }
-                }
-            }) {
-                @Override
-                public Map<String, String> getHeaders() {
-                    HashMap<String, String> headers = new HashMap<>();
-                    headers.put("Content-Type", "application/json");
-                    headers.put("Authorization", user.getAutorizationToken());
-                    return headers;
-                }
-            };
-
-            queue.add(jsonRequest);
-        }
 
         @SuppressLint("InflateParams")
         final View addDialogLayout = inflater.inflate(R.layout.add_menu_item_dialog, null, false);
@@ -249,7 +192,15 @@ public class DashboardFragment extends Fragment {
                             new Response.Listener<String>() {
                         @Override
                         public void onResponse(String response) {
-                            Toast.makeText(getContext(), response, Toast.LENGTH_LONG).show();
+                            try {
+                                JSONObject jsonObject = new JSONObject(response);
+                                Toast.makeText(getContext(), jsonObject.get("details").toString(),
+                                        Toast.LENGTH_LONG).show();
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                                Toast.makeText(getContext(), "Error with JSON parsing: "
+                                        + e.toString(), Toast.LENGTH_SHORT).show();
+                            }
                         }
                     }, new Response.ErrorListener() {
                         @Override

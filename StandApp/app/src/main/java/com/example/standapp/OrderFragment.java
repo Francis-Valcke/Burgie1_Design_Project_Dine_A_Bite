@@ -18,7 +18,6 @@ import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
-import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.example.standapp.data.LoginDataSource;
 import com.example.standapp.data.LoginRepository;
@@ -51,8 +50,6 @@ public class OrderFragment extends Fragment {
     private ArrayList<Event> listEvents = new ArrayList<>();
     private ArrayList<CommonOrder> listOrders = new ArrayList<>();
 
-    private String oldStand;
-
     // ID from the Event Channel
     private String subscriberId;
 
@@ -67,20 +64,12 @@ public class OrderFragment extends Fragment {
 
         // Getting the log in information from profile fragment
         final Bundle bundle = getArguments();
-        String standName = "";
-        String brandName = "";
+        String standName;
         if (bundle != null && Utils.isLoggedIn(mContext, bundle)) {
             standName = bundle.getString("standName");
-            brandName = bundle.getString("brandName");
             Toast.makeText(mContext, standName, Toast.LENGTH_SHORT).show();
-        }
 
-        // TODO to Profile fragment
-        // Subscribe to the Event Channel and get subscriberID
-        if (subscriberId == null || subscriberId.equals("") || !oldStand.equals(standName)
-                && bundle != null && Utils.isLoggedIn(mContext, bundle)){
-            subscribeEC(standName, brandName, user);
-            oldStand = standName;
+            subscriberId = bundle.getString("subscriberId");
         }
 
         // TODO without refresh button, but with automatic polling
@@ -154,77 +143,8 @@ public class OrderFragment extends Fragment {
         return view;
     }
 
-    /**
-     * This function will subscribe to the Event Channel
-     */
-    private void subscribeEC(final String standName, final String brandName, final LoggedInUser user) {
-
-        // Step 1: Get subscriber ID
-        // Instantiate the RequestQueue
-        RequestQueue queue = Volley.newRequestQueue(Objects.requireNonNull(mContext));
-        String url = ServerConfig.EC_ADDRESS + "/registerSubscriber";
-
-        // GET request to server
-        StringRequest request = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
-            @Override
-            public void onResponse(String response) {
-                Toast.makeText(mContext, "SubscriberId: " + response, Toast.LENGTH_SHORT)
-                        .show();
-                subscriberId = response;
-
-                // Step 2: Subscribe to stand and subscriberID channels
-                System.out.println("SubscriberID = " + subscriberId);
-                String url2 = ServerConfig.EC_ADDRESS + "/registerSubscriber/toChannel?type=s_" + standName
-                        + "_" + brandName + "&id=" + subscriberId;
-                url2 = url2.replace(' ', '+');
-
-                // GET request to server
-                final String finalUrl = url2;
-                StringRequest request2 = new StringRequest(Request.Method.GET, url2, new Response.Listener<String>() {
-                    @Override
-                    public void onResponse(String response) {
-                        System.out.println("Response on GET request to " + finalUrl + ": " + response);
-                    }
-                }, new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        error.printStackTrace();
-                        Toast.makeText(mContext, error.toString(), Toast.LENGTH_SHORT).show();
-                    }
-                }) {
-                    @Override
-                    public Map<String, String> getHeaders() {
-                        HashMap<String, String> headers = new HashMap<>();
-                        headers.put("Content-Type", "application/json");
-                        headers.put("Authorization", user.getAutorizationToken());
-                        return headers;
-                    }
-                };
-                RequestQueue queue2 = Volley.newRequestQueue(Objects.requireNonNull(mContext));
-                queue2.add(request2);
-            }
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                error.printStackTrace();
-                Toast.makeText(mContext, error.toString(), Toast.LENGTH_SHORT).show();
-            }
-        }) {
-            @Override
-            public Map<String, String> getHeaders() {
-                HashMap<String, String> headers = new HashMap<>();
-                headers.put("Content-Type", "application/json");
-                headers.put("Authorization", user.getAutorizationToken());
-                return headers;
-            }
-        };
-
-        queue.add(request);
-
-    }
-
     @Override
-    public void onAttach(Context context) {
+    public void onAttach(@NonNull  Context context) {
         super.onAttach(context);
         mContext = context;
     }
