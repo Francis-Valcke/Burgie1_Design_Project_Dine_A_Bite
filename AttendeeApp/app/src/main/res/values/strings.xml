@@ -33,4 +33,5 @@
 
     <string name="chosen_brand">(By: </string>
     <string name="chosen_stand">Your pickup point: </string>
+    <string name="total">Total</string>
 </resources>

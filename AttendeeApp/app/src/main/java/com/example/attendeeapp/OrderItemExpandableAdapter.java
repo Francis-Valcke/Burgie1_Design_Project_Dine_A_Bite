@@ -83,7 +83,7 @@ public class OrderItemExpandableAdapter extends BaseExpandableListAdapter {
         }
 
         // Make a spinning exclamation mark to notify user of changes (not used yet)
-        ImageView highPriority = (ImageView)view.findViewById(R.id.order_group_priority);
+        ImageView highPriority = view.findViewById(R.id.order_group_priority);
         Animation rotation = AnimationUtils.loadAnimation(context, R.anim.priority_high);
         rotation.setDuration(1000);
         rotation.setRepeatCount(Animation.INFINITE);
@@ -91,15 +91,15 @@ public class OrderItemExpandableAdapter extends BaseExpandableListAdapter {
         highPriority.setVisibility(View.GONE);
 
         // Handle textViews of the order expandable title
-        TextView textID = (TextView)view.findViewById(R.id.order_group_title_id);
-        TextView textCount = (TextView)view.findViewById(R.id.order_group_title_count);
-        TextView txtPrice = (TextView)view.findViewById(R.id.order_group_title_price);
+        TextView textID = view.findViewById(R.id.order_group_title_id);
+        TextView textCount = view.findViewById(R.id.order_group_title_count);
+        TextView txtPrice = view.findViewById(R.id.order_group_title_price);
         textID.setText("#" + currentOrder.getId());
         textCount.setText("" + currentOrder.getTotalCount());
         txtPrice.setText(currentOrder.getTotalPriceEuro());
 
         // Set custom group indicator that can be in the center of the layout
-        ImageView groupIndicator = (ImageView)view.findViewById(R.id.group_indicator);
+        ImageView groupIndicator = view.findViewById(R.id.group_indicator);
         groupIndicator.setSelected(b);
 
         return view;
@@ -132,9 +132,9 @@ public class OrderItemExpandableAdapter extends BaseExpandableListAdapter {
             CommonOrderItem currentItem = getChild(groupPos,childPos-1);
             view = inflater.inflate(R.layout.order_item_expandable,null);
 
-            TextView txtFoodName = (TextView)view.findViewById(R.id.order_item_name);
-            TextView txtCount = (TextView)view.findViewById(R.id.order_item_count);
-            TextView txtPrice = (TextView)view.findViewById(R.id.order_item_price);
+            TextView txtFoodName = view.findViewById(R.id.order_item_name);
+            TextView txtCount = view.findViewById(R.id.order_item_count);
+            TextView txtPrice = view.findViewById(R.id.order_item_price);
             txtFoodName.setText(currentItem.getFoodName());
             txtCount.setText("" + currentItem.getAmount());
             txtPrice.setText(currentItem.getPriceEuro());
@@ -149,8 +149,8 @@ public class OrderItemExpandableAdapter extends BaseExpandableListAdapter {
         {
             view = inflater.inflate(R.layout.order_item_expandable_footer, null);
             // Handle footer for order stand and brand details
-            TextView txtStandName = (TextView)view.findViewById(R.id.order_footer_stand);
-            TextView txtBrandName = (TextView)view.findViewById(R.id.order_footer_brand);
+            TextView txtStandName = view.findViewById(R.id.order_footer_stand);
+            TextView txtBrandName = view.findViewById(R.id.order_footer_brand);
             txtStandName.setText(currentOrder.getStandName());
             txtBrandName.setText(currentOrder.getBrandName() + ")");
         }

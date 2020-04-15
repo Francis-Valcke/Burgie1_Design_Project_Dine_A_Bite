@@ -15,7 +15,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
-import com.android.volley.AuthFailureError;
 import com.android.volley.NoConnectionError;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -40,7 +39,7 @@ public class MenuFragmentStand extends MenuFragment implements AdapterView.OnIte
 
     private ArrayAdapter<String> standListAdapter;
     // List of stand and brands: key = brandName, value = multiple standNames
-    private HashMap<String, String> standList = new HashMap<String, String>();
+    private HashMap<String, String> standList = new HashMap<>();
 
     @Nullable
     @Override
@@ -53,11 +52,11 @@ public class MenuFragmentStand extends MenuFragment implements AdapterView.OnIte
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
 
         // Create a spinner item for the different stands
-        Spinner spinner = (Spinner) view.findViewById(R.id.spinner);
+        Spinner spinner = view.findViewById(R.id.spinner);
         spinner.setOnItemSelectedListener(this);
 
         // Initiate the spinner item adapter
-        standListAdapter = new ArrayAdapter<String>(getActivity(),
+        standListAdapter = new ArrayAdapter<>(getActivity(),
                 R.layout.stand_spinner_item, new ArrayList<String>());
         spinner.setAdapter(standListAdapter);
 
@@ -69,9 +68,9 @@ public class MenuFragmentStand extends MenuFragment implements AdapterView.OnIte
 
 
         // Setup swipe to refresh menu (e.g. no internet connection)
-        // This will refetch the stand names from the server,
+        // This will re-fetch the stand names from the server,
         // the spinner will call fetchMenu for the first stand item
-        pullToRefresh = (SwipeRefreshLayout) view.findViewById(R.id.swiperefresh);
+        pullToRefresh = view.findViewById(R.id.swiperefresh);
         pullToRefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
@@ -139,18 +138,18 @@ public class MenuFragmentStand extends MenuFragment implements AdapterView.OnIte
                 if (error instanceof NoConnectionError) {
                     mToast = Toast.makeText(getActivity(), "No network connection",
                             Toast.LENGTH_LONG);
-
+                    mToast.show();
                 } else {
                     mToast = Toast.makeText(getActivity(), "Server cannot be reached. No stands available.",
                             Toast.LENGTH_LONG);
+                    mToast.show();
                 }
-                mToast.show();
             }
         }) { // Add JSON headers
             @Override
             public @NonNull
-            Map<String, String> getHeaders()  throws AuthFailureError {
-                Map<String, String>  headers  = new HashMap<String, String>();
+            Map<String, String> getHeaders() {
+                Map<String, String>  headers  = new HashMap<>();
                 headers.put("Authorization", AUTHORIZATION_TOKEN);
                 return headers;
             }
