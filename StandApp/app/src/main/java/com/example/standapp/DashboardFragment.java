@@ -2,11 +2,16 @@ package com.example.standapp;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.pm.PackageManager;
+import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -32,6 +37,10 @@ import com.example.standapp.json.CommonFood;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textfield.TextInputEditText;
 
@@ -56,6 +65,10 @@ public class DashboardFragment extends Fragment {
     private boolean newStand = false;
     private ArrayList<CommonFood> items = new ArrayList<>();
 
+    // Location data of stand
+    private FusedLocationProviderClient fusedLocationClient;
+    private Location lastLocation;
+
     @Nullable
     @Override
     public View onCreateView(@NonNull final LayoutInflater inflater,
@@ -77,6 +90,9 @@ public class DashboardFragment extends Fragment {
             standName = bundle.getString("standName");
             brandName = bundle.getString("brandName");
             Toast.makeText(getContext(), standName, Toast.LENGTH_SHORT).show();
+
+            // Ask for permission to get location data and set lastLocation variable
+            checkLocationPermission();
 
             // Ignore warning
             items = (ArrayList<CommonFood>) bundle.getSerializable("items");
@@ -161,12 +177,20 @@ public class DashboardFragment extends Fragment {
 
                     for (CommonFood item : items) {
                         item.setBrandName(finalBrandName);
+                        item.setStandName(finalStandName);
+                    }
+
+                    // Set location data
+                    checkLocationPermission();
+                    double latitude = 360;
+                    double longitude = 360;
+                    if (lastLocation != null) {
+                        latitude = lastLocation.getLatitude();
+                        longitude = lastLocation.getLongitude();
                     }
 
                     // create JSON string containing the information of the menu and the stand
-                    long lat = 360L; // temporary
-                    long lon = 360L; // temporary
-                    CommonStand commonStand = new CommonStand(finalStandName, finalBrandName, lat, lon, items);
+                    CommonStand commonStand = new CommonStand(finalStandName, finalBrandName, latitude, longitude, items);
                     ObjectMapper mapper = new ObjectMapper();
                     String jsonString = "";
                     try {
@@ -238,5 +262,74 @@ public class DashboardFragment extends Fragment {
         Utils.isConnected(getContext());
 
         return view;
+    }
+
+    /**
+     * Check if location permission is granted
+     * It not: request the location permission
+     * else if permission was granted, renew user location
+     */
+    private void checkLocationPermission() {
+        if (ContextCompat.checkSelfPermission(Objects.requireNonNull(getContext()),
+                Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+            // Permission is not granted
+            // Request the permission
+            ActivityCompat.requestPermissions(Objects.requireNonNull(getActivity()),
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                    1);
+        } else {
+            // Request the latest user location
+            fusedLocationClient = LocationServices
+                    .getFusedLocationProviderClient(Objects.requireNonNull(getActivity()));
+            fusedLocationClient.getLastLocation()
+                    .addOnCompleteListener(new OnCompleteListener<Location>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Location> task) {
+                            if (task.isSuccessful() && task.getResult() != null){
+                                lastLocation = task.getResult();
+                            }
+                        }
+                    });
+        }
+    }
+
+    /**
+     * Handle the requested permissions,
+     * here only the location permission is handled
+     * @param requestCode: 1 = location permission was requested
+     * @param permissions: the requested permission(s) names
+     * @param grantResults: if the permission is granted or not
+     */
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
+        switch (requestCode) {
+            case 1: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    // permission was granted, yay!
+                    // Create location request to fetch latest user location
+                    fusedLocationClient = LocationServices
+                            .getFusedLocationProviderClient(Objects.requireNonNull(getActivity()));
+                    fusedLocationClient.getLastLocation()
+                            .addOnCompleteListener(new OnCompleteListener<Location>() {
+                                @Override
+                                public void onComplete(Task<Location> task) {
+                                    if (task.isSuccessful() && task.getResult() != null){
+                                        lastLocation = task.getResult();
+                                    }
+                                }
+                            });
+                } else {
+                    // permission denied, boo! Disable the
+                    // functionality that depends on this permission.
+                }
+                return;
+            }
+            // other 'case' lines to check for other
+            // permissions this app might request.
+        }
     }
 }

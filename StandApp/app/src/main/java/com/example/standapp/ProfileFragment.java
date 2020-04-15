@@ -90,6 +90,7 @@ public class ProfileFragment extends Fragment {
                         if (bundle != null) bundle.putSerializable("items", new ArrayList<CommonFood>());
                         if (bundle != null) bundle.putString("standName", null);
                         if (bundle != null) bundle.putString("brandName", null);
+                        editTextStandName.setText("");
                         ViewGroup parent = (ViewGroup) inputStandNameLayout.getParent();
                         parent.removeView(inputStandNameLayout);
                     }
@@ -125,6 +126,7 @@ public class ProfileFragment extends Fragment {
                         if (bundle != null) bundle.putSerializable("items", new ArrayList<CommonFood>());
                         if (bundle != null) bundle.putString("standName", null);
                         if (bundle != null) bundle.putString("brandName", null);
+                        editTextBrandName.setText("");
                         ViewGroup parent = (ViewGroup) inputBrandNameLayout.getParent();
                         parent.removeView(inputBrandNameLayout);
                     }
@@ -222,7 +224,7 @@ public class ProfileFragment extends Fragment {
      * @param brandName name of the brand given by user
      * @param bundle Bundle to be shared between the fragments
      */
-    private void handleVerify(String standName, String brandName, @Nullable Bundle bundle) {
+    private void handleVerify(String standName, String brandName, final Bundle bundle) {
         if (bundle != null) bundle.putString("standName", standName);
         if (bundle != null) bundle.putString("brandName", brandName);
 
@@ -233,7 +235,9 @@ public class ProfileFragment extends Fragment {
         String url = ServerConfig.OM_ADDRESS + "/standMenu?brandName=" + brandName
                 + "&standName=" + standName;
         url = url.replace(' ', '+');
+
         newStand = false;
+        if (bundle != null) bundle.putBoolean("newStand", false);
 
         // Request menu from order manager on server
         JsonArrayRequest jsonRequest = new JsonArrayRequest(Request.Method.GET, url,
@@ -246,6 +250,7 @@ public class ProfileFragment extends Fragment {
                     mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
                     CommonFood[] parsedItems = mapper.readValue(response.toString(), CommonFood[].class);
                     Collections.addAll(items, parsedItems);
+                    if (bundle != null) bundle.putSerializable("items", items);
                 } catch (Exception e) {
                     Log.v("Exception fetch menu:", e.toString());
                     Toast.makeText(getContext(), "Could not get menu from server!",
@@ -260,6 +265,7 @@ public class ProfileFragment extends Fragment {
                     // TODO server should handle this exception and send a response
                     Toast.makeText(getContext(), "Server could not find menu of stand", Toast.LENGTH_LONG).show();
                     newStand = true;
+                    if (bundle != null) bundle.putBoolean("newStand", newStand);
                 } else {
                     Toast.makeText(getContext(), error.toString(), Toast.LENGTH_LONG).show();
                 }
@@ -276,16 +282,12 @@ public class ProfileFragment extends Fragment {
 
         queue.add(jsonRequest);
 
-        if (bundle != null) bundle.putSerializable("items", items);
-        if (bundle != null) bundle.putBoolean("newStand", newStand);
-
         // Subscribe to EC
         if (subscriberId == null || subscriberId.equals("") || !oldStand.equals(standName)) {
-            subscribeEC(standName, brandName);
+            subscribeEC(standName, brandName, bundle);
             oldStand = standName;
         }
 
-        if (bundle != null) bundle.putString("subscriberId", subscriberId);
     }
 
     /**
@@ -294,7 +296,7 @@ public class ProfileFragment extends Fragment {
      * @param standName name of the stand given by user
      * @param brandName name of the brand given by user
      */
-    private void subscribeEC(final String standName, final String brandName) {
+    private void subscribeEC(final String standName, final String brandName, final Bundle bundle) {
 
         // Step 1: Get subscriber ID
         // Instantiate the RequestQueue
@@ -308,6 +310,7 @@ public class ProfileFragment extends Fragment {
                 Toast.makeText(getContext(), "SubscriberId: " + response, Toast.LENGTH_SHORT)
                         .show();
                 subscriberId = response;
+                if (bundle != null) bundle.putString("subscriberId", subscriberId);
 
                 // Step 2: Subscribe to stand and subscriberID channels
                 System.out.println("SubscriberID = " + subscriberId);
