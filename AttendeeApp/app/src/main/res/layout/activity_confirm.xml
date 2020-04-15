@@ -137,29 +137,36 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="horizontal"
-        android:gravity="bottom"
-        android:baselineAligned="false"
-        android:layout_margin="5dp">
+        android:layout_height="match_parent">
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/button_confirm_stand"
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/confirm_stand"
-            android:layout_marginStart="5dp"
-            android:layout_marginEnd="5dp"
-            android:layout_weight="0"/>
+            android:orientation="horizontal"
+            android:layout_gravity="bottom"
+            android:baselineAligned="false"
+            android:layout_margin="5dp">
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/button_confirm_recommend"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:text="@string/confirm_recommend"
-            android:layout_marginStart="5dp"
-            android:layout_marginEnd="5dp"
-            android:layout_weight="1"/>
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/button_confirm_stand"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:text="@string/confirm_stand"
+                android:layout_marginStart="5dp"
+                android:layout_marginEnd="5dp"
+                android:layout_weight="0"/>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/button_confirm_recommend"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text="@string/confirm_recommend"
+                android:layout_marginStart="5dp"
+                android:layout_marginEnd="5dp"
+                android:layout_weight="1"/>
+
+        </LinearLayout>
+
 
     </LinearLayout>
 
