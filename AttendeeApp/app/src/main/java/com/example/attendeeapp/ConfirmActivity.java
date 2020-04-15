@@ -1,6 +1,5 @@
 package com.example.attendeeapp;
 
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Typeface;
 import android.location.Location;
@@ -11,17 +10,16 @@ import android.view.MenuInflater;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
-import com.android.volley.AuthFailureError;
 import com.android.volley.NoConnectionError;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -72,10 +70,11 @@ public class ConfirmActivity extends AppCompatActivity implements AdapterView.On
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_confirm);
 
+        // Ignore warning
         ordered = (ArrayList<CommonFood>) getIntent().getSerializableExtra("order");
         cartCount = getIntent().getIntExtra("cartCount", 0);
         totalPrice = (BigDecimal) getIntent().getSerializableExtra("totalPrice");
-        lastLocation = (Location) getIntent().getParcelableExtra("location");
+        lastLocation = getIntent().getParcelableExtra("location");
         requestOrderRecommend();
         fetchStandNames();
 
@@ -91,18 +90,18 @@ public class ConfirmActivity extends AppCompatActivity implements AdapterView.On
         remainingTime.setVisibility(View.INVISIBLE);*/
 
         // Custom Toolbar (instead of standard actionbar)
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
         // Get a support ActionBar corresponding to this toolbar
         ActionBar ab = getSupportActionBar();
 
         // Create a spinner item for the different stands
-        Spinner spinner = (Spinner) findViewById(R.id.stand_recommended_spinner);
+        Spinner spinner = findViewById(R.id.stand_recommended_spinner);
         spinner.setOnItemSelectedListener(this);
 
         // Initiate the spinner item adapter
-        standListAdapter = new ArrayAdapter<String>(this,
+        standListAdapter = new ArrayAdapter<>(this,
                 R.layout.stand_spinner_item, new ArrayList<String>());
         spinner.setAdapter(standListAdapter);
 
@@ -112,8 +111,8 @@ public class ConfirmActivity extends AppCompatActivity implements AdapterView.On
 
 
         // Handle choose own stand and choose recommended stand buttons
-        TextView chooseStand = (TextView)findViewById(R.id.confirm_stand);
-        chooseStand.setOnClickListener(new View.OnClickListener(){
+        Button chooseStandButton = findViewById(R.id.button_confirm_stand);
+        chooseStandButton.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v) {
                 if(chosenStand != null) {
@@ -187,8 +186,8 @@ public class ConfirmActivity extends AppCompatActivity implements AdapterView.On
             }
         });
 
-        TextView chooseRecommend = (TextView)findViewById(R.id.confirm_recommend);
-        chooseRecommend.setOnClickListener(new View.OnClickListener(){
+        Button chooseRecommendButton = findViewById(R.id.button_confirm_recommend);
+        chooseRecommendButton.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v) {
                 boolean noRecommend = true;
@@ -296,8 +295,8 @@ public class ConfirmActivity extends AppCompatActivity implements AdapterView.On
             }
         }) { // Add JSON headers
             @Override
-            public @NonNull Map<String, String> getHeaders()  throws AuthFailureError {
-                Map<String, String>  headers  = new HashMap<String, String>();
+            public @NonNull Map<String, String> getHeaders() {
+                Map<String, String>  headers  = new HashMap<>();
                 headers.put("Content-Type", "application/json");
                 headers.put("Authorization", AUTHORIZATION_TOKEN);
                 return headers;
@@ -352,18 +351,18 @@ public class ConfirmActivity extends AppCompatActivity implements AdapterView.On
                 if (error instanceof NoConnectionError) {
                     mToast = Toast.makeText(ConfirmActivity.this, "No network connection",
                             Toast.LENGTH_LONG);
-
+                    mToast.show();
                 } else {
                     mToast = Toast.makeText(ConfirmActivity.this, "Server cannot be reached. No stands available.",
                             Toast.LENGTH_LONG);
+                    mToast.show();
                 }
-                mToast.show();
             }
         }) { // Add JSON headers
             @Override
             public @NonNull
-            Map<String, String> getHeaders()  throws AuthFailureError {
-                Map<String, String>  headers  = new HashMap<String, String>();
+            Map<String, String> getHeaders() {
+                Map<String, String>  headers  = new HashMap<>();
                 headers.put("Authorization", AUTHORIZATION_TOKEN);
                 return headers;
             }

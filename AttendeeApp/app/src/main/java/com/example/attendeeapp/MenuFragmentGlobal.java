@@ -25,13 +25,13 @@ public class MenuFragmentGlobal extends MenuFragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         // Instantiates menu item list
-        ListView lView = (ListView) view.findViewById(R.id.menu_list);
+        ListView lView = view.findViewById(R.id.menu_list);
         menuAdapter = new MenuItemAdapter(menuItems, getActivity());
         menuAdapter.setCartChangeListener((OnCartChangeListener) getActivity());
         lView.setAdapter(menuAdapter);
 
         // Setup swipe to refresh menu (e.g. no internet connection)
-        pullToRefresh = (SwipeRefreshLayout) view.findViewById(R.id.swiperefresh);
+        pullToRefresh = view.findViewById(R.id.swiperefresh);
         pullToRefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {

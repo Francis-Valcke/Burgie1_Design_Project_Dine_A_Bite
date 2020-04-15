@@ -17,7 +17,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
-import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
@@ -71,7 +70,7 @@ public class OrderActivity extends AppCompatActivity {
 
 
         // Custom Toolbar (instead of standard actionbar)
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
         // Get a support ActionBar corresponding to this toolbar
@@ -93,7 +92,7 @@ public class OrderActivity extends AppCompatActivity {
 
         } else if (newOrder == null) {
             // Initiate the expandable order ListView
-            ExpandableListView expandList = (ExpandableListView)findViewById(R.id.order_expand_list);
+            ExpandableListView expandList = findViewById(R.id.order_expand_list);
             OrderItemExpandableAdapter adapter = new OrderItemExpandableAdapter(this, orders);
 
             expandList.setAdapter(adapter);
@@ -101,7 +100,7 @@ public class OrderActivity extends AppCompatActivity {
         }
 
         // Initiate the expandable order ListView
-        ExpandableListView expandList = (ExpandableListView)findViewById(R.id.order_expand_list);
+        ExpandableListView expandList = findViewById(R.id.order_expand_list);
         adapter = new OrderItemExpandableAdapter(this, orders);
 
         expandList.setAdapter(adapter);
@@ -155,8 +154,8 @@ public class OrderActivity extends AppCompatActivity {
         }) {
             // Add JSON headers
             @Override
-            public @NonNull Map<String, String> getHeaders()  throws AuthFailureError {
-                Map<String, String> headers = new HashMap<String, String>();
+            public @NonNull Map<String, String> getHeaders() {
+                Map<String, String> headers = new HashMap<>();
                 headers.put("Authorization", AUTHORIZATION_TOKEN);
                 return headers;
             }
@@ -213,8 +212,8 @@ public class OrderActivity extends AppCompatActivity {
         }) {
             // Add JSON headers
             @Override
-            public @NonNull Map<String, String> getHeaders()  throws AuthFailureError {
-                Map<String, String> headers = new HashMap<String, String>();
+            public @NonNull Map<String, String> getHeaders() {
+                Map<String, String> headers = new HashMap<>();
                 headers.put("Authorization", AUTHORIZATION_TOKEN);
                 return headers;
             }
