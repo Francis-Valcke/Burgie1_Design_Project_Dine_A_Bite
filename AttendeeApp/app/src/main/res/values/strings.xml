@@ -30,8 +30,10 @@
     <string name="no_recommendation">No recommendation available.</string>
     <string name="recommend_time">You will have to wait: </string>
     <string name="recommend_distance">You will have to walk: </string>
+    <string name="event_map">Stand locations: </string>
 
     <string name="chosen_brand">(By: </string>
     <string name="chosen_stand">Your pickup point: </string>
+    <string name="title_activity_maps">Map</string>
     <string name="total">Total</string>
 </resources>
