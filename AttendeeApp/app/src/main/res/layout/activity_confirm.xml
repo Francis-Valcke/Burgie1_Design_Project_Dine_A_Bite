@@ -144,15 +144,14 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:layout_gravity="bottom"
-            android:baselineAligned="false"
-            android:layout_margin="5dp">
+            android:baselineAligned="false">
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/button_confirm_stand"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:text="@string/confirm_stand"
-                android:layout_marginStart="5dp"
+                android:layout_marginStart="10dp"
                 android:layout_marginEnd="5dp"
                 android:layout_weight="0"/>
 
@@ -162,7 +161,7 @@
                 android:layout_height="wrap_content"
                 android:text="@string/confirm_recommend"
                 android:layout_marginStart="5dp"
-                android:layout_marginEnd="5dp"
+                android:layout_marginEnd="10dp"
                 android:layout_weight="1"/>
 
         </LinearLayout>
