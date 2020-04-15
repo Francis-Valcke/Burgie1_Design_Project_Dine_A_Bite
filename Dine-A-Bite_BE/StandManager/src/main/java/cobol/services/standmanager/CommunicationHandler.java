@@ -6,8 +6,6 @@ import cobol.commons.exception.CommunicationException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.ParseException;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -67,7 +65,7 @@ public class CommunicationHandler {
 
     }
 
-    public List<Event> pollEventsFromEC(int subscriberId) throws JsonProcessingException, ParseException {
+    public List<Event> pollEventsFromEC(int subscriberId) throws CommunicationException, JsonProcessingException {
         RestTemplate restTemplate= new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.add("Authorization", StandManager.authToken);
@@ -77,12 +75,16 @@ public class CommunicationHandler {
                 .queryParam("id", subscriberId);
         ResponseEntity<String> response = restTemplate.exchange(builder.toUriString(), HttpMethod.GET, httpEntity, String.class);
 
+        // Handle Response
+        ObjectMapper objectMapper = new ObjectMapper();
+        if (response.getBody() != null) {
 
-        // parse events
-        ObjectMapper objectMapper= new ObjectMapper();
-        JSONObject responseObject = objectMapper.readValue(response.getBody(), JSONObject.class);
-        String details = (String) responseObject.get("details");
-        return objectMapper.readValue(details, new TypeReference<List<Event>>() {});
+            List<Event> events= objectMapper.readValue(response.getBody(), new TypeReference<List<Event>>() {});
+            return events;
+        } else {
+            throw new CommunicationException("EventChannel cannot be reached while polling events in ordermanager");
+        }
+
 
     }
 }

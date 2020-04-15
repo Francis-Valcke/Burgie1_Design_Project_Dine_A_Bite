@@ -7,11 +7,7 @@ import cobol.commons.order.CommonOrder;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.json.simple.JSONObject;
-import org.json.simple.parser.ParseException;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -89,8 +85,10 @@ public class Scheduler extends Thread {
                     updateItem(mi, mi2);
                 }
             }
-        } catch (JsonProcessingException | ParseException e) {
+        } catch (JsonProcessingException e) {
             System.err.println(e);
+            e.printStackTrace();
+        } catch (CommunicationException e) {
             e.printStackTrace();
         }
     }

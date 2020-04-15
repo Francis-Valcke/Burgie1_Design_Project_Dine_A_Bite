@@ -104,7 +104,7 @@ public class StandManagerController {
         JSONArray completeResponse= new JSONArray();
 
         // Extract and copy complete list of CommonOrderItems from superOrder
-        List<CommonOrderItem> items = new ArrayList<>(superOrder.getItemList());
+        List<CommonOrderItem> items = new ArrayList<>(superOrder.getOrderItems());
 
         // search items that can be executed together
         List<HashSet<CommonOrderItem>> itemSplit = new ArrayList<>();

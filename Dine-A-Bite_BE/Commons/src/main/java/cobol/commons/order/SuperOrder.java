@@ -5,7 +5,7 @@ import java.util.List;
 public class SuperOrder {
 
     String brandName;
-    List<CommonOrderItem> itemList;
+    List<CommonOrderItem> orderItems;
 
     // Coordinates attendee on moment that order was made
     private double latitude;
@@ -23,8 +23,8 @@ public class SuperOrder {
         this.brandName = brandName;
     }
 
-    public List<CommonOrderItem> getItemList() {
-        return itemList;
+    public List<CommonOrderItem> getOrderItems() {
+        return orderItems;
     }
 
     public double getLatitude() {
@@ -43,7 +43,7 @@ public class SuperOrder {
         this.longitude = longitude;
     }
 
-    public void setItemList(List<CommonOrderItem> itemList) {
-        this.itemList = itemList;
+    public void setOrderItems(List<CommonOrderItem> orderItems) {
+        this.orderItems = orderItems;
     }
 }
