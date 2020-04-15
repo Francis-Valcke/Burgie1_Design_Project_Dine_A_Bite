@@ -43,7 +43,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 // TODO set/change progress of orders and send to server (in ExpandableListAdapter)
 // TODO (optional) change polling to FCM

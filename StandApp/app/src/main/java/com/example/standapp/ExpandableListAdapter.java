@@ -14,6 +14,9 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+import com.example.standapp.data.LoginDataSource;
+import com.example.standapp.data.LoginRepository;
+import com.example.standapp.data.model.LoggedInUser;
 import com.example.standapp.order.CommonOrder;
 import com.example.standapp.order.CommonOrderStatusUpdate;
 import com.example.standapp.order.Event;
@@ -178,6 +181,9 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
      * @param context context of the callback
      */
     private void sendOrderStatusUpdate(int groupPosition, final Context context) {
+
+        final LoggedInUser user = LoginRepository.getInstance(new LoginDataSource()).getLoggedInUser();
+
         CommonOrderStatusUpdate.status newStatus = listStatus.get(listDataHeader.get(groupPosition));
         ObjectMapper mapper = new ObjectMapper();
 
@@ -230,7 +236,7 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
             public Map<String, String> getHeaders() {
                 HashMap<String, String> headers = new HashMap<>();
                 headers.put("Content-Type", "application/json");
-                headers.put("Authorization", ServerConfig.AUTHORIZATION_TOKEN);
+                headers.put("Authorization", user.getAutorizationToken());
                 return headers;
             }
         };

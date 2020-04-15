@@ -1,7 +1,6 @@
 package com.example.standapp;
 
 import android.content.Context;
-import android.annotation.SuppressLint;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.util.Log;
@@ -275,7 +274,7 @@ public class ProfileFragment extends Fragment {
                     // TODO server should handle this exception and send a response
                     Toast.makeText(getContext(), "Server could not find menu of stand", Toast.LENGTH_LONG).show();
                     newStand = true;
-                    if (bundle != null) bundle.putBoolean("newStand", newStand);
+                    if (bundle != null) bundle.putBoolean("newStand", true);
                 } else {
                     Toast.makeText(getContext(), error.toString(), Toast.LENGTH_LONG).show();
                 }
