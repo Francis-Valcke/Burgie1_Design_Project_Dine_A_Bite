@@ -202,6 +202,8 @@ public class MenuHandler {
 
         brandRepository.save(brand);
 
+        Stand standje = standRepository.findStandById(newStand.getName(), newStand.getBrandName()).orElse(null);
+
         // Also send the new stand to the StandManager
         ObjectMapper mapper = new ObjectMapper();
         String jsonString = mapper.writeValueAsString(newStand.asCommonStand());
