@@ -94,29 +94,42 @@ public class OrderController {
      * @return JSONArray each element containing a field "recommendations" and a field "order" similar to return of placeOrder
      */
     @PostMapping(value="/placeSuperOrder", consumes = "application/json", produces = "application/json")
-    public ResponseEntity<JSONArray> placeSuperOrder(@RequestBody SuperOrder superOrder) {
+    public ResponseEntity<JSONArray> placeSuperOrder(@RequestBody SuperOrder superOrder) throws JsonProcessingException, ParseException {
 
-        /*
-         * NOTE:
-         * Only one recommendation per splitted order will be returned since the combination
-         * of recommendations will make this superorder optimal
-         * If you let a user choose a recommendation per (splitted) order, the combination of manually chosen stands
-         * can be far from optimal which is not the purpose of using this "superorder" feature
-         */
+        // Make complete response, values will be added
+        JSONArray completeResponse= new JSONArray();
+
 
         // ask StandManger to split these orderItems in Orders and give A recommendation
+        JSONArray ordersRecommendations= communicationHandler.getSuperRecommendationFromSM(superOrder);
+
+        // parse orders and recommendations
+        ObjectMapper mapper= new ObjectMapper();
+        for (Object ordersRecommendation : ordersRecommendations) {
+            JSONObject orderRec = (JSONObject) ordersRecommendation;
+
+            JSONObject orderJSON = (JSONObject) orderRec.get("order");
+            Order order = mapper.readValue(orderJSON.toJSONString(), Order.class);
+            JSONArray recJSONs= (JSONArray) orderRec.get("recommendations");
+            List<Recommendation> recommendations= mapper.readValue(recJSONs.toJSONString(), new TypeReference<List<Recommendation>>() {});
+
+            // add all seperate orders to orderprocessor, this will give them an orderId and initial values
+            orderProcessor.addNewOrder(order);
+
+            // parse the response, add the recommendations to the hashmap of recommendations with the new orderIds
+            orderProcessor.addRecommendations(order.getId(), recommendations);
 
 
+            JSONObject orderResponse= new JSONObject();
+            orderResponse.put("order", order.asCommonOrder());
+            orderResponse.put("recommendations", recommendations);
 
-
-        // add all seperate orders to orderprocessor, this will give them an orderId and initial values
-
-
-        // parse the response, add the recommendations to the hashmap of recommendations with the new orderIds
+            completeResponse.add(orderResponse);
+        }
 
 
         // return all the updated orders in a JSONArray with the recommendations
-        return ResponseEntity.ok(new JSONArray());
+        return ResponseEntity.ok(completeResponse);
     }
 
 

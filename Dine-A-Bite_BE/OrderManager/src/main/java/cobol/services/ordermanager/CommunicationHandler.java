@@ -3,10 +3,13 @@ package cobol.services.ordermanager;
 import cobol.commons.CommonFood;
 import cobol.commons.Event;
 import cobol.commons.order.CommonOrder;
+import cobol.commons.order.SuperOrder;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
@@ -81,6 +84,33 @@ public class CommunicationHandler {
         }
 
         return template.postForObject(builder.toUriString(), request, String.class);
+    }
+
+    /**
+     * This function will pass the superorder to the standmanager and return seperate orders
+     *
+     * @param superOrder SuperOrder Object
+     * @return JSONArray of  JSONObject with field "recommendations" and a field "order" similar to return of placeOrder
+     * recommendation field will be a JSONArray of Recommendation object
+     */
+    public JSONArray getSuperRecommendationFromSM(SuperOrder superOrder) throws ParseException {
+
+        RestTemplate template = new RestTemplate();
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.add("Authorization", OrderManager.authToken);
+
+        HttpEntity<SuperOrder> request = new HttpEntity<>(superOrder, headers);
+        String uri = OrderManager.SMURL + "/getSuperRecommendation";
+
+        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(uri);
+
+
+        String responseString= template.postForObject(builder.toUriString(), request, String.class);
+        JSONParser parser= new JSONParser();
+
+
+        return (JSONArray) parser.parse(responseString);
     }
 
 
@@ -206,6 +236,7 @@ public class CommunicationHandler {
     }
 
 
+
     // ---- TODO te verwijderen? ----//
 
     /**
@@ -232,6 +263,7 @@ public class CommunicationHandler {
         String response = template.postForObject(uri, entity, String.class);
         System.out.println(response);
     }
+
 
 
 }
