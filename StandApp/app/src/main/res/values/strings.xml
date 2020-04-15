@@ -46,5 +46,20 @@
     <string name="refresh">Refresh</string>
     <string name="your_active_orders">Your active orders</string>
     <string name="order_number">Order#</string>
+    <string name="description_of_menu_item">Description of menu item</string>
+    <string name="description">Description</string>
+    <string name="estimates_prep_time_of_item">Estimated preparation time of menu item in minutes</string>
+    <string name="preparation_time">Preparation time</string>
+    <string name="title_activity_login">Sign in</string>
+    <string name="prompt_email">Email</string>
+    <string name="prompt_password">Password</string>
+    <string name="action_sign_in">Sign in or register</string>
+    <string name="action_sign_in_short">Sign in</string>
+    <string name="welcome">"Welcome !"</string>
+    <string name="invalid_username">Not a valid username</string>
+    <string name="invalid_password">Password must be >5 characters</string>
+    <string name="login_failed">"Login failed"</string>
+    <string name="username">Username</string>
+    <string name="verify">Verify</string>
 
 </resources>

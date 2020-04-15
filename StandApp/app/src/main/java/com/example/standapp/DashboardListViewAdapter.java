@@ -68,9 +68,16 @@ public class DashboardListViewAdapter extends BaseAdapter {
         final TextInputEditText nameInput = editDialogLayout.findViewById(R.id.menu_item_name);
         final TextInputEditText priceInput = editDialogLayout.findViewById(R.id.menu_item_price);
         final TextInputEditText stockInput = editDialogLayout.findViewById(R.id.menu_item_stock);
+        final TextInputEditText descriptionInput = editDialogLayout.findViewById(R.id.menu_item_description);
+
+        // Editing preparation time is disabled, because the backend will re-calculate this time
+        editDialogLayout.findViewById(R.id.menu_item_prep_time).setEnabled(false);
+
         nameInput.setText(item.getName());
         priceInput.setText(item.getPrice().toString());
         stockInput.setText(Integer.toString(item.getStock()));
+        descriptionInput.setText(item.getDescription());
+
         editButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -79,6 +86,7 @@ public class DashboardListViewAdapter extends BaseAdapter {
                         .setPositiveButton("Save", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
+                                // Check if fields are filled in (except for description)
                                 if (Objects.requireNonNull(nameInput.getText()).toString().isEmpty()
                                         || Objects.requireNonNull(priceInput.getText()).toString().isEmpty()
                                         || Objects.requireNonNull(stockInput.getText()).toString().isEmpty()) {
@@ -91,9 +99,11 @@ public class DashboardListViewAdapter extends BaseAdapter {
                                     String name = Objects.requireNonNull(nameInput.getText()).toString();
                                     BigDecimal price = new BigDecimal(Objects.requireNonNull(priceInput.getText()).toString());
                                     int stock = Integer.parseInt(Objects.requireNonNull(stockInput.getText()).toString());
+                                    String description = Objects.requireNonNull(descriptionInput.getText()).toString();
                                     item.setName(name);
                                     item.setPrice(price);
                                     item.setStock(stock);
+                                    item.setDescription(description);
                                     notifyDataSetChanged();
                                 }
                                 ViewGroup parent = (ViewGroup) editDialogLayout.getParent();

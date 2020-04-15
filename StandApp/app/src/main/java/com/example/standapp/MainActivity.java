@@ -1,16 +1,19 @@
 package com.example.standapp;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
+import android.content.Intent;
 import android.view.MenuItem;
 
 import android.os.Bundle;
 
+import com.example.standapp.ui.login.LoginActivity;
 import com.google.android.material.navigation.NavigationView;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
@@ -28,10 +31,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        drawer = findViewById(R.id.drawer_layout);
         NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
+        drawer = findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawer,
                 toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.addDrawerListener(toggle);
@@ -47,8 +50,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         dashboard.setArguments(bundle);
         order.setArguments(bundle);
 
+        // Start logging in activity
+        Intent intent = new Intent(this, LoginActivity.class);
+        startActivityForResult(intent, 1);
+
         if (savedInstanceState == null) {
-            getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, profile).commit();
             navigationView.setCheckedItem(R.id.nav_profile);
         }
 
@@ -85,5 +91,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         } else {
             super.onBackPressed();
         }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        // Start profile fragment after successfully logging in
+        getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, profile).commit();
     }
 }

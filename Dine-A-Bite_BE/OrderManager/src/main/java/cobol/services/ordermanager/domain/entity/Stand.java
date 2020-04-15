@@ -12,6 +12,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import org.hibernate.annotations.Cascade;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
@@ -39,6 +40,18 @@ public class Stand implements Serializable {
     @OneToMany(mappedBy = "stand")
     List<Order> orderList = new ArrayList<>();
 
+    @ManyToMany
+    @Cascade({org.hibernate.annotations.CascadeType.PERSIST, org.hibernate.annotations.CascadeType.REFRESH})
+    @JoinTable(name = "stand_user",
+            joinColumns = {
+                    @JoinColumn(referencedColumnName = "name", name = "stand_name", foreignKey = @ForeignKey(name = "stand_user_stand_fk")),
+                    @JoinColumn(referencedColumnName = "brand_name", name = "brand_name", foreignKey = @ForeignKey(name = "stand_user_stand_fk"))
+            },
+            inverseJoinColumns = {
+                    @JoinColumn(referencedColumnName = "username", name = "user_username", foreignKey = @ForeignKey(name = "stand_user_user_fk"))
+            }
+    )
+    List<User> owners = new ArrayList<>();
 
     public Stand() {
     }
