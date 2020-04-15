@@ -1,5 +1,6 @@
 package cobol.services.ordermanager.security;
 
+import cobol.commons.security.Role;
 import cobol.commons.security.jwt.JwtAuthenticationFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -57,9 +58,14 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
                 .authorizeRequests()
+                //Requests that should not be authenticated
                 .antMatchers("/pingOM").permitAll()
-                //.antMatchers("/db/*").hasRole("ROLE_ADMIN")
-                .antMatchers("/db/*").permitAll()
+                //Permissions for the DBController
+                .antMatchers("/db/*").hasRole(Role.ADMIN)
+                //.antMatchers("/db/*").permitAll()
+                //Permissions for StandController
+                .antMatchers("/verify", "/addStand", "/updateStand", "/deleteStand").hasRole(Role.STAND)
+                //Others
                 .anyRequest().authenticated()
                 .and()
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

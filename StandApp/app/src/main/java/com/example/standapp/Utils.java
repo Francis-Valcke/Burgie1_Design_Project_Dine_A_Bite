@@ -66,7 +66,7 @@ class Utils {
         String brandName = bundle.getString("brandName");
 
         if (standName == null || standName.isEmpty() || brandName == null || brandName.isEmpty()) {
-            Toast.makeText(context, "Please log in", Toast.LENGTH_LONG).show();
+            Toast.makeText(context, "Please log in to your stand", Toast.LENGTH_LONG).show();
         } else {
             isLoggedIn = true;
         }

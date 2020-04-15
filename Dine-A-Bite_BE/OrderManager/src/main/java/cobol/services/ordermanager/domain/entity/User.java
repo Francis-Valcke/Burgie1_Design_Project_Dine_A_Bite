@@ -1,4 +1,4 @@
-package cobol.services.authentication.domain.entity;
+package cobol.services.ordermanager.domain.entity;
 
 
 import cobol.commons.security.CommonUser;
@@ -12,6 +12,7 @@ import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 
 import static java.util.stream.Collectors.toList;
 
@@ -22,7 +23,6 @@ import static java.util.stream.Collectors.toList;
 @Entity
 @Table(name = "user")
 @Data
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class User {
@@ -32,7 +32,6 @@ public class User {
     @Column
     private String username;
 
-    @NotNull
     @Column
     private String password;
 
@@ -45,13 +44,27 @@ public class User {
     @Column
     private String name;
 
-    @ElementCollection(fetch = FetchType.EAGER)
-    @Builder.Default
-    @JoinTable(name = "user_role")
-    @Column(name = "role_role")
-    private List<String> roles = new ArrayList<>();
+    @ManyToMany(mappedBy = "owners")
+    private List<Stand> stands = new ArrayList<>();
 
-    public CommonUser asCommonUser() {
-        return new CommonUser(username, password, email, surname, name, roles);
+    public User(CommonUser user){
+        this.username = user.getUsername();
+        this.password = user.getPassword();
+        this.email = user.getEmail();
+        this.surname = user.getSurname();
+        this.name = user.getName();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        User user = (User) o;
+        return username.equals(user.username);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(username);
     }
 }
