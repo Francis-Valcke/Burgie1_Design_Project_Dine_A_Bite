@@ -2,10 +2,7 @@ package cobol.services.ordermanager.domain.entity;
 
 import cobol.commons.CommonStand;
 import cobol.services.ordermanager.domain.SpringContext;
-import cobol.services.ordermanager.domain.repository.BrandRepository;
-import cobol.services.ordermanager.domain.repository.CategoryRepository;
-import cobol.services.ordermanager.domain.repository.FoodRepository;
-import cobol.services.ordermanager.domain.repository.StandRepository;
+import cobol.services.ordermanager.domain.repository.*;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -28,8 +25,10 @@ public class Stand implements Serializable {
 
     @JsonIgnore
     @EmbeddedId
-    private StandId standId;
+    private StandId standId = new StandId();
+
     private double longitude;
+
     private double latitude;
 
     @OneToMany(mappedBy = "foodId.stand", cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
@@ -51,9 +50,10 @@ public class Stand implements Serializable {
                     @JoinColumn(referencedColumnName = "username", name = "user_username", foreignKey = @ForeignKey(name = "stand_user_user_fk"))
             }
     )
-    List<User> owners = new ArrayList<>();
+    Set<User> owners = new HashSet<>();
 
     public Stand() {
+
     }
 
     public Stand(String name, String brandName) {
@@ -151,13 +151,6 @@ public class Stand implements Serializable {
         );
     }
 
-
-    // ---- Getters and Setters ----//
-
-    public String getName(){
-        return standId.name;
-    }
-
     public Map<String, Double> getLocation() {
         Map<String, Double> location = new HashMap<>();
         location.put("latitude", this.latitude);
@@ -165,26 +158,95 @@ public class Stand implements Serializable {
         return location;
     }
 
+    // ---- Getters and Setters ----//
+
+    // -- food id --
+
+    @JsonIgnore
+    public StandId getStandId() {
+        return standId;
+    }
+
+    @JsonIgnore
+    public void setStandId(StandId standId) {
+        this.standId = standId;
+    }
+
+    public String getName(){
+        return standId.name;
+    }
+
+    public void setName(String name){
+        standId.name = name;
+    }
+
+    @JsonIgnore
+    public Brand getBrand(){
+        return standId.brand;
+    }
+
+    @JsonIgnore
+    public void setBrand(Brand brand){
+        standId.brand = brand;
+    }
+
     public String getBrandName(){
         return standId.brand.getName();
     }
 
-
-    @JsonProperty("name")
-    public void setName(String name) {
-        standId = (standId == null) ? new StandId() : standId;
-        this.standId.name = name;
+    @JsonIgnore
+    public void setBrandName(String brandName){
+        standId.brand.setName(brandName);
     }
 
-    @JsonProperty("brandName")
-    public void setBrand(Brand brand) {
-        standId = (standId == null) ? new StandId() : standId;
-        this.standId.brand = brand;
+
+    // -- other fields --
+
+    public double getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(double longitude) {
+        this.longitude = longitude;
+    }
+
+    public double getLatitude() {
+        return latitude;
+    }
+
+    public void setLatitude(double latitude) {
+        this.latitude = latitude;
+    }
+
+    public List<Food> getFoodList() {
+        return foodList;
+    }
+
+    public void setFoodList(List<Food> foodList) {
+        foodList.forEach(f -> f.setStand(this));
+
+        this.foodList = foodList;
     }
 
     @JsonIgnore
-    public Brand getBrand() {
-        return standId.brand;
+    public List<Order> getOrderList() {
+        return orderList;
+    }
+
+    @JsonIgnore
+    public void setOrderList(List<Order> orderList) {
+        this.orderList = orderList;
+    }
+
+    public Set<User> getOwners() {
+        return owners;
+    }
+
+    public void setOwners(List<User> newOwners) {
+        UserRepository userRepository = SpringContext.getBean(UserRepository.class);
+        Set<User> owners = newOwners.stream().map(userRepository::save).collect(Collectors.toSet());
+
+        this.owners = owners;
     }
 
     // ---- Extra ---- //

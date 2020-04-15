@@ -1,10 +1,13 @@
 package cobol.services.ordermanager.controller;
 
+import cobol.commons.security.CommonUser;
 import cobol.services.ordermanager.MenuHandler;
 import cobol.services.ordermanager.domain.entity.Brand;
 import cobol.services.ordermanager.domain.entity.Stand;
+import cobol.services.ordermanager.domain.entity.User;
 import cobol.services.ordermanager.domain.repository.BrandRepository;
 import cobol.services.ordermanager.domain.repository.StandRepository;
+import cobol.services.ordermanager.domain.repository.UserRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +28,9 @@ public class DBController {
     StandRepository standRepository;
 
     @Autowired
+    UserRepository userRepository;
+
+    @Autowired
     MenuHandler menuHandler;
 
     /**
@@ -36,6 +42,10 @@ public class DBController {
      */
     @PostMapping("/db/import")
     public ResponseEntity<String> load(@RequestBody List<Brand> data) {
+
+        //Add stand as default owner
+        //User user = userRepository.save(User.builder().username("stand").build());
+        //data.stream().flatMap(brand -> brand.getStandList().stream()).forEach(stand -> stand.getOwners().add(user));
 
         data.forEach(brand -> brandRepository.save(brand));
         return ResponseEntity.ok("Success");
