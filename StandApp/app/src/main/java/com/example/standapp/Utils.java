@@ -39,6 +39,7 @@ class Utils {
             @Override
             public void onErrorResponse(VolleyError error) {
                 isConnected = false;
+                System.out.println(error.toString());
                 if (error instanceof NoConnectionError) {
                     Toast.makeText(context, "No network connection", Toast.LENGTH_LONG).show();
                 } else {
@@ -65,7 +66,7 @@ class Utils {
         String brandName = bundle.getString("brandName");
 
         if (standName == null || standName.isEmpty() || brandName == null || brandName.isEmpty()) {
-            Toast.makeText(context, "Please log in", Toast.LENGTH_LONG).show();
+            Toast.makeText(context, "Please log in to your stand", Toast.LENGTH_LONG).show();
         } else {
             isLoggedIn = true;
         }

@@ -34,8 +34,8 @@ spring:
 #    openInView: false
     generate-ddl: true
 #    hibernate:
-#      ddl-auto: create #-drop
-
+#      ddl-auto: create-drop
+#
 #  data:
 #    jpa:
 #      repositories.enabled: true
