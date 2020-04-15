@@ -177,6 +177,7 @@ public class DashboardFragment extends Fragment {
 
                     for (CommonFood item : items) {
                         item.setBrandName(finalBrandName);
+                        item.setStandName(finalStandName);
                     }
 
                     // Set location data
