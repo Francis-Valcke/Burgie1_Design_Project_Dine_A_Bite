@@ -6,18 +6,16 @@ import android.os.Handler;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.attendeeapp.appDatabase.OrderDatabaseService;
-import com.example.attendeeapp.json.CommonOrder;
 
 /**
  * MainActivity to show splash-screen on startup
  */
 public class MainActivity extends AppCompatActivity {
+
     private static int SPLASH_TIME_OUT = 800;
 
     /**
      * Called when app is first instantiated
-     * @param savedInstanceState
      */
     @Override
     protected void onCreate(Bundle savedInstanceState) {

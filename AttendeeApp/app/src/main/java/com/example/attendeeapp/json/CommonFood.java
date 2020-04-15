@@ -7,7 +7,6 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.NumberFormat;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 
@@ -24,14 +23,15 @@ public class CommonFood implements Serializable {
     private int stock;
     private String standName = "";
     private String brandName;
-    private List<String> category = new ArrayList<String>();
+    private List<String> category = new ArrayList<>();
     private String description = "";
 
     public CommonFood() {
         super();//needed for ObjectMapper
     }
 
-    public CommonFood(String name, BigDecimal price, int preparationTime, int stock, String brandName, String desc, List<String> category) {
+    public CommonFood(String name, BigDecimal price, int preparationTime, int stock,
+                      String brandName, String desc, List<String> category) {
         this.name = name;
         this.price = price.setScale(2, RoundingMode.HALF_UP);
         this.preparationTime = preparationTime;
@@ -42,7 +42,8 @@ public class CommonFood implements Serializable {
         this.count = 0;
     }
 
-    public CommonFood(String foodName, BigDecimal price, int preparationTime, int stock, String standName, String brandName, String desc, List<String> category) {
+    public CommonFood(String foodName, BigDecimal price, int preparationTime, int stock,
+                      String standName, String brandName, String desc, List<String> category) {
         this.name = foodName;
         this.price = price.setScale(2, RoundingMode.HALF_UP);
         this.preparationTime = preparationTime;
@@ -60,7 +61,7 @@ public class CommonFood implements Serializable {
         this.count = copy.count;
         this.standName = copy.standName;
         this.brandName = copy.brandName;
-        this.category = new ArrayList<String>(copy.category);
+        this.category = new ArrayList<>(copy.category);
         this.description = copy.description;
     }
 
