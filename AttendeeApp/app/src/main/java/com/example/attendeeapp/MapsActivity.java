@@ -1,6 +1,7 @@
 package com.example.attendeeapp;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -23,7 +24,7 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
-import java.io.Serializable;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -32,7 +33,6 @@ import static com.example.attendeeapp.ServerConfig.AUTHORIZATION_TOKEN;
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
     protected Map<String, Map<String, Double>> standLocations = new HashMap<>();
-
     private GoogleMap mMap;
 
     @Override
@@ -40,22 +40,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         requestStandLocations();
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
-        /*// Custom Toolbar (instead of standard actionbar)
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-
-        // Get a support ActionBar corresponding to this toolbar
-        ActionBar ab = getSupportActionBar();
-
-        // Enable the Up button
-        assert ab != null;
-        ab.setDisplayHomeAsUpEnabled(true);*/
-        //SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-        //        .findFragmentById(R.id.map);
-        //mapFragment.getMapAsync(this);
-        /*SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-                .findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);*/
     }
 
     @Override
@@ -87,10 +71,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                             .findFragmentById(R.id.map);
                     mapFragment.getMapAsync(MapsActivity.this);
                 } catch (JsonProcessingException e) {
-                    //TODO: handle exception
-                    Toast toast = Toast.makeText(MapsActivity.this, "Error!", Toast.LENGTH_SHORT);
+                    Log.e("MapsActivity", e.getMessage());
+                    Toast toast = Toast.makeText(MapsActivity.this, "Error parsing stand locations!", Toast.LENGTH_SHORT);
                     toast.show();
-                    e.printStackTrace();
                 }
             }
         }, new Response.ErrorListener() {
