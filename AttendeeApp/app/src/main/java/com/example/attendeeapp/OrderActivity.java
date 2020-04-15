@@ -255,6 +255,12 @@ public class OrderActivity extends AppCompatActivity {
             case R.id.settings_action:
                 // User chooses the "Settings" item
                 // TODO make settings activity
+                return true;
+            case R.id.map_action:
+                //User chooses the "Map" item
+                Intent mapIntent = new Intent(OrderActivity.this, MapsActivity.class);
+                startActivity(mapIntent);
+                return true;
             default:
                 return super.onOptionsItemSelected(item);
         }

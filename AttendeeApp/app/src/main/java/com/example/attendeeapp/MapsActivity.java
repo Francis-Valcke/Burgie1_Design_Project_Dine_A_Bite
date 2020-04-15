@@ -87,7 +87,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             @Override
             public @NonNull
             Map<String, String> getHeaders()  throws AuthFailureError {
-                Map<String, String> headers = new HashMap<String, String>();
+                Map<String, String> headers = new HashMap<>();
                 headers.put("Authorization", AUTHORIZATION_TOKEN);
                 return headers;
             }
