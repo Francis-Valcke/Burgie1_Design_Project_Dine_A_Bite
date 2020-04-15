@@ -109,7 +109,8 @@ public class OrderController {
             JSONObject orderRec = (JSONObject) ordersRecommendation;
 
             JSONObject orderJSON = (JSONObject) orderRec.get("order");
-            Order order = mapper.readValue(orderJSON.toJSONString(), Order.class);
+            CommonOrder commonOrder = mapper.readValue(orderJSON.toJSONString(), CommonOrder.class);
+            Order order= new Order(commonOrder);
             JSONArray recJSONs= (JSONArray) orderRec.get("recommendations");
             List<Recommendation> recommendations= mapper.readValue(recJSONs.toJSONString(), new TypeReference<List<Recommendation>>() {});
 
