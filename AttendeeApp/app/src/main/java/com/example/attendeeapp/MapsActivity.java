@@ -23,6 +23,7 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -36,8 +37,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
         requestStandLocations();
+        super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
         /*// Custom Toolbar (instead of standard actionbar)
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -52,28 +53,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         //SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
         //        .findFragmentById(R.id.map);
         //mapFragment.getMapAsync(this);
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-        requestStandLocations();
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+        /*SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);
+        mapFragment.getMapAsync(this);*/
     }
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-        if (standLocations.isEmpty()) {
-            LatLng test = new LatLng(-41, 151);
-            mMap.addMarker(new MarkerOptions().position(test).title("Heyo"));
-            mMap.moveCamera(CameraUpdateFactory.newLatLng(test));
-        }
         for (String standName : standLocations.keySet()) {
             Map<String, Double> coordinates = standLocations.get(standName);
-            System.out.println(standLocations);
             double lat = coordinates.get("latitude");
             double lon = coordinates.get("longitude");
             LatLng newStand = new LatLng(lat, lon);
@@ -94,6 +83,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 ObjectMapper mapper = new ObjectMapper();
                 try {
                     standLocations = mapper.readValue(response, new TypeReference<Map<String, Map<String, Double>>>() {});
+                    SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+                            .findFragmentById(R.id.map);
+                    mapFragment.getMapAsync(MapsActivity.this);
                 } catch (JsonProcessingException e) {
                     //TODO: handle exception
                     Toast toast = Toast.makeText(MapsActivity.this, "Error!", Toast.LENGTH_SHORT);
