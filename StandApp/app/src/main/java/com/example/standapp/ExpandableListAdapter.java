@@ -200,7 +200,7 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
             e.printStackTrace();
         }
 
-        System.out.println(jsonString);
+        System.out.println("Send order status update: " + jsonString);
 
         RequestQueue queue = Volley.newRequestQueue(context);
         String url = ServerConfig.EC_ADDRESS + "/publishEvent";

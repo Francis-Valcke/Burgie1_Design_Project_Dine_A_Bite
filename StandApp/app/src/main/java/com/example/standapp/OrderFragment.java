@@ -32,6 +32,7 @@ import com.example.standapp.order.CommonOrderStatusUpdate;
 import com.example.standapp.order.Event;
 import com.example.standapp.polling.PollingService;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.json.JSONArray;
@@ -115,10 +116,12 @@ public class OrderFragment extends Fragment {
 
                         for (int i = 0; i < response.length(); i++) {
                             try {
-                                JSONObject event = (JSONObject) response.get(i);
-                                listEvents.add(mapper.readValue(event.toString(), Event.class));
+                                JSONObject eventJSON = (JSONObject) response.get(i);
+                                Event event = mapper.readValue(eventJSON.toString(), Event.class);
+                                if (!event.getDataType().equals("Order")) return;
+                                listEvents.add(event);
 
-                                JSONObject eventData = (JSONObject) event.get("eventData");
+                                JSONObject eventData = (JSONObject) eventJSON.get("eventData");
                                 JSONObject order = (JSONObject) eventData.get("order");
                                 orders.add(mapper.readValue(order.toString(), CommonOrder.class));
                             } catch (JSONException | JsonProcessingException e) {
@@ -176,8 +179,8 @@ public class OrderFragment extends Fragment {
         System.out.println("POLLING SERVICE STARTED!");
 
         // Register the listener for polling updates
-        LocalBroadcastManager.getInstance(Objects.requireNonNull(mContext)).registerReceiver(
-                mMessageReceiver, new IntentFilter("orderUpdate"));
+        LocalBroadcastManager.getInstance(mContext).registerReceiver(mMessageReceiver,
+                new IntentFilter("eventUpdate"));
     }
 
     @Override
@@ -195,18 +198,36 @@ public class OrderFragment extends Fragment {
     private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            CommonOrder orderUpdate = (CommonOrder) intent.getSerializableExtra("orderUpdate");
 
-            System.out.println("CommonOrder received in BroadcastReceiver (OrderFragment)!");
+            Event eventUpdate = (Event) intent.getSerializableExtra("eventUpdate");
 
-            String orderName = "#" + orderUpdate.getId();
-            listDataHeader.add(orderName);
-            List<String> orderItems = new ArrayList<>();
-            for (CommonOrderItem item : orderUpdate.getOrderItems()) {
-                orderItems.add(item.getAmount() + " : " + item.getFoodName());
+            if (eventUpdate != null && eventUpdate.getDataType().equals("Order")) {
+                listEvents.add(eventUpdate);
+
+                ObjectMapper mapper = new ObjectMapper();
+                JsonNode eventData = eventUpdate.getEventData();
+                JsonNode orderJson = eventData.get("order");
+                try {
+                    CommonOrder orderUpdate = mapper.treeToValue(orderJson, CommonOrder.class);
+                    listOrders.add(orderUpdate);
+
+                    // TODO: or keep a separate order number count per stand?
+                    String orderName = "#" + orderUpdate.getId();
+                    listDataHeader.add(orderName);
+                    listStatus.put(orderName, CommonOrderStatusUpdate.status.PENDING);
+                    List<String> orderItems = new ArrayList<>();
+                    for (CommonOrderItem item : orderUpdate.getOrderItems()) {
+                        orderItems.add(item.getAmount() + " : " + item.getFoodName());
+                    }
+                    // Orders should have different order numbers (orderName)
+                    listHash.put(orderName, orderItems);
+                    listAdapter.notifyDataSetChanged();
+                } catch (JsonProcessingException e) {
+                    e.printStackTrace();
+                }
             }
-            listHash.put(orderName, orderItems);
-            listAdapter.notifyDataSetChanged();
+
         }
     };
+
 }
