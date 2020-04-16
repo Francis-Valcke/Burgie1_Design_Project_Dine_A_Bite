@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Handles the view for the stand menu's
@@ -59,12 +60,12 @@ public class MenuFragmentStand extends MenuFragment implements AdapterView.OnIte
         spinner.setOnItemSelectedListener(this);
 
         // Initiate the spinner item adapter
-        standListAdapter = new ArrayAdapter<>(getActivity(),
+        standListAdapter = new ArrayAdapter<>(Objects.requireNonNull(getActivity()),
                 R.layout.stand_spinner_item, new ArrayList<String>());
         spinner.setAdapter(standListAdapter);
 
         // Instantiates menu item list
-        ListView lView = (ListView) view.findViewById(R.id.menu_list);
+        ListView lView = view.findViewById(R.id.menu_list);
         menuAdapter = new MenuItemAdapter(menuItems, getActivity());
         menuAdapter.setCartChangeListener((OnCartChangeListener) getActivity());
         lView.setAdapter(menuAdapter);
@@ -101,9 +102,9 @@ public class MenuFragmentStand extends MenuFragment implements AdapterView.OnIte
     /**
      * Function to fetch the stand names from the server
      */
-    public void fetchStandNames() {
+    private void fetchStandNames() {
         // Instantiate the RequestQueue
-        RequestQueue queue = Volley.newRequestQueue(getActivity());
+        RequestQueue queue = Volley.newRequestQueue(Objects.requireNonNull(getActivity()));
         String url = ServerConfig.OM_ADDRESS + "/stands";
 
         // Request the stand names in JSON from the order manager

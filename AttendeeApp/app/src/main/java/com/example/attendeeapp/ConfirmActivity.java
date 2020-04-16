@@ -1,5 +1,6 @@
 package com.example.attendeeapp;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.graphics.Typeface;
 import android.location.Location;
@@ -378,6 +379,7 @@ public class ConfirmActivity extends AppCompatActivity implements AdapterView.On
     /**
      * Function that updates the textViews to show the received recommendation info
      */
+    @SuppressLint("SetTextI18n")
     public void showRecommendation() {
         if(recommendations != null) {
             if(recommendations.size() > 0) {

@@ -6,11 +6,8 @@ import android.os.Handler;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.attendeeapp.appDatabase.OrderDatabaseService;
 import com.example.attendeeapp.data.LoginDataSource;
 import com.example.attendeeapp.data.LoginRepository;
-import com.example.attendeeapp.data.model.LoggedInUser;
-import com.example.attendeeapp.json.CommonOrder;
 import com.example.attendeeapp.ui.login.LoginActivity;
 
 /**
@@ -18,13 +15,12 @@ import com.example.attendeeapp.ui.login.LoginActivity;
  */
 public class MainActivity extends AppCompatActivity {
 
-    private static int SPLASH_TIME_OUT = 800;
-
     /**
      * Called when app is first instantiated
      */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
@@ -32,6 +28,7 @@ public class MainActivity extends AppCompatActivity {
         //OrderDatabaseService orderDatabaseService = new OrderDatabaseService(getApplicationContext());
         //orderDatabaseService.deleteOrder(new CommonOrder());
 
+        int SPLASH_TIME_OUT = 800;
         new Handler().postDelayed(new Runnable() {
 
             @Override
@@ -48,5 +45,6 @@ public class MainActivity extends AppCompatActivity {
             }
 
         }, SPLASH_TIME_OUT);
+
     }
 }

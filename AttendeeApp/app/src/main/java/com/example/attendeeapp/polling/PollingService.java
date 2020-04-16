@@ -12,13 +12,11 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
-import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
-import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import com.example.attendeeapp.ServerConfig;
 import com.example.attendeeapp.data.LoginDataSource;
@@ -63,24 +61,17 @@ public class PollingService extends Service {
                 @Override
                 public void onResponse(JSONArray response) {
                     Toast mToast = null;
-                    if (mToast != null) mToast.cancel();
                     mToast = Toast.makeText(context, "Polling success",
                             Toast.LENGTH_SHORT);
                     mToast.show();
 
-
                     ObjectMapper mapper = new ObjectMapper();
-                    String details = null;
                     try {
-                        //details = (String) response.get("details");
-                        //JSONArray detailsJSON= new JSONArray(details);
-                        JSONArray detailsJSON = response;
-                        for(int i =0 ; i<detailsJSON.length(); i++){
-                            JSONObject event = (JSONObject) detailsJSON.get(0);
+                        for (int i = 0; i < response.length(); i++){
+                            JSONObject event = (JSONObject) response.get(0);
                             JSONObject eventData = (JSONObject) event.get("eventData");
                             JSONObject orderJson = eventData.getJSONObject("order");
                             CommonOrder order = mapper.readValue(orderJson.toString(), CommonOrder.class);
-
 
                             Intent intent = new Intent("orderUpdate");
                             intent.putExtra("orderUpdate", order);
@@ -90,13 +81,11 @@ public class PollingService extends Service {
                         Log.v("JSONException", "JSONException in polling service");
                     }
 
-
                 }
             }, new Response.ErrorListener() {
                 @Override
                 public void onErrorResponse(VolleyError error) {
                     Toast mToast = null;
-                    if (mToast != null) mToast.cancel();
                     mToast = Toast.makeText(context, "Polling failed",
                             Toast.LENGTH_SHORT);
                     mToast.show();
@@ -105,8 +94,8 @@ public class PollingService extends Service {
                 // Add JSON headers
                 @Override
                 public @NonNull
-                Map<String, String> getHeaders()  throws AuthFailureError {
-                    Map<String, String> headers = new HashMap<String, String>();
+                Map<String, String> getHeaders() {
+                    Map<String, String> headers = new HashMap<>();
                     headers.put("Authorization", user.getAuthorizationToken());
                     return headers;
                 }

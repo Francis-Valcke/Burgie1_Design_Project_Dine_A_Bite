@@ -38,7 +38,7 @@ public class CommonOrder implements Serializable {
     @TypeConverters(Converters.class)
     private List<CommonOrderItem> orderItems;
 
-    // Coordinates Attendee on moment that order was mad
+    // Coordinates Attendee on moment that order was made
     private double latitude;
     private double longitude;
 

@@ -36,7 +36,7 @@ import java.util.Map;
 
 /**
  * Activity to handle the show order overview
- * Loads previous orders from the internal database stored on the devide
+ * Loads previous orders from the internal database stored on the divide
  */
 public class OrderActivity extends AppCompatActivity {
 
