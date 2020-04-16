@@ -165,6 +165,19 @@ public class MenuHandlerTest {
                 .andReturn();
 
 
+        // ---- UPDATE MENU (BUT NOT REALLY) ----//
+
+        url = Thread.currentThread().getContextClassLoader().getResource("updateMenuWithEdgeCases.json");
+        assert url != null;
+        body = Resources.toString(url, StandardCharsets.UTF_8);
+
+        this.mockMvc.perform(post("/updateStand").contentType(MediaType.APPLICATION_JSON)
+                .content(body)
+                .header("Authorization", token))
+                .andExpect(status().isOk())
+                .andReturn();
+        //After this the updated fields should not have been changed
+
         // ---- RETRIEVE STAND AND CHECK IF UPDATES PERSISTED ---- //
 
         MvcResult result = this.mockMvc.perform(get("/standMenu").contentType(MediaType.APPLICATION_JSON)
@@ -222,6 +235,10 @@ public class MenuHandlerTest {
                 }
             }
         }
+
+        // ---- CHECK IF NO CHANGE TO FIELDS WITH EMPTY STRING, NEGATIVE VALUE OR EMPTY CATEGORIES ----
+
+
 
     }
 

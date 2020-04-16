@@ -1,0 +1,28 @@
+{
+  "name": "BurgerKing 1",
+  "brandName": "BurgerKing",
+  "latitude": 0,
+  "longitude": 0,
+  "menu": [
+    {
+      "name": "Burger One",
+      "standName": "BurgerKing 1",
+      "brandName": "BurgerKing",
+      "price": -1,
+      "preparationTime": -1,
+      "stock": 0,
+      "description": "",
+      "category": []
+    },
+    {
+      "name": "Chicken Pepper King",
+      "price": -1,
+      "stock": 0,
+      "standName": "BurgerKing 1",
+      "brandName": "BurgerKing",
+      "category": [],
+      "description": "",
+      "preparationTime": -1
+    }
+  ]
+}

@@ -89,31 +89,36 @@ public class Stand implements Serializable {
     public Stand update(CommonStand cs){
 
         //Update general fields
-        this.longitude = cs.getLongitude();
-        this.latitude = cs.getLatitude();
+        this.longitude = cs.getLongitude() < 0 ? this.longitude : cs.getLongitude();
+        this.latitude = cs.getLatitude() < 0 ? this.latitude : cs.getLatitude();
 
-        //Set the brand in the standId
-        BrandRepository brandRepository = SpringContext.getBean(BrandRepository.class);
-        Brand brand = brandRepository.findById(cs.getBrandName()).orElse(new Brand(cs.getBrandName()));
-        this.standId = new StandId(cs.getName(), brand);
-
-        //Update food list
-        FoodRepository foodRepository = SpringContext.getBean(FoodRepository.class);
-        this.foodList.clear();
+        // A map that allows search by hashcode
+        Map<Food, Food> originalMenu = foodList.stream().collect(Collectors.toMap(f -> f, f -> f));
+        // Clear the original menu
+        foodList.clear();
+        // Build the new menu
         cs.getMenu().forEach(cf -> {
+
             //TODO: should not be nescessary if everything is sent correctly
             cf.setBrandName(cs.getBrandName());
             cf.setStandName(cs.getName());
 
-            Food food = foodRepository.findFoodById(cf.getName(), cf.getStandName(), cf.getBrandName()).orElse(new Food(cf));
-            foodList.add(food);
-            food.setStand(this);
+            //Create a new Food object based on the common food to use as key
+            Food newFood = new Food(cf);
 
-            food.update(cf);
+            //The food item already exists and needs to be updated
+            if (originalMenu.containsKey(newFood)){
+                newFood = originalMenu.get(newFood);
+                newFood.update(cf);
+            }
+
+            //As the list was cleared, every food item, new or old and adjusted needs to be added back to the foodList
+            foodList.add(newFood);
+            newFood.setStand(this);
+
         });
 
         return this;
-
     }
 
     /**

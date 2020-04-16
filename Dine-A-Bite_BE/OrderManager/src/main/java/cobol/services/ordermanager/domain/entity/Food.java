@@ -99,21 +99,19 @@ public class Food {
     public Food update(CommonFood cf){
 
         //Setting general fields
-        this.description = cf.getDescription();
-        this.price = cf.getPrice().floatValue();
-        this.preparationTime = cf.getPreparationTime();
-        this.stock = cf.getStock();
+        this.description = cf.getDescription().equals("") ? this.description : cf.getDescription();
+        this.price = cf.getPrice().floatValue() < 0 ? this.price : cf.getPrice().floatValue();
+        this.preparationTime = cf.getPreparationTime() < 0 ? this.preparationTime : cf.getPreparationTime();
+        //Stock will be 0 if no stock has changed
+        this.stock += cf.getStock();
 
-        //Setting categories
-        this.category.clear();
-        CategoryRepository categoryRepository = SpringContext.getBean(CategoryRepository.class);
-        cf.getCategory().forEach(c -> category.add(categoryRepository.findById(c).orElse(categoryRepository.save(new Category(c)))));
-
-        //Setting foodId
-        StandRepository standRepository = SpringContext.getBean(StandRepository.class);
-        Stand stand = standRepository.findStandById(cf.getStandName(), cf.getBrandName())
-                .orElse(new Stand(cf.getStandName(), cf.getBrandName()));
-        this.foodId = new FoodId(cf.getName(), stand);
+        // When categories is empty the categories should remain unchanged
+        if (!cf.getCategory().isEmpty()){
+            //Setting categories
+            this.category.clear();
+            CategoryRepository categoryRepository = SpringContext.getBean(CategoryRepository.class);
+            cf.getCategory().forEach(c -> category.add(categoryRepository.findById(c).orElse(categoryRepository.save(new Category(c)))));
+        }
 
         return this;
     }
