@@ -60,6 +60,7 @@ public class MenuItemAdapter extends BaseAdapter {
         if (view == null) {
             LayoutInflater inflater = (LayoutInflater) context
                     .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+            // Root cannot be parent
             view = inflater.inflate(R.layout.menu_item_material, null);
         }
 

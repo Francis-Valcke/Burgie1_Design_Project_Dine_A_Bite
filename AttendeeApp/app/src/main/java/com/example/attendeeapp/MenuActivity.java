@@ -1,5 +1,6 @@
 package com.example.attendeeapp;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
@@ -81,6 +82,7 @@ public class MenuActivity extends AppCompatActivity implements OnCartChangeListe
         });
     }
 
+    @SuppressLint("SetTextI18n")
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -89,7 +91,7 @@ public class MenuActivity extends AppCompatActivity implements OnCartChangeListe
                 // Ignore warning
                 cartList = (ArrayList<CommonFood>) data.getSerializableExtra("cartList");
                 cartCount = data.getIntExtra("cartCount", 0);
-                TextView totalCount = (TextView)findViewById(R.id.cart_count);
+                TextView totalCount = findViewById(R.id.cart_count);
                 totalCount.setText("" + cartCount);
             }
 

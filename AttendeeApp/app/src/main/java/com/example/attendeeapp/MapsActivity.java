@@ -7,13 +7,15 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.FragmentActivity;
 
-import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+import com.example.attendeeapp.data.LoginDataSource;
+import com.example.attendeeapp.data.LoginRepository;
+import com.example.attendeeapp.data.model.LoggedInUser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -24,16 +26,16 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
-
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
-import static com.example.attendeeapp.ServerConfig.AUTHORIZATION_TOKEN;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
     protected Map<String, Map<String, Double>> standLocations = new HashMap<>();
-    private GoogleMap mMap;
+
+    private LoggedInUser user = LoginRepository.getInstance(new LoginDataSource()).getLoggedInUser();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,14 +46,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
-        mMap = googleMap;
         for (String standName : standLocations.keySet()) {
             Map<String, Double> coordinates = standLocations.get(standName);
             double lat = coordinates.get("latitude");
             double lon = coordinates.get("longitude");
             LatLng newStand = new LatLng(lat, lon);
-            mMap.addMarker(new MarkerOptions().position(newStand).title(standName));
-            mMap.moveCamera(CameraUpdateFactory.newLatLng(newStand));
+            googleMap.addMarker(new MarkerOptions().position(newStand).title(standName));
+            googleMap.moveCamera(CameraUpdateFactory.newLatLng(newStand));
         }
     }
 
@@ -71,7 +72,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                             .findFragmentById(R.id.map);
                     mapFragment.getMapAsync(MapsActivity.this);
                 } catch (JsonProcessingException e) {
-                    Log.e("MapsActivity", e.getMessage());
+                    Log.e("MapsActivity", Objects.requireNonNull(e.getMessage()));
                     Toast toast = Toast.makeText(MapsActivity.this, "Error parsing stand locations!", Toast.LENGTH_SHORT);
                     toast.show();
                 }
@@ -86,9 +87,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             // Add JSON headers
             @Override
             public @NonNull
-            Map<String, String> getHeaders()  throws AuthFailureError {
+            Map<String, String> getHeaders() {
                 Map<String, String> headers = new HashMap<>();
-                headers.put("Authorization", AUTHORIZATION_TOKEN);
+                headers.put("Authorization", user.getAuthorizationToken());
                 return headers;
             }
         };

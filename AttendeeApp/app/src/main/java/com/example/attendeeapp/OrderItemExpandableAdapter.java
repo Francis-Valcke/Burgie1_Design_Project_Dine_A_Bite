@@ -1,5 +1,6 @@
 package com.example.attendeeapp;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -69,17 +70,16 @@ public class OrderItemExpandableAdapter extends BaseExpandableListAdapter {
      * Create the view for one group item in the expandable list, always visible
      * @param i = the position of the group item
      * @param b = if the group item is currently selected (and expanded)
-     * @param view
-     * @param viewGroup
-     * @return
      */
+    @SuppressLint("SetTextI18n")
     @Override
     public View getGroupView(int i, boolean b, View view, ViewGroup viewGroup) {
         CommonOrder currentOrder = orders.get(i);
         if(view == null)
         {
             LayoutInflater inflater =(LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-            view = inflater.inflate(R.layout.order_group_expandable,null);
+            // root cannot be viewGroup
+            view = inflater.inflate(R.layout.order_group_expandable, null);
         }
 
         // Make a spinning exclamation mark to notify user of changes (not used yet)
@@ -109,11 +109,8 @@ public class OrderItemExpandableAdapter extends BaseExpandableListAdapter {
      * Create the view of 1 child items of 1 group, only visible if group item is expanded
      * @param groupPos = the child's (parent) group item position
      * @param childPos = the child position (of all children)
-     * @param b
-     * @param view
-     * @param viewGroup
-     * @return
      */
+    @SuppressLint("SetTextI18n")
     @Override
     public View getChildView(int groupPos, int childPos, boolean b, View view, ViewGroup viewGroup) {
         CommonOrder currentOrder = getGroup(groupPos);

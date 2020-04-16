@@ -60,6 +60,7 @@ public class CartItemAdapter  extends BaseAdapter {
         if (view == null) {
             LayoutInflater inflater = (LayoutInflater) context
                     .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+            // root cannot be parent
             view = inflater.inflate(R.layout.cart_item_material, null);
         }
 

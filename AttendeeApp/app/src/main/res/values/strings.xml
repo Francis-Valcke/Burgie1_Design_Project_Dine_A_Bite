@@ -31,9 +31,19 @@
     <string name="recommend_time">You will have to wait: </string>
     <string name="recommend_distance">You will have to walk: </string>
     <string name="event_map">Stand locations: </string>
-
     <string name="chosen_brand">(By: </string>
     <string name="chosen_stand">Your pickup point: </string>
     <string name="title_activity_maps">Map</string>
     <string name="total">Total</string>
+    <string name="title_activity_login">Sign in</string>
+    <string name="prompt_username">Username</string>
+    <string name="prompt_password">Password</string>
+    <string name="action_sign_in">Sign in or register</string>
+    <string name="action_sign_in_short">Sign in</string>
+    <string name="welcome">"Welcome! "</string>
+    <string name="invalid_username">Not a valid username</string>
+    <string name="invalid_password">Password must be >5 characters</string>
+    <string name="login_failed">"Login failed"</string>
+    <string name="new_user_helper_text">New? You can create your account by filling in a unique username and secure password.</string>
+    <string name="shared_pref_file_key">com.example.attendeeapp.PREFERENCE_FILE_KEY</string>
 </resources>

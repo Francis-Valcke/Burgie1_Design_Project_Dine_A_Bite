@@ -23,6 +23,9 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+import com.example.attendeeapp.data.LoginDataSource;
+import com.example.attendeeapp.data.LoginRepository;
+import com.example.attendeeapp.data.model.LoggedInUser;
 import com.example.attendeeapp.json.CommonOrder;
 import com.example.attendeeapp.polling.PollingService;
 import com.example.attendeeapp.appDatabase.OrderDatabaseService;
@@ -31,11 +34,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.example.attendeeapp.ServerConfig.AUTHORIZATION_TOKEN;
-
 /**
  * Activity to handle the show order overview
- * Loads previous orders from the internal database stored on the devide
+ * Loads previous orders from the internal database stored on the divide
  */
 public class OrderActivity extends AppCompatActivity {
 
@@ -43,6 +44,7 @@ public class OrderActivity extends AppCompatActivity {
     private ArrayList<CommonOrder> orders;
     private OrderDatabaseService orderDatabaseService;
     private OrderItemExpandableAdapter adapter;
+    private LoggedInUser user = LoginRepository.getInstance(new LoginDataSource()).getLoggedInUser();
 
     // Receives the order updates from the polling service
     private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
@@ -154,9 +156,9 @@ public class OrderActivity extends AppCompatActivity {
         }) {
             // Add JSON headers
             @Override
-            public @NonNull Map<String, String> getHeaders() {
+            public @NonNull Map<String, String> getHeaders()  {
                 Map<String, String> headers = new HashMap<>();
-                headers.put("Authorization", AUTHORIZATION_TOKEN);
+                headers.put("Authorization", user.getAuthorizationToken());
                 return headers;
             }
         };
@@ -214,7 +216,7 @@ public class OrderActivity extends AppCompatActivity {
             @Override
             public @NonNull Map<String, String> getHeaders() {
                 Map<String, String> headers = new HashMap<>();
-                headers.put("Authorization", AUTHORIZATION_TOKEN);
+                headers.put("Authorization", user.getAuthorizationToken());
                 return headers;
             }
         };

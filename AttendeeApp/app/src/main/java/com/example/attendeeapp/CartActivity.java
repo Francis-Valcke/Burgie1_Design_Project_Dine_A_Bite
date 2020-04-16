@@ -1,6 +1,7 @@
 package com.example.attendeeapp;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
@@ -26,11 +27,14 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Locale;
+import java.util.Objects;
 
 /**
  * Activity to handle the view cart page
@@ -78,8 +82,10 @@ public class CartActivity extends AppCompatActivity {
 
         // Handle TextView to display total cart amount (price)
         BigDecimal amount = new BigDecimal(0).setScale(2, RoundingMode.HALF_UP);
-        for (CommonFood i : ordered) {
-            amount = amount.add(i.getPrice().multiply(new BigDecimal((i.getCount()))));
+        if (ordered != null) {
+            for (CommonFood i : ordered) {
+                amount = amount.add(i.getPrice().multiply(new BigDecimal((i.getCount()))));
+            }
         }
         updatePrice(amount);
 
@@ -155,7 +161,7 @@ public class CartActivity extends AppCompatActivity {
             fusedLocationClient.getLastLocation()
                     .addOnCompleteListener(new OnCompleteListener<Location>() {
                         @Override
-                        public void onComplete(Task<Location> task ) {
+                        public void onComplete(@NotNull Task<Location> task ) {
                             if(task.isSuccessful() && task.getResult() != null){
                                 lastLocation = task.getResult();
                             }
@@ -172,8 +178,8 @@ public class CartActivity extends AppCompatActivity {
      * @param grantResults: if the permission is granted or not
      */
     @Override
-    public void onRequestPermissionsResult(int requestCode,
-                                           String[] permissions, int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, @NotNull String[] permissions,
+                                           @NotNull int[] grantResults) {
         switch (requestCode) {
             case 1: {
                 // If request is cancelled, the result arrays are empty.
@@ -185,7 +191,7 @@ public class CartActivity extends AppCompatActivity {
                     fusedLocationClient.getLastLocation()
                             .addOnCompleteListener(new OnCompleteListener<Location>() {
                                 @Override
-                                public void onComplete(Task<Location> task ) {
+                                public void onComplete(@NotNull Task<Location> task ) {
                                     if(task.isSuccessful() && task.getResult() != null){
                                         lastLocation = task.getResult();
                                     }
@@ -206,11 +212,12 @@ public class CartActivity extends AppCompatActivity {
      * Function to handle price updates when the cart updates its items
      * @param amount: amount to be added, can be positive or negative
      */
+    @SuppressLint("SetTextI18n")
     public void updatePrice(BigDecimal amount) {
         TextView total = findViewById(R.id.cart_total_price);
         NumberFormat euro = NumberFormat.getCurrencyInstance(Locale.FRANCE);
         euro.setMinimumFractionDigits(2);
-        String symbol = euro.getCurrency().getSymbol();
+        String symbol = Objects.requireNonNull(euro.getCurrency()).getSymbol();
         totalPrice = totalPrice.add(amount);
         total.setText(symbol + totalPrice);
     }

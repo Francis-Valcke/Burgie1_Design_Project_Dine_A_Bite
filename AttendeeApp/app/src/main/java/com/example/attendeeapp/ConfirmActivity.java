@@ -1,5 +1,6 @@
 package com.example.attendeeapp;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.graphics.Typeface;
 import android.location.Location;
@@ -27,6 +28,9 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
+import com.example.attendeeapp.data.LoginDataSource;
+import com.example.attendeeapp.data.LoginRepository;
+import com.example.attendeeapp.data.model.LoggedInUser;
 import com.example.attendeeapp.json.CommonFood;
 import com.example.attendeeapp.json.CommonOrder;
 import com.example.attendeeapp.json.Recommendation;
@@ -47,8 +51,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import static com.example.attendeeapp.ServerConfig.AUTHORIZATION_TOKEN;
-
 /**
  * Activity that handles the confirmation/choosing of the (recommended) stand of the placed order
  */
@@ -64,6 +66,8 @@ public class ConfirmActivity extends AppCompatActivity implements AdapterView.On
     private CommonOrder orderReceived = null;
     private String chosenStand = null;
     private Toast mToast = null;
+
+    private LoggedInUser user = LoginRepository.getInstance(new LoginDataSource()).getLoggedInUser();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -298,7 +302,7 @@ public class ConfirmActivity extends AppCompatActivity implements AdapterView.On
             public @NonNull Map<String, String> getHeaders() {
                 Map<String, String>  headers  = new HashMap<>();
                 headers.put("Content-Type", "application/json");
-                headers.put("Authorization", AUTHORIZATION_TOKEN);
+                headers.put("Authorization", user.getAuthorizationToken());
                 return headers;
             }
         };
@@ -361,9 +365,9 @@ public class ConfirmActivity extends AppCompatActivity implements AdapterView.On
         }) { // Add JSON headers
             @Override
             public @NonNull
-            Map<String, String> getHeaders() {
+            Map<String, String> getHeaders()  {
                 Map<String, String>  headers  = new HashMap<>();
-                headers.put("Authorization", AUTHORIZATION_TOKEN);
+                headers.put("Authorization", user.getAuthorizationToken());
                 return headers;
             }
         };
@@ -375,6 +379,7 @@ public class ConfirmActivity extends AppCompatActivity implements AdapterView.On
     /**
      * Function that updates the textViews to show the received recommendation info
      */
+    @SuppressLint("SetTextI18n")
     public void showRecommendation() {
         if(recommendations != null) {
             if(recommendations.size() > 0) {
