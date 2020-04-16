@@ -51,6 +51,7 @@ public class OrderActivity extends AppCompatActivity {
         @Override
         public void onReceive(Context context, Intent intent) {
             CommonOrder orderUpdate = (CommonOrder) intent.getSerializableExtra("orderUpdate");
+            int a = 0;
         }
     };
 
@@ -104,20 +105,46 @@ public class OrderActivity extends AppCompatActivity {
         // Initiate the expandable order ListView
         ExpandableListView expandList = findViewById(R.id.order_expand_list);
         adapter = new OrderItemExpandableAdapter(this, orders);
+        //TODO: register subscriber
 
         expandList.setAdapter(adapter);
 
         // Register as subscriber to the orderId event channel
-        // to be used later
-        /*if (!isPollingServiceRunning(PollingService.class)){
+        if (!isPollingServiceRunning(PollingService.class)){
             getSubscriberId(newOrder.getId());
-        }*/
+        }
 
         // Send the order and chosen stand and brandName to the server and confirm the chosen stand
         String chosenStand = getIntent().getStringExtra("stand");
         String chosenBrand = getIntent().getStringExtra("brand");
         newOrder.setStandName(chosenStand);
         newOrder.setBrandName(chosenBrand);
+        confirmNewOrderStand(newOrder, chosenStand, chosenBrand);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        // Register the listener for polling updates
+        LocalBroadcastManager.getInstance(this).registerReceiver(
+                mMessageReceiver, new IntentFilter("orderUpdate"));
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        // Unregister the listener
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(mMessageReceiver);
+    }
+
+
+    /**
+     *
+     * @param newOrder
+     * @param chosenStand
+     * @param chosenBrand
+     */
+    public void confirmNewOrderStand(final CommonOrder newOrder, String chosenStand, String chosenBrand) {
         // Instantiate the RequestQueue
         RequestQueue queue = Volley.newRequestQueue(this);
         String url = ServerConfig.OM_ADDRESS;
@@ -126,6 +153,7 @@ public class OrderActivity extends AppCompatActivity {
                 newOrder.getId(),
                 chosenStand.replace("&","%26"),
                 chosenBrand.replace("&","%26"));
+        url = url.replace(' ' , '+');
 
         // Request a string response from the provided URL
         StringRequest stringRequest = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
@@ -165,21 +193,6 @@ public class OrderActivity extends AppCompatActivity {
 
         // Add the request to the RequestQueue
         queue.add(stringRequest);
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        // Register the listener for polling updates
-        LocalBroadcastManager.getInstance(this).registerReceiver(
-                mMessageReceiver, new IntentFilter("orderUpdate"));
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-        // Unregister the listener
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(mMessageReceiver);
     }
 
     /**
