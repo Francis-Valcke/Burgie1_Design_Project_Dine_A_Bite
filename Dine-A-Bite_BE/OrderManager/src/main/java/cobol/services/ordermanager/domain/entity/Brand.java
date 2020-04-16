@@ -1,8 +1,6 @@
 package cobol.services.ordermanager.domain.entity;
 
-import cobol.services.ordermanager.domain.json.BrandDeserializer;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.Data;
 
 import javax.persistence.CascadeType;
@@ -16,7 +14,7 @@ import java.util.Objects;
 
 @Entity
 @Data
-@JsonDeserialize(using = BrandDeserializer.class)
+//@JsonDeserialize(using = BrandDeserializer.class)
 public class Brand implements Serializable {
 
     @Id
@@ -27,12 +25,35 @@ public class Brand implements Serializable {
     private List<Stand> standList = new ArrayList<>();
 
     public Brand() {
+
     }
 
     public Brand(String name) {
         this.name = name;
-        standList = new ArrayList<>();
     }
+
+
+    // --- GETTERS & SETTERS ---
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public List<Stand> getStandList() {
+        return standList;
+    }
+
+    public void setStandList(List<Stand> standList) {
+        standList.forEach(s -> s.setBrand(this));
+
+        this.standList = standList;
+    }
+
+    // --- EXTRA ---
 
     @Override
     public boolean equals(Object o) {

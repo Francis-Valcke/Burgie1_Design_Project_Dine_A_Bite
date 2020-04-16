@@ -9,6 +9,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
+import java.util.Collections;
 
 /**
  * This class will be discovered by the component scanner and exposed as a bean on which the run method will be run.
@@ -31,7 +32,7 @@ public class DataInitializer implements CommandLineRunner {
         users.saveAndFlush(
                 User.builder()
                         .username("admin")
-                        .password(passwordEncoder.encode("admin"))
+                        .password(passwordEncoder.encode("adminadmin"))
                         .roles(Arrays.asList(Role.USER, Role.STAND, Role.ADMIN))
                         .build()
         );
@@ -39,15 +40,15 @@ public class DataInitializer implements CommandLineRunner {
         users.saveAndFlush(
                 User.builder()
                         .username("user")
-                        .password(passwordEncoder.encode("user"))
-                        .roles(Arrays.asList(Role.USER))
+                        .password(passwordEncoder.encode("useruser"))
+                        .roles(Collections.singletonList(Role.USER))
                         .build()
         );
 
         users.saveAndFlush(
                 User.builder()
                         .username("stand")
-                        .password(passwordEncoder.encode("stand"))
+                        .password(passwordEncoder.encode("standstand"))
                         .roles(Arrays.asList(Role.USER, Role.STAND))
                         .build()
         );
@@ -56,7 +57,7 @@ public class DataInitializer implements CommandLineRunner {
                 User.builder()
                         .username("OrderManager")
                         .password(passwordEncoder.encode("OrderManager"))
-                        .roles(Arrays.asList(Role.APPLICATION))
+                        .roles(Collections.singletonList(Role.APPLICATION))
                         .build()
         );
 
@@ -64,7 +65,7 @@ public class DataInitializer implements CommandLineRunner {
                 User.builder()
                         .username("StandManager")
                         .password(passwordEncoder.encode("StandManager"))
-                        .roles(Arrays.asList(Role.APPLICATION))
+                        .roles(Collections.singletonList(Role.APPLICATION))
                         .build()
         );
     }

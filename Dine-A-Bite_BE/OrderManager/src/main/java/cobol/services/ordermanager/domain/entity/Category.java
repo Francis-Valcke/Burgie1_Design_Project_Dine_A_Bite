@@ -1,20 +1,16 @@
 package cobol.services.ordermanager.domain.entity;
 
-import cobol.services.ordermanager.domain.json.CategoryDeserializer;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.Data;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.ManyToMany;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 @Data
 @Entity
-@JsonDeserialize(using = CategoryDeserializer.class)
+//@JsonDeserialize(using = CategoryDeserializer.class)
 public class Category {
 
     @Id
