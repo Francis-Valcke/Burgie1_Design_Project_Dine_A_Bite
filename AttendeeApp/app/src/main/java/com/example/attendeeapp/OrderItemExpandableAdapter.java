@@ -78,7 +78,8 @@ public class OrderItemExpandableAdapter extends BaseExpandableListAdapter {
         if(view == null)
         {
             LayoutInflater inflater =(LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-            view = inflater.inflate(R.layout.order_group_expandable,viewGroup);
+            // root cannot be viewGroup
+            view = inflater.inflate(R.layout.order_group_expandable, null);
         }
 
         // Make a spinning exclamation mark to notify user of changes (not used yet)
@@ -143,7 +144,7 @@ public class OrderItemExpandableAdapter extends BaseExpandableListAdapter {
 
         if(childPos == getChildrenCount(groupPos)-1)
         {
-            view = inflater.inflate(R.layout.order_item_expandable_footer, viewGroup);
+            view = inflater.inflate(R.layout.order_item_expandable_footer, null);
             // Handle footer for order stand and brand details
             TextView txtStandName = view.findViewById(R.id.order_footer_stand);
             TextView txtBrandName = view.findViewById(R.id.order_footer_brand);

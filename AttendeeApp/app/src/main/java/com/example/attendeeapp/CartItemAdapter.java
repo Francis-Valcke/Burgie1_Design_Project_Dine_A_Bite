@@ -60,7 +60,8 @@ public class CartItemAdapter  extends BaseAdapter {
         if (view == null) {
             LayoutInflater inflater = (LayoutInflater) context
                     .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-            view = inflater.inflate(R.layout.cart_item_material, parent);
+            // root cannot be parent
+            view = inflater.inflate(R.layout.cart_item_material, null);
         }
 
         //Handle TextView to display one cart item name, if this name has a stand, display it too
