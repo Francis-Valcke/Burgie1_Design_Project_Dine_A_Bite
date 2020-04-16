@@ -89,8 +89,8 @@ public class OrderDatabaseService {
 
         @Override
         protected Void doInBackground(Void... voids) {
-            //orderDatabase.orderDao().deleteOrder(order);
-            orderDatabase.clearAllTables();
+            orderDatabase.orderDao().deleteOrder(order);
+            //orderDatabase.clearAllTables();
             return null;
         }
     }

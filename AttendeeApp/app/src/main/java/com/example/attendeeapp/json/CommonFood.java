@@ -126,7 +126,7 @@ public class CommonFood implements Serializable {
     }
 
     public void setPrice(BigDecimal price) {
-        this.price = price;
+        this.price = price.setScale(2, RoundingMode.HALF_UP);
     }
 
     /**

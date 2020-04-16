@@ -6,13 +6,15 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
+import android.view.animation.RotateAnimation;
 import android.widget.BaseExpandableListAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.example.attendeeapp.appDatabase.OrderDatabaseService;
 import com.example.attendeeapp.json.CommonOrder;
 import com.example.attendeeapp.json.CommonOrderItem;
+import com.example.attendeeapp.json.CommonOrderStatusUpdate;
 
 import java.util.ArrayList;
 
@@ -23,11 +25,13 @@ public class OrderItemExpandableAdapter extends BaseExpandableListAdapter {
 
     private Context context;
     private ArrayList<CommonOrder> orders;
+    private OrderDatabaseService orderDatabaseService;
 
-    public OrderItemExpandableAdapter(Context context, ArrayList<CommonOrder> orders)
+    public OrderItemExpandableAdapter(Context context, ArrayList<CommonOrder> orders, OrderDatabaseService orderDatabaseService)
     {
         this.context = context;
         this.orders = orders;
+        this.orderDatabaseService = orderDatabaseService;
     }
 
     @Override
@@ -66,6 +70,22 @@ public class OrderItemExpandableAdapter extends BaseExpandableListAdapter {
         return false;
     }
 
+    @Override
+    public void onGroupExpanded(int groupPosition) {
+        CommonOrder currentOrder = orders.get(groupPosition);
+        orderDatabaseService.updateOrder(currentOrder);
+        if (!currentOrder.isUpdateSeen()) currentOrder.setUpdateSeen(true);
+        super.onGroupExpanded(groupPosition);
+    }
+
+    @Override
+    public void onGroupCollapsed(int groupPosition) {
+        CommonOrder currentOrder = orders.get(groupPosition);
+        orderDatabaseService.updateOrder(currentOrder);
+        if (!currentOrder.isUpdateSeen()) currentOrder.setUpdateSeen(true);
+        super.onGroupCollapsed(groupPosition);
+    }
+
     /**
      * Create the view for one group item in the expandable list, always visible
      * @param i = the position of the group item
@@ -75,20 +95,28 @@ public class OrderItemExpandableAdapter extends BaseExpandableListAdapter {
     @Override
     public View getGroupView(int i, boolean b, View view, ViewGroup viewGroup) {
         CommonOrder currentOrder = orders.get(i);
-        if(view == null)
+        if (view == null)
         {
             LayoutInflater inflater =(LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
             // root cannot be viewGroup
             view = inflater.inflate(R.layout.order_group_expandable, null);
         }
 
-        // Make a spinning exclamation mark to notify user of changes (not used yet)
+        // Make a rotating exclamation mark to notify user of changes
         ImageView highPriority = view.findViewById(R.id.order_group_priority);
-        Animation rotation = AnimationUtils.loadAnimation(context, R.anim.priority_high);
-        rotation.setDuration(1000);
-        rotation.setRepeatCount(Animation.INFINITE);
-        highPriority.startAnimation(rotation);
-        highPriority.setVisibility(View.GONE);
+        RotateAnimation rotation = new RotateAnimation(0, 360, Animation.RELATIVE_TO_SELF,
+                0.5f, Animation.RELATIVE_TO_SELF, 0.5f);
+
+        // Check if animation has to be visible (if user has seen the order update)
+        if (currentOrder.isUpdateSeen()) {
+            if (highPriority.getAnimation() != null) highPriority.getAnimation().cancel();
+            highPriority.setVisibility(View.GONE);
+        } else {
+            highPriority.setVisibility(View.VISIBLE);
+            rotation.setDuration(1000);
+            rotation.setRepeatCount(Animation.INFINITE);
+            highPriority.startAnimation(rotation);
+        }
 
         // Handle textViews of the order expandable title
         TextView textID = view.findViewById(R.id.order_group_title_id);
@@ -117,13 +145,13 @@ public class OrderItemExpandableAdapter extends BaseExpandableListAdapter {
         LayoutInflater inflater = (LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
         // The first row is used as header
-        if(childPos == 0)
+        if (childPos == 0)
         {
             view = inflater.inflate(R.layout.order_item_expandable_header, null);
         }
 
         // Here is the ListView of the ChildView is handled
-        if(childPos > 0 && childPos < getChildrenCount(groupPos)-1)
+        if (childPos > 0 && childPos < getChildrenCount(groupPos)-1)
         {
             // Handle one menuItem of the order being shown
             CommonOrderItem currentItem = getChild(groupPos,childPos-1);
@@ -142,14 +170,16 @@ public class OrderItemExpandableAdapter extends BaseExpandableListAdapter {
             }*/
         }
 
-        if(childPos == getChildrenCount(groupPos)-1)
+        if (childPos == getChildrenCount(groupPos)-1)
         {
             view = inflater.inflate(R.layout.order_item_expandable_footer, null);
             // Handle footer for order stand and brand details
             TextView txtStandName = view.findViewById(R.id.order_footer_stand);
             TextView txtBrandName = view.findViewById(R.id.order_footer_brand);
+            TextView txtOrderStatus = view.findViewById(R.id.order_footer_status);
             txtStandName.setText(currentOrder.getStandName());
             txtBrandName.setText(currentOrder.getBrandName() + ")");
+            txtOrderStatus.setText(currentOrder.getOrderState().toString());
         }
         return view;
     }
@@ -157,6 +187,26 @@ public class OrderItemExpandableAdapter extends BaseExpandableListAdapter {
     @Override
     public boolean isChildSelectable(int i, int i1) {
         return false;
+    }
+
+    /**
+     * Updates the order status for a given order id
+     * @param orderId : the order id for which the status update holds
+     * @param status : the new order status
+     */
+    public void updateOrder(int orderId, CommonOrderStatusUpdate.status status) {
+            for (CommonOrder order : orders) {
+                if (order.getId() == orderId) {
+                    CommonOrder.State oldState = order.getOrderState();
+                    CommonOrder.State newState = CommonOrder.State.values()[status.ordinal()];
+                    if (oldState != newState) {
+                        order.setOrderState(newState);
+                        order.setUpdateSeen(false);
+                        orderDatabaseService.updateOrder(order);
+                    }
+
+                }
+            }
     }
 
 

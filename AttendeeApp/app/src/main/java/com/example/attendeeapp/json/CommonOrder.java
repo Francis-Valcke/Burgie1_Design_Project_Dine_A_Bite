@@ -48,6 +48,8 @@ public class CommonOrder implements Serializable {
 
     @JsonIgnore
     private int totalCount;
+    @JsonIgnore
+    private boolean updateSeen = true;
 
     public enum State {
         SEND,
@@ -177,6 +179,14 @@ public class CommonOrder implements Serializable {
 
     public void setTotalCount(int totalCount) {
         this.totalCount = totalCount;
+    }
+
+    public boolean isUpdateSeen() {
+        return updateSeen;
+    }
+
+    public void setUpdateSeen(boolean updateSeen) {
+        this.updateSeen = updateSeen;
     }
 
     /**
