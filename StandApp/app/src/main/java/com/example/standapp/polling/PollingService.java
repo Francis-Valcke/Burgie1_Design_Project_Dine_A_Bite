@@ -12,7 +12,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
-import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
@@ -24,15 +23,12 @@ import com.example.standapp.data.LoginDataSource;
 import com.example.standapp.data.LoginRepository;
 import com.example.standapp.data.model.LoggedInUser;
 import com.example.standapp.order.CommonOrder;
-import com.example.standapp.order.CommonOrderItem;
 import com.example.standapp.order.Event;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -44,15 +40,17 @@ import java.util.Map;
  * Service that polls the server for order updates
  */
 public class PollingService extends Service {
-    private Handler handler;
-    private Context context;
 
+    private Context context;
+    private Handler handler;
     private ArrayList<Event> listEvents = new ArrayList<>();
     private ArrayList<CommonOrder> listOrders = new ArrayList<>();
 
     public static final long DEFAULT_SYNC_INTERVAL = 10 * 1000;
-    final LoggedInUser user = LoginRepository.getInstance(new LoginDataSource()).getLoggedInUser();
 
+    private final LoggedInUser user = LoginRepository.getInstance(new LoginDataSource()).getLoggedInUser();
+
+    // Subscriber ID for Event Channel
     private int subscribeId;
 
     // Runnable that contains the order polling method
@@ -70,8 +68,7 @@ public class PollingService extends Service {
                     null, new Response.Listener<JSONArray>() {
                 @Override
                 public void onResponse(JSONArray response) {
-                    Toast mToast = null;
-                    mToast = Toast.makeText(context, "Polling success",
+                    Toast mToast = Toast.makeText(context, "Polling success",
                             Toast.LENGTH_SHORT);
                     mToast.show();
 
@@ -102,13 +99,11 @@ public class PollingService extends Service {
             }, new Response.ErrorListener() {
                 @Override
                 public void onErrorResponse(VolleyError error) {
-                    Toast mToast = null;
-                    mToast = Toast.makeText(context, "Polling failed",
+                    Toast mToast = Toast.makeText(context, "Polling failed",
                             Toast.LENGTH_SHORT);
                     mToast.show();
                 }
             }) {
-                // Add JSON headers
                 @Override
                 public @NonNull
                 Map<String, String> getHeaders() {
@@ -149,7 +144,7 @@ public class PollingService extends Service {
 
     @Override
     public void onDestroy() {
-        System.out.println("ONDESTROY CALLED IN POLLINGSERVICE CLASS");
+        System.out.println("ON_DESTROY CALLED IN POLLING_SERVICE CLASS");
         handler.removeCallbacks(runnableService);
         stopSelf();
         super.onDestroy();

@@ -22,7 +22,6 @@ import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
-import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.example.standapp.data.LoginDataSource;
 import com.example.standapp.data.LoginRepository;
@@ -58,25 +57,6 @@ public class OrderFragment extends Fragment {
 
     // ID from the Event Channel
     private String subscriberId;
-
-    // Receives the order updates from the polling service
-    private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            CommonOrder orderUpdate = (CommonOrder) intent.getSerializableExtra("orderUpdate");
-
-            System.out.println("CommonOrder received in BroadcastReceiver (OrderFragment)!");
-
-            String orderName = "#" + orderUpdate.getId();
-            listDataHeader.add(orderName);
-            List<String> orderItems = new ArrayList<>();
-            for (CommonOrderItem item : orderUpdate.getOrderItems()) {
-                orderItems.add(item.getAmount() + " : " + item.getFoodName());
-            }
-            listHash.put(orderName, orderItems);
-            listAdapter.notifyDataSetChanged();
-        }
-    };
 
     @Nullable
     @Override
@@ -186,6 +166,7 @@ public class OrderFragment extends Fragment {
     @Override
     public void onPause() {
         super.onPause();
+
         // Unregister the listener
         LocalBroadcastManager.getInstance(Objects.requireNonNull(mContext))
                 .unregisterReceiver(mMessageReceiver);
@@ -197,4 +178,23 @@ public class OrderFragment extends Fragment {
         super.onAttach(context);
         mContext = context;
     }
+
+    // Receives the order updates from the polling service
+    private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            CommonOrder orderUpdate = (CommonOrder) intent.getSerializableExtra("orderUpdate");
+
+            System.out.println("CommonOrder received in BroadcastReceiver (OrderFragment)!");
+
+            String orderName = "#" + orderUpdate.getId();
+            listDataHeader.add(orderName);
+            List<String> orderItems = new ArrayList<>();
+            for (CommonOrderItem item : orderUpdate.getOrderItems()) {
+                orderItems.add(item.getAmount() + " : " + item.getFoodName());
+            }
+            listHash.put(orderName, orderItems);
+            listAdapter.notifyDataSetChanged();
+        }
+    };
 }
