@@ -202,7 +202,7 @@ public class OrderActivity extends AppCompatActivity {
     public void getSubscriberId(int orderId) {
         // Instantiate the RequestQueue
         RequestQueue queue = Volley.newRequestQueue(this);
-        String url = ServerConfig.EC_ADDRESS + "/registerSubscriber?types=o" + orderId;
+        String url = ServerConfig.EC_ADDRESS + "/registerSubscriber?types=o_" + orderId;
 
         // Request a string response from the provided URL
         StringRequest stringRequest = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
