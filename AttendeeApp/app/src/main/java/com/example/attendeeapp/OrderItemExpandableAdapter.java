@@ -13,6 +13,7 @@ import android.widget.TextView;
 
 import com.example.attendeeapp.json.CommonOrder;
 import com.example.attendeeapp.json.CommonOrderItem;
+import com.example.attendeeapp.json.CommonOrderStatusUpdate;
 
 import java.util.ArrayList;
 
@@ -157,6 +158,14 @@ public class OrderItemExpandableAdapter extends BaseExpandableListAdapter {
     @Override
     public boolean isChildSelectable(int i, int i1) {
         return false;
+    }
+
+    public void updateOrder(int orderId, CommonOrderStatusUpdate.status status) {
+            for (CommonOrder order : orders) {
+                if (order.getId() == orderId) {
+                    order.setBrandName("you did it");
+                }
+            }
     }
 
 

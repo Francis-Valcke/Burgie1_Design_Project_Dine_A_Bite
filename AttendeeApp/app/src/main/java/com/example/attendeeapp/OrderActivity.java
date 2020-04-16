@@ -27,6 +27,7 @@ import com.example.attendeeapp.data.LoginDataSource;
 import com.example.attendeeapp.data.LoginRepository;
 import com.example.attendeeapp.data.model.LoggedInUser;
 import com.example.attendeeapp.json.CommonOrder;
+import com.example.attendeeapp.json.CommonOrderStatusUpdate;
 import com.example.attendeeapp.polling.PollingService;
 import com.example.attendeeapp.appDatabase.OrderDatabaseService;
 
@@ -51,6 +52,16 @@ public class OrderActivity extends AppCompatActivity {
         @Override
         public void onReceive(Context context, Intent intent) {
             CommonOrder orderUpdate = (CommonOrder) intent.getSerializableExtra("orderUpdate");
+            CommonOrderStatusUpdate orderStatusUpdate = (CommonOrderStatusUpdate) intent.getSerializableExtra("orderUpdate");
+            if (orderUpdate != null) {
+                // Update all order fields
+                //adapter.notifyDataSetChanged();
+            }
+            if (orderStatusUpdate != null) {
+                // Update order status fields
+                adapter.updateOrder(orderStatusUpdate.getOrderId(), orderStatusUpdate.getNewStatus());
+                adapter.notifyDataSetChanged();
+            }
             int a = 0;
         }
     };

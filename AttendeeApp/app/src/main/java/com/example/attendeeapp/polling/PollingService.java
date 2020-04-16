@@ -23,6 +23,7 @@ import com.example.attendeeapp.data.LoginDataSource;
 import com.example.attendeeapp.data.LoginRepository;
 import com.example.attendeeapp.data.model.LoggedInUser;
 import com.example.attendeeapp.json.CommonOrder;
+import com.example.attendeeapp.json.CommonOrderStatusUpdate;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -67,14 +68,25 @@ public class PollingService extends Service {
 
                     ObjectMapper mapper = new ObjectMapper();
                     try {
-                        for (int i = 0; i < response.length(); i++){
-                            JSONObject event = (JSONObject) response.get(0);
+                        for (int i = 0; i < response.length(); i++) {
+                            JSONObject event = (JSONObject) response.get(i);
                             JSONObject eventData = (JSONObject) event.get("eventData");
-                            JSONObject orderJson = eventData.getJSONObject("order");
-                            CommonOrder order = mapper.readValue(orderJson.toString(), CommonOrder.class);
+                            String eventClass = event.getString("dataType").toLowerCase();
+                            JSONObject orderJson = eventData.getJSONObject(eventClass);
 
                             Intent intent = new Intent("orderUpdate");
-                            intent.putExtra("orderUpdate", order);
+                            switch(eventClass) {
+                                case "order":
+                                    CommonOrder order = mapper.readValue(orderJson.toString(), CommonOrder.class);
+                                    intent.putExtra("orderUpdate", order);
+                                    break;
+
+                                case "orderStatusUpdate":
+                                    CommonOrderStatusUpdate orderStatusUpdate = mapper.readValue(orderJson.toString(), CommonOrderStatusUpdate.class);
+                                    intent.putExtra("orderStatusUpdate", orderStatusUpdate);
+                                    break;
+                            }
+
                             LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
                         }
                     } catch (JSONException | JsonProcessingException e) {
