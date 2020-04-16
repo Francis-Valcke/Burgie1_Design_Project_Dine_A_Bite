@@ -13,7 +13,7 @@ public class LoggedInUser {
         this.displayName = displayName;
     }
 
-    public String getUserId() {
+    private String getUserId() {
         return userId;
     }
 
@@ -21,7 +21,7 @@ public class LoggedInUser {
         return displayName;
     }
 
-    public String getAutorizationToken() {
+    public String getAuthorizationToken() {
         return "Bearer " + getUserId();
     }
 

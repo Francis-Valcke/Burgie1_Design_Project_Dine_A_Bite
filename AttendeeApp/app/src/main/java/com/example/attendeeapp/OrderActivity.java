@@ -158,7 +158,7 @@ public class OrderActivity extends AppCompatActivity {
             @Override
             public @NonNull Map<String, String> getHeaders()  {
                 Map<String, String> headers = new HashMap<>();
-                headers.put("Authorization", user.getAutorizationToken());
+                headers.put("Authorization", user.getAuthorizationToken());
                 return headers;
             }
         };
@@ -216,7 +216,7 @@ public class OrderActivity extends AppCompatActivity {
             @Override
             public @NonNull Map<String, String> getHeaders() {
                 Map<String, String> headers = new HashMap<>();
-                headers.put("Authorization", user.getAutorizationToken());
+                headers.put("Authorization", user.getAuthorizationToken());
                 return headers;
             }
         };

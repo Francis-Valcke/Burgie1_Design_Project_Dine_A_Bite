@@ -107,7 +107,7 @@ public class PollingService extends Service {
                 public @NonNull
                 Map<String, String> getHeaders()  throws AuthFailureError {
                     Map<String, String> headers = new HashMap<String, String>();
-                    headers.put("Authorization", user.getAutorizationToken());
+                    headers.put("Authorization", user.getAuthorizationToken());
                     return headers;
                 }
             };
