@@ -71,9 +71,6 @@ public class PollingService extends Service {
                     try {
                         for (int i = 0; i < response.length(); i++) {
                             JSONObject event = (JSONObject) response.get(i);
-                        JSONArray detailsJSON = response;
-                        for (int i = 0 ; i<detailsJSON.length(); i++){
-                            JSONObject event = (JSONObject) detailsJSON.get(i);
                             JSONObject eventData = (JSONObject) event.get("eventData");
                             String eventClass = event.getString("dataType");
 
