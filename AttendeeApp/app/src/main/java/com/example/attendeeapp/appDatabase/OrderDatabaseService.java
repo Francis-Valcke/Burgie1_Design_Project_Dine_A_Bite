@@ -40,7 +40,7 @@ public class OrderDatabaseService {
         try {
             return new GetOrdersTask(orderDatabase).execute().get();
         } catch (ExecutionException | InterruptedException e) {
-            Log.v("Get all exception", "Exception in get all orderes");
+            Log.v("Get all exception", "Exception in get all orders");
         }
         return null;
     }

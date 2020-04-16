@@ -98,7 +98,7 @@ public class OrderActivity extends AppCompatActivity {
         orderDatabaseService = new OrderDatabaseService(getApplicationContext());
         orders = (ArrayList<CommonOrder>) orderDatabaseService.getAll();
 
-        if(orders.size() == 0 && newOrder == null) {
+        if (orders == null || (orders.size() == 0 && newOrder == null)) {
             // No (new) orders
             return;
 
