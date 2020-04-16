@@ -41,7 +41,7 @@ import java.util.Map;
  */
 public class OrderActivity extends AppCompatActivity {
 
-    private int subscribeId;
+    private int subscribeId = -1;
     private ArrayList<CommonOrder> orders;
     private OrderDatabaseService orderDatabaseService;
     private OrderItemExpandableAdapter adapter;
@@ -52,7 +52,7 @@ public class OrderActivity extends AppCompatActivity {
         @Override
         public void onReceive(Context context, Intent intent) {
             CommonOrder orderUpdate = (CommonOrder) intent.getSerializableExtra("orderUpdate");
-            CommonOrderStatusUpdate orderStatusUpdate = (CommonOrderStatusUpdate) intent.getSerializableExtra("orderUpdate");
+            CommonOrderStatusUpdate orderStatusUpdate = (CommonOrderStatusUpdate) intent.getSerializableExtra("orderStatusUpdate");
             if (orderUpdate != null) {
                 // Update all order fields
                 //adapter.notifyDataSetChanged();
@@ -62,7 +62,6 @@ public class OrderActivity extends AppCompatActivity {
                 adapter.updateOrder(orderStatusUpdate.getOrderId(), orderStatusUpdate.getNewStatus());
                 adapter.notifyDataSetChanged();
             }
-            int a = 0;
         }
     };
 
@@ -81,7 +80,6 @@ public class OrderActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_order);
-
 
         // Custom Toolbar (instead of standard actionbar)
         Toolbar toolbar = findViewById(R.id.toolbar);
@@ -104,38 +102,42 @@ public class OrderActivity extends AppCompatActivity {
             // No (new) orders
             return;
 
-        } else if (newOrder == null) {
-            // Initiate the expandable order ListView
-            ExpandableListView expandList = findViewById(R.id.order_expand_list);
-            OrderItemExpandableAdapter adapter = new OrderItemExpandableAdapter(this, orders);
-
-            expandList.setAdapter(adapter);
-            return;
+        } else if (newOrder != null) {
+            // Send the order and chosen stand and brandName to the server and confirm the chosen stand
+            String chosenStand = getIntent().getStringExtra("stand");
+            String chosenBrand = getIntent().getStringExtra("brand");
+            newOrder.setStandName(chosenStand);
+            newOrder.setBrandName(chosenBrand);
+            confirmNewOrderStand(newOrder, chosenStand, chosenBrand);
         }
 
         // Initiate the expandable order ListView
         ExpandableListView expandList = findViewById(R.id.order_expand_list);
-        adapter = new OrderItemExpandableAdapter(this, orders);
-        //TODO: register subscriber
+        adapter = new OrderItemExpandableAdapter(this, orders, orderDatabaseService);
 
         expandList.setAdapter(adapter);
 
         // Register as subscriber to the orderId event channel
         if (!isPollingServiceRunning(PollingService.class)){
-            getSubscriberId(newOrder.getId());
+            ArrayList<Integer> orderIds = new ArrayList<>();
+            for (CommonOrder order : orders) {
+                orderIds.add(order.getId());
+            }
+            if (newOrder != null) orderIds.add(newOrder.getId());
+            // orderId's will not be empty, else this code is not reachable
+            getSubscriberId(orderIds);
         }
-
-        // Send the order and chosen stand and brandName to the server and confirm the chosen stand
-        String chosenStand = getIntent().getStringExtra("stand");
-        String chosenBrand = getIntent().getStringExtra("brand");
-        newOrder.setStandName(chosenStand);
-        newOrder.setBrandName(chosenBrand);
-        confirmNewOrderStand(newOrder, chosenStand, chosenBrand);
     }
 
     @Override
     public void onResume() {
         super.onResume();
+        // Start polling service
+        if (subscribeId != -1) {
+            Intent intent = new Intent(getApplicationContext(), PollingService.class);
+            intent.putExtra("subscribeId", subscribeId);
+            startService(intent);
+        }
         // Register the listener for polling updates
         LocalBroadcastManager.getInstance(this).registerReceiver(
                 mMessageReceiver, new IntentFilter("orderUpdate"));
@@ -144,13 +146,16 @@ public class OrderActivity extends AppCompatActivity {
     @Override
     public void onPause() {
         super.onPause();
+        // Stop the polling service
+        stopService(new Intent(getApplicationContext(), PollingService.class));
+
         // Unregister the listener
         LocalBroadcastManager.getInstance(this).unregisterReceiver(mMessageReceiver);
     }
 
 
     /**
-     *
+     * Confirm the chosen stand and brand when a new order is made
      * @param newOrder
      * @param chosenStand
      * @param chosenBrand
@@ -209,11 +214,17 @@ public class OrderActivity extends AppCompatActivity {
     /**
      * Subscribes to the server eventChannel for the given order
      * and launch the polling service to poll for events (order updates) from the server
+     * @param orderId : list of order id's that must be subscribed to
+     *                TODO: unregister subscriber
+     *                      save subscriberId instead of asking new one every time
      */
-    public void getSubscriberId(int orderId) {
+    public void getSubscriberId(ArrayList<Integer> orderId) {
         // Instantiate the RequestQueue
         RequestQueue queue = Volley.newRequestQueue(this);
-        String url = ServerConfig.EC_ADDRESS + "/registerSubscriber?types=o_" + orderId;
+        String url = ServerConfig.EC_ADDRESS + "/registerSubscriber?types=o_" + orderId.get(0);
+        for (Integer i : orderId.subList(1, orderId.size())) {
+            url = url.concat(",o_" + i);
+        }
 
         // Request a string response from the provided URL
         StringRequest stringRequest = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {

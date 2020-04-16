@@ -45,7 +45,7 @@ public class PollingService extends Service {
     private int subscribeId;
     private LoggedInUser user = LoginRepository.getInstance(new LoginDataSource()).getLoggedInUser();
 
-    public static final long DEFAULT_SYNC_INTERVAL = 10 * 1000;
+    public static final long DEFAULT_SYNC_INTERVAL = 5 * 1000;
 
     // Runnable that contains the order polling method
     private Runnable runnableService = new Runnable() {
@@ -61,28 +61,32 @@ public class PollingService extends Service {
             JsonArrayRequest jsonArray = new JsonArrayRequest(Request.Method.GET, url, null, new Response.Listener<JSONArray>() {
                 @Override
                 public void onResponse(JSONArray response) {
-                    Toast mToast = null;
+                    /*Toast mToast = null;
+                    if (mToast != null) mToast.cancel();
                     mToast = Toast.makeText(context, "Polling success",
                             Toast.LENGTH_SHORT);
-                    mToast.show();
+                    mToast.show();*/
 
                     ObjectMapper mapper = new ObjectMapper();
                     try {
                         for (int i = 0; i < response.length(); i++) {
                             JSONObject event = (JSONObject) response.get(i);
+                        JSONArray detailsJSON = response;
+                        for (int i = 0 ; i<detailsJSON.length(); i++){
+                            JSONObject event = (JSONObject) detailsJSON.get(i);
                             JSONObject eventData = (JSONObject) event.get("eventData");
-                            String eventClass = event.getString("dataType").toLowerCase();
-                            JSONObject orderJson = eventData.getJSONObject(eventClass);
+                            String eventClass = event.getString("dataType");
 
                             Intent intent = new Intent("orderUpdate");
                             switch(eventClass) {
-                                case "order":
+                                case "Order":
+                                    JSONObject orderJson = eventData.getJSONObject(eventClass.toLowerCase());
                                     CommonOrder order = mapper.readValue(orderJson.toString(), CommonOrder.class);
                                     intent.putExtra("orderUpdate", order);
                                     break;
 
-                                case "orderStatusUpdate":
-                                    CommonOrderStatusUpdate orderStatusUpdate = mapper.readValue(orderJson.toString(), CommonOrderStatusUpdate.class);
+                                case "OrderStatusUpdate":
+                                    CommonOrderStatusUpdate orderStatusUpdate = mapper.readValue(eventData.toString(), CommonOrderStatusUpdate.class);
                                     intent.putExtra("orderStatusUpdate", orderStatusUpdate);
                                     break;
                             }
@@ -141,10 +145,10 @@ public class PollingService extends Service {
     public void onDestroy() {
         handler.removeCallbacks(runnableService);
         stopSelf();
-        // Restart service when app is not on top, but still running
-        Intent broadcastIntent = new Intent("restartpolling");
+        // Restart service when app is not on top, but still running (currently not working)
+        /*Intent broadcastIntent = new Intent("restartpolling");
         broadcastIntent.setClass(this, RestartPolling.class);
-        sendBroadcast(broadcastIntent);
+        sendBroadcast(broadcastIntent);*/
         super.onDestroy();
     }
 
