@@ -21,6 +21,9 @@ import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import com.example.attendeeapp.ServerConfig;
+import com.example.attendeeapp.data.LoginDataSource;
+import com.example.attendeeapp.data.LoginRepository;
+import com.example.attendeeapp.data.model.LoggedInUser;
 import com.example.attendeeapp.json.CommonOrder;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -32,18 +35,19 @@ import org.json.JSONObject;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.example.attendeeapp.ServerConfig.AUTHORIZATION_TOKEN;
 
 /**
  * Service that polls the server for order updates
  */
 public class PollingService extends Service {
+
     private Handler handler;
     private Context context;
+    private int subscribeId;
+    private LoggedInUser user = LoginRepository.getInstance(new LoginDataSource()).getLoggedInUser();
 
     public static final long DEFAULT_SYNC_INTERVAL = 10 * 1000;
 
-    private int subscribeId;
     // Runnable that contains the order polling method
     private Runnable runnableService = new Runnable() {
         @Override
@@ -103,7 +107,7 @@ public class PollingService extends Service {
                 public @NonNull
                 Map<String, String> getHeaders()  throws AuthFailureError {
                     Map<String, String> headers = new HashMap<String, String>();
-                    headers.put("Authorization", AUTHORIZATION_TOKEN);
+                    headers.put("Authorization", user.getAutorizationToken());
                     return headers;
                 }
             };

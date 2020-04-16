@@ -22,6 +22,9 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
+import com.example.attendeeapp.data.LoginDataSource;
+import com.example.attendeeapp.data.LoginRepository;
+import com.example.attendeeapp.data.model.LoggedInUser;
 
 import org.json.JSONObject;
 
@@ -29,8 +32,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-
-import static com.example.attendeeapp.ServerConfig.AUTHORIZATION_TOKEN;
 
 /**
  * Handles the view for the stand menu's
@@ -40,6 +41,8 @@ public class MenuFragmentStand extends MenuFragment implements AdapterView.OnIte
     private ArrayAdapter<String> standListAdapter;
     // List of stand and brands: key = brandName, value = multiple standNames
     private HashMap<String, String> standList = new HashMap<>();
+
+    private LoggedInUser user = LoginRepository.getInstance(new LoginDataSource()).getLoggedInUser();
 
     @Nullable
     @Override
@@ -148,9 +151,9 @@ public class MenuFragmentStand extends MenuFragment implements AdapterView.OnIte
         }) { // Add JSON headers
             @Override
             public @NonNull
-            Map<String, String> getHeaders() {
+            Map<String, String> getHeaders()  {
                 Map<String, String>  headers  = new HashMap<>();
-                headers.put("Authorization", AUTHORIZATION_TOKEN);
+                headers.put("Authorization", user.getAutorizationToken());
                 return headers;
             }
         };

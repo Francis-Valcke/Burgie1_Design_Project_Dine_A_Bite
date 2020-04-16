@@ -15,6 +15,9 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.Volley;
+import com.example.attendeeapp.data.LoginDataSource;
+import com.example.attendeeapp.data.LoginRepository;
+import com.example.attendeeapp.data.model.LoggedInUser;
 import com.example.attendeeapp.json.CommonFood;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -28,8 +31,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.example.attendeeapp.ServerConfig.AUTHORIZATION_TOKEN;
-
 /**
  * Abstract parent class of global and stand menuFragments
  * Contains the common variables and functions
@@ -40,6 +41,8 @@ public abstract class MenuFragment extends Fragment {
     protected MenuItemAdapter menuAdapter;
     protected SwipeRefreshLayout pullToRefresh;
     protected Toast mToast;
+
+    private LoggedInUser user = LoginRepository.getInstance(new LoginDataSource()).getLoggedInUser();
 
     /**
      * Updates the current global/stand menu with the updated version returned from the server
@@ -142,7 +145,7 @@ public abstract class MenuFragment extends Fragment {
             public @NonNull
             Map<String, String> getHeaders()  throws AuthFailureError {
                 Map<String, String>  headers  = new HashMap<String, String>();
-                headers.put("Authorization", AUTHORIZATION_TOKEN);
+                headers.put("Authorization", user.getAutorizationToken());
                 return headers;
             }
 

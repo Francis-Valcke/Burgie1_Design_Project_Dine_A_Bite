@@ -6,6 +6,12 @@ import android.os.Handler;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.attendeeapp.appDatabase.OrderDatabaseService;
+import com.example.attendeeapp.data.LoginDataSource;
+import com.example.attendeeapp.data.LoginRepository;
+import com.example.attendeeapp.data.model.LoggedInUser;
+import com.example.attendeeapp.json.CommonOrder;
+import com.example.attendeeapp.ui.login.LoginActivity;
 
 /**
  * MainActivity to show splash-screen on startup
@@ -27,12 +33,20 @@ public class MainActivity extends AppCompatActivity {
         //orderDatabaseService.deleteOrder(new CommonOrder());
 
         new Handler().postDelayed(new Runnable() {
+
             @Override
             public void run() {
-                Intent menuIntent = new Intent(MainActivity.this, MenuActivity.class);
-                startActivity(menuIntent);
+                LoginRepository loginRepository = LoginRepository.getInstance(new LoginDataSource());
+                if (!loginRepository.isLoggedIn()) {
+                    Intent loginIntent = new Intent(MainActivity.this, LoginActivity.class);
+                    startActivity(loginIntent);
+                } else {
+                    Intent menuIntent = new Intent(MainActivity.this, MenuActivity.class);
+                    startActivity(menuIntent);
+                }
                 finish();
             }
+
         }, SPLASH_TIME_OUT);
     }
 }

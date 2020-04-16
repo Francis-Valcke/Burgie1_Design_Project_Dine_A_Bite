@@ -20,4 +20,9 @@ public class LoggedInUser {
     public String getDisplayName() {
         return displayName;
     }
+
+    public String getAutorizationToken() {
+        return "Bearer " + getUserId();
+    }
+
 }
