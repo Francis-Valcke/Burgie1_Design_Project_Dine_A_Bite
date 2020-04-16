@@ -32,7 +32,6 @@ import com.example.standapp.order.CommonOrderStatusUpdate;
 import com.example.standapp.order.Event;
 import com.example.standapp.polling.PollingService;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.json.JSONArray;
@@ -43,11 +42,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
-// TODO set/change progress of orders and send to server (in ExpandableListAdapter)
 // TODO (optional) change polling to FCM
 // TODO or keep a separate order number count per stand?
-// TODO set subscribe method in profile fragment, call right after logging in
 
 public class OrderFragment extends Fragment {
 
@@ -112,7 +110,7 @@ public class OrderFragment extends Fragment {
                     @Override
                     public void onResponse(JSONArray response) {
                         System.out.println(response.toString());
-                        ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+                        ObjectMapper mapper = new ObjectMapper();
                         ArrayList<CommonOrder> orders = new ArrayList<>();
 
                         for (int i = 0; i < response.length(); i++) {
