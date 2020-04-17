@@ -22,17 +22,15 @@ import com.example.standapp.ServerConfig;
 import com.example.standapp.data.LoginDataSource;
 import com.example.standapp.data.LoginRepository;
 import com.example.standapp.data.model.LoggedInUser;
-import com.example.standapp.order.CommonOrder;
 import com.example.standapp.order.Event;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 
@@ -43,8 +41,6 @@ public class PollingService extends Service {
 
     private Context context;
     private Handler handler;
-    private ArrayList<Event> listEvents = new ArrayList<>();
-    private ArrayList<CommonOrder> listOrders = new ArrayList<>();
 
     public static final long DEFAULT_SYNC_INTERVAL = 10 * 1000;
 
@@ -61,7 +57,7 @@ public class PollingService extends Service {
             // Send the order and chosen stand ID to the server and confirm the chosen stand
             // Instantiate the RequestQueue
             RequestQueue queue = Volley.newRequestQueue(context);
-            String url = ServerConfig.EC_ADDRESS + "/events?id="+subscribeId;
+            String url = ServerConfig.EC_ADDRESS + "/events?id=" + subscribeId;
 
             // Request a string response from the provided URL
             JsonArrayRequest jsonArray = new JsonArrayRequest(Request.Method.GET, url,
@@ -73,32 +69,26 @@ public class PollingService extends Service {
                     mToast.show();
 
                     System.out.println("RESPONSE: " + response.toString());
-                    
+
                     ObjectMapper mapper = new ObjectMapper();
 
-                    try {
-                        List<Event> events = mapper.readValue(response.toString(),
-                                new TypeReference<List<Event>>() {});
-                        listEvents.addAll(events);
-                        ArrayList<CommonOrder> orders = new ArrayList<>();
-                        for (Event event : events) {
-                            orders.add(mapper.readValue(event.getEventData()
-                                    .get("order").toString(), CommonOrder.class));
-                        }
-                        listOrders.addAll(orders);
-                        for (CommonOrder order : orders) {
-                            Intent intent = new Intent("orderUpdate");
-                            intent.putExtra("orderUpdate", order);
-                            LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
-                        }
-                    } catch (JsonProcessingException e) {
-                        e.printStackTrace();
-                    }
+                    for (int i = 0; i < response.length(); i++) {
+                        try {
+                            JSONObject event = (JSONObject) response.get(i);
+                            Event eventUpdate = mapper.readValue(event.toString(), Event.class);
 
+                            Intent intent = new Intent("eventUpdate");
+                            intent.putExtra("eventUpdate", eventUpdate);
+                            LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
+                        } catch (JSONException | JsonProcessingException e) {
+                            e.printStackTrace();
+                        }
+                    }
                 }
             }, new Response.ErrorListener() {
                 @Override
                 public void onErrorResponse(VolleyError error) {
+                    error.printStackTrace();
                     Toast mToast = Toast.makeText(context, "Polling failed",
                             Toast.LENGTH_SHORT);
                     mToast.show();
@@ -127,7 +117,7 @@ public class PollingService extends Service {
         handler = new Handler();
 
         boolean ret = handler.post(runnableService);
-        System.out.println("Was the runnableService succesfully launched: " + ret);
+        System.out.println("Was the runnableService successfully launched: " + ret);
         handler.post(runnableService);
 
         Log.i("Polling service", "Polling service started");

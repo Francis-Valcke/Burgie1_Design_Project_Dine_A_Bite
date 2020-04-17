@@ -12,9 +12,11 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 
+
 class Utils {
 
     private static boolean isConnected = false;
+    private static String subscriberId;
 
     /**
      * Show if internet connection and server connection are online
@@ -43,7 +45,8 @@ class Utils {
                 if (error instanceof NoConnectionError) {
                     Toast.makeText(context, "No network connection", Toast.LENGTH_LONG).show();
                 } else {
-                    Toast.makeText(context, "Server cannot be reached, try again later", Toast.LENGTH_LONG).show();
+                    Toast.makeText(context, "Server cannot be reached, try again later",
+                            Toast.LENGTH_LONG).show();
                 }
             }
         });
@@ -73,4 +76,5 @@ class Utils {
 
         return isLoggedIn;
     }
+
 }

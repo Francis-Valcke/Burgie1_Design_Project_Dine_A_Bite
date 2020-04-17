@@ -1,5 +1,7 @@
 package com.example.standapp.order;
 
+import androidx.annotation.NonNull;
+
 public class CommonOrderItem {
 
     private String foodName;
@@ -28,4 +30,12 @@ public class CommonOrderItem {
         return amount;
     }
 
+    @NonNull
+    @Override
+    public String toString() {
+        return "CommonOrderItem{" +
+                "foodName='" + foodName + '\'' +
+                ", amount=" + amount +
+                '}';
+    }
 }

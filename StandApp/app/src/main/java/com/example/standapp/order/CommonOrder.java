@@ -1,5 +1,7 @@
 package com.example.standapp.order;
 
+import androidx.annotation.NonNull;
+
 import com.example.standapp.json.CommonFood;
 
 import java.io.Serializable;
@@ -38,7 +40,8 @@ public class CommonOrder implements Serializable {
 
     public CommonOrder() {}
 
-    public CommonOrder(List<CommonFood> menuItems, String standName, String brandName, double latitude, double longitude){
+    public CommonOrder(List<CommonFood> menuItems, String standName, String brandName,
+                       double latitude, double longitude){
         this.id=0;
         this.latitude=latitude;
         this.longitude=longitude;
@@ -109,6 +112,20 @@ public class CommonOrder implements Serializable {
         this.expectedTime = expectedTime;
     }
 
-
-
+    @NonNull
+    @Override
+    public String toString() {
+        return "CommonOrder{" +
+                "id=" + id +
+                //", startTime=" + startTime +
+                //", expectedTime=" + expectedTime +
+                ", orderState=" + orderState +
+                ", standId=" + standId +
+                ", brandName='" + brandName + '\'' +
+                ", standName='" + standName + '\'' +
+                ", orderItems=" + orderItems +
+                ", latitude=" + latitude +
+                ", longitude=" + longitude +
+                '}';
+    }
 }

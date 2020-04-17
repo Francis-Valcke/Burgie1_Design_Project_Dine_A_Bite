@@ -28,13 +28,16 @@ import com.example.standapp.data.LoginRepository;
 import com.example.standapp.data.model.LoggedInUser;
 import com.example.standapp.order.CommonOrder;
 import com.example.standapp.order.CommonOrderItem;
+import com.example.standapp.order.CommonOrderStatusUpdate;
 import com.example.standapp.order.Event;
 import com.example.standapp.polling.PollingService;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -42,21 +45,30 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-// TODO set/change progress of orders and send to server (in ExpandableListAdapter)
 // TODO (optional) change polling to FCM
+// TODO or keep a separate order number count per stand?
 
 public class OrderFragment extends Fragment {
 
-    private ExpandableListAdapter listAdapter;
     private Context mContext;
-    private List<String> listDataHeader = new ArrayList<>();
+
+    private ExpandableListAdapter listAdapter;
+    private ArrayList<String> listDataHeader = new ArrayList<>();
     private HashMap<String, List<String>> listHash = new HashMap<>();
     private ArrayList<Event> listEvents = new ArrayList<>();
     private ArrayList<CommonOrder> listOrders = new ArrayList<>();
+    private HashMap<String, CommonOrderStatusUpdate.status> listStatus = new HashMap<>();
     private Intent intent;
 
     // ID from the Event Channel
     private String subscriberId;
+
+    @Override
+    public void onAttach(@NonNull Context context) {
+        // Called when a fragment is first attached to its context.
+        super.onAttach(context);
+        mContext = context;
+    }
 
     @Nullable
     @Override
@@ -80,17 +92,17 @@ public class OrderFragment extends Fragment {
         Button refreshButton = view.findViewById(R.id.refresh_button);
         ExpandableListView listView = view.findViewById(R.id.expandable_list_view);
         if (listAdapter == null) listAdapter =
-                new ExpandableListAdapter(listDataHeader, listHash, listEvents, listOrders);
+                new ExpandableListAdapter(listDataHeader, listHash, listEvents, listOrders, listStatus);
         listView.setAdapter(listAdapter);
 
         refreshButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
-                //Instantiate the RequestQueue
-                RequestQueue queue = Volley.newRequestQueue(Objects.requireNonNull(mContext));
+                // Instantiate the RequestQueue
+                RequestQueue queue = Volley.newRequestQueue(mContext);
                 String url = ServerConfig.EC_ADDRESS + "/events?id=" + subscriberId;
-                System.out.println("URL: " + url);
+                System.out.println("Getting orders, URL: " + url);
 
                 // GET request to server
                 final JsonArrayRequest jsonRequest = new JsonArrayRequest(Request.Method.GET, url,
@@ -100,30 +112,38 @@ public class OrderFragment extends Fragment {
                     public void onResponse(JSONArray response) {
                         System.out.println(response.toString());
                         ObjectMapper mapper = new ObjectMapper();
+                        ArrayList<CommonOrder> orders = new ArrayList<>();
 
-                        try {
-                            List<Event> events = mapper.readValue(response.toString(),
-                                    new TypeReference<List<Event>>() {});
-                            listEvents.addAll(events);
-                            ArrayList<CommonOrder> orders = new ArrayList<>();
-                            for (Event event : events) {
-                                orders.add(mapper.readValue(event.getEventData().get("order")
-                                        .toString(), CommonOrder.class));
+                        for (int i = 0; i < response.length(); i++) {
+                            try {
+                                JSONObject eventJSON = (JSONObject) response.get(i);
+                                Event event = mapper.readValue(eventJSON.toString(), Event.class);
+                                if (!event.getDataType().equals("Order")) return;
+                                listEvents.add(event);
+
+                                JSONObject eventData = (JSONObject) eventJSON.get("eventData");
+                                JSONObject order = (JSONObject) eventData.get("order");
+                                orders.add(mapper.readValue(order.toString(), CommonOrder.class));
+                            } catch (JSONException | JsonProcessingException e) {
+                                e.printStackTrace();
                             }
-                            listOrders.addAll(orders);
-                            for (CommonOrder order : orders) {
-                                String orderName = "#" + order.getId();
-                                listDataHeader.add(orderName);
-                                List<String> orderItems = new ArrayList<>();
-                                for (CommonOrderItem item : order.getOrderItems()) {
-                                    orderItems.add(item.getAmount() + " : " + item.getFoodName());
-                                }
-                                listHash.put(orderName, orderItems);
-                            }
-                            listAdapter.notifyDataSetChanged();
-                        } catch (JsonProcessingException e) {
-                            e.printStackTrace();
                         }
+
+                        listOrders.addAll(orders);
+
+                        for (CommonOrder order : orders) {
+                            // TODO: or keep a separate order number count per stand?
+                            String orderName = "#" + order.getId();
+                            listDataHeader.add(orderName);
+                            listStatus.put(orderName, CommonOrderStatusUpdate.status.PENDING);
+                            List<String> orderItems = new ArrayList<>();
+                            for (CommonOrderItem item : order.getOrderItems()) {
+                                orderItems.add(item.getAmount() + " : " + item.getFoodName());
+                            }
+                            // Orders should have different order numbers (orderName)
+                            listHash.put(orderName, orderItems);
+                        }
+                        listAdapter.notifyDataSetChanged();
                     }
                 }, new Response.ErrorListener() {
                     @Override
@@ -159,8 +179,8 @@ public class OrderFragment extends Fragment {
         System.out.println("POLLING SERVICE STARTED!");
 
         // Register the listener for polling updates
-        LocalBroadcastManager.getInstance(Objects.requireNonNull(mContext)).registerReceiver(
-                mMessageReceiver, new IntentFilter("orderUpdate"));
+        LocalBroadcastManager.getInstance(mContext).registerReceiver(mMessageReceiver,
+                new IntentFilter("eventUpdate"));
     }
 
     @Override
@@ -173,28 +193,41 @@ public class OrderFragment extends Fragment {
         mContext.stopService(intent); // calls the onDestroy() function of PollingService
     }
 
-    @Override
-    public void onAttach(@NonNull  Context context) {
-        super.onAttach(context);
-        mContext = context;
-    }
 
     // Receives the order updates from the polling service
     private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            CommonOrder orderUpdate = (CommonOrder) intent.getSerializableExtra("orderUpdate");
 
-            System.out.println("CommonOrder received in BroadcastReceiver (OrderFragment)!");
+            Event eventUpdate = (Event) intent.getSerializableExtra("eventUpdate");
 
-            String orderName = "#" + orderUpdate.getId();
-            listDataHeader.add(orderName);
-            List<String> orderItems = new ArrayList<>();
-            for (CommonOrderItem item : orderUpdate.getOrderItems()) {
-                orderItems.add(item.getAmount() + " : " + item.getFoodName());
+            if (eventUpdate != null && eventUpdate.getDataType().equals("Order")) {
+                listEvents.add(eventUpdate);
+
+                ObjectMapper mapper = new ObjectMapper();
+                JsonNode eventData = eventUpdate.getEventData();
+                JsonNode orderJson = eventData.get("order");
+                try {
+                    CommonOrder orderUpdate = mapper.treeToValue(orderJson, CommonOrder.class);
+                    listOrders.add(orderUpdate);
+
+                    // TODO: or keep a separate order number count per stand?
+                    String orderName = "#" + orderUpdate.getId();
+                    listDataHeader.add(orderName);
+                    listStatus.put(orderName, CommonOrderStatusUpdate.status.PENDING);
+                    List<String> orderItems = new ArrayList<>();
+                    for (CommonOrderItem item : orderUpdate.getOrderItems()) {
+                        orderItems.add(item.getAmount() + " : " + item.getFoodName());
+                    }
+                    // Orders should have different order numbers (orderName)
+                    listHash.put(orderName, orderItems);
+                    listAdapter.notifyDataSetChanged();
+                } catch (JsonProcessingException e) {
+                    e.printStackTrace();
+                }
             }
-            listHash.put(orderName, orderItems);
-            listAdapter.notifyDataSetChanged();
+
         }
     };
+
 }
