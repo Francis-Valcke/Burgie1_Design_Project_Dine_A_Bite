@@ -2,6 +2,7 @@ package com.example.attendeeapp;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.os.CountDownTimer;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,6 +18,9 @@ import com.example.attendeeapp.json.CommonOrderItem;
 import com.example.attendeeapp.json.CommonOrderStatusUpdate;
 
 import java.util.ArrayList;
+import java.util.GregorianCalendar;
+import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Handles all the order items in the order expandable list overview
@@ -72,18 +76,13 @@ public class OrderItemExpandableAdapter extends BaseExpandableListAdapter {
 
     @Override
     public void onGroupExpanded(int groupPosition) {
+        // Only if group expands, user has definitely seen possible order changes
         CommonOrder currentOrder = orders.get(groupPosition);
-        orderDatabaseService.updateOrder(currentOrder);
-        if (!currentOrder.isUpdateSeen()) currentOrder.setUpdateSeen(true);
+        if (!currentOrder.isUpdateSeen()) {
+            currentOrder.setUpdateSeen(true);
+            orderDatabaseService.updateOrder(currentOrder);
+        }
         super.onGroupExpanded(groupPosition);
-    }
-
-    @Override
-    public void onGroupCollapsed(int groupPosition) {
-        CommonOrder currentOrder = orders.get(groupPosition);
-        orderDatabaseService.updateOrder(currentOrder);
-        if (!currentOrder.isUpdateSeen()) currentOrder.setUpdateSeen(true);
-        super.onGroupCollapsed(groupPosition);
     }
 
     /**
@@ -180,6 +179,40 @@ public class OrderItemExpandableAdapter extends BaseExpandableListAdapter {
             txtStandName.setText(currentOrder.getStandName());
             txtBrandName.setText(currentOrder.getBrandName() + ")");
             txtOrderStatus.setText(currentOrder.getOrderState().toString());
+
+            TextView remainingTimeText = view.findViewById(R.id.order_footer_time_text);
+            final TextView remainingTime = view.findViewById(R.id.order_footer_time);
+
+            // Handle timing counter, only visible when order is confirmed and thus being prepared
+            if (currentOrder.getOrderState() == CommonOrder.State.CONFIRMED) {
+                remainingTimeText.setVisibility(View.VISIBLE);
+                remainingTime.setVisibility(View.VISIBLE);
+
+                // Get current time instance and set countdown timer with remaining time
+                GregorianCalendar cal = new GregorianCalendar();
+
+                currentOrder.setStartTime(cal);
+
+                // Update database is currently not necessary because a new timeinstance is used as reference
+                // Update database that startTime is consistent when app would be closed
+                //orderDatabaseService.updateOrder(currentOrder);
+
+                new CountDownTimer(currentOrder.computeRemainingTime(), 1000) {
+                    public void onTick(long millisUntilFinished) {
+                        remainingTime.setText(String.format(Locale.getDefault(), "%d m : %02d s",
+                                TimeUnit.MILLISECONDS.toMinutes(millisUntilFinished) % 60,
+                                TimeUnit.MILLISECONDS.toSeconds(millisUntilFinished) % 60));
+                    }
+                    public void onFinish() {
+                        remainingTime.setText("0 m : 00 s");
+                    }
+
+                }.start();
+
+            } else {
+                remainingTimeText.setVisibility(View.GONE);
+                remainingTime.setVisibility(View.GONE);
+            }
         }
         return view;
     }
@@ -191,6 +224,7 @@ public class OrderItemExpandableAdapter extends BaseExpandableListAdapter {
 
     /**
      * Updates the order status for a given order id
+     * If the state is confirmed, initialize the expected order time to start the counting
      * @param orderId : the order id for which the status update holds
      * @param status : the new order status
      */
@@ -202,6 +236,17 @@ public class OrderItemExpandableAdapter extends BaseExpandableListAdapter {
                     if (oldState != newState) {
                         order.setOrderState(newState);
                         order.setUpdateSeen(false);
+
+                        // Set expected time with current local time + preparing time
+                        if (newState.equals(CommonOrder.State.CONFIRMED)) {
+                            GregorianCalendar cal = new GregorianCalendar();
+                            long timestamp = order.computeRemainingTime();
+                            timestamp += cal.getTimeInMillis();
+                            cal.setTimeInMillis(timestamp);
+
+                            order.setExpectedTime(cal);
+                        }
+
                         orderDatabaseService.updateOrder(order);
                     }
 
