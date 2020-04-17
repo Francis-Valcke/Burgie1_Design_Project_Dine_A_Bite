@@ -31,10 +31,24 @@ public class SchedulerComparatorTime implements Comparator<Scheduler> {
 
 
     public int getTimesum(Scheduler o) {
-        int time = 0;
-        for (CommonOrderItem orderItem : orderItems) {
-            time += o.getPreptime(orderItem.getFoodName()) * orderItem.getAmount();
-        }
-        return o.timeSum() + time;
+        //we use the fooditem with longest preparation time as the general preparation time of the full order
+
+        int longestFoodPrepTime = getLongestFoodPrepTime(o);
+        System.out.println(longestFoodPrepTime);
+        System.out.println("TESTING");
+        System.out.println(o.timeSum());
+        System.out.println("TESTING DONE");
+        return o.timeSum() + longestFoodPrepTime;
     }
+
+    public int getLongestFoodPrepTime(Scheduler o){
+        int longestFoodPrepTime = 0;
+        for (CommonOrderItem orderItem : orderItems) {
+            if (o.getPreptime(orderItem.getFoodName()) > longestFoodPrepTime){
+                longestFoodPrepTime = o.getPreptime(orderItem.getFoodName());
+            }
+        }
+        return longestFoodPrepTime;
+    }
+
 }

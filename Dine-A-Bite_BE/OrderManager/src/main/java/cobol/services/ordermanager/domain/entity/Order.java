@@ -82,9 +82,11 @@ public class Order implements Serializable {
         }
         this.orderState = orderObject.getOrderState();
         this.startTime = Calendar.getInstance();
+        System.out.println("BIJ CREATIE IS DE TIJD DIT:" + Calendar.getInstance());
         this.expectedTime = Calendar.getInstance();
         expectedTime.setTime(startTime.getTime());
-        expectedTime.add(Calendar.MINUTE, 15);
+        //expectedTime.add(Calendar.MINUTE, 15);
+        System.out.println("BIJ CREATIE IS DE EXPECTED TIJD DIT:" + expectedTime);
 
     }
 
@@ -128,7 +130,9 @@ public class Order implements Serializable {
      * @param remainingTime time in seconds
      */
     public void setRemtime(int remainingTime) {
+        System.out.println(startTime.getTime() + "IS DE TIJD");
         expectedTime.setTime(startTime.getTime());
+        System.out.println(Calendar.SECOND + "IS DE SECONDE EXTRAS");
         expectedTime.add(Calendar.SECOND, remainingTime);
     }
 

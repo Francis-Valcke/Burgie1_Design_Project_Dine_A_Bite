@@ -28,6 +28,8 @@ public class CommonOrder {
         this.id = id;
         this.startTime = startTime;
         this.expectedTime = expectedTime;
+        System.out.println("NU MAKEN WE HET AAN:" + expectedTime);
+        System.out.println(this.expectedTime);
         this.orderState = orderState;
         this.brandName = brandName;
         this.standName = standName;
@@ -49,7 +51,12 @@ public class CommonOrder {
      * @return RemainingTime in seconds
      */
     public int computeRemainingTime(){
-        return (int) (expectedTime.getTimeInMillis()-startTime.getTimeInMillis())/1000;
+        System.out.println("ZITTEN HIER NU EH");
+        System.out.println(expectedTime);
+        System.out.println(Calendar.getInstance());
+        System.out.println("EN DIT IS:");
+        System.out.println((int) ((expectedTime.getTimeInMillis()-Calendar.getInstance().getTimeInMillis())/1000));
+        return (int) ((expectedTime.getTimeInMillis()-Calendar.getInstance().getTimeInMillis())/1000);
     }
 
 }
