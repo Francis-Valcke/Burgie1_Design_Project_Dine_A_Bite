@@ -87,7 +87,7 @@ public class StandManagerController {
      */
     @RequestMapping(value = "/placeOrder", consumes = "application/json")
     public void placeOrder(@RequestBody() CommonOrder order) {
-        //add order to right scheduler
+        schedulerHandler.addOrderToScheduler(order);
     }
 
     /**

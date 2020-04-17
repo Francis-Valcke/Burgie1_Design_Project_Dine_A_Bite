@@ -10,6 +10,7 @@ import org.json.simple.JSONObject;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -116,12 +117,13 @@ public class Scheduler extends Thread {
      * @return this time
      */
     public int timeSum() {
-        int s = 0;
-        for (int i = 0; i < inc.size(); i++) {
-            s += inc.get(i).computeRemainingTime();
+        if (inc.size() == 0){
+            return 0;
         }
-        System.out.println(s);
-        return s;
+        else {
+            System.out.println(inc.get(inc.size()-1).getId());
+            return inc.get(inc.size() - 1).computeRemainingTime();
+        }
     }
 
     /**

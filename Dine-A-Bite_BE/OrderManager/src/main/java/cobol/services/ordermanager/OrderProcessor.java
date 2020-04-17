@@ -12,6 +12,7 @@ import cobol.services.ordermanager.domain.repository.FoodRepository;
 import cobol.services.ordermanager.domain.repository.OrderRepository;
 import cobol.services.ordermanager.domain.repository.StandRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import org.json.simple.JSONObject;
@@ -95,7 +96,7 @@ public class OrderProcessor {
         return newOrder;
     }
 
-    public Order confirmStand(int orderId, String standName, String brandName) throws DoesNotExistException {
+    public Order confirmStand(int orderId, String standName, String brandName) throws DoesNotExistException, JsonProcessingException {
         Optional<Order> orderOptional = this.getOrder(orderId);
         Stand stand = standRepository.findStandById(standName, brandName).orElseThrow(() -> new DoesNotExistException("Stand does not exist"));
 
@@ -116,9 +117,20 @@ public class OrderProcessor {
                     .filter(r -> r.getStandName().equals(standName))
                     .findFirst();
 
+            recomOptional.ifPresent(recommendation -> System.out.println(recommendation.getTimeEstimate()));
             recomOptional.ifPresent(recommendation -> updatedOrder.setRemtime(recommendation.getTimeEstimate()));
+            recomOptional.ifPresent(recommendation -> System.out.println(recommendation.getTimeEstimate() + "DIT IS DE TIME ESTIMATE"));
             orderRepository.save(updatedOrder);
+
+            //send the updated order to stand to place it in the queue
+            CommonOrder mappedOrder = updatedOrder.asCommonOrder();
+            ObjectMapper mapper = new ObjectMapper();
+            String jsonString = mapper.writeValueAsString(mappedOrder);
+            communicationHandler.sendRestCallToStandManager("/placeOrder", jsonString, null);
+            System.out.println("THE ORDER IS ADDED IN THE STANDMANAGER NOW");
         }
+
+
         return updatedOrder;
     }
 
