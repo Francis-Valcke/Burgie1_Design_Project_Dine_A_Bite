@@ -46,6 +46,7 @@ import org.json.JSONObject;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -84,14 +85,14 @@ public class ConfirmActivity extends AppCompatActivity implements AdapterView.On
 
         // Make distance and time of recommendation invisible until recommendation comes available
         TextView distanceText = findViewById(R.id.recommend_distance_text);
-        distanceText.setVisibility(View.INVISIBLE);
+        distanceText.setVisibility(View.GONE);
         TextView distance = findViewById(R.id.recommend_distance);
-        distance.setVisibility(View.INVISIBLE);
+        distance.setVisibility(View.GONE);
 
-        /*TextView remainingTimeText = findViewById(R.id.recommend_time_text);
-        remainingTimeText.setVisibility(View.INVISIBLE);
+        TextView remainingTimeText = findViewById(R.id.recommend_time_text);
+        remainingTimeText.setVisibility(View.GONE);
         TextView remainingTime = findViewById(R.id.recommend_time);
-        remainingTime.setVisibility(View.INVISIBLE);*/
+        remainingTime.setVisibility(View.GONE);
 
         // Custom Toolbar (instead of standard actionbar)
         Toolbar toolbar = findViewById(R.id.toolbar);
@@ -283,6 +284,16 @@ public class ConfirmActivity extends AppCompatActivity implements AdapterView.On
                             orderReceived.setTotalCount(cartCount);
                             // TODO: add ALL menuItem information to the orderItems!
 
+                            // Set expected time for order
+                            // timestamp in seconds, calendar in milliseconds
+                            if (recommendations.size() > 0) {
+                                long timestamp = recommendations.get(0).getTimeEstimate()*1000;
+                                timestamp += orderReceived.getStartTime().getTimeInMillis();
+                                GregorianCalendar cal = new GregorianCalendar();
+                                cal.setTimeInMillis(timestamp);
+                                orderReceived.setExpectedTime(cal);
+                            }
+
                             showRecommendation();
 
                         } catch (JsonProcessingException | JSONException e) {
@@ -394,12 +405,12 @@ public class ConfirmActivity extends AppCompatActivity implements AdapterView.On
                 distance.setText(Math.round(recommendations.get(0).getDistance()) + " meter");
                 distance.setVisibility(View.VISIBLE);
 
-                /*TextView remainingTimeText = findViewById(R.id.recommend_time_text);
+                TextView remainingTimeText = findViewById(R.id.recommend_time_text);
                 remainingTimeText.setVisibility(View.VISIBLE);
 
                 TextView remainingTime = findViewById(R.id.recommend_time);
                 remainingTime.setText(recommendations.get(0).getTimeEstimate()/60 + " minute(s)");
-                remainingTime.setVisibility(View.VISIBLE);*/
+                remainingTime.setVisibility(View.VISIBLE);
             }
         }
     }
