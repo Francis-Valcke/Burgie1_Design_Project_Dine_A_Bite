@@ -140,7 +140,9 @@ public class ConfirmActivity extends AppCompatActivity implements AdapterView.On
                 boolean noRecommend = true;
                 if (recommendations != null && orderReceived != null) {
                     // An order could be received to the server
-                    if (recommendations.size() > 0 && (specificRecommendation != null || specificStand.equals(""))) {
+                    if (recommendations.size() > 0 && (
+                            (specificRecommendation != null || chosenRecommend != -1)
+                                    || specificStand.equals("")) ) {
                         noRecommend = false;
 
                         // Continue to order overview with recommended stand
