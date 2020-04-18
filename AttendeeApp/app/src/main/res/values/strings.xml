@@ -24,8 +24,7 @@
     <string name="stand_recommend">Choose your stand</string>
     <string name="stand_recommendation">Your recommended stand: </string>
     <string name="stand_spinner_recommend">Pick your own favorite: </string>
-    <string name="confirm_recommend">Go with recommended</string>
-    <string name="confirm_stand">Choose own stand</string>
+    <string name="confirm_stand">Confirm your stand</string>
     <string name="no_recommendation">No recommendation available.</string>
     <string name="recommend_time">You will have to wait: </string>
     <string name="recommend_distance">You will have to walk: </string>
