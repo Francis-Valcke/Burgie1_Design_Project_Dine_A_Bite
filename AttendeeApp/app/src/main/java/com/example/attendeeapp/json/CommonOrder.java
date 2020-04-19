@@ -15,17 +15,20 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
 
+import org.threeten.bp.Duration;
+import org.threeten.bp.ZoneId;
+import org.threeten.bp.ZonedDateTime;
+
 @Entity
 public class CommonOrder implements Serializable {
-
     // unique id for this order
     @PrimaryKey
     private int id;
 
     @TypeConverters(Converters.class)
-    private Calendar startTime;
+    private ZonedDateTime startTime;
     @TypeConverters(Converters.class)
-    private Calendar expectedTime;
+    private ZonedDateTime expectedTime;
 
     @TypeConverters(Converters.class)
     private State orderState;
@@ -69,8 +72,8 @@ public class CommonOrder implements Serializable {
         this.standName=standName;
         this.brandName=brandName;
 
-        this.startTime=Calendar.getInstance();
-        this.expectedTime=Calendar.getInstance();
+        this.startTime=ZonedDateTime.now(ZoneId.of("Europe/Brussels"));
+        this.expectedTime=ZonedDateTime.now(ZoneId.of("Europe/Brussels"));
 
         this.orderState=State.SEND;
 
@@ -86,7 +89,7 @@ public class CommonOrder implements Serializable {
     }
 
     public int computeRemainingTime(){
-        return (int) (expectedTime.getTimeInMillis()-startTime.getTimeInMillis());
+        return (int) Duration.between(expectedTime, startTime).toMillis();
     }
 
     public State getOrderState() {
@@ -149,19 +152,19 @@ public class CommonOrder implements Serializable {
         this.longitude = longitude;
     }
 
-    public Calendar getStartTime() {
+    public ZonedDateTime getStartTime() {
         return startTime;
     }
 
-    public void setStartTime(Calendar startTime) {
+    public void setStartTime(ZonedDateTime startTime) {
         this.startTime = startTime;
     }
 
-    public Calendar getExpectedTime() {
+    public ZonedDateTime getExpectedTime() {
         return expectedTime;
     }
 
-    public void setExpectedTime(Calendar expectedTime) {
+    public void setExpectedTime(ZonedDateTime expectedTime) {
         this.expectedTime = expectedTime;
     }
 
