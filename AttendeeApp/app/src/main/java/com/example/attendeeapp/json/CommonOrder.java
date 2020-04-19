@@ -6,12 +6,12 @@ import androidx.room.TypeConverters;
 
 import com.example.attendeeapp.appDatabase.Converters;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.text.NumberFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
 
@@ -26,8 +26,10 @@ public class CommonOrder implements Serializable {
     private int id;
 
     @TypeConverters(Converters.class)
+    @JsonDeserialize(using = ZonedDateTimeDeserializer.class)
     private ZonedDateTime startTime;
     @TypeConverters(Converters.class)
+    @JsonDeserialize(using = ZonedDateTimeDeserializer.class)
     private ZonedDateTime expectedTime;
 
     @TypeConverters(Converters.class)
