@@ -7,6 +7,7 @@ import cobol.commons.order.SuperOrder;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -158,6 +159,7 @@ public class CommunicationHandler {
 
         // Handle Response
         ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
         if (response.getBody() != null) {
 
             List<Event> events= objectMapper.readValue(response.getBody(), new TypeReference<List<Event>>() {});
@@ -223,6 +225,7 @@ public class CommunicationHandler {
 
         // Send Request
         ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
         String jsonString = objectMapper.writeValueAsString(e);
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -257,6 +260,7 @@ public class CommunicationHandler {
 
 
         ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
         String jsonString = objectMapper.writeValueAsString(e);
         String uri = OrderManager.ECURL + "/publishEvent";
         HttpEntity<String> entity = new HttpEntity<>(jsonString, headers);

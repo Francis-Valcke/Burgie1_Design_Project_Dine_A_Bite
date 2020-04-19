@@ -6,6 +6,9 @@ import cobol.commons.exception.CommunicationException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.ParseException;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -77,6 +80,8 @@ public class CommunicationHandler {
 
         // Handle Response
         ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+
         if (response.getBody() != null) {
 
             List<Event> events= objectMapper.readValue(response.getBody(), new TypeReference<List<Event>>() {});

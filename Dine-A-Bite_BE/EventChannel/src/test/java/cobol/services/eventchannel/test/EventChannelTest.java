@@ -5,6 +5,7 @@ import cobol.commons.Event;
 import cobol.services.eventchannel.EventBroker;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.json.simple.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
@@ -45,6 +46,7 @@ public class EventChannelTest {
         EventBroker broker = EventBroker.getInstance();
         Thread brokerThread = new Thread(broker);
         brokerThread.start();
+        objectMapper.registerModule(new JavaTimeModule());
         this.mockMvc = webAppContextSetup(this.applicationContext)
                 .build();
         if (!setupDone) {

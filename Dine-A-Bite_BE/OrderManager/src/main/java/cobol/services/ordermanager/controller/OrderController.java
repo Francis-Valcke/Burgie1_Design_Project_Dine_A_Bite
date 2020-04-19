@@ -11,6 +11,7 @@ import cobol.services.ordermanager.domain.entity.Order;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
@@ -18,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
 
 import java.util.List;
 import java.util.Optional;
@@ -29,7 +31,7 @@ public class OrderController {
     @Autowired
     private ObjectMapper objectMapper;
     @Autowired
-    private OrderProcessor orderProcessor = null;
+    private OrderProcessor orderProcessor;// = null;
     @Autowired
     private CommunicationHandler communicationHandler;
 
@@ -74,13 +76,13 @@ public class OrderController {
         mappedOrder.setBrandName(orderObject.getBrandName());
         mappedOrder.setStandName(orderObject.getStandName());
         ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new JavaTimeModule());
         String jsonString = mapper.writeValueAsString(mappedOrder);
 
         // Ask standmanager for recommendation
         String responseString = communicationHandler.sendRestCallToStandManager("/getRecommendation", jsonString, null);
         List<Recommendation> recommendations = mapper.readValue(responseString, new TypeReference<List<Recommendation>>() {});
         orderProcessor.addRecommendations(newOrder.getId(), recommendations);
-        System.out.println("OKE DE NEWORDER BIJ RECOMMEND STAAT NU OP WELKE TIJD?" + newOrder.getStartTime());
 
         // send updated order and recommendation
         JSONObject completeResponse = new JSONObject();
@@ -88,7 +90,11 @@ public class OrderController {
         // Construct response
         completeResponse.put("order", newOrder.asCommonOrder());
         completeResponse.put("recommendations", recommendations);
+
+        CommonOrder test_order = newOrder.asCommonOrder();
+
         return ResponseEntity.ok(completeResponse);
+
     }
 
     /**
@@ -146,9 +152,10 @@ public class OrderController {
      * @param brandName name of brand
      * @throws JsonProcessingException jsonexception
      */
-    @RequestMapping(value = "/confirmStand", method = RequestMethod.GET)
-    @ResponseBody
+    @GetMapping("/confirmStand")
     public ResponseEntity<String> confirmStand(@RequestParam(name = "orderId") int orderId, @RequestParam(name = "standName") String standName, @RequestParam(name = "brandName") String brandName) throws JsonProcessingException, DoesNotExistException {
+        Optional<Order> test = orderProcessor.getOrder(orderId);
+
         // Update order, confirm stand
         Order updatedOrder = orderProcessor.confirmStand(orderId, standName, brandName);
 
