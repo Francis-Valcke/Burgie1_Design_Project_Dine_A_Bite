@@ -97,17 +97,18 @@ public class DashboardListViewAdapter extends BaseAdapter {
                                         || Objects.requireNonNull(addedStockInput.getText()).toString().isEmpty()) {
                                     AlertDialog.Builder alertDialog = new AlertDialog.Builder(finalView.getContext())
                                             .setTitle("Invalid menu item")
-                                            .setMessage("The menu item you tried to add is invalid, please try again.")
+                                            .setMessage("The menu item you tried to add is " +
+                                                    "invalid, please try again.")
                                             .setNeutralButton("Ok", null);
                                     alertDialog.show();
                                 } else {
                                     String name = Objects.requireNonNull(nameInput.getText()).toString();
-                                    BigDecimal price = new BigDecimal(Objects.requireNonNull(priceInput.getText()).toString());
-                                    int addedStock = Integer.parseInt(Objects.requireNonNull(addedStockInput.getText()).toString());
+                                    BigDecimal price = new BigDecimal(priceInput.getText().toString());
+                                    int addedStock = Integer.parseInt(addedStockInput.getText().toString());
                                     String description = Objects.requireNonNull(descriptionInput.getText()).toString();
                                     item.setName(name);
                                     item.setPrice(price);
-                                    item.setStock(item.getStock() + addedStock);
+                                    item.increaseStock(addedStock);
                                     item.setDescription(description);
                                     notifyDataSetChanged();
                                     addedStockMap.put(name, addedStock);
@@ -124,7 +125,8 @@ public class DashboardListViewAdapter extends BaseAdapter {
                         }).setNegativeButton("Delete", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-                                AlertDialog.Builder alertDialog = new AlertDialog.Builder(finalView.getContext())
+                                AlertDialog.Builder alertDialog
+                                        = new AlertDialog.Builder(finalView.getContext())
                                         .setTitle("Delete menu item")
                                         .setMessage("Are you sure?")
                                         .setPositiveButton("Yes", new DialogInterface.OnClickListener() {

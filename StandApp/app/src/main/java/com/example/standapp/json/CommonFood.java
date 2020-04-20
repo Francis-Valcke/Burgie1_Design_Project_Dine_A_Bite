@@ -182,4 +182,12 @@ public class CommonFood implements Serializable {
     public void setStock(int stock) {
         this.stock = stock;
     }
+
+    public void increaseStock(int inc) {
+        this.stock = this.stock + inc;
+    }
+
+    public void decreaseStock(int dec) {
+        this.stock = this.stock - dec;
+    }
 }

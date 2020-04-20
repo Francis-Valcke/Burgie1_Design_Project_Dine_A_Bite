@@ -26,6 +26,7 @@ import com.android.volley.toolbox.Volley;
 import com.example.standapp.data.LoginDataSource;
 import com.example.standapp.data.LoginRepository;
 import com.example.standapp.data.model.LoggedInUser;
+import com.example.standapp.json.CommonFood;
 import com.example.standapp.order.CommonOrder;
 import com.example.standapp.order.CommonOrderItem;
 import com.example.standapp.order.CommonOrderStatusUpdate;
@@ -146,6 +147,9 @@ public class OrderFragment extends Fragment {
                             }
                             // Orders should have different order numbers (orderName)
                             listHash.put(orderName, orderItems);
+
+                            // Decrease current stock based on incoming order
+                            decreaseStock(order.getOrderItems());
                         }
                         listAdapter.notifyDataSetChanged();
                     }
@@ -227,6 +231,9 @@ public class OrderFragment extends Fragment {
                     // Orders should have different order numbers (orderName)
                     listHash.put(orderName, orderItems);
                     listAdapter.notifyDataSetChanged();
+
+                    // Decrease current stock based on incoming order
+                    decreaseStock(orderUpdate.getOrderItems());
                 } catch (JsonProcessingException e) {
                     e.printStackTrace();
                 }
@@ -234,5 +241,29 @@ public class OrderFragment extends Fragment {
 
         }
     };
+
+    /**
+     * Decrease the current stock values of the menu items of the stand
+     * based on incoming orders
+     * @param orderItems: menu items of stand that are being ordered
+     */
+    @SuppressWarnings("unchecked")
+    private void decreaseStock(List<CommonOrderItem> orderItems) {
+        ArrayList<CommonFood> items;
+        Bundle bundle = getArguments();
+        if (bundle != null) {
+            items = (ArrayList<CommonFood>) bundle.getSerializable("items");
+        } else return;
+
+        if (items != null) {
+            for (CommonOrderItem orderItem : orderItems) {
+                for (CommonFood menuItem : items) {
+                    if (orderItem.getFoodName().equals(menuItem.getName())) {
+                        menuItem.decreaseStock(orderItem.getAmount());
+                    }
+                }
+            }
+        }
+    }
 
 }

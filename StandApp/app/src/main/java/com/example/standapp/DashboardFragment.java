@@ -51,7 +51,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-// TODO fix sending and showing and storing stock (branch feature/stand_app/stock)
 // TODO change stock based on incoming orders (branch feature/stand_app/stock)
 
 public class DashboardFragment extends Fragment {
@@ -59,6 +58,10 @@ public class DashboardFragment extends Fragment {
     private Context mContext;
     private boolean isNewStand = false;
     private ArrayList<CommonFood> items = new ArrayList<>();
+
+    // Stores the current stock of the menu items;
+    // this way the stock send to the backend is calculated to be equal to the added stock
+    private HashMap<String, Integer> addedStockMap = new HashMap<>();
 
     // Location data of stand
     private FusedLocationProviderClient fusedLocationClient;
@@ -71,10 +74,7 @@ public class DashboardFragment extends Fragment {
         mContext = context;
     }
 
-    // Stores the current stock of the menu items;
-    // this way the stock send to the backend is calculated to be equal to added stock
-    private HashMap<String, Integer> addedStockMap = new HashMap<>();
-
+    @SuppressWarnings("unchecked")
     @Nullable
     @Override
     public View onCreateView(@NonNull final LayoutInflater inflater,
@@ -101,7 +101,6 @@ public class DashboardFragment extends Fragment {
             // Ask for permission to get location data and set lastLocation variable
             checkLocationPermission();
 
-            // Ignore warning
             items = (ArrayList<CommonFood>) bundle.getSerializable("items");
             isNewStand = bundle.getBoolean("newStand");
         }
