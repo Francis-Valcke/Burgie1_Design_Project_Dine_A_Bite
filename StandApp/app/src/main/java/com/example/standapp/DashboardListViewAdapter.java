@@ -98,7 +98,8 @@ public class DashboardListViewAdapter extends BaseAdapter {
                                     AlertDialog.Builder alertDialog = new AlertDialog.Builder(finalView.getContext())
                                             .setTitle("Invalid menu item")
                                             .setMessage("The menu item you tried to add is " +
-                                                    "invalid, please try again.")
+                                                    "invalid, please try again. You should fill " +
+                                                    "in the necessary fields.")
                                             .setNeutralButton("Ok", null);
                                     alertDialog.show();
                                 } else {

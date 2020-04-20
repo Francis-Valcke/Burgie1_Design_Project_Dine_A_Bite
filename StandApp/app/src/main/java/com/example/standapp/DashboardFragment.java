@@ -132,7 +132,9 @@ public class DashboardFragment extends Fragment {
                                 || Objects.requireNonNull(prepTimeInput.getText()).toString().isEmpty()) {
                             AlertDialog.Builder alertDialog = new AlertDialog.Builder(finalView.getContext())
                                     .setTitle("Invalid menu item")
-                                    .setMessage("The menu item you tried to add is invalid, please try again.")
+                                    .setMessage("The menu item you tried to add is invalid, " +
+                                            "please try again. " +
+                                            "You should fill in the necessary fields.")
                                     .setNeutralButton("Ok", null);
                             alertDialog.show();
                         } else {
@@ -344,7 +346,7 @@ public class DashboardFragment extends Fragment {
                     fusedLocationClient.getLastLocation()
                             .addOnCompleteListener(new OnCompleteListener<Location>() {
                                 @Override
-                                public void onComplete(Task<Location> task) {
+                                public void onComplete(@NonNull Task<Location> task) {
                                     if (task.isSuccessful() && task.getResult() != null){
                                         lastLocation = task.getResult();
                                     }
