@@ -65,7 +65,6 @@ public class MenuActivity extends AppCompatActivity implements OnCartChangeListe
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-
         // Initializes cart button layout at bottom of menu item list
         TextView totalCount = findViewById(R.id.cart_count);
         totalCount.setText("0");
@@ -214,7 +213,8 @@ public class MenuActivity extends AppCompatActivity implements OnCartChangeListe
                 return true;
             case R.id.account_action:
                 // User chooses the "Account" item
-                // TODO make account activity
+                Intent intent2 = new Intent(MenuActivity.this, AccountActivity.class);
+                startActivity(intent2);
                 return true;
             case R.id.settings_action:
                 // User chooses the "Settings" item
