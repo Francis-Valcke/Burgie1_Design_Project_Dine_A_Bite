@@ -158,6 +158,74 @@ public class StandManagerController {
         return ResponseEntity.ok(completeResponse);
     }
 
+    /**
+     * This method will split a superorder and give a recommendation for all the orders
+     *
+     * @param superOrder List with orderitems and corresponding brand
+     * @return JSONArray each element containing a field "recommendations" and a field "order" similar to return of placeOrder
+     * recommendation field will be a JSONArray of Recommendation object
+     */
+    @PostMapping(value = "/getSuperRecommendation", consumes = "application/json", produces = "application/json")
+    public ResponseEntity<JSONArray> getSuperRecommendation(@RequestBody SuperOrder superOrder) throws JsonProcessingException {
+
+        // initialize response
+        JSONArray completeResponse= new JSONArray();
+
+        // Extract and copy complete list of CommonOrderItems from superOrder
+        List<CommonOrderItem> items = new ArrayList<>(superOrder.getOrderItems());
+
+        // search items that can be executed together
+        List<HashSet<CommonOrderItem>> itemSplit = new ArrayList<>();
+
+        // Get schedulers from this brand
+        List<Scheduler> brandSchedulers = schedulerHandler.getSchedulers()
+                .stream().filter(s -> s.getBrand().equals(superOrder.getBrandName()))
+                .collect(Collectors.toList());
+
+        // Split order items in sets which can be executed together
+        for (Scheduler scheduler : brandSchedulers) {
+            // As long items list is not empty, search stand which can do it
+            if (!items.isEmpty()) {
+                List<String> stringMenu = scheduler.getMenu().stream().map(CommonFood::getName).collect(Collectors.toList());
+                List<CommonOrderItem> canExecuteTogether = items.stream().filter(item -> stringMenu.contains(item.getFoodName())).collect(Collectors.toList());
+
+                itemSplit.add(new HashSet<>(canExecuteTogether));
+                items.removeAll(canExecuteTogether);
+            } else {
+                break;
+            }
+        }
+
+
+        for (HashSet<CommonOrderItem> commonOrderItems : itemSplit) {
+
+            JSONObject orderResponse= new JSONObject();
+
+            // -- Construct a virtual order -- //
+            CommonOrder order = new CommonOrder();
+            // add order items for this order
+            order.setOrderItems(new ArrayList<>(commonOrderItems));
+            // set brandName
+            order.setBrandName(superOrder.getBrandName());
+            // set coordinates
+            order.setLatitude(superOrder.getLatitude());
+            order.setLongitude(superOrder.getLongitude());
+
+            // -- Ask recommendation for newly created order -- //
+            List<Recommendation> recommendations= schedulerHandler.recommend(order);
+
+            // -- Add to response of this super order recommendation -- //
+            orderResponse.put("order", order);
+            orderResponse.put("recommendations", recommendations);
+
+            completeResponse.add(orderResponse);
+        }
+
+
+        // return list of commonorderitems with corresponding recommendation
+        return ResponseEntity.ok(completeResponse);
+    }
+
 
     /**
      * @param order order object for which the Order Manager wants a recommendation
