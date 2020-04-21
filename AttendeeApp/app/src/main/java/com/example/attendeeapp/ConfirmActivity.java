@@ -1,6 +1,6 @@
 package com.example.attendeeapp;
 
-import android.content.DialogInterface;
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.graphics.Typeface;
 import android.location.Location;
@@ -11,17 +11,16 @@ import android.view.MenuInflater;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
-import com.android.volley.AuthFailureError;
 import com.android.volley.NoConnectionError;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -29,6 +28,9 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
+import com.example.attendeeapp.data.LoginDataSource;
+import com.example.attendeeapp.data.LoginRepository;
+import com.example.attendeeapp.data.model.LoggedInUser;
 import com.example.attendeeapp.json.CommonFood;
 import com.example.attendeeapp.json.CommonOrder;
 import com.example.attendeeapp.json.Recommendation;
@@ -41,6 +43,9 @@ import com.google.common.collect.Multimap;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.threeten.bp.Instant;
+import org.threeten.bp.ZoneId;
+import org.threeten.bp.ZonedDateTime;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -48,8 +53,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-
-import static com.example.attendeeapp.ServerConfig.AUTHORIZATION_TOKEN;
 
 /**
  * Activity that handles the confirmation/choosing of the (recommended) stand of the placed order
@@ -67,42 +70,45 @@ public class ConfirmActivity extends AppCompatActivity implements AdapterView.On
     private String chosenStand = null;
     private Toast mToast = null;
 
+    private LoggedInUser user = LoginRepository.getInstance(new LoginDataSource()).getLoggedInUser();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_confirm);
 
+        // Ignore warning
         ordered = (ArrayList<CommonFood>) getIntent().getSerializableExtra("order");
         cartCount = getIntent().getIntExtra("cartCount", 0);
         totalPrice = (BigDecimal) getIntent().getSerializableExtra("totalPrice");
-        lastLocation = (Location) getIntent().getParcelableExtra("location");
+        lastLocation = getIntent().getParcelableExtra("location");
         requestOrderRecommend();
         fetchStandNames();
 
         // Make distance and time of recommendation invisible until recommendation comes available
         TextView distanceText = findViewById(R.id.recommend_distance_text);
-        distanceText.setVisibility(View.INVISIBLE);
+        distanceText.setVisibility(View.GONE);
         TextView distance = findViewById(R.id.recommend_distance);
-        distance.setVisibility(View.INVISIBLE);
+        distance.setVisibility(View.GONE);
 
-        /*TextView remainingTimeText = findViewById(R.id.recommend_time_text);
-        remainingTimeText.setVisibility(View.INVISIBLE);
+        TextView remainingTimeText = findViewById(R.id.recommend_time_text);
+        remainingTimeText.setVisibility(View.GONE);
         TextView remainingTime = findViewById(R.id.recommend_time);
-        remainingTime.setVisibility(View.INVISIBLE);*/
+        remainingTime.setVisibility(View.GONE);
 
         // Custom Toolbar (instead of standard actionbar)
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
         // Get a support ActionBar corresponding to this toolbar
         ActionBar ab = getSupportActionBar();
 
         // Create a spinner item for the different stands
-        Spinner spinner = (Spinner) findViewById(R.id.stand_recommended_spinner);
+        Spinner spinner = findViewById(R.id.stand_recommended_spinner);
         spinner.setOnItemSelectedListener(this);
 
         // Initiate the spinner item adapter
-        standListAdapter = new ArrayAdapter<String>(this,
+        standListAdapter = new ArrayAdapter<>(this,
                 R.layout.stand_spinner_item, new ArrayList<String>());
         spinner.setAdapter(standListAdapter);
 
@@ -112,8 +118,8 @@ public class ConfirmActivity extends AppCompatActivity implements AdapterView.On
 
 
         // Handle choose own stand and choose recommended stand buttons
-        TextView chooseStand = (TextView)findViewById(R.id.confirm_stand);
-        chooseStand.setOnClickListener(new View.OnClickListener(){
+        Button chooseStandButton = findViewById(R.id.button_confirm_stand);
+        chooseStandButton.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v) {
                 if(chosenStand != null) {
@@ -187,8 +193,8 @@ public class ConfirmActivity extends AppCompatActivity implements AdapterView.On
             }
         });
 
-        TextView chooseRecommend = (TextView)findViewById(R.id.confirm_recommend);
-        chooseRecommend.setOnClickListener(new View.OnClickListener(){
+        Button chooseRecommendButton = findViewById(R.id.button_confirm_recommend);
+        chooseRecommendButton.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v) {
                 boolean noRecommend = true;
@@ -274,11 +280,21 @@ public class ConfirmActivity extends AppCompatActivity implements AdapterView.On
                         //mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
                         try {
                             recommendations= mapper.readValue(response.get("recommendations").toString(), new TypeReference<List<Recommendation>>() {});
-                            orderReceived= mapper.readValue(response.get("order").toString(), CommonOrder.class);
+                            //orderReceived= mapper.readValue(response.get("order").toString(), CommonOrder.class);
+                            orderReceived = mapper.readerFor(CommonOrder.class).readValue(response.get("order").toString());
                             orderReceived.setTotalPrice(totalPrice);
                             orderReceived.setPrices(ordered);
                             orderReceived.setTotalCount(cartCount);
                             // TODO: add ALL menuItem information to the orderItems!
+
+                            // Set expected time for order
+                            // timestamp in seconds, calendar in milliseconds
+                            if (recommendations.size() > 0) {
+                                long timestamp = recommendations.get(0).getTimeEstimate()*1000;
+                                timestamp += orderReceived.getStartTime().toInstant().toEpochMilli();
+                                ZonedDateTime zonedDateTime = ZonedDateTime.ofInstant(Instant.ofEpochMilli(timestamp), ZoneId.of("Europe/Brussels"));
+                                orderReceived.setExpectedTime(zonedDateTime);
+                            }
 
                             showRecommendation();
 
@@ -296,10 +312,10 @@ public class ConfirmActivity extends AppCompatActivity implements AdapterView.On
             }
         }) { // Add JSON headers
             @Override
-            public @NonNull Map<String, String> getHeaders()  throws AuthFailureError {
-                Map<String, String>  headers  = new HashMap<String, String>();
+            public @NonNull Map<String, String> getHeaders() {
+                Map<String, String>  headers  = new HashMap<>();
                 headers.put("Content-Type", "application/json");
-                headers.put("Authorization", AUTHORIZATION_TOKEN);
+                headers.put("Authorization", user.getAuthorizationToken());
                 return headers;
             }
         };
@@ -352,19 +368,19 @@ public class ConfirmActivity extends AppCompatActivity implements AdapterView.On
                 if (error instanceof NoConnectionError) {
                     mToast = Toast.makeText(ConfirmActivity.this, "No network connection",
                             Toast.LENGTH_LONG);
-
+                    mToast.show();
                 } else {
                     mToast = Toast.makeText(ConfirmActivity.this, "Server cannot be reached. No stands available.",
                             Toast.LENGTH_LONG);
+                    mToast.show();
                 }
-                mToast.show();
             }
         }) { // Add JSON headers
             @Override
             public @NonNull
-            Map<String, String> getHeaders()  throws AuthFailureError {
-                Map<String, String>  headers  = new HashMap<String, String>();
-                headers.put("Authorization", AUTHORIZATION_TOKEN);
+            Map<String, String> getHeaders()  {
+                Map<String, String>  headers  = new HashMap<>();
+                headers.put("Authorization", user.getAuthorizationToken());
                 return headers;
             }
         };
@@ -376,6 +392,7 @@ public class ConfirmActivity extends AppCompatActivity implements AdapterView.On
     /**
      * Function that updates the textViews to show the received recommendation info
      */
+    @SuppressLint("SetTextI18n")
     public void showRecommendation() {
         if(recommendations != null) {
             if(recommendations.size() > 0) {
@@ -390,12 +407,12 @@ public class ConfirmActivity extends AppCompatActivity implements AdapterView.On
                 distance.setText(Math.round(recommendations.get(0).getDistance()) + " meter");
                 distance.setVisibility(View.VISIBLE);
 
-                /*TextView remainingTimeText = findViewById(R.id.recommend_time_text);
+                TextView remainingTimeText = findViewById(R.id.recommend_time_text);
                 remainingTimeText.setVisibility(View.VISIBLE);
 
                 TextView remainingTime = findViewById(R.id.recommend_time);
                 remainingTime.setText(recommendations.get(0).getTimeEstimate()/60 + " minute(s)");
-                remainingTime.setVisibility(View.VISIBLE);*/
+                remainingTime.setVisibility(View.VISIBLE);
             }
         }
     }
@@ -428,6 +445,12 @@ public class ConfirmActivity extends AppCompatActivity implements AdapterView.On
             case R.id.settings_action:
                 // User chooses the "Settings" item
                 // TODO make settings activity
+                return true;
+            case R.id.map_action:
+                //User chooses the "Map" item
+                Intent mapIntent = new Intent(ConfirmActivity.this, MapsActivity.class);
+                startActivity(mapIntent);
+                return true;
             default:
                 return super.onOptionsItemSelected(item);
         }

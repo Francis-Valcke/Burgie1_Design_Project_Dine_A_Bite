@@ -40,7 +40,7 @@ public class OrderDatabaseService {
         try {
             return new GetOrdersTask(orderDatabase).execute().get();
         } catch (ExecutionException | InterruptedException e) {
-            Log.v("Get all exception", "Exception in get all orderes");
+            Log.v("Get all exception", "Exception in get all orders");
         }
         return null;
     }
@@ -89,8 +89,8 @@ public class OrderDatabaseService {
 
         @Override
         protected Void doInBackground(Void... voids) {
-            //orderDatabase.orderDao().deleteOrder(order);
-            orderDatabase.clearAllTables();
+            orderDatabase.orderDao().deleteOrder(order);
+            //orderDatabase.clearAllTables();
             return null;
         }
     }

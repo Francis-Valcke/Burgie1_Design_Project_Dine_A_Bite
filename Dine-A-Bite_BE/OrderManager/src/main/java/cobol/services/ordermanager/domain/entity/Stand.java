@@ -2,16 +2,14 @@ package cobol.services.ordermanager.domain.entity;
 
 import cobol.commons.CommonStand;
 import cobol.services.ordermanager.domain.SpringContext;
-import cobol.services.ordermanager.domain.repository.BrandRepository;
-import cobol.services.ordermanager.domain.repository.CategoryRepository;
-import cobol.services.ordermanager.domain.repository.FoodRepository;
-import cobol.services.ordermanager.domain.repository.StandRepository;
+import cobol.services.ordermanager.domain.repository.*;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import org.hibernate.annotations.Cascade;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
@@ -27,8 +25,10 @@ public class Stand implements Serializable {
 
     @JsonIgnore
     @EmbeddedId
-    private StandId standId;
+    private StandId standId = new StandId();
+
     private double longitude;
+
     private double latitude;
 
     @OneToMany(mappedBy = "foodId.stand", cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
@@ -39,8 +39,21 @@ public class Stand implements Serializable {
     @OneToMany(mappedBy = "stand")
     List<Order> orderList = new ArrayList<>();
 
+    @ManyToMany
+    @Cascade({org.hibernate.annotations.CascadeType.PERSIST, org.hibernate.annotations.CascadeType.REFRESH})
+    @JoinTable(name = "stand_user",
+            joinColumns = {
+                    @JoinColumn(referencedColumnName = "name", name = "stand_name", foreignKey = @ForeignKey(name = "stand_user_stand_fk")),
+                    @JoinColumn(referencedColumnName = "brand_name", name = "brand_name", foreignKey = @ForeignKey(name = "stand_user_stand_fk"))
+            },
+            inverseJoinColumns = {
+                    @JoinColumn(referencedColumnName = "username", name = "user_username", foreignKey = @ForeignKey(name = "stand_user_user_fk"))
+            }
+    )
+    Set<User> owners = new HashSet<>();
 
     public Stand() {
+
     }
 
     public Stand(String name, String brandName) {
@@ -76,31 +89,36 @@ public class Stand implements Serializable {
     public Stand update(CommonStand cs){
 
         //Update general fields
-        this.longitude = cs.getLongitude();
-        this.latitude = cs.getLatitude();
+        this.longitude = cs.getLongitude() < 0 ? this.longitude : cs.getLongitude();
+        this.latitude = cs.getLatitude() < 0 ? this.latitude : cs.getLatitude();
 
-        //Set the brand in the standId
-        BrandRepository brandRepository = SpringContext.getBean(BrandRepository.class);
-        Brand brand = brandRepository.findById(cs.getBrandName()).orElse(new Brand(cs.getBrandName()));
-        this.standId = new StandId(cs.getName(), brand);
-
-        //Update food list
-        FoodRepository foodRepository = SpringContext.getBean(FoodRepository.class);
-        this.foodList.clear();
+        // A map that allows search by hashcode
+        Map<Food, Food> originalMenu = foodList.stream().collect(Collectors.toMap(f -> f, f -> f));
+        // Clear the original menu
+        foodList.clear();
+        // Build the new menu
         cs.getMenu().forEach(cf -> {
+
             //TODO: should not be nescessary if everything is sent correctly
             cf.setBrandName(cs.getBrandName());
             cf.setStandName(cs.getName());
 
-            Food food = foodRepository.findFoodById(cf.getName(), cf.getStandName(), cf.getBrandName()).orElse(new Food(cf));
-            foodList.add(food);
-            food.setStand(this);
+            //Create a new Food object based on the common food to use as key
+            Food newFood = new Food(cf);
 
-            food.update(cf);
+            //The food item already exists and needs to be updated
+            if (originalMenu.containsKey(newFood)){
+                newFood = originalMenu.get(newFood);
+                newFood.update(cf);
+            }
+
+            //As the list was cleared, every food item, new or old and adjusted needs to be added back to the foodList
+            foodList.add(newFood);
+            newFood.setStand(this);
+
         });
 
         return this;
-
     }
 
     /**
@@ -138,13 +156,6 @@ public class Stand implements Serializable {
         );
     }
 
-
-    // ---- Getters and Setters ----//
-
-    public String getName(){
-        return standId.name;
-    }
-
     public Map<String, Double> getLocation() {
         Map<String, Double> location = new HashMap<>();
         location.put("latitude", this.latitude);
@@ -152,26 +163,95 @@ public class Stand implements Serializable {
         return location;
     }
 
+    // ---- Getters and Setters ----//
+
+    // -- food id --
+
+    @JsonIgnore
+    public StandId getStandId() {
+        return standId;
+    }
+
+    @JsonIgnore
+    public void setStandId(StandId standId) {
+        this.standId = standId;
+    }
+
+    public String getName(){
+        return standId.name;
+    }
+
+    public void setName(String name){
+        standId.name = name;
+    }
+
+    @JsonIgnore
+    public Brand getBrand(){
+        return standId.brand;
+    }
+
+    @JsonIgnore
+    public void setBrand(Brand brand){
+        standId.brand = brand;
+    }
+
     public String getBrandName(){
         return standId.brand.getName();
     }
 
-
-    @JsonProperty("name")
-    public void setName(String name) {
-        standId = (standId == null) ? new StandId() : standId;
-        this.standId.name = name;
+    @JsonIgnore
+    public void setBrandName(String brandName){
+        standId.brand.setName(brandName);
     }
 
-    @JsonProperty("brandName")
-    public void setBrand(Brand brand) {
-        standId = (standId == null) ? new StandId() : standId;
-        this.standId.brand = brand;
+
+    // -- other fields --
+
+    public double getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(double longitude) {
+        this.longitude = longitude;
+    }
+
+    public double getLatitude() {
+        return latitude;
+    }
+
+    public void setLatitude(double latitude) {
+        this.latitude = latitude;
+    }
+
+    public List<Food> getFoodList() {
+        return foodList;
+    }
+
+    public void setFoodList(List<Food> foodList) {
+        foodList.forEach(f -> f.setStand(this));
+
+        this.foodList = foodList;
     }
 
     @JsonIgnore
-    public Brand getBrand() {
-        return standId.brand;
+    public List<Order> getOrderList() {
+        return orderList;
+    }
+
+    @JsonIgnore
+    public void setOrderList(List<Order> orderList) {
+        this.orderList = orderList;
+    }
+
+    public Set<User> getOwners() {
+        return owners;
+    }
+
+    public void setOwners(List<User> newOwners) {
+        UserRepository userRepository = SpringContext.getBean(UserRepository.class);
+        Set<User> owners = newOwners.stream().map(userRepository::save).collect(Collectors.toSet());
+
+        this.owners = owners;
     }
 
     // ---- Extra ---- //

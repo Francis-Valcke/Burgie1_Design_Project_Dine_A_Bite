@@ -1,5 +1,6 @@
 package com.example.attendeeapp;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
@@ -26,7 +27,7 @@ import java.util.ArrayList;
 public class MenuActivity extends AppCompatActivity implements OnCartChangeListener {
 
     private static final int MAX_CART_ITEM = 25;
-    private ArrayList<CommonFood> cartList = new ArrayList<CommonFood>();
+    private ArrayList<CommonFood> cartList = new ArrayList<>();
     private int cartCount;
     private Toast mToast = null;
 
@@ -35,7 +36,6 @@ public class MenuActivity extends AppCompatActivity implements OnCartChangeListe
      * Creates menu items view consisting of
      * toolbar, fragment for global menu, fragment for stand menu
      * and cart button with total count
-     * @param savedInstanceState
      */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,15 +62,15 @@ public class MenuActivity extends AppCompatActivity implements OnCartChangeListe
                 }).attach();
 
         // Custom Toolbar (instead of standard actionbar)
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
 
         // Initializes cart button layout at bottom of menu item list
-        TextView totalCount = (TextView)findViewById(R.id.cart_count);
+        TextView totalCount = findViewById(R.id.cart_count);
         totalCount.setText("0");
 
-        RelativeLayout relLay = (RelativeLayout)findViewById(R.id.cart_layout);
+        RelativeLayout relLay = findViewById(R.id.cart_layout);
         relLay.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v) {
@@ -82,14 +82,16 @@ public class MenuActivity extends AppCompatActivity implements OnCartChangeListe
         });
     }
 
+    @SuppressLint("SetTextI18n")
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == 1) {
             if(resultCode == RESULT_OK) {
+                // Ignore warning
                 cartList = (ArrayList<CommonFood>) data.getSerializableExtra("cartList");
                 cartCount = data.getIntExtra("cartCount", 0);
-                TextView totalCount = (TextView)findViewById(R.id.cart_count);
+                TextView totalCount = findViewById(R.id.cart_count);
                 totalCount.setText("" + cartCount);
             }
 
@@ -126,7 +128,7 @@ public class MenuActivity extends AppCompatActivity implements OnCartChangeListe
                     cartList.add(newItem);
                 }
                 cartCount++;
-                TextView totalCount = (TextView)findViewById(R.id.cart_count);
+                TextView totalCount = findViewById(R.id.cart_count);
                 totalCount.setText(String.valueOf(cartCount));
 
             } catch (ArithmeticException e){
@@ -174,7 +176,7 @@ public class MenuActivity extends AppCompatActivity implements OnCartChangeListe
                     throw new ArithmeticException("This menuItem is not in the cart!");
                 }
                 cartCount--;
-                TextView totalCount = (TextView)findViewById(R.id.cart_count);
+                TextView totalCount = findViewById(R.id.cart_count);
                 totalCount.setText(String.valueOf(cartCount));
 
             } catch (ArithmeticException e){
@@ -217,6 +219,12 @@ public class MenuActivity extends AppCompatActivity implements OnCartChangeListe
             case R.id.settings_action:
                 // User chooses the "Settings" item
                 // TODO make settings activity
+                return true;
+            case R.id.map_action:
+                //User chooses the "Map" item
+                Intent mapIntent = new Intent(MenuActivity.this, MapsActivity.class);
+                startActivity(mapIntent);
+                return true;
             default:
                 return super.onOptionsItemSelected(item);
         }

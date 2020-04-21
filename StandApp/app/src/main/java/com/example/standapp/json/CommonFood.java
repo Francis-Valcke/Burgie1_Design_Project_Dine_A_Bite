@@ -30,7 +30,8 @@ public class CommonFood implements Serializable {
         super(); // needed for ObjectMapper
     }
 
-    public CommonFood(String name, BigDecimal price, int preparationTime, int stock, String brandName, String desc, List<String> category) {
+    public CommonFood(String name, BigDecimal price, int preparationTime, int stock,
+                      String brandName, String desc, List<String> category) {
         this.name = name;
         this.price = price.setScale(2, RoundingMode.HALF_UP);
         this.preparationTime = preparationTime;
@@ -41,7 +42,8 @@ public class CommonFood implements Serializable {
         this.count = 0;
     }
 
-    public CommonFood(String foodName, BigDecimal price, int preparationTime, int stock, String standName, String brandName, String desc, List<String> category) {
+    public CommonFood(String foodName, BigDecimal price, int preparationTime, int stock,
+                      String standName, String brandName, String desc, List<String> category) {
         this.name = foodName;
         this.price = price.setScale(2, RoundingMode.HALF_UP);
         this.preparationTime = preparationTime;

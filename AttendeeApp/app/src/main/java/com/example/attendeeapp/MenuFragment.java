@@ -7,7 +7,6 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
-import com.android.volley.AuthFailureError;
 import com.android.volley.NoConnectionError;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -15,10 +14,11 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.Volley;
+import com.example.attendeeapp.data.LoginDataSource;
+import com.example.attendeeapp.data.LoginRepository;
+import com.example.attendeeapp.data.model.LoggedInUser;
 import com.example.attendeeapp.json.CommonFood;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.json.JSONArray;
@@ -27,26 +27,27 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import static com.example.attendeeapp.ServerConfig.AUTHORIZATION_TOKEN;
+import java.util.Objects;
 
 /**
  * Abstract parent class of global and stand menuFragments
  * Contains the common variables and functions
  */
-public abstract class MenuFragment extends Fragment {
+abstract class MenuFragment extends Fragment {
 
-    protected ArrayList<CommonFood> menuItems = new ArrayList<CommonFood>();
-    protected MenuItemAdapter menuAdapter;
-    protected SwipeRefreshLayout pullToRefresh;
-    protected Toast mToast;
+    ArrayList<CommonFood> menuItems = new ArrayList<>();
+    MenuItemAdapter menuAdapter;
+    SwipeRefreshLayout pullToRefresh;
+    Toast mToast;
+
+    private LoggedInUser user = LoginRepository.getInstance(new LoginDataSource()).getLoggedInUser();
 
     /**
      * Updates the current global/stand menu with the updated version returned from the server
      * Error are handled in the fetchMenu function
      * @param response: the JSON response from the server
      */
-    public void updateMenu(List<CommonFood> response) {
+    private void updateMenu(List<CommonFood> response) {
         // Renew the list
         menuItems.clear();
 
@@ -66,9 +67,9 @@ public abstract class MenuFragment extends Fragment {
      * @param standName: the name of the stand to request the menu of,
      *                "" if the global menu is required
      */
-    protected void fetchMenu(final String standName, final String brandName){
+    void fetchMenu(final String standName, final String brandName){
         // Instantiate the RequestQueue
-        RequestQueue queue = Volley.newRequestQueue(getActivity());
+        RequestQueue queue = Volley.newRequestQueue(Objects.requireNonNull(getActivity()));
         String url = ServerConfig.OM_ADDRESS;
         int req = Request.Method.GET;
         if (standName.equals("")) {
@@ -115,7 +116,6 @@ public abstract class MenuFragment extends Fragment {
             @Override
             public void onErrorResponse(VolleyError error) {
 
-
                 // Hardcoded test menuItem to add when server is unavailable
                 /*MenuItem item = new MenuItem("foodName", new BigDecimal(5.5), "brandName");
                 menuItems.add(item);
@@ -130,27 +130,25 @@ public abstract class MenuFragment extends Fragment {
                 if (error instanceof NoConnectionError) {
                     mToast = Toast.makeText(getActivity(), "No network connection",
                                             Toast.LENGTH_LONG);
+                    mToast.show();
 
                 } else {
                     mToast = Toast.makeText(getActivity(), "Server cannot be reached. No menu available.",
                                             Toast.LENGTH_LONG);
+                    mToast.show();
                 }
-                mToast.show();
             }
         }) { // Add JSON headers
             @Override
             public @NonNull
-            Map<String, String> getHeaders()  throws AuthFailureError {
-                Map<String, String>  headers  = new HashMap<String, String>();
-                headers.put("Authorization", AUTHORIZATION_TOKEN);
+            Map<String, String> getHeaders() {
+                Map<String, String>  headers  = new HashMap<>();
+                headers.put("Authorization", user.getAuthorizationToken());
                 return headers;
             }
 
         };
 
-
-        String test1 = jsonRequest.getUrl();
-        String test2 = jsonRequest.toString();
         // Add the request to the RequestQueue
         queue.add(jsonRequest);
     }

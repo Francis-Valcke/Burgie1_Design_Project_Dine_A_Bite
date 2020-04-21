@@ -15,9 +15,8 @@ import org.hibernate.annotations.Cascade;
 import javax.persistence.*;
 import java.io.Serializable;
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Data
 @Entity
@@ -26,7 +25,7 @@ public class Food {
 
     @JsonIgnore
     @EmbeddedId
-    private FoodId foodId;
+    private FoodId foodId = new FoodId();
 
     private int stock;
 
@@ -39,13 +38,14 @@ public class Food {
     @JoinTable(name = "food_category",
             joinColumns = {
                     @JoinColumn(referencedColumnName = "name", name = "food_name", foreignKey = @ForeignKey(name = "food_category_food_fk")),
-                    @JoinColumn(referencedColumnName = "stand_name", name = "stand_name", foreignKey = @ForeignKey(name = "food_category_food_fk")),
-                    @JoinColumn(referencedColumnName = "brand_name", name = "brand_name", foreignKey = @ForeignKey(name = "food_category_food_fk"))
+                    @JoinColumn(referencedColumnName = "stand_name", name = "stand_name"),
+                    @JoinColumn(referencedColumnName = "brand_name", name = "brand_name")
             },
             inverseJoinColumns = {
                     @JoinColumn(referencedColumnName = "category", name = "category_category", foreignKey = @ForeignKey(name = "food_category_category_fk"))
             }
     )
+
     private List<Category> category = new ArrayList<>();
 
 
@@ -99,21 +99,19 @@ public class Food {
     public Food update(CommonFood cf){
 
         //Setting general fields
-        this.description = cf.getDescription();
-        this.price = cf.getPrice().floatValue();
-        this.preparationTime = cf.getPreparationTime();
-        this.stock = cf.getStock();
+        this.description = cf.getDescription().equals("") ? this.description : cf.getDescription();
+        this.price = cf.getPrice().floatValue() < 0 ? this.price : cf.getPrice().floatValue();
+        this.preparationTime = cf.getPreparationTime() < 0 ? this.preparationTime : cf.getPreparationTime();
+        //Stock will be 0 if no stock has changed
+        this.stock += cf.getStock();
 
-        //Setting categories
-        this.category.clear();
-        CategoryRepository categoryRepository = SpringContext.getBean(CategoryRepository.class);
-        cf.getCategory().forEach(c -> category.add(categoryRepository.findById(c).orElse(categoryRepository.save(new Category(c)))));
-
-        //Setting foodId
-        StandRepository standRepository = SpringContext.getBean(StandRepository.class);
-        Stand stand = standRepository.findStandById(cf.getStandName(), cf.getBrandName())
-                .orElse(new Stand(cf.getStandName(), cf.getBrandName()));
-        this.foodId = new FoodId(cf.getName(), stand);
+        // When categories is empty the categories should remain unchanged
+        if (!cf.getCategory().isEmpty()){
+            //Setting categories
+            this.category.clear();
+            CategoryRepository categoryRepository = SpringContext.getBean(CategoryRepository.class);
+            cf.getCategory().forEach(c -> category.add(categoryRepository.findById(c).orElse(categoryRepository.save(new Category(c)))));
+        }
 
         return this;
     }
@@ -170,33 +168,150 @@ public class Food {
         return returnCategories;
     }
 
-    public String getName() {
-        return foodId.name;
-    }
+    //public String getName() {
+    //    return foodId.name;
+    //}
+    //
+    //public String getStandName(){
+    //    return foodId.stand.getName();
+    //}
+    //
+    //public String getBrandName(){
+    //    return foodId.stand.getBrandName();
+    //}
+    //
+    //@JsonProperty("name")
+    //public void setName(String name) {
+    //    foodId = (foodId == null) ? new Food.FoodId() : foodId;
+    //    this.foodId.name = name;
+    //}
+    //
+    //@JsonProperty("standName")
+    //public void setStandName(String name) {
+    //    foodId = (foodId == null) ? new Food.FoodId() : foodId;
+    //    this.foodId.getStand().setName(name);
+    //}
+    //
+    //@JsonProperty("brandName")
+    //public void setBrandName(String name) {
+    //    foodId = (foodId == null) ? new Food.FoodId() : foodId;
+    //    this.foodId.getStand().getBrand().setName(name);
+    //}
+    //
+    //@JsonIgnore
+    //public Stand getStand() {
+    //    return foodId.stand;
+    //}
+    //
+    //@JsonIgnore
+    //public void setStand(Stand stand) {
+    //    foodId = (foodId == null) ? new Food.FoodId() : foodId;
+    //    this.foodId.stand = stand;
+    //}
 
-    public String getStandName(){
-        return foodId.stand.getName();
-    }
 
-    public String getBrandName(){
-        return foodId.stand.getBrandName();
-    }
+    // ---- GETTERS & SETTERS ----
 
-    @JsonProperty("name")
-    public void setName(String name) {
-        foodId = (foodId == null) ? new Food.FoodId() : foodId;
-        this.foodId.name = name;
+    // -- food id --
+
+    @JsonIgnore
+    public FoodId getFoodId() {
+        return foodId;
     }
 
     @JsonIgnore
-    public Stand getStand() {
+    public void setFoodId(FoodId foodId) {
+        this.foodId = foodId;
+    }
+
+    public String getName(){
+        return foodId.name;
+    }
+
+    public void setName(String name){
+        foodId.name = name;
+    }
+
+    @JsonIgnore
+    public Stand getStand(){
         return foodId.stand;
     }
 
     @JsonIgnore
-    public void setStand(Stand stand) {
-        foodId = (foodId == null) ? new Food.FoodId() : foodId;
-        this.foodId.stand = stand;
+    public void setStand(Stand stand){
+        foodId.stand = stand;
+    }
+
+    public String getStandName(){
+        return getStand().getName();
+    }
+
+    @JsonIgnore
+    public void setStandName(String standName){
+        foodId.stand.setName(standName);
+    }
+
+    @JsonIgnore
+    public Brand getBrand(){
+        return foodId.stand.getBrand();
+    }
+
+    @JsonIgnore
+    public void setBrand(Brand brand){
+        foodId.stand.setBrand(brand);
+    }
+
+    public String getBrandName(){
+        return getBrand().getName();
+    }
+
+    @JsonIgnore
+    public void setBrandName(String brandName){
+        foodId.stand.setBrandName(brandName);
+    }
+
+    // -- other fields --
+
+    public int getStock() {
+        return stock;
+    }
+
+    public void setStock(int stock) {
+        this.stock = stock;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public float getPrice() {
+        return price;
+    }
+
+    public void setPrice(float price) {
+        this.price = price;
+    }
+
+    public int getPreparationTime() {
+        return preparationTime;
+    }
+
+    public void setPreparationTime(int preparationTime) {
+        this.preparationTime = preparationTime;
+    }
+
+    public List<Category> getCategory() {
+        return category;
+    }
+
+    public void setCategory(Set<Category> category) {
+        //Ensure that all categories are existing entities in the database
+        CategoryRepository categoryRepository = SpringContext.getBean(CategoryRepository.class);
+        this.category = category.stream().map(categoryRepository::save).collect(Collectors.toList());
     }
 
 

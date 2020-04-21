@@ -13,6 +13,7 @@ import cobol.services.ordermanager.domain.repository.OrderRepository;
 import cobol.services.ordermanager.domain.repository.StandRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import org.json.simple.JSONObject;
@@ -24,10 +25,10 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import javax.naming.CommunicationException;
-import java.util.Calendar;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Optional;
+import java.time.Duration;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.util.*;
 
 /**
  * This is a Singleton
@@ -56,6 +57,7 @@ public class OrderProcessor {
     private volatile LinkedList<Event> eventQueue = new LinkedList<>();
 
 
+
     // key order id
     ListMultimap<Integer, Recommendation> orderRecommendations = ArrayListMultimap.create();
 
@@ -64,6 +66,7 @@ public class OrderProcessor {
 
     private OrderProcessor() throws CommunicationException {
 
+        TimeZone.setDefault(TimeZone.getTimeZone("Europe/Brussels"));
         //set learning rate for the running averages
         this.learningRate = 0.2;
     }
@@ -89,6 +92,8 @@ public class OrderProcessor {
         //orderRepository.saveAndFlush(newOrder);
 
         newOrder=orderRepository.save(newOrder);
+
+        Optional<Order> testOrder = this.getOrder(newOrder.getId());
 
         // subscribe to the channel of the order
         communicationHandler.registerOnOrder(subscriberId, newOrder.getId());
@@ -125,6 +130,7 @@ public class OrderProcessor {
             //send the updated order to stand to place it in the queue
             CommonOrder mappedOrder = updatedOrder.asCommonOrder();
             ObjectMapper mapper = new ObjectMapper();
+            mapper.registerModule(new JavaTimeModule());
             String jsonString = mapper.writeValueAsString(mappedOrder);
             communicationHandler.sendRestCallToStandManager("/placeOrder", jsonString, null);
             System.out.println("THE ORDER IS ADDED IN THE STANDMANAGER NOW");
@@ -137,9 +143,9 @@ public class OrderProcessor {
     // ---- Update or Process existing orders ---- //
 
     private void updatePreparationEstimate(Order order) {
-        Calendar actualTime =  Calendar.getInstance();
+        ZonedDateTime actualTime =  ZonedDateTime.now(ZoneId.of("Europe/Brussels"));
         // Compute how long the stand has been working on this order
-        int actualPrepTime = (int) ((actualTime.getTime().getTime() - order.getStartTime().getTime().getTime())) / 1000;
+        int actualPrepTime = (int) Duration.between(actualTime, order.getStartTime()).getSeconds();
 
         String brandName = order.getStand().getBrandName();
         int largestPreptime = 0;

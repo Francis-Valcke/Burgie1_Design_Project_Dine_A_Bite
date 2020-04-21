@@ -23,7 +23,7 @@
             android:layout_marginStart="10dp"
             android:layout_marginEnd="10dp"
             android:text="@string/chosen_stand"
-            android:textColor="#000"
+            android:textColor="@color/black"
             android:textSize="20sp"
             android:layout_gravity="center" />
 
@@ -33,13 +33,12 @@
             android:layout_height="wrap_content"
             android:layout_marginEnd="15dp"
             android:text="chosenStand"
-            android:textColor="#000"
+            android:textColor="@color/black"
             android:textSize="20sp"
             android:textStyle="bold"
             android:layout_gravity="center"
             android:layout_weight="1"
             android:gravity="center"/>
-
 
     </LinearLayout>
 
@@ -55,7 +54,7 @@
             android:layout_marginStart="10dp"
             android:layout_marginEnd="7dp"
             android:text="@string/chosen_brand"
-            android:textColor="#000"
+            android:textColor="@color/black"
             android:textSize="18sp"
             android:layout_gravity="center" />
 
@@ -65,10 +64,53 @@
             android:layout_height="wrap_content"
             android:layout_marginEnd="15dp"
             android:text="chosenBrand"
-            android:textColor="#000"
+            android:textColor="@color/black"
             android:textSize="18sp"
             android:layout_gravity="center"
             android:layout_weight="1" />
+
+        <TextView
+            android:id="@+id/order_footer_status"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="15dp"
+            android:text="orderStatus"
+            android:textAllCaps="true"
+            android:textColor="@color/colorPrimaryDark"
+            android:textSize="20sp"
+            android:layout_gravity="center"
+            android:layout_weight="1" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingTop="12dp">
+
+        <TextView
+            android:id="@+id/order_footer_time_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:layout_marginEnd="10dp"
+            android:text="@string/remaining_time"
+            android:textColor="@color/black"
+            android:textSize="20sp"
+            android:layout_gravity="center" />
+
+        <TextView
+            android:id="@+id/order_footer_time"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="15dp"
+            android:textColor="@color/black"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:layout_gravity="center"
+            android:layout_weight="1"
+            android:gravity="center"/>
 
     </LinearLayout>
 

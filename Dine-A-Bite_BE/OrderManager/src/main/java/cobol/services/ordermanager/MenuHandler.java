@@ -3,17 +3,21 @@ package cobol.services.ordermanager;
 import cobol.commons.CommonFood;
 import cobol.commons.CommonStand;
 import cobol.commons.exception.CommunicationException;
+import cobol.commons.security.CommonUser;
 import cobol.services.ordermanager.domain.entity.Brand;
 import cobol.services.ordermanager.domain.entity.Food;
 import cobol.services.ordermanager.domain.entity.Stand;
+import cobol.services.ordermanager.domain.entity.User;
 import cobol.services.ordermanager.domain.repository.BrandRepository;
 import cobol.services.ordermanager.domain.repository.FoodRepository;
 import cobol.services.ordermanager.domain.repository.StandRepository;
 import cobol.commons.exception.DoesNotExistException;
 import cobol.commons.exception.DuplicateStandException;
+import cobol.services.ordermanager.domain.repository.UserRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.Getter;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -40,6 +44,8 @@ public class MenuHandler {
     private FoodRepository foodRepository;
     @Autowired
     private BrandRepository brandRepository;
+    @Autowired
+    private UserRepository userRepository;
 
     @Autowired
     private CommunicationHandler communicationHandler;
@@ -79,6 +85,7 @@ public class MenuHandler {
      */
     public void updateStandManager() throws JsonProcessingException {
         ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new JavaTimeModule());
         String json = mapper.writeValueAsString(standRepository.findAll()
                 .stream().map(Stand::asCommonStand).collect(Collectors.toList()));
         communicationHandler.sendRestCallToStandManager("/update", json, null);
@@ -124,7 +131,8 @@ public class MenuHandler {
 
         // This will create a new stand based on a common stand
         // This will just take over the stock value, but as stock is given in an incremental fashion, this needs to be adjusted
-        Stand modifiedStand = new Stand(commonStand);
+        Stand modifiedStand = originalStand.update(commonStand);
+
 
         // Now we need to adjust the stock of the food items of the new stand
         //This map will contain mapping between the hash of the original food item and the adjusted food item
@@ -134,7 +142,7 @@ public class MenuHandler {
             foodRepository.findFoodById(modifiedFood.getName(), modifiedFood.getStandName(), modifiedFood.getBrandName()).ifPresent(originalFood -> {
                 originalModifiedFoodMapping.put(originalFood, modifiedFood);
                 // Also update the stock
-                modifiedFood.updateStock(originalFood.getStock());
+                //modifiedFood.updateStock(originalFood.getStock());
             });
         });
 
@@ -172,7 +180,7 @@ public class MenuHandler {
      * @throws ParseException          A json parsing error
      * @throws DuplicateStandException Duplicate stand detected
      */
-    public void addStand(CommonStand newCommonStand) throws JsonProcessingException, ParseException, DuplicateStandException, CommunicationException {
+    public void addStand(CommonStand newCommonStand, CommonUser user) throws JsonProcessingException, ParseException, DuplicateStandException, CommunicationException {
 
         System.out.println("TESTING");
         // look if stands already exists
@@ -191,10 +199,20 @@ public class MenuHandler {
         Stand newStand = new Stand(newCommonStand, brand);
         System.out.println("CHECK");
         brand.getStandList().add(newStand);
+
+        //Try to find user and it he doesnt exist, create a new user
+        User userEntity = userRepository.save(new User(user));
+
+        newStand.getOwners().add(userEntity);
+        userEntity.getStands().add(newStand);
+
         brandRepository.save(brand);
+
+        Stand standje = standRepository.findStandById(newStand.getName(), newStand.getBrandName()).orElse(null);
 
         // Also send the new stand to the StandManager
         ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new JavaTimeModule());
         String jsonString = mapper.writeValueAsString(newStand.asCommonStand());
         String response = communicationHandler.sendRestCallToStandManager("/newStand", jsonString, null);
 

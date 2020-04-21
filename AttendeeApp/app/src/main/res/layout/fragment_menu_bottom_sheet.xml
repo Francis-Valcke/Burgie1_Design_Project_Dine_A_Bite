@@ -82,7 +82,7 @@
             android:text="BrandName"
             android:textColor="#000"
             android:textSize="20sp"
-            android:layout_weight="1.5" />
+            android:layout_weight="1.7" />
 
     </LinearLayout>
 

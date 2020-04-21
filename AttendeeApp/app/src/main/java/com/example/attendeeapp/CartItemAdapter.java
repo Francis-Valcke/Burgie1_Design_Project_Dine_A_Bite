@@ -17,7 +17,7 @@ import java.util.ArrayList;
  * Handles all the cart items in the cart list
  */
 public class CartItemAdapter  extends BaseAdapter {
-    private ArrayList<CommonFood> cartList = new ArrayList<CommonFood>();
+    private ArrayList<CommonFood> cartList;
     private int cartCount;
     private Context context;
     private Toast mToast = null;
@@ -60,31 +60,31 @@ public class CartItemAdapter  extends BaseAdapter {
         if (view == null) {
             LayoutInflater inflater = (LayoutInflater) context
                     .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+            // root cannot be parent
             view = inflater.inflate(R.layout.cart_item_material, null);
         }
 
         //Handle TextView to display one cart item name, if this name has a stand, display it too
-        TextView listItemText = (TextView)view.findViewById(R.id.cart_item);
+        TextView listItemText = view.findViewById(R.id.cart_item);
         String name = cartList.get(position).getName();
         if(!cartList.get(position).getStandName().equals("")) name += " (" + cartList.get(position)
                                                                         .getStandName() + ")";
         listItemText.setText(name);
 
         //Handle TextView to display one cart item price
-        TextView listItemPrice = (TextView)view.findViewById(R.id.cart_item_price);
+        TextView listItemPrice = view.findViewById(R.id.cart_item_price);
         listItemPrice.setText(cartList.get(position).getPriceEuro());
 
         //Handle TextView to display one cart item brand
-        TextView listItemBrand = (TextView)view.findViewById(R.id.cart_brandName);
+        TextView listItemBrand = view.findViewById(R.id.cart_brandName);
         listItemBrand.setText(String.valueOf(cartList.get(position).getBrandName()));
 
         //Handle TextView to display one cart item count
-        TextView listItemCount = (TextView)view.findViewById(R.id.cart_item_count);
+        TextView listItemCount = view.findViewById(R.id.cart_item_count);
         listItemCount.setText(String.valueOf(cartList.get(position).getCount()));
 
-        final View v = view;
         // Handle plus and minus Buttons and add onClickListeners for one menu item
-        Button plusBtn = (Button)view.findViewById(R.id.cart_plus);
+        Button plusBtn = view.findViewById(R.id.cart_plus);
         plusBtn.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v) {
@@ -112,7 +112,7 @@ public class CartItemAdapter  extends BaseAdapter {
             }
         });
 
-        Button minusBtn = (Button)view.findViewById(R.id.cart_minus);
+        Button minusBtn = view.findViewById(R.id.cart_minus);
         minusBtn.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v) {

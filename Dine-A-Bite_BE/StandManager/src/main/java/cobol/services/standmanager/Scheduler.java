@@ -6,12 +6,9 @@ import cobol.commons.exception.CommunicationException;
 import cobol.commons.order.CommonOrder;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.json.simple.JSONObject;
-import org.json.simple.parser.ParseException;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
@@ -85,13 +82,16 @@ public class Scheduler extends Thread {
             for (Event event : eventList) {
                 JSONObject eventData = event.getEventData();
                 JSONObject menuchange = (JSONObject) eventData.get("menuItem");
+                objectMapper.registerModule(new JavaTimeModule());
                 CommonFood mi = objectMapper.readValue(menuchange.toString(), CommonFood.class);
                 for (CommonFood mi2 : menu) {
                     updateItem(mi, mi2);
                 }
             }
-        } catch (JsonProcessingException | ParseException e) {
+        } catch (JsonProcessingException e) {
             System.err.println(e);
+            e.printStackTrace();
+        } catch (CommunicationException e) {
             e.printStackTrace();
         }
     }

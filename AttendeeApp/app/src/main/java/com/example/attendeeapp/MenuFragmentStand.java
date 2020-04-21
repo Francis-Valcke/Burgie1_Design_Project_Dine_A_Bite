@@ -15,7 +15,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
-import com.android.volley.AuthFailureError;
 import com.android.volley.NoConnectionError;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -23,6 +22,9 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
+import com.example.attendeeapp.data.LoginDataSource;
+import com.example.attendeeapp.data.LoginRepository;
+import com.example.attendeeapp.data.model.LoggedInUser;
 
 import org.json.JSONObject;
 
@@ -30,8 +32,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-
-import static com.example.attendeeapp.ServerConfig.AUTHORIZATION_TOKEN;
+import java.util.Objects;
 
 /**
  * Handles the view for the stand menu's
@@ -40,7 +41,9 @@ public class MenuFragmentStand extends MenuFragment implements AdapterView.OnIte
 
     private ArrayAdapter<String> standListAdapter;
     // List of stand and brands: key = brandName, value = multiple standNames
-    private HashMap<String, String> standList = new HashMap<String, String>();
+    private HashMap<String, String> standList = new HashMap<>();
+
+    private LoggedInUser user = LoginRepository.getInstance(new LoginDataSource()).getLoggedInUser();
 
     @Nullable
     @Override
@@ -53,25 +56,25 @@ public class MenuFragmentStand extends MenuFragment implements AdapterView.OnIte
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
 
         // Create a spinner item for the different stands
-        Spinner spinner = (Spinner) view.findViewById(R.id.spinner);
+        Spinner spinner = view.findViewById(R.id.spinner);
         spinner.setOnItemSelectedListener(this);
 
         // Initiate the spinner item adapter
-        standListAdapter = new ArrayAdapter<String>(getActivity(),
+        standListAdapter = new ArrayAdapter<>(Objects.requireNonNull(getActivity()),
                 R.layout.stand_spinner_item, new ArrayList<String>());
         spinner.setAdapter(standListAdapter);
 
         // Instantiates menu item list
-        ListView lView = (ListView) view.findViewById(R.id.menu_list);
+        ListView lView = view.findViewById(R.id.menu_list);
         menuAdapter = new MenuItemAdapter(menuItems, getActivity());
         menuAdapter.setCartChangeListener((OnCartChangeListener) getActivity());
         lView.setAdapter(menuAdapter);
 
 
         // Setup swipe to refresh menu (e.g. no internet connection)
-        // This will refetch the stand names from the server,
+        // This will re-fetch the stand names from the server,
         // the spinner will call fetchMenu for the first stand item
-        pullToRefresh = (SwipeRefreshLayout) view.findViewById(R.id.swiperefresh);
+        pullToRefresh = view.findViewById(R.id.swiperefresh);
         pullToRefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
@@ -99,9 +102,9 @@ public class MenuFragmentStand extends MenuFragment implements AdapterView.OnIte
     /**
      * Function to fetch the stand names from the server
      */
-    public void fetchStandNames() {
+    private void fetchStandNames() {
         // Instantiate the RequestQueue
-        RequestQueue queue = Volley.newRequestQueue(getActivity());
+        RequestQueue queue = Volley.newRequestQueue(Objects.requireNonNull(getActivity()));
         String url = ServerConfig.OM_ADDRESS + "/stands";
 
         // Request the stand names in JSON from the order manager
@@ -139,19 +142,19 @@ public class MenuFragmentStand extends MenuFragment implements AdapterView.OnIte
                 if (error instanceof NoConnectionError) {
                     mToast = Toast.makeText(getActivity(), "No network connection",
                             Toast.LENGTH_LONG);
-
+                    mToast.show();
                 } else {
                     mToast = Toast.makeText(getActivity(), "Server cannot be reached. No stands available.",
                             Toast.LENGTH_LONG);
+                    mToast.show();
                 }
-                mToast.show();
             }
         }) { // Add JSON headers
             @Override
             public @NonNull
-            Map<String, String> getHeaders()  throws AuthFailureError {
-                Map<String, String>  headers  = new HashMap<String, String>();
-                headers.put("Authorization", AUTHORIZATION_TOKEN);
+            Map<String, String> getHeaders()  {
+                Map<String, String>  headers  = new HashMap<>();
+                headers.put("Authorization", user.getAuthorizationToken());
                 return headers;
             }
         };

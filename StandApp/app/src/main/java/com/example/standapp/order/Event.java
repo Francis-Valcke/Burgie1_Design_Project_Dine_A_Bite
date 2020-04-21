@@ -4,9 +4,10 @@ import androidx.annotation.NonNull;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import java.io.Serializable;
 import java.util.List;
 
-public class Event {
+public class Event implements Serializable {
 
     private static int idCount = 0;
     private int myId;

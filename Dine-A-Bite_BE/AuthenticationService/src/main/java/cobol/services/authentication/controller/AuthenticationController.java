@@ -1,6 +1,7 @@
 package cobol.services.authentication.controller;
 
 import cobol.commons.ResponseModel;
+import cobol.commons.security.Role;
 import cobol.commons.security.exception.DuplicateUserException;
 import cobol.services.authentication.domain.entity.User;
 import cobol.services.authentication.domain.repository.UserRepository;
@@ -19,10 +20,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static cobol.commons.ResponseModel.status.ERROR;
 import static cobol.commons.ResponseModel.status.OK;
@@ -45,7 +43,7 @@ public class AuthenticationController {
      * @return "AuthenticationService is alive!"
      */
     @GetMapping("/pingAS")
-    public ResponseEntity ping(HttpServletRequest request) {
+    public ResponseEntity<HashMap<Object,Object>> ping(HttpServletRequest request) {
         log.debug("Authentication Service was pinged by: " + request.getRemoteAddr());
 
         return ResponseEntity.ok(
@@ -65,15 +63,15 @@ public class AuthenticationController {
      * @return token when login successful.
      */
     @PostMapping("/authenticate")
-    public ResponseEntity login(@RequestBody AuthenticationRequest data){
+    public ResponseEntity<HashMap<Object,Object>> login(@RequestBody AuthenticationRequest data){
         try {
             String username = data.getUsername();
             authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, data.getPassword()));
             User user = users.findById(username)
                     .orElseThrow(() -> new UsernameNotFoundException("Username " + username + "not found"));
-            List<String> roles = user.getRole();
+            List<String> roles = user.getRoles();
 
-            String token = jwtProviderService.createToken(username, user.getRole());
+            String token = jwtProviderService.createToken(username, user.getRoles());
 
             Map<Object, Object> model = new HashMap<>();
             model.put("username", username);
@@ -101,8 +99,8 @@ public class AuthenticationController {
      * @param data expects a json body with username and password provided.
      * @return status op user creation.
      */
-    @PostMapping("/create")
-    public ResponseEntity create(@RequestBody AuthenticationRequest data){
+    @PostMapping("/createUser")
+    public ResponseEntity<HashMap<Object,Object>> create(@RequestBody AuthenticationRequest data){
 
         try {
             if (users.existsById(data.getUsername()))
@@ -111,7 +109,7 @@ public class AuthenticationController {
             users.save(User.builder()
                     .username(data.getUsername())
                     .password(passwordEncoder.encode(data.getPassword()))
-                    .role(Collections.singletonList("ROLE_USER"))
+                    .roles(Collections.singletonList(Role.USER))
                     .build()
             );
 
@@ -119,6 +117,42 @@ public class AuthenticationController {
                     ResponseModel.builder()
                             .status(OK.toString())
                             .details("User: " + data.getUsername() + " created.")
+                            .build().generateResponse()
+            );
+        } catch (DuplicateUserException e) {
+            return ResponseEntity.ok(
+                    ResponseModel.builder()
+                            .status(ERROR.toString())
+                            .details(e.getLocalizedMessage())
+                            .build().generateResponse()
+            );
+        }
+    }
+
+    /**
+     * API endpoint to create a new account.
+     *
+     * @param data expects a json body with username and password provided.
+     * @return status op user creation.
+     */
+    @PostMapping("/createStandManager")
+    public ResponseEntity<HashMap<Object,Object>> createStandManager(@RequestBody AuthenticationRequest data){
+
+        try {
+            if (users.existsById(data.getUsername()))
+                throw new DuplicateUserException("A user with that name exists already.");
+
+            users.save(User.builder()
+                    .username(data.getUsername())
+                    .password(passwordEncoder.encode(data.getPassword()))
+                    .roles(Arrays.asList(Role.USER, Role.STAND))
+                    .build()
+            );
+
+            return ResponseEntity.ok(
+                    ResponseModel.builder()
+                            .status(OK.toString())
+                            .details("Stand Manager: " + data.getUsername() + " created.")
                             .build().generateResponse()
             );
         } catch (DuplicateUserException e) {

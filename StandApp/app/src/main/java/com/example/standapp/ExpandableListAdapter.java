@@ -1,5 +1,6 @@
 package com.example.standapp;
 
+import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -7,9 +8,19 @@ import android.widget.BaseExpandableListAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
+import com.example.standapp.data.LoginDataSource;
+import com.example.standapp.data.LoginRepository;
+import com.example.standapp.data.model.LoggedInUser;
 import com.example.standapp.order.CommonOrder;
 import com.example.standapp.order.CommonOrderStatusUpdate;
 import com.example.standapp.order.Event;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.android.material.button.MaterialButtonToggleGroup;
@@ -17,21 +28,25 @@ import com.google.android.material.button.MaterialButtonToggleGroup;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 public class ExpandableListAdapter extends BaseExpandableListAdapter {
 
-    private List<String> listDataHeader;
-    private HashMap<String,List<String>> listHashMap;
+    private ArrayList<String> listDataHeader;
+    private HashMap<String, List<String>> listHashMap;
     private ArrayList<Event> listEvents;
     private ArrayList<CommonOrder> listOrders;
+    private HashMap<String, CommonOrderStatusUpdate.status> listStatus;
 
-    ExpandableListAdapter(List<String> listDataHeader, HashMap<String, List<String>> listHashMap,
-                          ArrayList<Event> listEvents, ArrayList<CommonOrder> listOrders) {
+    ExpandableListAdapter(ArrayList<String> listDataHeader, HashMap<String, List<String>> listHashMap,
+                          ArrayList<Event> listEvents, ArrayList<CommonOrder> listOrders,
+                          HashMap<String, CommonOrderStatusUpdate.status> listStatus) {
         this.listDataHeader = listDataHeader;
         this.listHashMap = listHashMap;
         this.listEvents = listEvents;
         this.listOrders = listOrders;
+        this.listStatus = listStatus;
     }
 
     @Override
@@ -79,27 +94,59 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
                     .inflate(R.layout.custom_expandable_list_group, parent, false);
         }
 
-        String headerTitle = (String) getGroup(groupPosition);
+        final String headerTitle = (String) getGroup(groupPosition); // equals order number
         TextView listHeader = view.findViewById(R.id.order_number);
         listHeader.setText(headerTitle);
 
+        final View finalView = view;
         final int finalGroupPosition = groupPosition;
+        CommonOrderStatusUpdate.status status = listStatus.get(headerTitle);
         MaterialButtonToggleGroup toggleGroup = view.findViewById(R.id.status_toggle_button);
+        if (status == CommonOrderStatusUpdate.status.PENDING) {
+            toggleGroup.findViewById(R.id.button_start).setEnabled(true);
+            toggleGroup.findViewById(R.id.button_done).setEnabled(false);
+            toggleGroup.findViewById(R.id.button_picked_up).setEnabled(false);
+        } else if (status == CommonOrderStatusUpdate.status.CONFIRMED) {
+            toggleGroup.check(R.id.button_start);
+            toggleGroup.findViewById(R.id.button_done).setEnabled(true);
+            toggleGroup.findViewById(R.id.button_picked_up).setEnabled(false);
+        } else if (status == CommonOrderStatusUpdate.status.READY) {
+            toggleGroup.findViewById(R.id.button_start).setEnabled(false);
+            toggleGroup.check(R.id.button_done);
+            toggleGroup.findViewById(R.id.button_picked_up).setEnabled(true);
+        } else {
+            toggleGroup.findViewById(R.id.button_start).setEnabled(false);
+            toggleGroup.findViewById(R.id.button_done).setEnabled(false);
+            toggleGroup.check(R.id.button_picked_up);
+        }
         toggleGroup.addOnButtonCheckedListener(new MaterialButtonToggleGroup.OnButtonCheckedListener() {
             @Override
             public void onButtonChecked(MaterialButtonToggleGroup group, int checkedId, boolean isChecked) {
                 group.setSelectionRequired(true);
                 if (checkedId == R.id.button_start && isChecked) {
-                    Toast.makeText(group.getContext(), "Start", Toast.LENGTH_SHORT).show();
-                    sendOrderStatusUpdate(finalGroupPosition, checkedId);
+                    Toast.makeText(group.getContext(), headerTitle + ": Start",
+                            Toast.LENGTH_SHORT).show();
+                    listStatus.put(headerTitle, CommonOrderStatusUpdate.status.CONFIRMED);
+                    sendOrderStatusUpdate(finalGroupPosition, finalView.getContext());
+                    group.findViewById(R.id.button_done).setEnabled(true);
                 } else if (checkedId == R.id.button_done && isChecked) {
-                    Toast.makeText(group.getContext(), "Done", Toast.LENGTH_SHORT).show();
-                    sendOrderStatusUpdate(finalGroupPosition, checkedId);
+                    Toast.makeText(group.getContext(), headerTitle + ": Done",
+                            Toast.LENGTH_SHORT).show();
+                    listStatus.put(headerTitle, CommonOrderStatusUpdate.status.READY);
+                    sendOrderStatusUpdate(finalGroupPosition, finalView.getContext());
+                    group.findViewById(R.id.button_picked_up).setEnabled(true);
                 } else if (checkedId == R.id.button_picked_up && isChecked) {
+                    Toast.makeText(group.getContext(), headerTitle + ": Picked up",
+                            Toast.LENGTH_SHORT).show();
+                    listStatus.put(headerTitle, CommonOrderStatusUpdate.status.PICKED_UP);
                     // TODO delete picked up, or put in other list (picked up orders list) ?
                     // TODO that can be shown in a history view for example ?
                     // TODO sent this change to server ?
                     // TODO Remove order when picked up
+                } else if (checkedId == R.id.button_start) {
+                    group.findViewById(R.id.button_start).setEnabled(false);
+                } else if (checkedId == R.id.button_done) {
+                    group.findViewById(R.id.button_done).setEnabled(false);
                 }
             }
         });
@@ -128,17 +175,72 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
         return false;
     }
 
-    private void sendOrderStatusUpdate(int groupPosition, int statusId) {
-        CommonOrderStatusUpdate.status newStatus = CommonOrderStatusUpdate.status.PENDING;
-        if (statusId == R.id.button_start) {
-            newStatus = CommonOrderStatusUpdate.status.CONFIRMED;
-        } else if (statusId == R.id.button_done) {
-            newStatus = CommonOrderStatusUpdate.status.READY;
-        }
-        CommonOrderStatusUpdate orderStatusUpdate = new CommonOrderStatusUpdate(listOrders.get(groupPosition).getId(), newStatus);
+    /**
+     * Send order status update to Event Channel
+     * @param groupPosition position of order information in arrays
+     * @param context context of the callback
+     */
+    private void sendOrderStatusUpdate(int groupPosition, final Context context) {
+
+        final LoggedInUser user = LoginRepository.getInstance(new LoginDataSource()).getLoggedInUser();
+
+        CommonOrderStatusUpdate.status newStatus = listStatus.get(listDataHeader.get(groupPosition));
         ObjectMapper mapper = new ObjectMapper();
+
+        CommonOrderStatusUpdate orderStatusUpdate
+                = new CommonOrderStatusUpdate(listOrders.get(groupPosition).getId(), newStatus);
         JsonNode eventData = mapper.valueToTree(orderStatusUpdate);
-        Event event = new Event(eventData, listEvents.get(groupPosition).getTypes(), "OrderStatusUpdate");
-        // TODO not finished
+
+        Event event = new Event(eventData, listEvents.get(groupPosition).getTypes(),
+                "OrderStatusUpdate");
+        String jsonString = "";
+        try {
+            jsonString = mapper.writeValueAsString(event);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+
+        System.out.println("Send order status update: " + jsonString);
+
+        RequestQueue queue = Volley.newRequestQueue(context);
+        String url = ServerConfig.EC_ADDRESS + "/publishEvent";
+
+        final String finalJsonString = jsonString;
+        StringRequest request = new StringRequest(Request.Method.POST, url,
+                new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                // There is no response (for now)
+                System.out.println(response);
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                System.out.println("Publish event error: " + error.toString());
+                error.printStackTrace();
+                Toast.makeText(context, "Publish event: " + error.toString(),
+                        Toast.LENGTH_LONG).show();
+            }
+        }) {
+            @Override
+            public byte[] getBody() {
+                return finalJsonString.getBytes();
+            }
+
+            @Override
+            public String getBodyContentType() {
+                return "application/json";
+            }
+
+            @Override
+            public Map<String, String> getHeaders() {
+                HashMap<String, String> headers = new HashMap<>();
+                headers.put("Content-Type", "application/json");
+                headers.put("Authorization", user.getAutorizationToken());
+                return headers;
+            }
+        };
+
+        queue.add(request);
     }
 }
