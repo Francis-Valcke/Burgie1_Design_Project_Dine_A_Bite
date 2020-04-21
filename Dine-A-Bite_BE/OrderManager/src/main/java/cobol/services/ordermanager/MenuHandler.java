@@ -182,7 +182,6 @@ public class MenuHandler {
      */
     public void addStand(CommonStand newCommonStand, CommonUser user) throws JsonProcessingException, ParseException, DuplicateStandException, CommunicationException {
 
-        System.out.println("TESTING");
         // look if stands already exists
         Stand stand = standRepository.findStandById(newCommonStand.getName(), newCommonStand.getBrandName()).orElse(null);
 
@@ -195,9 +194,7 @@ public class MenuHandler {
                 .orElse(new Brand(newCommonStand.getBrandName()));
 
         // create stand object
-        System.out.println(newCommonStand.getMenu().get(0).getPreparationTime());
         Stand newStand = new Stand(newCommonStand, brand);
-        System.out.println("CHECK");
         brand.getStandList().add(newStand);
 
         //Try to find user and it he doesnt exist, create a new user

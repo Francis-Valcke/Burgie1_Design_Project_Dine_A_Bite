@@ -83,7 +83,6 @@ public class OrderController {
         String responseString = communicationHandler.sendRestCallToStandManager("/getRecommendation", jsonString, null);
         List<Recommendation> recommendations = mapper.readValue(responseString, new TypeReference<List<Recommendation>>() {});
         orderProcessor.addRecommendations(newOrder.getId(), recommendations);
-        System.out.println("OKE DE NEWORDER BIJ RECOMMEND STAAT NU OP WELKE TIJD?" + newOrder.getStartTime());
 
         // send updated order and recommendation
         JSONObject completeResponse = new JSONObject();
@@ -161,7 +160,6 @@ public class OrderController {
         Order updatedOrder = orderProcessor.confirmStand(orderId, standName, brandName);
 
         // Publish event to standmanager
-        System.out.println("DE CONFIRMDE ORDER HEEFT ALS STARTTIJD NU:" + updatedOrder.getStartTime());
         String response= communicationHandler.publishConfirmedStand(updatedOrder.asCommonOrder(), standName, brandName);
 
         return ResponseEntity.ok(response);

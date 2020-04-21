@@ -122,9 +122,7 @@ public class OrderProcessor {
                     .filter(r -> r.getStandName().equals(standName))
                     .findFirst();
 
-            recomOptional.ifPresent(recommendation -> System.out.println(recommendation.getTimeEstimate()));
             recomOptional.ifPresent(recommendation -> updatedOrder.setRemtime(recommendation.getTimeEstimate()));
-            recomOptional.ifPresent(recommendation -> System.out.println(recommendation.getTimeEstimate() + "DIT IS DE TIME ESTIMATE"));
             orderRepository.save(updatedOrder);
 
             //send the updated order to stand to place it in the queue
@@ -133,7 +131,6 @@ public class OrderProcessor {
             mapper.registerModule(new JavaTimeModule());
             String jsonString = mapper.writeValueAsString(mappedOrder);
             communicationHandler.sendRestCallToStandManager("/placeOrder", jsonString, null);
-            System.out.println("THE ORDER IS ADDED IN THE STANDMANAGER NOW");
         }
 
 

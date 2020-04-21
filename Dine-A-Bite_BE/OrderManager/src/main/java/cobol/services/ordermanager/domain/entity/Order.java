@@ -129,8 +129,7 @@ public class Order implements Serializable {
      * @param remainingTime time in seconds
      */
     public void setRemtime(int remainingTime) {
-        Duration extraSeconds = Duration.ofSeconds(remainingTime);
-        expectedTime.plus(extraSeconds);
+        expectedTime = expectedTime.plusSeconds(remainingTime);
     }
 
 
@@ -139,7 +138,14 @@ public class Order implements Serializable {
      * @return RemainingTime in seconds
      */
     public int computeRemainingTime() {
-        return (int) Duration.between(expectedTime, ZonedDateTime.now(ZoneId.of("Europe/Brussels"))).getSeconds();
+        ZonedDateTime actual = ZonedDateTime.now(ZoneId.of("Europe/Brussels"));
+        if (actual.isAfter(expectedTime)){
+            return 0;
+        }
+        else {
+            Duration remaining = Duration.between(actual, expectedTime);
+            return (int) remaining.getSeconds();
+        }
     }
 
     // ---- Getters and Setters ----- //

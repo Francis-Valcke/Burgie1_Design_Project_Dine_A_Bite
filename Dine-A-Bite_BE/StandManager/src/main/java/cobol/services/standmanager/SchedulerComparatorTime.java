@@ -34,10 +34,6 @@ public class SchedulerComparatorTime implements Comparator<Scheduler> {
         //we use the fooditem with longest preparation time as the general preparation time of the full order
 
         int longestFoodPrepTime = getLongestFoodPrepTime(o);
-        System.out.println(longestFoodPrepTime);
-        System.out.println("TESTING");
-        System.out.println(o.timeSum());
-        System.out.println("TESTING DONE");
         return o.timeSum() + longestFoodPrepTime;
     }
 

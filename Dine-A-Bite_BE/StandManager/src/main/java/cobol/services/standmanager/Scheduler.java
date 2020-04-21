@@ -123,7 +123,6 @@ public class Scheduler extends Thread {
             return 0;
         }
         else {
-            System.out.println(inc.get(inc.size()-1).getId());
             return inc.get(inc.size() - 1).computeRemainingTime();
         }
     }

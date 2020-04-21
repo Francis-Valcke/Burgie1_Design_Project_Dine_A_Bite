@@ -33,8 +33,6 @@ public class CommonOrder {
         this.id = id;
         this.startTime = startTime;
         this.expectedTime = expectedTime;
-        System.out.println("NU MAKEN WE HET AAN:" + expectedTime);
-        System.out.println(this.expectedTime);
         this.orderState = orderState;
         this.brandName = brandName;
         this.standName = standName;
@@ -57,8 +55,13 @@ public class CommonOrder {
      */
     public int computeRemainingTime(){
         ZonedDateTime actual = ZonedDateTime.now(ZoneId.of("Europe/Brussels"));
-        Duration remaining = Duration.between(expectedTime, actual);
-        return (int) remaining.getSeconds();
+        if (actual.isAfter(expectedTime)){
+            return -1;
+        }
+        else {
+            Duration remaining = Duration.between(actual, expectedTime);
+            return (int) remaining.getSeconds();
+        }
     }
 
 }
