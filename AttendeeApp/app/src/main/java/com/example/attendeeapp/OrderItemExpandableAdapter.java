@@ -109,7 +109,10 @@ public class OrderItemExpandableAdapter extends BaseExpandableListAdapter {
 
         // Check if animation has to be visible (if user has seen the order update)
         if (currentOrder.isUpdateSeen()) {
-            if (highPriority.getAnimation() != null) highPriority.getAnimation().cancel();
+            if (highPriority.getAnimation() != null) {
+                highPriority.getAnimation().cancel();
+                highPriority.clearAnimation();
+            }
             highPriority.setVisibility(View.GONE);
         } else {
             highPriority.setVisibility(View.VISIBLE);
