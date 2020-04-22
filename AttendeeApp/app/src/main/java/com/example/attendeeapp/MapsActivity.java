@@ -54,6 +54,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             googleMap.addMarker(new MarkerOptions().position(newStand).title(standName));
             googleMap.moveCamera(CameraUpdateFactory.newLatLng(newStand));
         }
+
+        googleMap.setMyLocationEnabled(true);
+        googleMap.getUiSettings().setZoomControlsEnabled(true);
+        googleMap.getUiSettings().setMyLocationButtonEnabled(true);
     }
 
     /**
