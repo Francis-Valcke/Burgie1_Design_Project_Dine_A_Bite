@@ -45,7 +45,6 @@ import java.util.Objects;
 
 public class ProfileFragment extends Fragment {
 
-    private boolean newStand;
     private String standName;
     private String brandName;
     private LoggedInUser user;
@@ -216,8 +215,6 @@ public class ProfileFragment extends Fragment {
         });
 
         // Checks
-        Utils.isConnected(this.getContext());
-        if (bundle != null) Utils.isLoggedIn(this.getContext(), bundle);
         Utils.isConnected(mContext);
         if (bundle != null) Utils.isLoggedIn(mContext, bundle);
 
@@ -245,7 +242,6 @@ public class ProfileFragment extends Fragment {
                 + "&standName=" + standName;
         url = url.replace(' ', '+');
 
-        newStand = false;
         if (bundle != null) bundle.putBoolean("newStand", false);
 
         // Request menu from order manager on server
@@ -273,7 +269,6 @@ public class ProfileFragment extends Fragment {
                 if (error instanceof ServerError) {
                     // TODO server should handle this exception and send a response
                     Toast.makeText(getContext(), "Server could not find menu of stand", Toast.LENGTH_LONG).show();
-                    newStand = true;
                     if (bundle != null) bundle.putBoolean("newStand", true);
                 } else {
                     Toast.makeText(getContext(), error.toString(), Toast.LENGTH_LONG).show();

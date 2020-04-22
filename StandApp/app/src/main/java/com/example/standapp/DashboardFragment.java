@@ -51,14 +51,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-// TODO fix sending and showing and storing stock (branch feature/stand_app/stock)
 // TODO change stock based on incoming orders (branch feature/stand_app/stock)
 
 public class DashboardFragment extends Fragment {
 
     private Context mContext;
-    private boolean newStand = false;
+    private boolean isNewStand = false;
     private ArrayList<CommonFood> items = new ArrayList<>();
+
+    // Stores the current stock of the menu items;
+    // this way the stock send to the backend is calculated to be equal to the added stock
+    private HashMap<String, Integer> addedStockMap = new HashMap<>();
 
     // Location data of stand
     private FusedLocationProviderClient fusedLocationClient;
@@ -71,6 +74,7 @@ public class DashboardFragment extends Fragment {
         mContext = context;
     }
 
+    @SuppressWarnings("unchecked")
     @Nullable
     @Override
     public View onCreateView(@NonNull final LayoutInflater inflater,
@@ -97,13 +101,12 @@ public class DashboardFragment extends Fragment {
             // Ask for permission to get location data and set lastLocation variable
             checkLocationPermission();
 
-            // Ignore warning
             items = (ArrayList<CommonFood>) bundle.getSerializable("items");
-            newStand = bundle.getBoolean("newStand");
+            isNewStand = bundle.getBoolean("newStand");
         }
 
-        final DashboardListViewAdapter adapter =
-                new DashboardListViewAdapter(Objects.requireNonNull(getActivity()), items);
+        final DashboardListViewAdapter adapter
+                = new DashboardListViewAdapter(Objects.requireNonNull(getActivity()), items, addedStockMap);
         menuList.setAdapter(adapter);
 
         @SuppressLint("InflateParams")
@@ -129,7 +132,9 @@ public class DashboardFragment extends Fragment {
                                 || Objects.requireNonNull(prepTimeInput.getText()).toString().isEmpty()) {
                             AlertDialog.Builder alertDialog = new AlertDialog.Builder(finalView.getContext())
                                     .setTitle("Invalid menu item")
-                                    .setMessage("The menu item you tried to add is invalid, please try again.")
+                                    .setMessage("The menu item you tried to add is invalid, " +
+                                            "please try again. " +
+                                            "You should fill in the necessary fields.")
                                     .setNeutralButton("Ok", null);
                             alertDialog.show();
                         } else {
@@ -142,6 +147,7 @@ public class DashboardFragment extends Fragment {
                             category.add("");
                             CommonFood item = new CommonFood(name, price, preparationTime, stock, "", description, category);
                             items.add(item);
+                            addedStockMap.put(name, stock);
                             adapter.notifyDataSetChanged();
                             nameInput.setText("");
                             priceInput.setText("");
@@ -179,9 +185,22 @@ public class DashboardFragment extends Fragment {
                 if (bundle != null && Utils.isLoggedIn(mContext, bundle)
                         && Utils.isConnected(mContext)) {
 
+                    HashMap<String, Integer> stock = new HashMap<>();
+
                     for (CommonFood item : items) {
                         item.setBrandName(finalBrandName);
                         item.setStandName(finalStandName);
+
+                        // Temporarily set stock to added stock,
+                        // because that is what the backend expects,
+                        // change back after sending to backend
+                        // (ask Julien Van den Avenne)
+                        stock.put(item.getName(), item.getStock());
+                        if (addedStockMap.containsKey(item.getName())) {
+                            item.setStock(Objects.requireNonNull(addedStockMap.get(item.getName())));
+                        } else {
+                            item.setStock(0);
+                        }
                     }
 
                     // Set location data
@@ -208,9 +227,9 @@ public class DashboardFragment extends Fragment {
                     RequestQueue queue = Volley.newRequestQueue(mContext);
                     String url;
                     // Check if stand is new or not
-                    if (items.isEmpty() || newStand) {
+                    if (items.isEmpty() || isNewStand) {
                         url = ServerConfig.OM_ADDRESS + "/addStand";
-                        newStand = false;
+                        isNewStand = false;
                     } else {
                         url = ServerConfig.OM_ADDRESS + "/updateStand";
                     }
@@ -260,6 +279,12 @@ public class DashboardFragment extends Fragment {
                     // Add the request to the RequestQueue
                     queue.add(jsonRequest);
                     System.out.println(jsonString);
+
+                    // Revert stock change
+                    for (CommonFood item : items) {
+                        item.setStock(Objects.requireNonNull(stock.get(item.getName())));
+                    }
+                    addedStockMap.clear();
                 }
             }
         });
@@ -321,7 +346,7 @@ public class DashboardFragment extends Fragment {
                     fusedLocationClient.getLastLocation()
                             .addOnCompleteListener(new OnCompleteListener<Location>() {
                                 @Override
-                                public void onComplete(Task<Location> task) {
+                                public void onComplete(@NonNull Task<Location> task) {
                                     if (task.isSuccessful() && task.getResult() != null){
                                         lastLocation = task.getResult();
                                     }

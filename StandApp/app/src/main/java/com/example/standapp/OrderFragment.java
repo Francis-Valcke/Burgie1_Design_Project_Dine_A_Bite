@@ -26,6 +26,7 @@ import com.android.volley.toolbox.Volley;
 import com.example.standapp.data.LoginDataSource;
 import com.example.standapp.data.LoginRepository;
 import com.example.standapp.data.model.LoggedInUser;
+import com.example.standapp.json.CommonFood;
 import com.example.standapp.order.CommonOrder;
 import com.example.standapp.order.CommonOrderItem;
 import com.example.standapp.order.CommonOrderStatusUpdate;
@@ -81,23 +82,29 @@ public class OrderFragment extends Fragment {
 
         // Getting the log in information from profile fragment
         final Bundle bundle = getArguments();
-        String standName;
+        String standName; // DEBUG
         if (bundle != null && Utils.isLoggedIn(mContext, bundle)) {
-            standName = bundle.getString("standName");
-            Toast.makeText(mContext, standName, Toast.LENGTH_SHORT).show();
+            standName = bundle.getString("standName"); // DEBUG
+            Toast.makeText(mContext, standName, Toast.LENGTH_SHORT).show(); // DEBUG
 
             subscriberId = bundle.getString("subscriberId");
         }
 
-        Button refreshButton = view.findViewById(R.id.refresh_button);
         ExpandableListView listView = view.findViewById(R.id.expandable_list_view);
         if (listAdapter == null) listAdapter =
                 new ExpandableListAdapter(listDataHeader, listHash, listEvents, listOrders, listStatus);
         listView.setAdapter(listAdapter);
 
+        Button refreshButton = view.findViewById(R.id.refresh_button);
         refreshButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
+                /*
+                 * This will soon be deleted from the app
+                 * because there is now polling of events
+                 * It is still here for fall back reasons
+                 */
 
                 // Instantiate the RequestQueue
                 RequestQueue queue = Volley.newRequestQueue(mContext);
@@ -119,22 +126,20 @@ public class OrderFragment extends Fragment {
                                 JSONObject eventJSON = (JSONObject) response.get(i);
                                 Event event = mapper.readValue(eventJSON.toString(), Event.class);
                                 if (!event.getDataType().equals("Order")) return;
-                                listEvents.add(event);
+                                listEvents.add(0, event);
 
                                 JSONObject eventData = (JSONObject) eventJSON.get("eventData");
                                 JSONObject order = (JSONObject) eventData.get("order");
                                 orders.add(mapper.readValue(order.toString(), CommonOrder.class));
+                                listOrders.add(0, mapper.readValue(order.toString(), CommonOrder.class));
                             } catch (JSONException | JsonProcessingException e) {
                                 e.printStackTrace();
                             }
                         }
 
-                        listOrders.addAll(orders);
-
                         for (CommonOrder order : orders) {
-                            // TODO: or keep a separate order number count per stand?
                             String orderName = "#" + order.getId();
-                            listDataHeader.add(orderName);
+                            listDataHeader.add(0, orderName);
                             listStatus.put(orderName, CommonOrderStatusUpdate.status.PENDING);
                             List<String> orderItems = new ArrayList<>();
                             for (CommonOrderItem item : order.getOrderItems()) {
@@ -142,6 +147,9 @@ public class OrderFragment extends Fragment {
                             }
                             // Orders should have different order numbers (orderName)
                             listHash.put(orderName, orderItems);
+
+                            // Decrease current stock based on incoming order
+                            decreaseStock(order.getOrderItems());
                         }
                         listAdapter.notifyDataSetChanged();
                     }
@@ -202,18 +210,19 @@ public class OrderFragment extends Fragment {
             Event eventUpdate = (Event) intent.getSerializableExtra("eventUpdate");
 
             if (eventUpdate != null && eventUpdate.getDataType().equals("Order")) {
-                listEvents.add(eventUpdate);
+                // Add objects to the beginning of the ArrayLists
+                // -> most recent order at the top of the list on screen
+                listEvents.add(0, eventUpdate);
 
                 ObjectMapper mapper = new ObjectMapper();
                 JsonNode eventData = eventUpdate.getEventData();
                 JsonNode orderJson = eventData.get("order");
                 try {
                     CommonOrder orderUpdate = mapper.treeToValue(orderJson, CommonOrder.class);
-                    listOrders.add(orderUpdate);
+                    listOrders.add(0, orderUpdate);
 
-                    // TODO: or keep a separate order number count per stand?
                     String orderName = "#" + orderUpdate.getId();
-                    listDataHeader.add(orderName);
+                    listDataHeader.add(0, orderName);
                     listStatus.put(orderName, CommonOrderStatusUpdate.status.PENDING);
                     List<String> orderItems = new ArrayList<>();
                     for (CommonOrderItem item : orderUpdate.getOrderItems()) {
@@ -222,6 +231,9 @@ public class OrderFragment extends Fragment {
                     // Orders should have different order numbers (orderName)
                     listHash.put(orderName, orderItems);
                     listAdapter.notifyDataSetChanged();
+
+                    // Decrease current stock based on incoming order
+                    decreaseStock(orderUpdate.getOrderItems());
                 } catch (JsonProcessingException e) {
                     e.printStackTrace();
                 }
@@ -229,5 +241,29 @@ public class OrderFragment extends Fragment {
 
         }
     };
+
+    /**
+     * Decrease the current stock values of the menu items of the stand
+     * based on incoming orders
+     * @param orderItems: menu items of stand that are being ordered
+     */
+    @SuppressWarnings("unchecked")
+    private void decreaseStock(List<CommonOrderItem> orderItems) {
+        ArrayList<CommonFood> items;
+        Bundle bundle = getArguments();
+        if (bundle != null) {
+            items = (ArrayList<CommonFood>) bundle.getSerializable("items");
+        } else return;
+
+        if (items != null) {
+            for (CommonOrderItem orderItem : orderItems) {
+                for (CommonFood menuItem : items) {
+                    if (orderItem.getFoodName().equals(menuItem.getName())) {
+                        menuItem.decreaseStock(orderItem.getAmount());
+                    }
+                }
+            }
+        }
+    }
 
 }

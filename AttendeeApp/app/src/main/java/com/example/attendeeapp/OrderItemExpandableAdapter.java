@@ -10,6 +10,7 @@ import android.view.animation.Animation;
 import android.view.animation.RotateAnimation;
 import android.widget.BaseExpandableListAdapter;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.example.attendeeapp.appDatabase.OrderDatabaseService;
@@ -112,7 +113,10 @@ public class OrderItemExpandableAdapter extends BaseExpandableListAdapter {
 
         // Check if animation has to be visible (if user has seen the order update)
         if (currentOrder.isUpdateSeen()) {
-            if (highPriority.getAnimation() != null) highPriority.getAnimation().cancel();
+            if (highPriority.getAnimation() != null) {
+                highPriority.getAnimation().cancel();
+                highPriority.clearAnimation();
+            }
             highPriority.setVisibility(View.GONE);
         } else {
             highPriority.setVisibility(View.VISIBLE);
@@ -185,12 +189,14 @@ public class OrderItemExpandableAdapter extends BaseExpandableListAdapter {
             txtOrderStatus.setText(currentOrder.getOrderState().toString());
 
             TextView remainingTimeText = view.findViewById(R.id.order_footer_time_text);
+            LinearLayout timeLayout = view.findViewById(R.id.order_footer_timer_layout);
             final TextView remainingTime = view.findViewById(R.id.order_footer_time);
 
             // Handle timing counter, only visible when order is confirmed and thus being prepared
             if (currentOrder.getOrderState() == CommonOrder.State.CONFIRMED) {
                 remainingTimeText.setVisibility(View.VISIBLE);
                 remainingTime.setVisibility(View.VISIBLE);
+                timeLayout.setVisibility(View.VISIBLE);
 
                 // Get current time instance and set countdown timer with remaining time
                 ZonedDateTime zonedDateTime = ZonedDateTime.now(ZoneId.of("Europe/Brussels"));
@@ -214,6 +220,7 @@ public class OrderItemExpandableAdapter extends BaseExpandableListAdapter {
                 }.start();
 
             } else {
+                timeLayout.setVisibility(View.GONE);
                 remainingTimeText.setVisibility(View.GONE);
                 remainingTime.setVisibility(View.GONE);
             }
