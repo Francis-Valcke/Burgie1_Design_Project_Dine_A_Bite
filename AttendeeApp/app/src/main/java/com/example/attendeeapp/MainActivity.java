@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.security.crypto.EncryptedSharedPreferences;
@@ -93,8 +94,15 @@ public class MainActivity extends AppCompatActivity {
                     Intent loginIntent = new Intent(MainActivity.this, LoginActivity.class);
                     startActivity(loginIntent);
                 } else {
-                    Intent menuIntent = new Intent(MainActivity.this, MenuActivity.class);
-                    startActivity(menuIntent);
+                    String resuming = getIntent().getStringExtra("resumeActivity") + "";
+                    Log.d("Resuming with", resuming);
+                    if (resuming.equals("orderActivity")) {
+                        Intent orderIntent = new Intent(MainActivity.this, OrderActivity.class);
+                        startActivity(orderIntent);
+                    } else {
+                        Intent menuIntent = new Intent(MainActivity.this, MenuActivity.class);
+                        startActivity(menuIntent);
+                    }
                 }
                 finish();
             }

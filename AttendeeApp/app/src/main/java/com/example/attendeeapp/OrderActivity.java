@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.widget.ExpandableListView;
@@ -69,7 +70,7 @@ public class OrderActivity extends AppCompatActivity {
     private boolean isPollingServiceRunning(Class<?> serviceClass) {
         ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
         for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
-            if (serviceClass.getName().equals(PollingService.class.getName())) {
+            if (serviceClass.getName().equals(service.service.getClassName())) {
                 return true;
             }
         }
@@ -93,6 +94,15 @@ public class OrderActivity extends AppCompatActivity {
         ab.setDisplayHomeAsUpEnabled(true);
 
         final CommonOrder newOrder = (CommonOrder) getIntent().getSerializableExtra("order");
+
+        if (user == null) {
+            Intent intent = new Intent(this, MainActivity.class);
+            intent.putExtra("resumeActivity", "orderActivity");
+            startActivity(intent);
+            Log.d("NotificationStart", "No user, going to main");
+            finish();
+            return;
+        }
 
         // Database initialization and loading of the stored data
         orderDatabaseService = new OrderDatabaseService(getApplicationContext());
@@ -133,11 +143,11 @@ public class OrderActivity extends AppCompatActivity {
     public void onResume() {
         super.onResume();
         // Start polling service
-        if (subscribeId != -1) {
+        /*if (subscribeId != -1) {
             Intent intent = new Intent(getApplicationContext(), PollingService.class);
             intent.putExtra("subscribeId", subscribeId);
             startService(intent);
-        }
+        }*/
         // Register the listener for polling updates
         LocalBroadcastManager.getInstance(this).registerReceiver(
                 mMessageReceiver, new IntentFilter("orderUpdate"));
@@ -147,7 +157,7 @@ public class OrderActivity extends AppCompatActivity {
     public void onPause() {
         super.onPause();
         // Stop the polling service
-        stopService(new Intent(getApplicationContext(), PollingService.class));
+        //stopService(new Intent(getApplicationContext(), PollingService.class));
 
         // Unregister the listener
         LocalBroadcastManager.getInstance(this).unregisterReceiver(mMessageReceiver);

@@ -13,8 +13,9 @@ public class RestartPolling extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         Log.i("Broadcast Listened", "Service tried to stop");
-
-        context.startService(new Intent(context, PollingService.class));
+        Intent i = new Intent(context, PollingService.class);
+        i.putExtra("subscribeId", intent.getIntExtra("subscribeId", -1));
+        context.startService(i);
 
     }
 }
