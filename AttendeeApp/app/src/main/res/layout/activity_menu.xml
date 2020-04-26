@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Contains the main menu page view -->
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/activity_menu"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -18,7 +19,6 @@
         android:layout_height="wrap_content"
         android:layout_below="@+id/toolbar" />
 
-
     <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/menu_view_pager"
         android:layout_width="match_parent"
@@ -28,10 +28,12 @@
 
     <RelativeLayout
         android:id="@+id/cart_layout"
-        style="@style/Widget.MaterialComponents.Button.OutlinedButton.Icon"
-        android:background="@color/colorPrimary"
-        android:layout_margin="3dp"
-        android:layout_width="wrap_content"
+        style="@style/Widget.MaterialComponents.Button"
+        android:backgroundTint="@color/colorPrimary"
+        android:layout_marginTop="5dp"
+        android:layout_marginStart="13dp"
+        android:layout_marginEnd="13dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:clickable="true"
@@ -40,12 +42,14 @@
         <TextView
             android:id="@+id/cart_text"
             android:layout_width="wrap_content"
-            android:layout_height="50dp"
+            android:layout_height="wrap_content"
             android:layout_marginStart="20dp"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="10dp"
             android:gravity="center"
             android:text="@string/cart_text"
             android:textColor="#FFFFFF"
-            android:textSize="20sp" />
+            android:textSize="18sp" />
 
         <TextView
             android:id="@+id/cart_count"
@@ -57,7 +61,7 @@
             android:layout_marginEnd="20dp"
             android:text="@string/count"
             android:textColor="#FFFFFF"
-            android:textSize="20sp" />
+            android:textSize="18sp"/>
 
     </RelativeLayout>
 

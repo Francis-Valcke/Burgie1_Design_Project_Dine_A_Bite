@@ -53,7 +53,7 @@ public class MenuHandlerTest {
     CategoryRepository categoryRepository;
 
     private MockMvc mockMvc;
-    private String token = "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJmcmFuY2lzIiwicm9sZXMiOlsiUk9MRV9VU0VSIiwiUk9MRV9BRE1JTiJdLCJpYXQiOjE1ODQ2MTAwMTcsImV4cCI6MTc0MjI5MDAxN30.5UNYM5Qtc4anyHrJXIuK0OUlsbAPNyS9_vr-1QcOWnQ";
+    private String token = "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbiIsInJvbGVzIjpbIlVTRVIiLCJTVEFORCIsIkFETUlOIl0sImlhdCI6MTU4Njg1NDgyNSwiZXhwIjoxNzQ0NTM0ODI1fQ.TJrhAEF95JQ9k10HWdn9FdLTcgmq909WDWr51AQAPPE";
 
     private static List<Brand> brands = new ArrayList<>();
 
@@ -165,6 +165,19 @@ public class MenuHandlerTest {
                 .andReturn();
 
 
+        // ---- UPDATE MENU (BUT NOT REALLY) ----//
+
+        url = Thread.currentThread().getContextClassLoader().getResource("updateMenuWithEdgeCases.json");
+        assert url != null;
+        body = Resources.toString(url, StandardCharsets.UTF_8);
+
+        this.mockMvc.perform(post("/updateStand").contentType(MediaType.APPLICATION_JSON)
+                .content(body)
+                .header("Authorization", token))
+                .andExpect(status().isOk())
+                .andReturn();
+        //After this the updated fields should not have been changed
+
         // ---- RETRIEVE STAND AND CHECK IF UPDATES PERSISTED ---- //
 
         MvcResult result = this.mockMvc.perform(get("/standMenu").contentType(MediaType.APPLICATION_JSON)
@@ -222,6 +235,10 @@ public class MenuHandlerTest {
                 }
             }
         }
+
+        // ---- CHECK IF NO CHANGE TO FIELDS WITH EMPTY STRING, NEGATIVE VALUE OR EMPTY CATEGORIES ----
+
+
 
     }
 

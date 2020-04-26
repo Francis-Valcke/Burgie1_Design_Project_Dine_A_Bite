@@ -12,16 +12,18 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
-import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
-import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import com.example.attendeeapp.ServerConfig;
+import com.example.attendeeapp.data.LoginDataSource;
+import com.example.attendeeapp.data.LoginRepository;
+import com.example.attendeeapp.data.model.LoggedInUser;
 import com.example.attendeeapp.json.CommonOrder;
+import com.example.attendeeapp.json.CommonOrderStatusUpdate;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -32,18 +34,19 @@ import org.json.JSONObject;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.example.attendeeapp.ServerConfig.AUTHORIZATION_TOKEN;
 
 /**
  * Service that polls the server for order updates
  */
 public class PollingService extends Service {
+
     private Handler handler;
     private Context context;
-
-    public static final long DEFAULT_SYNC_INTERVAL = 10 * 1000;
-
     private int subscribeId;
+    private LoggedInUser user = LoginRepository.getInstance(new LoginDataSource()).getLoggedInUser();
+
+    public static final long DEFAULT_SYNC_INTERVAL = 5 * 1000;
+
     // Runnable that contains the order polling method
     private Runnable runnableService = new Runnable() {
         @Override
@@ -58,41 +61,44 @@ public class PollingService extends Service {
             JsonArrayRequest jsonArray = new JsonArrayRequest(Request.Method.GET, url, null, new Response.Listener<JSONArray>() {
                 @Override
                 public void onResponse(JSONArray response) {
-                    Toast mToast = null;
+                    /*Toast mToast = null;
                     if (mToast != null) mToast.cancel();
                     mToast = Toast.makeText(context, "Polling success",
                             Toast.LENGTH_SHORT);
-                    mToast.show();
-
+                    mToast.show();*/
 
                     ObjectMapper mapper = new ObjectMapper();
-                    String details = null;
                     try {
-                        //details = (String) response.get("details");
-                        //JSONArray detailsJSON= new JSONArray(details);
-                        JSONArray detailsJSON = response;
-                        for(int i =0 ; i<detailsJSON.length(); i++){
-                            JSONObject event = (JSONObject) detailsJSON.get(0);
+                        for (int i = 0; i < response.length(); i++) {
+                            JSONObject event = (JSONObject) response.get(i);
                             JSONObject eventData = (JSONObject) event.get("eventData");
-                            JSONObject orderJson = eventData.getJSONObject("order");
-                            CommonOrder order = mapper.readValue(orderJson.toString(), CommonOrder.class);
-
+                            String eventClass = event.getString("dataType");
 
                             Intent intent = new Intent("orderUpdate");
-                            intent.putExtra("orderUpdate", order);
+                            switch(eventClass) {
+                                case "Order":
+                                    JSONObject orderJson = eventData.getJSONObject(eventClass.toLowerCase());
+                                    CommonOrder order = mapper.readValue(orderJson.toString(), CommonOrder.class);
+                                    intent.putExtra("orderUpdate", order);
+                                    break;
+
+                                case "OrderStatusUpdate":
+                                    CommonOrderStatusUpdate orderStatusUpdate = mapper.readValue(eventData.toString(), CommonOrderStatusUpdate.class);
+                                    intent.putExtra("orderStatusUpdate", orderStatusUpdate);
+                                    break;
+                            }
+
                             LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
                         }
                     } catch (JSONException | JsonProcessingException e) {
                         Log.v("JSONException", "JSONException in polling service");
                     }
 
-
                 }
             }, new Response.ErrorListener() {
                 @Override
                 public void onErrorResponse(VolleyError error) {
                     Toast mToast = null;
-                    if (mToast != null) mToast.cancel();
                     mToast = Toast.makeText(context, "Polling failed",
                             Toast.LENGTH_SHORT);
                     mToast.show();
@@ -101,9 +107,9 @@ public class PollingService extends Service {
                 // Add JSON headers
                 @Override
                 public @NonNull
-                Map<String, String> getHeaders()  throws AuthFailureError {
-                    Map<String, String> headers = new HashMap<String, String>();
-                    headers.put("Authorization", AUTHORIZATION_TOKEN);
+                Map<String, String> getHeaders() {
+                    Map<String, String> headers = new HashMap<>();
+                    headers.put("Authorization", user.getAuthorizationToken());
                     return headers;
                 }
             };
@@ -136,10 +142,10 @@ public class PollingService extends Service {
     public void onDestroy() {
         handler.removeCallbacks(runnableService);
         stopSelf();
-        // Restart service when app is not on top, but still running
-        Intent broadcastIntent = new Intent("restartpolling");
+        // Restart service when app is not on top, but still running (currently not working)
+        /*Intent broadcastIntent = new Intent("restartpolling");
         broadcastIntent.setClass(this, RestartPolling.class);
-        sendBroadcast(broadcastIntent);
+        sendBroadcast(broadcastIntent);*/
         super.onDestroy();
     }
 

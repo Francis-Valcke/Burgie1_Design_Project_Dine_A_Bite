@@ -22,7 +22,7 @@ public class CommonFood implements Serializable {
     private int preparationTime;
     private int stock;
     private String standName = "";
-    private String brandName;
+    private String brandName = "";
     private List<String> category = new ArrayList<>();
     private String description = "";
 
@@ -30,7 +30,8 @@ public class CommonFood implements Serializable {
         super(); // needed for ObjectMapper
     }
 
-    public CommonFood(String name, BigDecimal price, int preparationTime, int stock, String brandName, String desc, List<String> category) {
+    public CommonFood(String name, BigDecimal price, int preparationTime, int stock,
+                      String brandName, String desc, List<String> category) {
         this.name = name;
         this.price = price.setScale(2, RoundingMode.HALF_UP);
         this.preparationTime = preparationTime;
@@ -41,7 +42,8 @@ public class CommonFood implements Serializable {
         this.count = 0;
     }
 
-    public CommonFood(String foodName, BigDecimal price, int preparationTime, int stock, String standName, String brandName, String desc, List<String> category) {
+    public CommonFood(String foodName, BigDecimal price, int preparationTime, int stock,
+                      String standName, String brandName, String desc, List<String> category) {
         this.name = foodName;
         this.price = price.setScale(2, RoundingMode.HALF_UP);
         this.preparationTime = preparationTime;
@@ -59,7 +61,7 @@ public class CommonFood implements Serializable {
         this.count = copy.count;
         this.standName = copy.standName;
         this.brandName = copy.brandName;
-        this.category = new ArrayList<String>(copy.category);
+        this.category = new ArrayList<>(copy.category);
         this.description = copy.description;
     }
 
@@ -179,5 +181,13 @@ public class CommonFood implements Serializable {
 
     public void setStock(int stock) {
         this.stock = stock;
+    }
+
+    public void increaseStock(int inc) {
+        this.stock = this.stock + inc;
+    }
+
+    public void decreaseStock(int dec) {
+        this.stock = this.stock - dec;
     }
 }

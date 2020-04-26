@@ -171,7 +171,7 @@ public class OrderProcessor {
     @Scheduled(fixedDelay = 500)
     public void processEvents() {
         while (!eventQueue.isEmpty()) {
-            Event e = eventQueue.getFirst();
+            Event e = eventQueue.poll();
             assert e != null;
             if (e.getDataType().equals("OrderStatusUpdate")) {
                 JSONObject eventData = e.getEventData();

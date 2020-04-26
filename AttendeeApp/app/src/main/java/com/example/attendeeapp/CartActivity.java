@@ -1,6 +1,7 @@
 package com.example.attendeeapp;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
@@ -8,6 +9,7 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -25,11 +27,14 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Locale;
+import java.util.Objects;
 
 /**
  * Activity to handle the view cart page
@@ -49,7 +54,7 @@ public class CartActivity extends AppCompatActivity {
         setContentView(R.layout.activity_cart);
 
         // Custom Toolbar (instead of standard actionbar)
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
         // Get a support ActionBar corresponding to this toolbar
@@ -59,11 +64,11 @@ public class CartActivity extends AppCompatActivity {
         assert ab != null;
         ab.setDisplayHomeAsUpEnabled(true);
 
-        // Get the ordered items from the cart in the menu view
+        // Get the ordered items from the cart in the menu view (ignore warning)
         final ArrayList<CommonFood> ordered = (ArrayList<CommonFood>) getIntent().getSerializableExtra("cartList");
 
         // Instantiates cart item list, get the cartCount from menuActivity
-        ListView lView = (ListView)findViewById(R.id.cart_list);
+        ListView lView = findViewById(R.id.cart_list);
         cartAdapter = new CartItemAdapter(ordered, this);
         cartAdapter.setCartCount(getIntent().getIntExtra("cartCount", 0));
         lView.setAdapter(cartAdapter);
@@ -77,42 +82,41 @@ public class CartActivity extends AppCompatActivity {
 
         // Handle TextView to display total cart amount (price)
         BigDecimal amount = new BigDecimal(0).setScale(2, RoundingMode.HALF_UP);
-        for(CommonFood i : ordered) {
-            amount = amount.add(i.getPrice().multiply(new BigDecimal((i.getCount()))));
+        if (ordered != null) {
+            for (CommonFood i : ordered) {
+                amount = amount.add(i.getPrice().multiply(new BigDecimal((i.getCount()))));
+            }
         }
         updatePrice(amount);
 
-        // Handle clickable TextView to confirm order
+        // Handle button to confirm order
         // Only if there are items in the cart, the order can continue
-        TextView confirm = (TextView)findViewById(R.id.confirm_order);
-        confirm.setOnClickListener(new View.OnClickListener(){
+        Button confirmButton = findViewById(R.id.button_confirm_order);
+        confirmButton.setOnClickListener(new View.OnClickListener() {
+
             @Override
             public void onClick(View v) {
-                // confirm order -> go to order view (test view for now)
+                // confirm order -> go to order view
                 // Send order with JSON + location
                 if (cartAdapter.getCartList().size() > 0) {
                     checkLocationPermission();
                     //if(cartAdapter.getCartList().get(0).getStandName().equals("")) {
-                        Intent intent = new Intent(CartActivity.this, ConfirmActivity.class);
-                        intent.putExtra("order", ordered);
-                        intent.putExtra("location", lastLocation);
-                        intent.putExtra("totalPrice", totalPrice);
-                        intent.putExtra("cartCount", cartAdapter.getCartCount());
-                        startActivity(intent);
+                    Intent intent = new Intent(CartActivity.this, ConfirmActivity.class);
+                    intent.putExtra("order", ordered);
+                    intent.putExtra("location", lastLocation);
+                    intent.putExtra("totalPrice", totalPrice);
+                    intent.putExtra("cartCount", cartAdapter.getCartCount());
+                    startActivity(intent);
                     /*} else {
-
-
-
                         Intent intent = new Intent(CartActivity.this, OrderActivity.class);
                         intent.putExtra("order_list", ordered);
                         intent.putExtra("cartCount", cartAdapter.getCartCount());
                         startActivity(intent);
                     }*/
-
                 } else {
                     if (mToast != null) mToast.cancel();
                     mToast = Toast.makeText(CartActivity.this, "No items in your cart!",
-                                            Toast.LENGTH_SHORT);
+                            Toast.LENGTH_SHORT);
                     mToast.show();
                 }
             }
@@ -157,7 +161,7 @@ public class CartActivity extends AppCompatActivity {
             fusedLocationClient.getLastLocation()
                     .addOnCompleteListener(new OnCompleteListener<Location>() {
                         @Override
-                        public void onComplete(Task<Location> task ) {
+                        public void onComplete(@NotNull Task<Location> task ) {
                             if(task.isSuccessful() && task.getResult() != null){
                                 lastLocation = task.getResult();
                             }
@@ -165,7 +169,6 @@ public class CartActivity extends AppCompatActivity {
                     });
         }
     }
-
 
     /**
      * Handle the requested permissions,
@@ -175,8 +178,8 @@ public class CartActivity extends AppCompatActivity {
      * @param grantResults: if the permission is granted or not
      */
     @Override
-    public void onRequestPermissionsResult(int requestCode,
-                                           String[] permissions, int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, @NotNull String[] permissions,
+                                           @NotNull int[] grantResults) {
         switch (requestCode) {
             case 1: {
                 // If request is cancelled, the result arrays are empty.
@@ -188,7 +191,7 @@ public class CartActivity extends AppCompatActivity {
                     fusedLocationClient.getLastLocation()
                             .addOnCompleteListener(new OnCompleteListener<Location>() {
                                 @Override
-                                public void onComplete(Task<Location> task ) {
+                                public void onComplete(@NotNull Task<Location> task ) {
                                     if(task.isSuccessful() && task.getResult() != null){
                                         lastLocation = task.getResult();
                                     }
@@ -209,11 +212,12 @@ public class CartActivity extends AppCompatActivity {
      * Function to handle price updates when the cart updates its items
      * @param amount: amount to be added, can be positive or negative
      */
+    @SuppressLint("SetTextI18n")
     public void updatePrice(BigDecimal amount) {
-        TextView total = (TextView)findViewById(R.id.cart_total_price);
+        TextView total = findViewById(R.id.cart_total_price);
         NumberFormat euro = NumberFormat.getCurrencyInstance(Locale.FRANCE);
         euro.setMinimumFractionDigits(2);
-        String symbol = euro.getCurrency().getSymbol();
+        String symbol = Objects.requireNonNull(euro.getCurrency()).getSymbol();
         totalPrice = totalPrice.add(amount);
         total.setText(symbol + totalPrice);
     }
@@ -240,11 +244,18 @@ public class CartActivity extends AppCompatActivity {
                 return true;
             case R.id.account_action:
                 // User chooses the "Account" item
-                // TODO make account activity
+                Intent intent2 = new Intent(CartActivity.this, AccountActivity.class);
+                startActivity(intent2);
                 return true;
             case R.id.settings_action:
                 // User chooses the "Settings" item
                 // TODO make settings activity
+                return true;
+            case R.id.map_action:
+                //User chooses the "Map" item
+                Intent mapIntent = new Intent(CartActivity.this, MapsActivity.class);
+                startActivity(mapIntent);
+                return true;
             default:
                 return super.onOptionsItemSelected(item);
         }

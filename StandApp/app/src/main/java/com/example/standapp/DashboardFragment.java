@@ -2,13 +2,18 @@ package com.example.standapp;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
+import android.content.pm.PackageManager;
+import android.location.Location;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,49 +24,70 @@ import android.widget.Toast;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
-import com.android.volley.ServerError;
 import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+import com.example.standapp.data.LoginDataSource;
+import com.example.standapp.data.LoginRepository;
+import com.example.standapp.data.model.LoggedInUser;
 import com.example.standapp.json.CommonStand;
 import com.example.standapp.json.CommonFood;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textfield.TextInputEditText;
 
-import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-// TODO add description input fields
-// TODO add prep time input fields
-// TODO fix sending and showing and storing stock
-// TODO change stock based on incoming orders
-// TODO set location data
+// TODO change stock based on incoming orders (branch feature/stand_app/stock)
 
 public class DashboardFragment extends Fragment {
 
+    private Context mContext;
+    private boolean isNewStand = false;
     private ArrayList<CommonFood> items = new ArrayList<>();
 
+    // Stores the current stock of the menu items;
+    // this way the stock send to the backend is calculated to be equal to the added stock
+    private HashMap<String, Integer> addedStockMap = new HashMap<>();
+
+    // Location data of stand
+    private FusedLocationProviderClient fusedLocationClient;
+    private Location lastLocation;
+
+    @Override
+    public void onAttach(@NonNull Context context) {
+        // Called when a fragment is first attached to its context.
+        super.onAttach(context);
+        mContext = context;
+    }
+
+    @SuppressWarnings("unchecked")
     @Nullable
     @Override
     public View onCreateView(@NonNull final LayoutInflater inflater,
                              @Nullable final ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
 
-        View view = inflater.inflate(R.layout.activity_dashboard_fragment, container, false);
+        View view = inflater.inflate(R.layout.activity_dashboard_fragment, container,
+                false);
         Button submitButton = view.findViewById(R.id.submit_menu_button);
         Button addButton = view.findViewById(R.id.add_menu_item_button);
         ListView menuList = view.findViewById(R.id.menu_list);
+
+        final LoggedInUser user = LoginRepository.getInstance(new LoginDataSource()).getLoggedInUser();
 
         // Getting the log in information from profile fragment
         final Bundle bundle = getArguments();
@@ -70,104 +96,64 @@ public class DashboardFragment extends Fragment {
         if (bundle != null && Utils.isLoggedIn(getContext(), bundle)) {
             standName = bundle.getString("standName");
             brandName = bundle.getString("brandName");
-            Toast.makeText(getContext(), standName, Toast.LENGTH_SHORT).show();
+            Toast.makeText(mContext, standName, Toast.LENGTH_SHORT).show();
+
+            // Ask for permission to get location data and set lastLocation variable
+            checkLocationPermission();
+
+            items = (ArrayList<CommonFood>) bundle.getSerializable("items");
+            isNewStand = bundle.getBoolean("newStand");
         }
 
-        final DashboardListViewAdapter adapter =
-                new DashboardListViewAdapter(Objects.requireNonNull(getActivity()), items);
+        final DashboardListViewAdapter adapter
+                = new DashboardListViewAdapter(Objects.requireNonNull(getActivity()), items, addedStockMap);
         menuList.setAdapter(adapter);
 
-        // When logging into another stand account
-        if (!items.isEmpty() && !items.get(0).getStandName().equals(standName)) {
-            System.out.println("Cleared the menu in the manager dashboard");
-            items.clear();
-        }
-
-        // Getting the stand menu from the server after logging in
-        // when the stand has a menu saved on the server
-        if (items.isEmpty() && bundle != null && Utils.isLoggedIn(getContext(), bundle)
-                && Utils.isConnected(getContext())) {
-
-            // Instantiate the RequestQueue
-            RequestQueue queue = Volley.newRequestQueue(Objects.requireNonNull(getContext()));
-            String url = ServerConfig.OM_ADDRESS + "/standMenu?brandName=" + brandName
-                    + "&standName=" + standName;
-            url = url.replace(' ', '+');
-
-            // Request menu from order manager on server
-            JsonArrayRequest jsonRequest = new JsonArrayRequest(Request.Method.GET, url,
-                    null, new Response.Listener<JSONArray>() {
-                @Override
-                public void onResponse(JSONArray response) {
-                    try {
-                        System.out.println(response.toString());
-                        ObjectMapper mapper = new ObjectMapper();
-                        mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-                        CommonFood[] parsedItems = mapper.readValue(response.toString(), CommonFood[].class);
-                        Collections.addAll(items, parsedItems);
-                        adapter.notifyDataSetChanged();
-                    } catch (Exception e) {
-                        Log.v("Exception fetch menu:", e.toString());
-                        Toast.makeText(getContext(), "Could not get menu from server!",
-                                Toast.LENGTH_LONG).show();
-                    }
-                }
-            }, new Response.ErrorListener() {
-                @Override
-                public void onErrorResponse(VolleyError error) {
-                    error.printStackTrace();
-                    if (error instanceof ServerError) {
-                        // TODO server should handle this exception and send a response
-                        Toast.makeText(getContext(), "Server could not find menu of stand", Toast.LENGTH_LONG).show();
-                    }
-                    Toast.makeText(getContext(), error.toString(), Toast.LENGTH_LONG).show();
-                }
-            }) {
-                @Override
-                public Map<String, String> getHeaders() {
-                    HashMap<String, String> headers = new HashMap<>();
-                    headers.put("Content-Type", "application/json");
-                    headers.put("Authorization", ServerConfig.AUTHORIZATION_TOKEN);
-                    return headers;
-                }
-            };
-
-            queue.add(jsonRequest);
-        }
-
         @SuppressLint("InflateParams")
-        final View addDialogLayout = inflater.inflate(R.layout.add_menu_item_dialog, null, false);
+        final View addDialogLayout = inflater.inflate(R.layout.add_menu_item_dialog, null,
+                false);
         final TextInputEditText nameInput = addDialogLayout.findViewById(R.id.menu_item_name);
         final TextInputEditText priceInput = addDialogLayout.findViewById(R.id.menu_item_price);
         final TextInputEditText stockInput = addDialogLayout.findViewById(R.id.menu_item_stock);
+        final TextInputEditText descriptionInput = addDialogLayout.findViewById(R.id.menu_item_description);
+        final TextInputEditText prepTimeInput = addDialogLayout.findViewById(R.id.menu_item_prep_time);
         final View finalView = view;
 
         // Adding a new menu item to the menu list of the stand
-        final MaterialAlertDialogBuilder dialog = new MaterialAlertDialogBuilder(Objects.requireNonNull(this.getContext()))
+        final MaterialAlertDialogBuilder dialog = new MaterialAlertDialogBuilder(mContext)
                 .setView(addDialogLayout)
                 .setPositiveButton("Save", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
+                        // Check if fields are filled in (except for description)
                         if (Objects.requireNonNull(nameInput.getText()).toString().isEmpty()
                                 || Objects.requireNonNull(priceInput.getText()).toString().isEmpty()
-                                || Objects.requireNonNull(stockInput.getText()).toString().isEmpty()) {
+                                || Objects.requireNonNull(stockInput.getText()).toString().isEmpty()
+                                || Objects.requireNonNull(prepTimeInput.getText()).toString().isEmpty()) {
                             AlertDialog.Builder alertDialog = new AlertDialog.Builder(finalView.getContext())
                                     .setTitle("Invalid menu item")
-                                    .setMessage("The menu item you tried to add is invalid, please try again.")
+                                    .setMessage("The menu item you tried to add is invalid, " +
+                                            "please try again. " +
+                                            "You should fill in the necessary fields.")
                                     .setNeutralButton("Ok", null);
                             alertDialog.show();
                         } else {
                             String name = Objects.requireNonNull(nameInput.getText()).toString();
-                            BigDecimal price = new BigDecimal(Objects.requireNonNull(priceInput.getText()).toString());
-                            int stock = Integer.parseInt(Objects.requireNonNull(stockInput.getText()).toString());
+                            BigDecimal price = new BigDecimal(priceInput.getText().toString());
+                            int stock = Integer.parseInt(stockInput.getText().toString());
+                            String description = Objects.requireNonNull(descriptionInput.getText()).toString();
+                            int preparationTime = Integer.parseInt(prepTimeInput.getText().toString()) * 60;
                             List<String> category = new ArrayList<>();
                             category.add("");
-                            CommonFood item = new CommonFood(name, price, 150, stock, "", "", category);
+                            CommonFood item = new CommonFood(name, price, preparationTime, stock, "", description, category);
                             items.add(item);
+                            addedStockMap.put(name, stock);
                             adapter.notifyDataSetChanged();
                             nameInput.setText("");
                             priceInput.setText("");
                             stockInput.setText("");
+                            descriptionInput.setText("");
+                            prepTimeInput.setText("");
                         }
                         ViewGroup parent = (ViewGroup) addDialogLayout.getParent();
                         if (parent != null) parent.removeView(addDialogLayout);
@@ -196,17 +182,39 @@ public class DashboardFragment extends Fragment {
 
             @Override
             public void onClick(View v) {
-                if (bundle != null && Utils.isLoggedIn(getContext(), bundle)
-                        && Utils.isConnected(getContext())) {
+                if (bundle != null && Utils.isLoggedIn(mContext, bundle)
+                        && Utils.isConnected(mContext)) {
+
+                    HashMap<String, Integer> stock = new HashMap<>();
 
                     for (CommonFood item : items) {
                         item.setBrandName(finalBrandName);
+                        item.setStandName(finalStandName);
+
+                        // Temporarily set stock to added stock,
+                        // because that is what the backend expects,
+                        // change back after sending to backend
+                        // (ask Julien Van den Avenne)
+                        stock.put(item.getName(), item.getStock());
+                        if (addedStockMap.containsKey(item.getName())) {
+                            item.setStock(Objects.requireNonNull(addedStockMap.get(item.getName())));
+                        } else {
+                            item.setStock(0);
+                        }
+                    }
+
+                    // Set location data
+                    checkLocationPermission();
+                    double latitude = 360;
+                    double longitude = 360;
+                    if (lastLocation != null) {
+                        latitude = lastLocation.getLatitude();
+                        longitude = lastLocation.getLongitude();
                     }
 
                     // create JSON string containing the information of the menu and the stand
-                    long lat = 360L; // temporary
-                    long lon = 360L; // temporary
-                    CommonStand commonStand = new CommonStand(finalStandName, finalBrandName, lat, lon, items);
+                    CommonStand commonStand = new CommonStand(finalStandName, finalBrandName,
+                            latitude, longitude, items);
                     ObjectMapper mapper = new ObjectMapper();
                     String jsonString = "";
                     try {
@@ -216,11 +224,12 @@ public class DashboardFragment extends Fragment {
                     }
 
                     // Instantiate the RequestQueue
-                    RequestQueue queue = Volley.newRequestQueue(Objects.requireNonNull(getContext()));
+                    RequestQueue queue = Volley.newRequestQueue(mContext);
                     String url;
                     // Check if stand is new or not
-                    if (items.isEmpty()) {
+                    if (items.isEmpty() || isNewStand) {
                         url = ServerConfig.OM_ADDRESS + "/addStand";
+                        isNewStand = false;
                     } else {
                         url = ServerConfig.OM_ADDRESS + "/updateStand";
                     }
@@ -231,13 +240,21 @@ public class DashboardFragment extends Fragment {
                             new Response.Listener<String>() {
                         @Override
                         public void onResponse(String response) {
-                            Toast.makeText(getContext(), response, Toast.LENGTH_LONG).show();
+                            try {
+                                JSONObject jsonObject = new JSONObject(response);
+                                Toast.makeText(getContext(), jsonObject.get("details").toString(),
+                                        Toast.LENGTH_LONG).show();
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                                Toast.makeText(mContext, "Error with JSON parsing: "
+                                        + e.toString(), Toast.LENGTH_SHORT).show();
+                            }
                         }
                     }, new Response.ErrorListener() {
                         @Override
                         public void onErrorResponse(VolleyError error) {
                             error.printStackTrace();
-                            Toast.makeText(getContext(), error.toString(), Toast.LENGTH_LONG).show();
+                            Toast.makeText(mContext, error.toString(), Toast.LENGTH_LONG).show();
                         }
                     }) {
                         @Override
@@ -254,7 +271,7 @@ public class DashboardFragment extends Fragment {
                         public Map<String, String> getHeaders() {
                             HashMap<String, String> headers = new HashMap<>();
                             headers.put("Content-Type", "application/json");
-                            headers.put("Authorization", ServerConfig.AUTHORIZATION_TOKEN);
+                            headers.put("Authorization", user.getAutorizationToken());
                             return headers;
                         }
                     };
@@ -262,12 +279,87 @@ public class DashboardFragment extends Fragment {
                     // Add the request to the RequestQueue
                     queue.add(jsonRequest);
                     System.out.println(jsonString);
+
+                    // Revert stock change
+                    for (CommonFood item : items) {
+                        item.setStock(Objects.requireNonNull(stock.get(item.getName())));
+                    }
+                    addedStockMap.clear();
                 }
             }
         });
 
-        Utils.isConnected(getContext());
+        Utils.isConnected(mContext);
 
         return view;
+    }
+
+    /**
+     * Check if location permission is granted
+     * It not: request the location permission
+     * else if permission was granted, renew user location
+     */
+    private void checkLocationPermission() {
+        if (ContextCompat.checkSelfPermission(Objects.requireNonNull(getContext()),
+                Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+            // Permission is not granted
+            // Request the permission
+            ActivityCompat.requestPermissions(Objects.requireNonNull(getActivity()),
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                    1);
+        } else {
+            // Request the latest user location
+            fusedLocationClient = LocationServices
+                    .getFusedLocationProviderClient(Objects.requireNonNull(getActivity()));
+            fusedLocationClient.getLastLocation()
+                    .addOnCompleteListener(new OnCompleteListener<Location>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Location> task) {
+                            if (task.isSuccessful() && task.getResult() != null){
+                                lastLocation = task.getResult();
+                            }
+                        }
+                    });
+        }
+    }
+
+    /**
+     * Handle the requested permissions,
+     * here only the location permission is handled
+     * @param requestCode: 1 = location permission was requested
+     * @param permissions: the requested permission(s) names
+     * @param grantResults: if the permission is granted or not
+     */
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
+        switch (requestCode) {
+            case 1: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    // permission was granted, yay!
+                    // Create location request to fetch latest user location
+                    fusedLocationClient = LocationServices
+                            .getFusedLocationProviderClient(Objects.requireNonNull(getActivity()));
+                    fusedLocationClient.getLastLocation()
+                            .addOnCompleteListener(new OnCompleteListener<Location>() {
+                                @Override
+                                public void onComplete(@NonNull Task<Location> task) {
+                                    if (task.isSuccessful() && task.getResult() != null){
+                                        lastLocation = task.getResult();
+                                    }
+                                }
+                            });
+                } else {
+                    // permission denied, boo! Disable the
+                    // functionality that depends on this permission.
+                }
+                return;
+            }
+            // other 'case' lines to check for other
+            // permissions this app might request.
+        }
     }
 }

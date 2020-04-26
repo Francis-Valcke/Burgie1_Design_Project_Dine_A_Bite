@@ -20,7 +20,7 @@ import java.util.ArrayList;
  */
 public class MenuItemAdapter extends BaseAdapter {
 
-    private ArrayList<CommonFood> list = new ArrayList<CommonFood>();
+    private ArrayList<CommonFood> list;
     private Context context;
     private OnCartChangeListener cartListener;
     private MenuBottomSheetDialog bottomSheet;
@@ -60,11 +60,12 @@ public class MenuItemAdapter extends BaseAdapter {
         if (view == null) {
             LayoutInflater inflater = (LayoutInflater) context
                     .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+            // Root cannot be parent
             view = inflater.inflate(R.layout.menu_item_material, null);
         }
 
         // Add expandable bottomSheet for every item
-        RelativeLayout reLay = (RelativeLayout) view.findViewById(R.id.menu_item_layout);
+        RelativeLayout reLay = view.findViewById(R.id.menu_item_layout);
         reLay.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v) {
@@ -77,15 +78,15 @@ public class MenuItemAdapter extends BaseAdapter {
         });
 
         // Handle TextView to display one menu item name
-        TextView listItemText = (TextView)view.findViewById(R.id.menu_item);
+        TextView listItemText = view.findViewById(R.id.menu_item);
         listItemText.setText(list.get(position).getName());
 
         // Handle TextView to display one menu item price
-        TextView listItemPrice = (TextView)view.findViewById(R.id.menu_item_price);
+        TextView listItemPrice = view.findViewById(R.id.menu_item_price);
         listItemPrice.setText(list.get(position).getPriceEuro());
 
         // Handle Button and add onClickListeners for one menu item
-        Button plusBtn = (Button)view.findViewById(R.id.plus);
+        Button plusBtn = view.findViewById(R.id.plus);
         plusBtn.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v) {

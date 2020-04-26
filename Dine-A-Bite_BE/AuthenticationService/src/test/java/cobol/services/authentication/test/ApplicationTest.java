@@ -114,10 +114,10 @@ public class ApplicationTest {
     private void createUser(String user) throws Exception {
         this.mockMvc
                 .perform(
-                        post("/create")
+                        post("/createUser")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsBytes(
-                                        User.builder().username(user).password(user).build()
+                                        User.builder().username(user).password(user+user).build()
                                 ))
                 )
                 .andExpect(status().isOk());
@@ -129,7 +129,7 @@ public class ApplicationTest {
                         post("/authenticate")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsBytes(
-                                        User.builder().username(user).password(user).build()
+                                        User.builder().username(user).password(user+user).build()
                                 ))
                 )
                 .andExpect(status().isOk()).andReturn().getResponse().getContentAsString()

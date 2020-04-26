@@ -24,7 +24,7 @@
         android:layout_height="wrap_content"
         app:singleSelection="true">
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/button_start"
             android:focusable="false"
             android:layout_width="wrap_content"
@@ -32,7 +32,7 @@
             android:text="@string/start"
             style="?attr/materialButtonOutlinedStyle"/>
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/button_done"
             android:focusable="false"
             android:layout_width="wrap_content"
@@ -40,7 +40,7 @@
             android:text="@string/done"
             style="?attr/materialButtonOutlinedStyle"/>
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/button_picked_up"
             android:focusable="false"
             android:layout_width="wrap_content"

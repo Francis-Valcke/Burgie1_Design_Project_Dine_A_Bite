@@ -17,14 +17,17 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
-import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+import com.example.attendeeapp.data.LoginDataSource;
+import com.example.attendeeapp.data.LoginRepository;
+import com.example.attendeeapp.data.model.LoggedInUser;
 import com.example.attendeeapp.json.CommonOrder;
+import com.example.attendeeapp.json.CommonOrderStatusUpdate;
 import com.example.attendeeapp.polling.PollingService;
 import com.example.attendeeapp.appDatabase.OrderDatabaseService;
 
@@ -32,24 +35,33 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.example.attendeeapp.ServerConfig.AUTHORIZATION_TOKEN;
-
 /**
  * Activity to handle the show order overview
- * Loads previous orders from the internal database stored on the devide
+ * Loads previous orders from the internal database stored on the divide
  */
 public class OrderActivity extends AppCompatActivity {
 
-    private int subscribeId;
+    private int subscribeId = -1;
     private ArrayList<CommonOrder> orders;
     private OrderDatabaseService orderDatabaseService;
     private OrderItemExpandableAdapter adapter;
+    private LoggedInUser user = LoginRepository.getInstance(new LoginDataSource()).getLoggedInUser();
 
     // Receives the order updates from the polling service
     private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             CommonOrder orderUpdate = (CommonOrder) intent.getSerializableExtra("orderUpdate");
+            CommonOrderStatusUpdate orderStatusUpdate = (CommonOrderStatusUpdate) intent.getSerializableExtra("orderStatusUpdate");
+            if (orderUpdate != null) {
+                // Update all order fields
+                //adapter.notifyDataSetChanged();
+            }
+            if (orderStatusUpdate != null) {
+                // Update order status fields
+                adapter.updateOrder(orderStatusUpdate.getOrderId(), orderStatusUpdate.getNewStatus());
+                adapter.notifyDataSetChanged();
+            }
         }
     };
 
@@ -57,7 +69,7 @@ public class OrderActivity extends AppCompatActivity {
     private boolean isPollingServiceRunning(Class<?> serviceClass) {
         ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
         for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
-            if (serviceClass.getName().equals(PollingService.class.getName())) {
+            if (serviceClass.getName().equals(service.service.getClassName())) {
                 return true;
             }
         }
@@ -69,9 +81,8 @@ public class OrderActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_order);
 
-
         // Custom Toolbar (instead of standard actionbar)
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
         // Get a support ActionBar corresponding to this toolbar
@@ -87,36 +98,69 @@ public class OrderActivity extends AppCompatActivity {
         orderDatabaseService = new OrderDatabaseService(getApplicationContext());
         orders = (ArrayList<CommonOrder>) orderDatabaseService.getAll();
 
-        if(orders.size() == 0 && newOrder == null) {
+        if (orders == null || (orders.size() == 0 && newOrder == null)) {
             // No (new) orders
             return;
 
-        } else if (newOrder == null) {
-            // Initiate the expandable order ListView
-            ExpandableListView expandList = (ExpandableListView)findViewById(R.id.order_expand_list);
-            OrderItemExpandableAdapter adapter = new OrderItemExpandableAdapter(this, orders);
-
-            expandList.setAdapter(adapter);
-            return;
+        } else if (newOrder != null) {
+            // Send the order and chosen stand and brandName to the server and confirm the chosen stand
+            String chosenStand = getIntent().getStringExtra("stand");
+            String chosenBrand = getIntent().getStringExtra("brand");
+            newOrder.setStandName(chosenStand);
+            newOrder.setBrandName(chosenBrand);
+            confirmNewOrderStand(newOrder, chosenStand, chosenBrand);
         }
 
         // Initiate the expandable order ListView
-        ExpandableListView expandList = (ExpandableListView)findViewById(R.id.order_expand_list);
-        adapter = new OrderItemExpandableAdapter(this, orders);
+        ExpandableListView expandList = findViewById(R.id.order_expand_list);
+        adapter = new OrderItemExpandableAdapter(this, orders, orderDatabaseService);
 
         expandList.setAdapter(adapter);
 
         // Register as subscriber to the orderId event channel
-        // to be used later
-        /*if (!isPollingServiceRunning(PollingService.class)){
-            getSubscriberId(newOrder.getId());
-        }*/
+        if (!isPollingServiceRunning(PollingService.class)){
+            ArrayList<Integer> orderIds = new ArrayList<>();
+            for (CommonOrder order : orders) {
+                orderIds.add(order.getId());
+            }
+            if (newOrder != null) orderIds.add(newOrder.getId());
+            // orderId's will not be empty, else this code is not reachable
+            getSubscriberId(orderIds);
+        }
+    }
 
-        // Send the order and chosen stand and brandName to the server and confirm the chosen stand
-        String chosenStand = getIntent().getStringExtra("stand");
-        String chosenBrand = getIntent().getStringExtra("brand");
-        newOrder.setStandName(chosenStand);
-        newOrder.setBrandName(chosenBrand);
+    @Override
+    public void onResume() {
+        super.onResume();
+        // Start polling service
+        if (subscribeId != -1) {
+            Intent intent = new Intent(getApplicationContext(), PollingService.class);
+            intent.putExtra("subscribeId", subscribeId);
+            startService(intent);
+        }
+        // Register the listener for polling updates
+        LocalBroadcastManager.getInstance(this).registerReceiver(
+                mMessageReceiver, new IntentFilter("orderUpdate"));
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        // Stop the polling service
+        stopService(new Intent(getApplicationContext(), PollingService.class));
+
+        // Unregister the listener
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(mMessageReceiver);
+    }
+
+
+    /**
+     * Confirm the chosen stand and brand when a new order is made
+     * @param newOrder
+     * @param chosenStand
+     * @param chosenBrand
+     */
+    public void confirmNewOrderStand(final CommonOrder newOrder, String chosenStand, String chosenBrand) {
         // Instantiate the RequestQueue
         RequestQueue queue = Volley.newRequestQueue(this);
         String url = ServerConfig.OM_ADDRESS;
@@ -125,6 +169,7 @@ public class OrderActivity extends AppCompatActivity {
                 newOrder.getId(),
                 chosenStand.replace("&","%26"),
                 chosenBrand.replace("&","%26"));
+        url = url.replace(' ' , '+');
 
         // Request a string response from the provided URL
         StringRequest stringRequest = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
@@ -155,9 +200,9 @@ public class OrderActivity extends AppCompatActivity {
         }) {
             // Add JSON headers
             @Override
-            public @NonNull Map<String, String> getHeaders()  throws AuthFailureError {
-                Map<String, String> headers = new HashMap<String, String>();
-                headers.put("Authorization", AUTHORIZATION_TOKEN);
+            public @NonNull Map<String, String> getHeaders()  {
+                Map<String, String> headers = new HashMap<>();
+                headers.put("Authorization", user.getAuthorizationToken());
                 return headers;
             }
         };
@@ -166,29 +211,20 @@ public class OrderActivity extends AppCompatActivity {
         queue.add(stringRequest);
     }
 
-    @Override
-    public void onResume() {
-        super.onResume();
-        // Register the listener for polling updates
-        LocalBroadcastManager.getInstance(this).registerReceiver(
-                mMessageReceiver, new IntentFilter("orderUpdate"));
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-        // Unregister the listener
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(mMessageReceiver);
-    }
-
     /**
      * Subscribes to the server eventChannel for the given order
      * and launch the polling service to poll for events (order updates) from the server
+     * @param orderId : list of order id's that must be subscribed to
+     *                TODO: unregister subscriber
+     *                      save subscriberId instead of asking new one every time
      */
-    public void getSubscriberId(int orderId) {
+    public void getSubscriberId(ArrayList<Integer> orderId) {
         // Instantiate the RequestQueue
         RequestQueue queue = Volley.newRequestQueue(this);
-        String url = ServerConfig.EC_ADDRESS + "/registerSubscriber?types=o" + orderId;
+        String url = ServerConfig.EC_ADDRESS + "/registerSubscriber?types=o_" + orderId.get(0);
+        for (Integer i : orderId.subList(1, orderId.size())) {
+            url = url.concat(",o_" + i);
+        }
 
         // Request a string response from the provided URL
         StringRequest stringRequest = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
@@ -213,9 +249,9 @@ public class OrderActivity extends AppCompatActivity {
         }) {
             // Add JSON headers
             @Override
-            public @NonNull Map<String, String> getHeaders()  throws AuthFailureError {
-                Map<String, String> headers = new HashMap<String, String>();
-                headers.put("Authorization", AUTHORIZATION_TOKEN);
+            public @NonNull Map<String, String> getHeaders() {
+                Map<String, String> headers = new HashMap<>();
+                headers.put("Authorization", user.getAuthorizationToken());
                 return headers;
             }
         };
@@ -255,6 +291,12 @@ public class OrderActivity extends AppCompatActivity {
             case R.id.settings_action:
                 // User chooses the "Settings" item
                 // TODO make settings activity
+                return true;
+            case R.id.map_action:
+                //User chooses the "Map" item
+                Intent mapIntent = new Intent(OrderActivity.this, MapsActivity.class);
+                startActivity(mapIntent);
+                return true;
             default:
                 return super.onOptionsItemSelected(item);
         }

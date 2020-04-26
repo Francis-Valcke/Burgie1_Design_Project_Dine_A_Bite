@@ -38,7 +38,7 @@ public class CommonOrder implements Serializable {
     @TypeConverters(Converters.class)
     private List<CommonOrderItem> orderItems;
 
-    // Coordinates Attendee on moment that order was mad
+    // Coordinates Attendee on moment that order was made
     private double latitude;
     private double longitude;
 
@@ -48,6 +48,8 @@ public class CommonOrder implements Serializable {
 
     @JsonIgnore
     private int totalCount;
+    @JsonIgnore
+    private boolean updateSeen = true;
 
     public enum State {
         SEND,
@@ -177,6 +179,14 @@ public class CommonOrder implements Serializable {
 
     public void setTotalCount(int totalCount) {
         this.totalCount = totalCount;
+    }
+
+    public boolean isUpdateSeen() {
+        return updateSeen;
+    }
+
+    public void setUpdateSeen(boolean updateSeen) {
+        this.updateSeen = updateSeen;
     }
 
     /**

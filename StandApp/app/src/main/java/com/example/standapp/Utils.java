@@ -12,9 +12,11 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 
+
 class Utils {
 
     private static boolean isConnected = false;
+    private static String subscriberId;
 
     /**
      * Show if internet connection and server connection are online
@@ -39,10 +41,12 @@ class Utils {
             @Override
             public void onErrorResponse(VolleyError error) {
                 isConnected = false;
+                System.out.println(error.toString());
                 if (error instanceof NoConnectionError) {
                     Toast.makeText(context, "No network connection", Toast.LENGTH_LONG).show();
                 } else {
-                    Toast.makeText(context, "Server cannot be reached, try again later", Toast.LENGTH_LONG).show();
+                    Toast.makeText(context, "Server cannot be reached, try again later",
+                            Toast.LENGTH_LONG).show();
                 }
             }
         });
@@ -65,11 +69,12 @@ class Utils {
         String brandName = bundle.getString("brandName");
 
         if (standName == null || standName.isEmpty() || brandName == null || brandName.isEmpty()) {
-            Toast.makeText(context, "Please log in", Toast.LENGTH_LONG).show();
+            Toast.makeText(context, "Please log in to your stand", Toast.LENGTH_LONG).show();
         } else {
             isLoggedIn = true;
         }
 
         return isLoggedIn;
     }
+
 }

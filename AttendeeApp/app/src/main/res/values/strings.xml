@@ -1,7 +1,6 @@
 <!-- Contains the static string resources used in the app -->
 <resources>
     <string name="app_name">Dine-A-Bite</string>
-    <string name="plusBtn">+</string>
     <string name="cart_text">Items in your cart: </string>
     <string name="cart_total_text">Total: </string>
     <string name="confirm_order">Confirm your order</string>
@@ -24,13 +23,29 @@
     <string name="order_price">Price</string>
     <string name="stand_recommend">Choose your stand</string>
     <string name="stand_recommendation">Your recommended stand: </string>
-    <string name="stand_spinner_recommend">Pick your own favorite: </string>
-    <string name="confirm_recommend">Go with recommended</string>
-    <string name="confirm_stand">Choose own stand</string>
+    <string name="stand_spinner_recommend">Pick your favorite recommendation: </string>
+    <string name="confirm_stand">Confirm your stand</string>
+    <string name="specific_stand_chosen">Your own chosen stand: </string>
     <string name="no_recommendation">No recommendation available.</string>
     <string name="recommend_time">You will have to wait: </string>
     <string name="recommend_distance">You will have to walk: </string>
-
+    <string name="event_map">Stand locations: </string>
     <string name="chosen_brand">(By: </string>
     <string name="chosen_stand">Your pickup point: </string>
+    <string name="title_activity_maps">Map</string>
+    <string name="total">Total</string>
+    <string name="title_activity_login">Sign in</string>
+    <string name="prompt_username">Username</string>
+    <string name="prompt_password">Password</string>
+    <string name="action_sign_in">Sign in or register</string>
+    <string name="action_sign_in_short">Sign in</string>
+    <string name="welcome">"Welcome! "</string>
+    <string name="invalid_username">Not a valid username</string>
+    <string name="invalid_password">Password must be >5 characters</string>
+    <string name="login_failed">"Login failed"</string>
+    <string name="new_user_helper_text">New? You can create your account by filling in a unique username and secure password.</string>
+    <string name="shared_pref_file_key">com.example.attendeeapp.PREFERENCE_FILE_KEY</string>
+    <string name="remaining_time">Your order is ready in: </string>
+    <string name="personal_information">Personal Information</string>
+    <string name="username">Username:</string>
 </resources>

@@ -1,5 +1,8 @@
 package com.example.standapp.order;
 
+/**
+ * Class for sending an order status update of an order to the Event Channel
+ */
 public class CommonOrderStatusUpdate {
 
     private int orderId;
@@ -9,8 +12,9 @@ public class CommonOrderStatusUpdate {
         SEND,
         PENDING,
         DECLINED,
-        CONFIRMED,
-        READY
+        CONFIRMED, // START
+        READY, // DONE
+        PICKED_UP
     }
 
     public CommonOrderStatusUpdate() {}

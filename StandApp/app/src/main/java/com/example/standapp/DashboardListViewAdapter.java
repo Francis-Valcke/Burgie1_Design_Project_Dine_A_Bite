@@ -17,17 +17,21 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textfield.TextInputEditText;
 
 import java.math.BigDecimal;
-import java.util.List;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Objects;
 
 public class DashboardListViewAdapter extends BaseAdapter {
 
     private LayoutInflater inflater;
-    private List<CommonFood> items;
+    private ArrayList<CommonFood> items;
+    private HashMap<String, Integer> addedStockMap;
 
-    DashboardListViewAdapter(Activity context, List<CommonFood> items) {
+    DashboardListViewAdapter(Activity context, ArrayList<CommonFood> items,
+                             HashMap<String, Integer> addedStockMap) {
         super();
         this.items = items;
+        this.addedStockMap = addedStockMap;
         this.inflater = (LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
     }
 
@@ -64,13 +68,21 @@ public class DashboardListViewAdapter extends BaseAdapter {
         // Editing or deleting an already existing menu item in the manager dashboard
         Button editButton = view.findViewById(R.id.edit_menu_item_button);
         final View finalView = view;
-        final View editDialogLayout = inflater.inflate(R.layout.add_menu_item_dialog, parent, false);
+        final View editDialogLayout = inflater.inflate(R.layout.add_menu_item_dialog, parent,
+                false);
         final TextInputEditText nameInput = editDialogLayout.findViewById(R.id.menu_item_name);
         final TextInputEditText priceInput = editDialogLayout.findViewById(R.id.menu_item_price);
-        final TextInputEditText stockInput = editDialogLayout.findViewById(R.id.menu_item_stock);
+        final TextInputEditText addedStockInput = editDialogLayout.findViewById(R.id.menu_item_stock);
+        final TextInputEditText descriptionInput = editDialogLayout.findViewById(R.id.menu_item_description);
+
+        // Editing preparation time is disabled, because the backend will re-calculate this time
+        editDialogLayout.findViewById(R.id.menu_item_prep_time).setEnabled(false);
+
         nameInput.setText(item.getName());
         priceInput.setText(item.getPrice().toString());
-        stockInput.setText(Integer.toString(item.getStock()));
+        addedStockInput.setText("0");
+        descriptionInput.setText(item.getDescription());
+
         editButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -79,22 +91,28 @@ public class DashboardListViewAdapter extends BaseAdapter {
                         .setPositiveButton("Save", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
+                                // Check if fields are filled in (except for description)
                                 if (Objects.requireNonNull(nameInput.getText()).toString().isEmpty()
                                         || Objects.requireNonNull(priceInput.getText()).toString().isEmpty()
-                                        || Objects.requireNonNull(stockInput.getText()).toString().isEmpty()) {
+                                        || Objects.requireNonNull(addedStockInput.getText()).toString().isEmpty()) {
                                     AlertDialog.Builder alertDialog = new AlertDialog.Builder(finalView.getContext())
                                             .setTitle("Invalid menu item")
-                                            .setMessage("The menu item you tried to add is invalid, please try again.")
+                                            .setMessage("The menu item you tried to add is " +
+                                                    "invalid, please try again. You should fill " +
+                                                    "in the necessary fields.")
                                             .setNeutralButton("Ok", null);
                                     alertDialog.show();
                                 } else {
                                     String name = Objects.requireNonNull(nameInput.getText()).toString();
-                                    BigDecimal price = new BigDecimal(Objects.requireNonNull(priceInput.getText()).toString());
-                                    int stock = Integer.parseInt(Objects.requireNonNull(stockInput.getText()).toString());
+                                    BigDecimal price = new BigDecimal(priceInput.getText().toString());
+                                    int addedStock = Integer.parseInt(addedStockInput.getText().toString());
+                                    String description = Objects.requireNonNull(descriptionInput.getText()).toString();
                                     item.setName(name);
                                     item.setPrice(price);
-                                    item.setStock(stock);
+                                    item.increaseStock(addedStock);
+                                    item.setDescription(description);
                                     notifyDataSetChanged();
+                                    addedStockMap.put(name, addedStock);
                                 }
                                 ViewGroup parent = (ViewGroup) editDialogLayout.getParent();
                                 if (parent != null) parent.removeView(editDialogLayout);
@@ -108,7 +126,8 @@ public class DashboardListViewAdapter extends BaseAdapter {
                         }).setNegativeButton("Delete", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-                                AlertDialog.Builder alertDialog = new AlertDialog.Builder(finalView.getContext())
+                                AlertDialog.Builder alertDialog
+                                        = new AlertDialog.Builder(finalView.getContext())
                                         .setTitle("Delete menu item")
                                         .setMessage("Are you sure?")
                                         .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
