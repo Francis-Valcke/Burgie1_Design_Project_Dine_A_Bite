@@ -213,5 +213,9 @@ public class OrderProcessor {
             }
         }
     }
+
+    public List<CommonOrder> getOrdersByUser(String userName) {
+        return orderRepository.findAll().stream().filter(o -> o.getUserName().equals(userName)).map(Order::asCommonOrder).collect(Collectors.toList());
+    }
 }
 

@@ -69,6 +69,7 @@ public class OrderController {
 
         // Add order to the processor
         Order newOrder = new Order(orderObject);
+        newOrder.setUserName(userDetails.getUsername());
         newOrder = orderProcessor.addNewOrder(newOrder);
 
         // Put order in json to send to standmanager (as commonOrder object)
@@ -164,4 +165,11 @@ public class OrderController {
 
         return ResponseEntity.ok(response);
     }
+
+
+    @GetMapping(value= "/getUserOrders", produces = "application/json")
+    public ResponseEntity<List<CommonOrder>> getUserOrders(@AuthenticationPrincipal CommonUser userDetails){
+        return ResponseEntity.ok(orderProcessor.getOrdersByUser(userDetails.getUsername()));
+    }
+
 }

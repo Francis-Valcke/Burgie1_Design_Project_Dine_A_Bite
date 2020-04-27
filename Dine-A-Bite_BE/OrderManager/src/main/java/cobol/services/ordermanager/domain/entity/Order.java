@@ -2,10 +2,6 @@ package cobol.services.ordermanager.domain.entity;
 
 import cobol.commons.order.CommonOrder;
 import cobol.commons.order.CommonOrderItem;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.json.simple.JSONObject;
-import org.springframework.data.jpa.repository.Modifying;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -30,6 +26,10 @@ public class Order implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
+
+
+    @Column
+    private String userName;
 
     @Column(columnDefinition = "datetime")
     private ZonedDateTime startTime;
@@ -208,6 +208,14 @@ public class Order implements Serializable {
         return this.stand != null;
     }
 
+    public void setUserName(String userName) {
+        this.userName = userName;
+    }
+
+    public String getUserName(){
+        return userName;
+    }
+
     @Override
     public String toString() {
         return "Order{" +
@@ -218,5 +226,6 @@ public class Order implements Serializable {
                 ", longitude=" + longitude +
                 '}';
     }
+
 
 }
