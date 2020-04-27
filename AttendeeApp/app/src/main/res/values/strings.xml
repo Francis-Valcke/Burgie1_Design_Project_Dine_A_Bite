@@ -48,4 +48,5 @@
     <string name="remaining_time">Your order is ready in: </string>
     <string name="personal_information">Personal Information</string>
     <string name="username">Username:</string>
+    <string name="log_out">Log out</string>
 </resources>
