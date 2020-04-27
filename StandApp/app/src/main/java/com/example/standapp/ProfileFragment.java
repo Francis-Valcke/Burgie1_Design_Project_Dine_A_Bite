@@ -94,9 +94,6 @@ public class ProfileFragment extends Fragment {
                     public void onClick(DialogInterface dialog, int which) {
                         standNameTextView.setText(editTextStandName.getText());
                         standName = Objects.requireNonNull(editTextStandName.getText()).toString();
-                        if (bundle != null) bundle.putSerializable("items", new ArrayList<CommonFood>());
-                        if (bundle != null) bundle.putString("standName", null);
-                        if (bundle != null) bundle.putString("brandName", null);
                         editTextStandName.setText("");
                         ViewGroup parent = (ViewGroup) inputStandNameLayout.getParent();
                         parent.removeView(inputStandNameLayout);
@@ -104,6 +101,7 @@ public class ProfileFragment extends Fragment {
                 }).setOnDismissListener(new DialogInterface.OnDismissListener() {
                     @Override
                     public void onDismiss(DialogInterface dialog) {
+                        editTextStandName.setText("");
                         ViewGroup parent = (ViewGroup) inputStandNameLayout.getParent();
                         if (parent != null) parent.removeView(inputStandNameLayout);
                     }
@@ -129,9 +127,6 @@ public class ProfileFragment extends Fragment {
                     public void onClick(DialogInterface dialog, int which) {
                         brandNameTextView.setText(editTextBrandName.getText());
                         brandName = Objects.requireNonNull(editTextBrandName.getText()).toString();
-                        if (bundle != null) bundle.putSerializable("items", new ArrayList<CommonFood>());
-                        if (bundle != null) bundle.putString("standName", null);
-                        if (bundle != null) bundle.putString("brandName", null);
                         editTextBrandName.setText("");
                         ViewGroup parent = (ViewGroup) inputBrandNameLayout.getParent();
                         parent.removeView(inputBrandNameLayout);
@@ -139,6 +134,7 @@ public class ProfileFragment extends Fragment {
                 }).setOnDismissListener(new DialogInterface.OnDismissListener() {
                     @Override
                     public void onDismiss(DialogInterface dialog) {
+                        editTextBrandName.setText("");
                         ViewGroup parent = (ViewGroup) inputBrandNameLayout.getParent();
                         if (parent != null) parent.removeView(inputBrandNameLayout);
                     }
@@ -159,6 +155,12 @@ public class ProfileFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 if (!standName.isEmpty() && !brandName.isEmpty() && Utils.isConnected(getContext())) {
+
+                    // Delete data from previous logged in stand
+                    if (bundle != null) bundle.putSerializable("items", new ArrayList<CommonFood>());
+                    if (bundle != null) bundle.putString("standName", null);
+                    if (bundle != null) bundle.putString("brandName", null);
+                    if (bundle != null) bundle.putString("subscriberId", null);
 
                     // POST request to /verify
                     RequestQueue queue = Volley.newRequestQueue(Objects.requireNonNull(getContext()));
