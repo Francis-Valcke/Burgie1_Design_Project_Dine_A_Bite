@@ -33,7 +33,10 @@ public class OrderDatabaseService {
 
     public void deleteOrder(CommonOrder order) {
         new DeleteOrderTask(orderDatabase, order).execute();
+    }
 
+    public void deleteAllOrders() {
+        new DeleteAllOrdersTask(orderDatabase).execute();
     }
 
     public List<CommonOrder> getAll() {
@@ -91,6 +94,20 @@ public class OrderDatabaseService {
         protected Void doInBackground(Void... voids) {
             orderDatabase.orderDao().deleteOrder(order);
             //orderDatabase.clearAllTables();
+            return null;
+        }
+    }
+
+    private static class DeleteAllOrdersTask extends AsyncTask<Void, Void, Void> {
+        private AppDatabase orderDatabase;
+
+        DeleteAllOrdersTask(AppDatabase orderDatabase) {
+            this.orderDatabase = orderDatabase;
+        }
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            orderDatabase.clearAllTables();
             return null;
         }
     }
