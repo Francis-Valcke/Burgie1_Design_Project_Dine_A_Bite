@@ -63,4 +63,6 @@
     <string name="verify">Verify</string>
     <string name="new_user_helper_text">New? You can create your account by filling in a unique username and secure password.</string>
     <string name="indicates_required_field">* indicates required field</string>
+    <string name="username_2">Username:</string>
+    <string name="log_out">Log out</string>
 </resources>

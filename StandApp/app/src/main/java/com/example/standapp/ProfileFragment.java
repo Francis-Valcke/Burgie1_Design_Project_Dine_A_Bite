@@ -2,6 +2,7 @@ package com.example.standapp;
 
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -70,14 +71,17 @@ public class ProfileFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
 
-        final View view = inflater.inflate(R.layout.activity_account, container, false);
+        final View view = inflater.inflate(R.layout.activity_profile, container, false);
+        TextView usernameTextView = view.findViewById(R.id.username);
         final TextView standNameTextView = view.findViewById(R.id.stand_name);
         final TextView brandNameTextView = view.findViewById(R.id.brand_name);
         Button editStandNameButton = view.findViewById(R.id.edit_stand_name_button);
         Button editBrandNameButton = view.findViewById(R.id.edit_brand_name_button);
         Button verifyButton = view.findViewById(R.id.button_verify);
+        Button logOutButton = view.findViewById(R.id.button_log_out);
 
         user = LoginRepository.getInstance(new LoginDataSource()).getLoggedInUser();
+        usernameTextView.setText(user.getDisplayName());
 
         final Bundle bundle = getArguments();
         if (bundle != null) standNameTextView.setText(bundle.getString("standName"));
@@ -212,6 +216,24 @@ public class ProfileFragment extends Fragment {
                     Toast.makeText(getContext(), "Input fields cannot be empty",
                             Toast.LENGTH_SHORT).show();
                 }
+            }
+
+        });
+
+        logOutButton.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                // Delete data when data is persistent (in database)
+                // TODO
+
+                LoginRepository.getInstance(new LoginDataSource()).logout();
+
+                // Start MainActivity again after finishing current MainActivity
+                // Finishing the current MainActivity will delete all data in memory
+                Intent intent = new Intent(getActivity(), MainActivity.class);
+                startActivity(intent);
+                Objects.requireNonNull(getActivity()).finish();
             }
 
         });
