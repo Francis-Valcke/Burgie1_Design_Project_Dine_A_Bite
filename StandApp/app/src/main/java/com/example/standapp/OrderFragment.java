@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -85,7 +86,20 @@ public class OrderFragment extends Fragment {
         String standName; // DEBUG
         if (bundle != null && Utils.isLoggedIn(mContext, bundle)) {
             standName = bundle.getString("standName"); // DEBUG
-            Toast.makeText(mContext, standName, Toast.LENGTH_SHORT).show(); // DEBUG
+            Log.d("Order fragment", "Logged in stand: " + standName); // DEBUG
+            //Toast.makeText(mContext, standName, Toast.LENGTH_SHORT).show(); // DEBUG
+
+            // Delete data when a different subscriber ID or no ID is detected
+            if ((Objects.requireNonNull(bundle.getString("subscriberId")).isEmpty()
+                    || !Objects.equals(bundle.getString("subscriberId"), subscriberId))
+                    && listAdapter != null) {
+                listDataHeader.clear();
+                listHash.clear();
+                listEvents.clear();
+                listOrders.clear();
+                listStatus.clear();
+                listAdapter.notifyDataSetChanged();
+            }
 
             subscriberId = bundle.getString("subscriberId");
         }
@@ -180,25 +194,31 @@ public class OrderFragment extends Fragment {
     public void onResume() {
         super.onResume();
 
-        // Start the polling service
-        intent = new Intent(mContext, PollingService.class);
-        intent.putExtra("subscribeId", Integer.parseInt(subscriberId));
-        mContext.startService(intent); // calls the onStartCommand function of PollingService
-        System.out.println("POLLING SERVICE STARTED!");
+        Bundle bundle = getArguments();
+        if (bundle != null && Utils.isLoggedIn(mContext, bundle)) {
+            // Start the polling service
+            intent = new Intent(mContext, PollingService.class);
+            intent.putExtra("subscribeId", Integer.parseInt(subscriberId));
+            mContext.startService(intent); // calls the onStartCommand function of PollingService
+            System.out.println("POLLING SERVICE STARTED!");
 
-        // Register the listener for polling updates
-        LocalBroadcastManager.getInstance(mContext).registerReceiver(mMessageReceiver,
-                new IntentFilter("eventUpdate"));
+            // Register the listener for polling updates
+            LocalBroadcastManager.getInstance(mContext).registerReceiver(mMessageReceiver,
+                    new IntentFilter("eventUpdate"));
+        }
     }
 
     @Override
     public void onPause() {
         super.onPause();
 
-        // Unregister the listener
-        LocalBroadcastManager.getInstance(Objects.requireNonNull(mContext))
-                .unregisterReceiver(mMessageReceiver);
-        mContext.stopService(intent); // calls the onDestroy() function of PollingService
+        Bundle bundle = getArguments();
+        if (bundle != null && Utils.isLoggedIn(mContext, bundle)) {
+            // Unregister the listener
+            LocalBroadcastManager.getInstance(Objects.requireNonNull(mContext))
+                    .unregisterReceiver(mMessageReceiver);
+            mContext.stopService(intent); // calls the onDestroy() function of PollingService
+        }
     }
 
 
@@ -234,6 +254,8 @@ public class OrderFragment extends Fragment {
 
                     // Decrease current stock based on incoming order
                     decreaseStock(orderUpdate.getOrderItems());
+
+                    Log.d("Order fragment", "Received a new order");
                 } catch (JsonProcessingException e) {
                     e.printStackTrace();
                 }
