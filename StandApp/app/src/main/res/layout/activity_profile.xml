@@ -13,6 +13,33 @@
         style="@style/TextAppearance.MaterialComponents.Headline6"/>
 
     <LinearLayout
+        android:id="@+id/username_info"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="20dp"
+        android:layout_below="@+id/personal_info">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingEnd="10dp"
+            android:paddingStart="0dp"
+            android:text="@string/username_2"
+            android:textSize="18sp"
+            style="@style/TextAppearance.MaterialComponents.Body1" />
+
+        <TextView
+            android:id="@+id/username"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            style="@style/TextAppearance.MaterialComponents.Body1"
+            android:maxLength="20" />
+
+    </LinearLayout>
+
+    <LinearLayout
         android:id="@+id/stand_name_info"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -20,7 +47,7 @@
         android:paddingStart="20dp"
         android:paddingEnd="20dp"
         android:paddingTop="10dp"
-        android:layout_below="@id/personal_info">
+        android:layout_below="@id/username_info">
 
         <TextView
             android:layout_width="wrap_content"
