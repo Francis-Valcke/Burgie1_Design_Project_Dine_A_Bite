@@ -131,6 +131,9 @@ project(':AuthenticationService'){
         compileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.12'
         annotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.12'
 
+        //Payment library
+        implementation "com.stripe:stripe-java:19.0.0"
+
         //-----TESTING-----
 
         //For testing REST API
