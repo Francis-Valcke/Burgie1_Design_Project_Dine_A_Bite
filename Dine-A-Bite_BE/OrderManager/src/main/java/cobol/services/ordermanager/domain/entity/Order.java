@@ -2,6 +2,7 @@ package cobol.services.ordermanager.domain.entity;
 
 import cobol.commons.order.CommonOrder;
 import cobol.commons.order.CommonOrderItem;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -28,8 +29,7 @@ public class Order implements Serializable {
     private int id;
 
 
-    @Column
-    private String userName;
+
 
     @Column(columnDefinition = "datetime")
     private ZonedDateTime startTime;
@@ -51,6 +51,10 @@ public class Order implements Serializable {
     }
     )
     private Stand stand;
+
+    @JsonIgnore
+    @ManyToOne
+    private User user;
 
     //----- Request ------//
     @OneToMany(
@@ -208,12 +212,12 @@ public class Order implements Serializable {
         return this.stand != null;
     }
 
-    public void setUserName(String userName) {
-        this.userName = userName;
+    public User getUser() {
+        return user;
     }
 
-    public String getUserName(){
-        return userName;
+    public void setUser(User user) {
+        this.user = user;
     }
 
     @Override

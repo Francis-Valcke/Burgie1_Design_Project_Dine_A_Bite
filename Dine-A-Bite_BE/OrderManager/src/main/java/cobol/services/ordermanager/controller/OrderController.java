@@ -8,6 +8,7 @@ import cobol.commons.security.CommonUser;
 import cobol.services.ordermanager.CommunicationHandler;
 import cobol.services.ordermanager.OrderProcessor;
 import cobol.services.ordermanager.domain.entity.Order;
+import cobol.services.ordermanager.domain.entity.User;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -69,7 +70,7 @@ public class OrderController {
 
         // Add order to the processor
         Order newOrder = new Order(orderObject);
-        newOrder.setUserName(userDetails.getUsername());
+        newOrder.setUser(new User(userDetails.getUsername()));
         newOrder = orderProcessor.addNewOrder(newOrder);
 
         // Put order in json to send to standmanager (as commonOrder object)

@@ -215,7 +215,7 @@ public class OrderProcessor {
     }
 
     public List<CommonOrder> getOrdersByUser(String userName) {
-        return orderRepository.findAll().stream().filter(o -> o.getUserName().equals(userName)).map(Order::asCommonOrder).collect(Collectors.toList());
+        return orderRepository.findAll().stream().filter(o -> o.getUser().getUsername().equals(userName)).map(Order::asCommonOrder).collect(Collectors.toList());
     }
 }
 
