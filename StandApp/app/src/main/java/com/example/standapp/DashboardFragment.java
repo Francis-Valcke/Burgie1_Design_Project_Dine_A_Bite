@@ -51,8 +51,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-// TODO change stock based on incoming orders (branch feature/stand_app/stock)
-
 public class DashboardFragment extends Fragment {
 
     private Context mContext;
@@ -171,7 +169,11 @@ public class DashboardFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 // open dialog to fill in information
-                dialog.show();
+                //dialog.show();
+                MenuItemFragment menuItemFragment = new MenuItemFragment();
+                getChildFragmentManager().beginTransaction().replace(R.id.child_fragment_container, menuItemFragment).commit();
+
+                // https://stackoverflow.com/questions/23142956/sending-data-from-nested-fragments-to-parent-fragment
             }
         });
 
