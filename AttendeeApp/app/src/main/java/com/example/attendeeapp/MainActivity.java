@@ -69,7 +69,6 @@ public class MainActivity extends AppCompatActivity {
                 LoginRepository loginRepository = LoginRepository.getInstance(new LoginDataSource());
 
                 // Fetch user credentials if stored
-                // TODO logout functionality (that deletes all stored data)
                 LoggedInUser user;
                 try {
                     String masterKeyAlias = MasterKeys.getOrCreate(MasterKeys.AES256_GCM_SPEC);
