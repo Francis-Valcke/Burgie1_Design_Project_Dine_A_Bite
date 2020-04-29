@@ -13,7 +13,9 @@ import androidx.security.crypto.MasterKeys;
 import com.example.attendeeapp.data.LoginDataSource;
 import com.example.attendeeapp.data.LoginRepository;
 import com.example.attendeeapp.data.model.LoggedInUser;
+import com.example.attendeeapp.polling.RequestQueueSingleton;
 import com.example.attendeeapp.ui.login.LoginActivity;
+import com.stripe.android.PaymentConfiguration;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
@@ -30,6 +32,11 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
+        PaymentConfiguration.init(
+                getApplicationContext(),
+                "pk_test_GxEIF5eJVuGKv6O5Jsz6l8wr00qoki9cHO"
+        );
+        RequestQueueSingleton.init(getApplicationContext());
         setContentView(R.layout.activity_main);
 
         // Clear db of all entries (for testing purposes)

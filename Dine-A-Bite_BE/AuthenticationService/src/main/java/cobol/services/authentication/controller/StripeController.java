@@ -25,7 +25,7 @@ public class StripeController {
     UserRepository userRepository;
 
     @GetMapping(value = "/key", produces = MediaType.APPLICATION_JSON_VALUE)
-    public String getEphemeralKey(/*@RequestParam String version, */@AuthenticationPrincipal CommonUser user) throws StripeException, DoesNotExistException {
+    public String getEphemeralKey(@RequestParam("api_version") String version, @AuthenticationPrincipal CommonUser user) throws StripeException, DoesNotExistException {
 
         User userEntity = userRepository.findById(user.getUsername())
                 .orElseThrow(() -> new DoesNotExistException("This user does not exist in the database. This should not be possible!"));

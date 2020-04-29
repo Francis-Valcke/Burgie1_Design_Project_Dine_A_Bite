@@ -49,4 +49,7 @@
     <string name="personal_information">Personal Information</string>
     <string name="username">Username:</string>
     <string name="log_out">Log out</string>
+    <string name="text_balance">Balance:</string>
+    <string name="string_top_up">Top up</string>
+    <string name="button_payment_setup">payment setup</string>
 </resources>
