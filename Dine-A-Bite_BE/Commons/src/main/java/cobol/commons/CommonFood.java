@@ -55,6 +55,8 @@ public class CommonFood implements Serializable {
     public CommonFood(CommonFood copy) {
         this.name = copy.name;
         this.price = copy.getPrice();
+        this.preparationTime = copy.getPreparationTime();
+        this.stock = copy.getStock();
         this.count = copy.count;
         this.standName = copy.standName;
         this.brandName = copy.brandName;

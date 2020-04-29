@@ -18,6 +18,10 @@ import com.example.attendeeapp.json.CommonOrder;
 import com.example.attendeeapp.json.CommonOrderItem;
 import com.example.attendeeapp.json.CommonOrderStatusUpdate;
 
+import org.threeten.bp.Instant;
+import org.threeten.bp.ZoneId;
+import org.threeten.bp.ZonedDateTime;
+
 import java.util.ArrayList;
 import java.util.GregorianCalendar;
 import java.util.Locale;
@@ -195,9 +199,9 @@ public class OrderItemExpandableAdapter extends BaseExpandableListAdapter {
                 timeLayout.setVisibility(View.VISIBLE);
 
                 // Get current time instance and set countdown timer with remaining time
-                GregorianCalendar cal = new GregorianCalendar();
+                ZonedDateTime zonedDateTime = ZonedDateTime.now(ZoneId.of("Europe/Brussels"));
 
-                currentOrder.setStartTime(cal);
+                currentOrder.setStartTime(zonedDateTime);
 
                 // Update database is currently not necessary because a new timeinstance is used as reference
                 // Update database that startTime is consistent when app would be closed
@@ -246,12 +250,12 @@ public class OrderItemExpandableAdapter extends BaseExpandableListAdapter {
 
                         // Set expected time with current local time + preparing time
                         if (newState.equals(CommonOrder.State.CONFIRMED)) {
-                            GregorianCalendar cal = new GregorianCalendar();
+                            ZonedDateTime now = ZonedDateTime.now(ZoneId.of("Europe/Brussels"));
                             long timestamp = order.computeRemainingTime();
-                            timestamp += cal.getTimeInMillis();
-                            cal.setTimeInMillis(timestamp);
+                            timestamp += now.toInstant().toEpochMilli();
+                            ZonedDateTime expectedTime = ZonedDateTime.ofInstant(Instant.ofEpochMilli(timestamp), ZoneId.of("Europe/Brussels"));
 
-                            order.setExpectedTime(cal);
+                            order.setExpectedTime(expectedTime);
                         }
 
                         orderDatabaseService.updateOrder(order);

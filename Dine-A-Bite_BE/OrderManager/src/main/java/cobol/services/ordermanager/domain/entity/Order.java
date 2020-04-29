@@ -9,6 +9,9 @@ import org.springframework.data.jpa.repository.Modifying;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.time.Duration;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -29,9 +32,9 @@ public class Order implements Serializable {
     private int id;
 
     @Column(columnDefinition = "datetime")
-    private Calendar startTime;
+    private ZonedDateTime startTime;
     @Column(columnDefinition = "datetime")
-    private Calendar expectedTime;
+    private ZonedDateTime expectedTime;
     @Column
     private CommonOrder.State orderState;
     // Coordinates Attendee on moment that order was mad
@@ -81,10 +84,8 @@ public class Order implements Serializable {
             this.addOrderItem(new OrderItem(orderItem, this));
         }
         this.orderState = orderObject.getOrderState();
-        this.startTime = Calendar.getInstance();
-        this.expectedTime = Calendar.getInstance();
-        expectedTime.setTime(startTime.getTime());
-        expectedTime.add(Calendar.MINUTE, 15);
+        this.startTime = ZonedDateTime.now(ZoneId.of("Europe/Brussels"));
+        this.expectedTime = ZonedDateTime.from(startTime);
 
     }
 
@@ -128,8 +129,7 @@ public class Order implements Serializable {
      * @param remainingTime time in seconds
      */
     public void setRemtime(int remainingTime) {
-        expectedTime.setTime(startTime.getTime());
-        expectedTime.add(Calendar.SECOND, remainingTime);
+        expectedTime = expectedTime.plusSeconds(remainingTime);
     }
 
 
@@ -138,7 +138,14 @@ public class Order implements Serializable {
      * @return RemainingTime in seconds
      */
     public int computeRemainingTime() {
-        return (int) (expectedTime.getTimeInMillis() - Calendar.getInstance().getTimeInMillis())/1000;
+        ZonedDateTime actual = ZonedDateTime.now(ZoneId.of("Europe/Brussels"));
+        if (actual.isAfter(expectedTime)){
+            return 0;
+        }
+        else {
+            Duration remaining = Duration.between(actual, expectedTime);
+            return (int) remaining.getSeconds();
+        }
     }
 
     // ---- Getters and Setters ----- //
@@ -169,7 +176,7 @@ public class Order implements Serializable {
         return stand;
     }
 
-    public Calendar getStartTime() {
+    public ZonedDateTime getStartTime() {
         return startTime;
     }
 

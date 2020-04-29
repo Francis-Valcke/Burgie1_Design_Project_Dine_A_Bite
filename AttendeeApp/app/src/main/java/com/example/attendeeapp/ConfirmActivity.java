@@ -45,10 +45,12 @@ import com.google.common.collect.Multimap;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.threeten.bp.Instant;
+import org.threeten.bp.ZoneId;
+import org.threeten.bp.ZonedDateTime;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -263,7 +265,8 @@ public class ConfirmActivity extends AppCompatActivity implements AdapterView.On
                         try {
                             recommendations = mapper.readValue(response.get("recommendations").toString(),
                                     new TypeReference<List<Recommendation>>() {});
-                            orderReceived = mapper.readValue(response.get("order").toString(), CommonOrder.class);
+                            //orderReceived= mapper.readValue(response.get("order").toString(), CommonOrder.class);
+                            orderReceived = mapper.readerFor(CommonOrder.class).readValue(response.get("order").toString());
                             orderReceived.setTotalPrice(totalPrice);
                             orderReceived.setPrices(ordered);
                             orderReceived.setTotalCount(cartCount);
@@ -328,10 +331,9 @@ public class ConfirmActivity extends AppCompatActivity implements AdapterView.On
                 // Set expected time for order
                 // timestamp in seconds, calendar in milliseconds
                 long timestamp = recommendations.get(i).getTimeEstimate() * 1000;
-                timestamp += orderReceived.getStartTime().getTimeInMillis();
-                GregorianCalendar cal = new GregorianCalendar();
-                cal.setTimeInMillis(timestamp);
-                orderReceived.setExpectedTime(cal);
+                timestamp += orderReceived.getStartTime().toInstant().toEpochMilli();
+                ZonedDateTime zonedDateTime = ZonedDateTime.ofInstant(Instant.ofEpochMilli(timestamp), ZoneId.of("Europe/Brussels"));
+                orderReceived.setExpectedTime(zonedDateTime);
 
                 // Display the chosen recommendation from the recommendation list
                 TextView recommend = findViewById(R.id.stand_recommend);

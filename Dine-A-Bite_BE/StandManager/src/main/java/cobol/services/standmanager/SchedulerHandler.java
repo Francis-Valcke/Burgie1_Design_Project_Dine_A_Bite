@@ -37,7 +37,6 @@ public class SchedulerHandler {
     }
 
 
-
     public void clearSchedulers() {
         if (this.schedulers.size() == 0) return;
         this.schedulers.clear();
@@ -50,8 +49,9 @@ public class SchedulerHandler {
     public void removeScheduler(Scheduler scheduler) {
         this.schedulers.remove(scheduler);
     }
+
     /**
-     * @param order the order for which you want to find corresponding stands
+     * @param order the order for which you want to find corresponding stands (brand
      * @return list of schedulers (so the stands) which offer the correct food to complete the order
      */
     public ArrayList<Scheduler> findCorrespondStands(CommonOrder order) {
@@ -63,22 +63,22 @@ public class SchedulerHandler {
         ArrayList<Scheduler> goodSchedulers = new ArrayList<>();
 
         for (int i = 0; i < this.schedulers.size(); i++) {
-            boolean validStand = true;
+            if (order.getBrandName().equals(this.schedulers.get(i).getBrand())) {
+                boolean validStand = true;
+                Scheduler currentScheduler = this.schedulers.get(i);
 
-            Scheduler currentScheduler = this.schedulers.get(i);
-
-            for (CommonOrderItem orderItem : orderItems) {
-                String food = orderItem.getFoodName();
-                if (currentScheduler.checkType(food)) {
-                    validStand = true;
-                } else {
-                    validStand = false;
-                    break;
+                for (CommonOrderItem orderItem : orderItems) {
+                    String food = orderItem.getFoodName();
+                    if (currentScheduler.checkType(food)) {
+                        validStand = true;
+                    } else {
+                        validStand = false;
+                        break;
+                    }
                 }
-            }
-
-            if (validStand) {
-                goodSchedulers.add(currentScheduler);
+                if (validStand) {
+                    goodSchedulers.add(currentScheduler);
+                }
             }
         }
         return goodSchedulers;
@@ -116,15 +116,27 @@ public class SchedulerHandler {
 
         for (int i = 0; i < amountOfRecommends; i++) {
             Scheduler curScheduler = goodSchedulers.get(i);
-            System.out.println(curScheduler.getStandName());
             SchedulerComparatorDistance sc = new SchedulerComparatorDistance(curScheduler.getLat(), curScheduler.getLon());
             SchedulerComparatorTime st = new SchedulerComparatorTime(new ArrayList<>(order.getOrderItems()));
             recommendations.add(new Recommendation(curScheduler.getStandName(), curScheduler.getBrand(), sc.getDistance(order.getLatitude(), order.getLongitude()), st.getTimesum(curScheduler)));
-            System.out.println(st.getTimesum(curScheduler));
         }
 
         return recommendations;
     }
+
+    public JSONObject addOrderToScheduler(CommonOrder order) {
+        JSONObject obj = new JSONObject();
+        for (Scheduler s : schedulers) {
+            if (s.getStandName().equals(order.getStandName()) && s.getBrand().equals(order.getBrandName())) {
+                s.addOrder(order);
+                obj.put("added", true);
+                break;
+            }
+        }
+        return obj;
+    }
+
+
     @Scheduled(fixedDelay = 5000)
     public void pollEvents() {
         if (schedulers.size() == 0) return;
@@ -132,6 +144,7 @@ public class SchedulerHandler {
             s.pollEvents();
         }
     }
+
     public JSONObject updateSchedulers(CommonStand info) throws CommunicationException {
         boolean newScheduler = true;
         JSONObject obj = new JSONObject();
@@ -147,20 +160,20 @@ public class SchedulerHandler {
                     ArrayList<String> l = new ArrayList<>();
                     for (CommonFood mi : info.getMenu()) {
                         l.add(mi.getName());
-                        boolean olditem=false;
+                        boolean olditem = false;
                         for (CommonFood mi2 : s.getMenu()) {
 
                             olditem = Scheduler.updateItem(mi, mi2);
 
                         }
-                        if (!olditem){
+                        if (!olditem) {
                             s.getMenu().add(mi);
                         }
                     }
 
-                    List<CommonFood> toRemove= new ArrayList<>();
+                    List<CommonFood> toRemove = new ArrayList<>();
                     for (CommonFood mi2 : s.getMenu()) {
-                        if (!l.contains(mi2.getName())){
+                        if (!l.contains(mi2.getName())) {
                             toRemove.add(mi2);
                         }
                     }
@@ -182,6 +195,7 @@ public class SchedulerHandler {
 
         return obj;
     }
+
     public List<Scheduler> getSchedulers() {
         return schedulers;
     }

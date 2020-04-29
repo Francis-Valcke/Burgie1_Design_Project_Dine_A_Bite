@@ -1,19 +1,25 @@
 package cobol.services.standmanager;
 
+import cobol.commons.CommonFood;
 import cobol.commons.CommonStand;
 import cobol.commons.ResponseModel;
 import cobol.commons.exception.CommunicationException;
 import cobol.commons.order.CommonOrder;
+import cobol.commons.order.CommonOrderItem;
 import cobol.commons.order.Recommendation;
+import cobol.commons.order.SuperOrder;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static cobol.commons.ResponseModel.status.OK;
 
@@ -39,6 +45,7 @@ public class StandManagerController {
 
     /**
      * adds schedulers to SM
+     *
      * @param stands
      * @throws JsonProcessingException when wrong input param
      */
@@ -53,27 +60,24 @@ public class StandManagerController {
     }
 
     @PostMapping("/deleteScheduler")
-    public void deleteScheduler(@RequestParam String standName, @RequestParam String brandName){
+    public void deleteScheduler(@RequestParam String standName, @RequestParam String brandName) {
 
 
-
-        Optional<Scheduler> schedulerOptional= schedulerHandler.getSchedulers().stream()
+        Optional<Scheduler> schedulerOptional = schedulerHandler.getSchedulers().stream()
                 .filter(s -> s.getStandName().equals(standName) &&
                         s.getBrand().equals(brandName)).findAny();
         schedulerOptional.ifPresent(scheduler -> schedulerHandler.removeScheduler(scheduler));
     }
 
 
-
-   
     /**
      * @param stand class object StandInfo which is used to start a scheduler for stand added in order manager
-     *             available at localhost:8081/newStand
+     *              available at localhost:8081/newStand
      * @return true (if no errors)
      */
     @RequestMapping(value = "/newStand", consumes = "application/json")
     public JSONObject addNewStand(@RequestBody() CommonStand stand) throws CommunicationException {
-            return schedulerHandler.updateSchedulers(stand);
+        return schedulerHandler.updateSchedulers(stand);
     }
 
 
@@ -83,7 +87,75 @@ public class StandManagerController {
      */
     @RequestMapping(value = "/placeOrder", consumes = "application/json")
     public void placeOrder(@RequestBody() CommonOrder order) {
-        //add order to right scheduler
+        schedulerHandler.addOrderToScheduler(order);
+    }
+
+    /**
+     * This method will split a superorder and give a recommendation for all the orders
+     *
+     * @param superOrder List with orderitems and corresponding brand
+     * @return JSONArray each element containing a field "recommendations" and a field "order" similar to return of placeOrder
+     * recommendation field will be a JSONArray of Recommendation object
+     */
+    @PostMapping(value = "/getSuperRecommendation", consumes = "application/json", produces = "application/json")
+    public ResponseEntity<JSONArray> getSuperRecommendation(@RequestBody SuperOrder superOrder) throws JsonProcessingException {
+
+        // initialize response
+        JSONArray completeResponse= new JSONArray();
+
+        // Extract and copy complete list of CommonOrderItems from superOrder
+        List<CommonOrderItem> items = new ArrayList<>(superOrder.getOrderItems());
+
+        // search items that can be executed together
+        List<HashSet<CommonOrderItem>> itemSplit = new ArrayList<>();
+
+        // Get schedulers from this brand
+        List<Scheduler> brandSchedulers = schedulerHandler.getSchedulers()
+                .stream().filter(s -> s.getBrand().equals(superOrder.getBrandName()))
+                .collect(Collectors.toList());
+
+        // Split order items in sets which can be executed together
+        for (Scheduler scheduler : brandSchedulers) {
+            // As long items list is not empty, search stand which can do it
+            if (!items.isEmpty()) {
+                List<String> stringMenu = scheduler.getMenu().stream().map(CommonFood::getName).collect(Collectors.toList());
+                List<CommonOrderItem> canExecuteTogether = items.stream().filter(item -> stringMenu.contains(item.getFoodName())).collect(Collectors.toList());
+
+                itemSplit.add(new HashSet<>(canExecuteTogether));
+                items.removeAll(canExecuteTogether);
+            } else {
+                break;
+            }
+        }
+
+
+        for (HashSet<CommonOrderItem> commonOrderItems : itemSplit) {
+
+            JSONObject orderResponse= new JSONObject();
+
+            // -- Construct a virtual order -- //
+            CommonOrder order = new CommonOrder();
+            // add order items for this order
+            order.setOrderItems(new ArrayList<>(commonOrderItems));
+            // set brandName
+            order.setBrandName(superOrder.getBrandName());
+            // set coordinates
+            order.setLatitude(superOrder.getLatitude());
+            order.setLongitude(superOrder.getLongitude());
+
+            // -- Ask recommendation for newly created order -- //
+            List<Recommendation> recommendations= schedulerHandler.recommend(order);
+
+            // -- Add to response of this super order recommendation -- //
+            orderResponse.put("order", order);
+            orderResponse.put("recommendations", recommendations);
+
+            completeResponse.add(orderResponse);
+        }
+
+
+        // return list of commonorderitems with corresponding recommendation
+        return ResponseEntity.ok(completeResponse);
     }
 
 
@@ -97,8 +169,6 @@ public class StandManagerController {
         System.out.println("User requested recommended stand for " + order.getId());
         return schedulerHandler.recommend(order);
     }
-
-
 
 
 }

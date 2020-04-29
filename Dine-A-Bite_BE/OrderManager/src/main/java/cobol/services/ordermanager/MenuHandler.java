@@ -17,6 +17,7 @@ import cobol.services.ordermanager.domain.repository.UserRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.Getter;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -84,6 +85,7 @@ public class MenuHandler {
      */
     public void updateStandManager() throws JsonProcessingException {
         ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new JavaTimeModule());
         String json = mapper.writeValueAsString(standRepository.findAll()
                 .stream().map(Stand::asCommonStand).collect(Collectors.toList()));
         communicationHandler.sendRestCallToStandManager("/update", json, null);
@@ -207,6 +209,7 @@ public class MenuHandler {
 
         // Also send the new stand to the StandManager
         ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new JavaTimeModule());
         String jsonString = mapper.writeValueAsString(newStand.asCommonStand());
         String response = communicationHandler.sendRestCallToStandManager("/newStand", jsonString, null);
 
