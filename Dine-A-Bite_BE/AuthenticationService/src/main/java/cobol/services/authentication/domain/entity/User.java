@@ -45,6 +45,9 @@ public class User {
     @Column
     private String name;
 
+    @Column
+    private String customerId;
+
     @ElementCollection(fetch = FetchType.EAGER)
     @Builder.Default
     @JoinTable(name = "user_role")
