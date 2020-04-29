@@ -40,7 +40,7 @@ abstract class MenuFragment extends Fragment {
     SwipeRefreshLayout pullToRefresh;
     Toast mToast;
 
-    private LoggedInUser user = LoginRepository.getInstance(new LoginDataSource()).getLoggedInUser();
+    protected LoggedInUser user = LoginRepository.getInstance(new LoginDataSource()).getLoggedInUser();
 
     /**
      * Updates the current global/stand menu with the updated version returned from the server
@@ -90,7 +90,6 @@ abstract class MenuFragment extends Fragment {
                                                             new Response.Listener<JSONArray>() {
             @Override
             public void onResponse(JSONArray response) {
-
                 try {
                     ObjectMapper om = new ObjectMapper();
                     List<CommonFood> foodList=om.readValue(response.toString(), new TypeReference<List<CommonFood>>() {});
@@ -111,6 +110,9 @@ abstract class MenuFragment extends Fragment {
                             Toast.LENGTH_LONG);
                     mToast.show();
                 }
+                // Refreshing is done
+                pullToRefresh = getActivity().findViewById(R.id.swiperefresh);
+                pullToRefresh.setRefreshing(false);
             }
         }, new Response.ErrorListener() {
             @Override
@@ -137,6 +139,9 @@ abstract class MenuFragment extends Fragment {
                                             Toast.LENGTH_LONG);
                     mToast.show();
                 }
+                // Refreshing is done
+                pullToRefresh = getActivity().findViewById(R.id.swiperefresh);
+                pullToRefresh.setRefreshing(false);
             }
         }) { // Add JSON headers
             @Override

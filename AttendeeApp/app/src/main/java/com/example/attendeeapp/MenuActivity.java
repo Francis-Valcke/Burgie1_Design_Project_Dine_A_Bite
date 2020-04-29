@@ -60,6 +60,10 @@ public class MenuActivity extends ToolbarActivity implements OnCartChangeListene
                                 break;
                             case 1:
                                 tab.setText(R.string.tab_stand);
+                                break;
+                            case 2:
+                                tab.setText(R.string.tab_category);
+                                break;
                         }
                     }
                 }).attach();
