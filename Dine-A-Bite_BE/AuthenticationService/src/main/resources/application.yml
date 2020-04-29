@@ -3,12 +3,12 @@ server:
 
 spring:
   datasource:
-#    url: jdbc:mysql://localhost:3306/auth?useLegacyDatetimeCode=false&serverTimezone=UTC
-#    username: root
-#    password: root
-    url: jdbc:mysql://cobol.idlab.ugent.be:3306/auth?useLegacyDatetimeCode=false&serverTimezone=UTC
-    username: www
-    password: cobol2020
+    url: jdbc:mysql://localhost:3306/auth?useLegacyDatetimeCode=false&serverTimezone=UTC
+    username: root
+    password: root
+#    url: jdbc:mysql://cobol.idlab.ugent.be:3306/auth?useLegacyDatetimeCode=false&serverTimezone=UTC
+#    username: www
+#    password: cobol2020
 
 
 #    cachePrepStmts: true
@@ -46,3 +46,5 @@ logging:
     cobol: DEBUG
   file:
     name: app.log
+
+stripe_api_key: sk_test_gd0OhhbEHENmKoo0HRhUYX1r00P0pmGByO

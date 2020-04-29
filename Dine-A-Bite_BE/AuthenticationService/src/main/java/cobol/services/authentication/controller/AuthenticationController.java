@@ -3,9 +3,13 @@ package cobol.services.authentication.controller;
 import cobol.commons.ResponseModel;
 import cobol.commons.security.Role;
 import cobol.commons.security.exception.DuplicateUserException;
+import cobol.services.authentication.config.ConfigurationBean;
 import cobol.services.authentication.domain.entity.User;
 import cobol.services.authentication.domain.repository.UserRepository;
 import cobol.services.authentication.security.JwtProviderService;
+import com.stripe.Stripe;
+import com.stripe.exception.StripeException;
+import com.stripe.model.Customer;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -36,6 +40,7 @@ public class AuthenticationController {
     private AuthenticationManager authenticationManager;
     private JwtProviderService jwtProviderService;
     private UserRepository users;
+    private ConfigurationBean configurationBean;
 
     /**
      * API endpoint to test if the server is still alive.
@@ -106,12 +111,20 @@ public class AuthenticationController {
             if (users.existsById(data.getUsername()))
                 throw new DuplicateUserException("A user with that name exists already.");
 
+            // Create an associated stripe customer
+            Stripe.apiKey = configurationBean.getStripeApiKey();
+            HashMap<String, Object> params = new HashMap<>();
+            params.put("description", data.getUsername());
+            Customer customer = Customer.create(params);
+
             users.save(User.builder()
                     .username(data.getUsername())
                     .password(passwordEncoder.encode(data.getPassword()))
+                    .customerId(customer.getId())
                     .roles(Collections.singletonList(Role.USER))
                     .build()
             );
+
 
             return ResponseEntity.ok(
                     ResponseModel.builder()
@@ -119,7 +132,7 @@ public class AuthenticationController {
                             .details("User: " + data.getUsername() + " created.")
                             .build().generateResponse()
             );
-        } catch (DuplicateUserException e) {
+        } catch (DuplicateUserException | StripeException e) {
             return ResponseEntity.ok(
                     ResponseModel.builder()
                             .status(ERROR.toString())
@@ -183,5 +196,10 @@ public class AuthenticationController {
     @Autowired
     public void setPasswordEncoder(PasswordEncoder passwordEncoder) {
         this.passwordEncoder = passwordEncoder;
+    }
+
+    @Autowired
+    public void setConfigurationBean(ConfigurationBean configurationBean) {
+        this.configurationBean = configurationBean;
     }
 }
