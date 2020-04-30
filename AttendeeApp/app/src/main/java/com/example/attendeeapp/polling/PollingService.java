@@ -1,8 +1,13 @@
 package com.example.attendeeapp.polling;
 
+import android.app.PendingIntent;
 import android.app.Service;
+import android.app.TaskStackBuilder;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.os.Handler;
 import android.os.IBinder;
 import android.util.Log;
@@ -10,6 +15,8 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.android.volley.Request;
@@ -18,6 +25,8 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.Volley;
+import com.example.attendeeapp.OrderActivity;
+import com.example.attendeeapp.R;
 import com.example.attendeeapp.ServerConfig;
 import com.example.attendeeapp.data.LoginDataSource;
 import com.example.attendeeapp.data.LoginRepository;
@@ -34,6 +43,9 @@ import org.json.JSONObject;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.example.attendeeapp.NotificationChannelSetup.CHANNEL_DONE_ID;
+import static com.example.attendeeapp.NotificationChannelSetup.CHANNEL_START_ID;
+
 
 /**
  * Service that polls the server for order updates
@@ -44,6 +56,7 @@ public class PollingService extends Service {
     private Context context;
     private int subscribeId;
     private LoggedInUser user = LoginRepository.getInstance(new LoginDataSource()).getLoggedInUser();
+    private NotificationManagerCompat notificationManager;
 
     public static final long DEFAULT_SYNC_INTERVAL = 5 * 1000;
 
@@ -87,6 +100,64 @@ public class PollingService extends Service {
                                 case "OrderStatusUpdate":
                                     CommonOrderStatusUpdate orderStatusUpdate = mapper.readValue(eventData.toString(), CommonOrderStatusUpdate.class);
                                     intent.putExtra("orderStatusUpdate", orderStatusUpdate);
+
+                                    if (orderStatusUpdate.getNewStatus() == CommonOrderStatusUpdate.status.CONFIRMED) {
+                                        // Send Notification that order is being prepared
+                                        notificationManager = NotificationManagerCompat.from(context);
+                                        // Create an Intent for the activity you want to start
+                                        Intent activityIntent = new Intent(getApplication(), OrderActivity.class);
+                                        // Create the TaskStackBuilder and add the intent, which inflates the back stack
+                                        TaskStackBuilder stackBuilder = TaskStackBuilder.create(getApplication());
+                                        stackBuilder.addNextIntentWithParentStack(activityIntent);
+                                        // Get the PendingIntent containing the entire back stack
+                                        PendingIntent resultPendingIntent =
+                                                stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
+                                        Bitmap largeIcon = BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher_foreground);
+
+                                        NotificationCompat.Builder notification = new NotificationCompat.Builder(context, CHANNEL_START_ID)
+                                                .setSmallIcon(R.mipmap.ic_launcher_foreground)
+                                                .setContentTitle("Order #" + orderStatusUpdate.getOrderId() + " Confirmed")
+                                                .setContentText("Your order is being prepared!")
+                                                .setLargeIcon(largeIcon)
+                                                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                                                .setCategory(NotificationCompat.CATEGORY_STATUS)
+                                                .setColor(Color.BLUE)
+                                                // Set the intent that will fire when the user taps the notification
+                                                .setContentIntent(resultPendingIntent)
+                                                .setAutoCancel(true);
+                                        // notificationId is a unique int for each notification that you must define
+                                        notificationManager.notify(notificationID, notification.build());
+                                    }
+
+                                    else if (orderStatusUpdate.getNewStatus() == CommonOrderStatusUpdate.status.READY) {
+                                        // Send Notification that order is ready
+                                        notificationManager = NotificationManagerCompat.from(context);
+                                        // Create an Intent for the activity you want to start
+                                        Intent activityIntent = new Intent(getApplication(), OrderActivity.class);
+                                        // Create the TaskStackBuilder and add the intent, which inflates the back stack
+                                        TaskStackBuilder stackBuilder = TaskStackBuilder.create(getApplication());
+                                        stackBuilder.addNextIntentWithParentStack(activityIntent);
+                                        // Get the PendingIntent containing the entire back stack
+                                        PendingIntent resultPendingIntent =
+                                                stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
+                                        Bitmap largeIcon = BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher_foreground);
+
+                                        NotificationCompat.Builder notification = new NotificationCompat.Builder(context, CHANNEL_DONE_ID)
+                                                .setSmallIcon(R.mipmap.ic_launcher_foreground)
+                                                .setContentTitle("Order #" + orderStatusUpdate.getOrderId() + " Ready")
+                                                .setContentText("Your order is ready to be picked up!")
+                                                .setLargeIcon(largeIcon)
+                                                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                                                .setCategory(NotificationCompat.CATEGORY_STATUS)
+                                                .setColor(Color.GREEN)
+                                                // Set the intent that will fire when the user taps the notification
+                                                .setContentIntent(resultPendingIntent)
+                                                .setAutoCancel(true);
+                                        // notificationId is a unique int for each notification that you must define
+                                        notificationManager.notify(notificationID, notification.build());
+                                    }
+
+                                    notificationID++;
                                     break;
                             }
 

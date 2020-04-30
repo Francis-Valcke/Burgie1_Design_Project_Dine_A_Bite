@@ -1,5 +1,8 @@
 package com.example.attendeeapp.json;
 
+import android.os.Build;
+
+import androidx.annotation.RequiresApi;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 import androidx.room.TypeConverters;
@@ -11,13 +14,12 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.text.NumberFormat;
+import java.time.Duration;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-
-import org.threeten.bp.Duration;
-import org.threeten.bp.ZoneId;
-import org.threeten.bp.ZonedDateTime;
 
 @Entity
 public class CommonOrder implements Serializable {
@@ -66,6 +68,7 @@ public class CommonOrder implements Serializable {
 
     public CommonOrder() {}
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
     public CommonOrder(List<CommonFood> menuItems, String standName, String brandName, double latitude, double longitude){
         this.id=0;
         this.latitude=latitude;
@@ -90,6 +93,7 @@ public class CommonOrder implements Serializable {
         return id;
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
     public int computeRemainingTime(){
         return (int) Duration.between(expectedTime, startTime).toMillis();
     }
