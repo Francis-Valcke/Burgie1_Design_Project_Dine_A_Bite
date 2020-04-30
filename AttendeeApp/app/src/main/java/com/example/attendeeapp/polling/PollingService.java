@@ -49,6 +49,8 @@ public class PollingService extends Service {
 
     // Runnable that contains the order polling method
     private Runnable runnableService = new Runnable() {
+        private int notificationID = 0;
+
         @Override
         public void run() {
 
