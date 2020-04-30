@@ -36,6 +36,7 @@ import java.util.Objects;
  */
 public class MenuFragmentStand extends MenuFragment implements AdapterView.OnItemSelectedListener {
 
+    private Spinner spinner;
     private ArrayAdapter<String> standListAdapter;
     // List of brands belonging to a stand (in sequence!)
     private ArrayList<String> brandList = new ArrayList<>();
@@ -51,7 +52,7 @@ public class MenuFragmentStand extends MenuFragment implements AdapterView.OnIte
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
 
         // Create a spinner item for the different stands
-        Spinner spinner = view.findViewById(R.id.spinner);
+        spinner = view.findViewById(R.id.spinner);
         spinner.setOnItemSelectedListener(this);
 
         // Initiate the spinner item adapter
@@ -129,7 +130,6 @@ public class MenuFragmentStand extends MenuFragment implements AdapterView.OnIte
                             if (standListAdapter.getCount() != 1) standListAdapter.remove("No stands available");
 
                             // Refresh spinner
-                            Spinner spinner = getActivity().findViewById(R.id.spinner);
                             spinner.setAdapter(standListAdapter);
 
                         } catch (Exception e) { // Catch all exceptions TODO: only specific ones
@@ -156,7 +156,6 @@ public class MenuFragmentStand extends MenuFragment implements AdapterView.OnIte
                     mToast.show();
                 }
                 // Refreshing is done
-                pullToRefresh = getActivity().findViewById(R.id.swiperefresh);
                 pullToRefresh.setRefreshing(false);
             }
         }) { // Add JSON headers

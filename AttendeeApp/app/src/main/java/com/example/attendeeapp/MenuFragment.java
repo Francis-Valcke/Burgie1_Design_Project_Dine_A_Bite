@@ -45,9 +45,9 @@ abstract class MenuFragment extends Fragment {
     /**
      * Updates the current global/stand menu with the updated version returned from the server
      * Error are handled in the fetchMenu function
-     * @param response: the JSON response from the server
+     * @param response: List of food items from the server
      */
-    private void updateMenu(List<CommonFood> response) {
+    protected void updateMenu(List<CommonFood> response) {
         // Renew the list
         menuItems.clear();
 
@@ -111,7 +111,6 @@ abstract class MenuFragment extends Fragment {
                     mToast.show();
                 }
                 // Refreshing is done
-                pullToRefresh = getActivity().findViewById(R.id.swiperefresh);
                 pullToRefresh.setRefreshing(false);
             }
         }, new Response.ErrorListener() {
@@ -140,7 +139,6 @@ abstract class MenuFragment extends Fragment {
                     mToast.show();
                 }
                 // Refreshing is done
-                pullToRefresh = getActivity().findViewById(R.id.swiperefresh);
                 pullToRefresh.setRefreshing(false);
             }
         }) { // Add JSON headers

@@ -341,7 +341,7 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
                 distanceText.setVisibility(View.VISIBLE);
 
                 TextView distance = findViewById(R.id.recommend_distance);
-                distance.setText(Math.round(recommendations.get(i).getDistance()*1000) + " meter");
+                distance.setText(Math.round(recommendations.get(i).getDistance()) + " meter");
                 distance.setVisibility(View.VISIBLE);
 
                 TextView remainingTimeText = findViewById(R.id.recommend_time_text);
