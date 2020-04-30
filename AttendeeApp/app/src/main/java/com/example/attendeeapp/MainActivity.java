@@ -14,6 +14,7 @@ import com.example.attendeeapp.data.LoginDataSource;
 import com.example.attendeeapp.data.LoginRepository;
 import com.example.attendeeapp.data.model.LoggedInUser;
 import com.example.attendeeapp.ui.login.LoginActivity;
+import com.jakewharton.threetenabp.AndroidThreeTen;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
@@ -30,6 +31,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
+        AndroidThreeTen.init(this);
         setContentView(R.layout.activity_main);
 
         // Clear db of all entries (for testing purposes)

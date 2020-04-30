@@ -3,6 +3,7 @@ package cobol.services.authentication.test;
 import cobol.services.authentication.domain.entity.User;
 import cobol.services.authentication.domain.repository.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
@@ -41,6 +42,7 @@ public class ApplicationTest {
 
     @Before
     public void setup() {
+        objectMapper.registerModule(new JavaTimeModule());
         this.mockMvc = webAppContextSetup(this.applicationContext)
                 .apply(springSecurity())
                 .build();
