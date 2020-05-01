@@ -1,8 +1,7 @@
 package cobol.services.authentication;
 
-import cobol.services.authentication.domain.entity.Role;
+import cobol.commons.security.Role;
 import cobol.services.authentication.domain.entity.User;
-import cobol.services.authentication.domain.repository.RoleRepository;
 import cobol.services.authentication.domain.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
@@ -10,6 +9,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
+import java.util.Collections;
 
 /**
  * This class will be discovered by the component scanner and exposed as a bean on which the run method will be run.
@@ -19,7 +19,6 @@ import java.util.Arrays;
 public class DataInitializer implements CommandLineRunner {
 
     private UserRepository users;
-    private RoleRepository roles;
     private PasswordEncoder passwordEncoder;
 
     /**
@@ -30,24 +29,27 @@ public class DataInitializer implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
 
-        roles.saveAndFlush(new Role("ROLE_USER"));
-        roles.saveAndFlush(new Role("ROLE_ADMIN"));
-        roles.saveAndFlush(new Role("ROLE_APPLICATION"));
-
-
         users.saveAndFlush(
                 User.builder()
                         .username("admin")
-                        .password(passwordEncoder.encode("admin"))
-                        .role(Arrays.asList("ROLE_USER", "ROLE_ADMIN"))
+                        .password(passwordEncoder.encode("adminadmin"))
+                        .roles(Arrays.asList(Role.USER, Role.STAND, Role.ADMIN))
                         .build()
         );
 
         users.saveAndFlush(
                 User.builder()
                         .username("user")
-                        .password(passwordEncoder.encode("user"))
-                        .role(Arrays.asList("ROLE_USER"))
+                        .password(passwordEncoder.encode("useruser"))
+                        .roles(Collections.singletonList(Role.USER))
+                        .build()
+        );
+
+        users.saveAndFlush(
+                User.builder()
+                        .username("stand")
+                        .password(passwordEncoder.encode("standstand"))
+                        .roles(Arrays.asList(Role.USER, Role.STAND))
                         .build()
         );
 
@@ -55,7 +57,7 @@ public class DataInitializer implements CommandLineRunner {
                 User.builder()
                         .username("OrderManager")
                         .password(passwordEncoder.encode("OrderManager"))
-                        .role(Arrays.asList("ROLE_APPLICATION"))
+                        .roles(Collections.singletonList(Role.APPLICATION))
                         .build()
         );
 
@@ -63,7 +65,7 @@ public class DataInitializer implements CommandLineRunner {
                 User.builder()
                         .username("StandManager")
                         .password(passwordEncoder.encode("StandManager"))
-                        .role(Arrays.asList("ROLE_APPLICATION"))
+                        .roles(Collections.singletonList(Role.APPLICATION))
                         .build()
         );
     }
@@ -71,11 +73,6 @@ public class DataInitializer implements CommandLineRunner {
     @Autowired
     public void setUsers(UserRepository users) {
         this.users = users;
-    }
-
-    @Autowired
-    public void setRoles(RoleRepository roles) {
-        this.roles = roles;
     }
 
     @Autowired

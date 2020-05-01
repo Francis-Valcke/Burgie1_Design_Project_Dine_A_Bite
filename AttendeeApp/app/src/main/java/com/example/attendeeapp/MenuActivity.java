@@ -1,8 +1,6 @@
 package com.example.attendeeapp;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
@@ -12,9 +10,12 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.viewpager2.widget.ViewPager2;
 
+import com.example.attendeeapp.json.CommonFood;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
 
@@ -26,7 +27,7 @@ import java.util.ArrayList;
 public class MenuActivity extends AppCompatActivity implements OnCartChangeListener {
 
     private static final int MAX_CART_ITEM = 25;
-    private ArrayList<MenuItem> cartList = new ArrayList<MenuItem>();
+    private ArrayList<CommonFood> cartList = new ArrayList<>();
     private int cartCount;
     private Toast mToast = null;
 
@@ -35,7 +36,6 @@ public class MenuActivity extends AppCompatActivity implements OnCartChangeListe
      * Creates menu items view consisting of
      * toolbar, fragment for global menu, fragment for stand menu
      * and cart button with total count
-     * @param savedInstanceState
      */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,15 +62,14 @@ public class MenuActivity extends AppCompatActivity implements OnCartChangeListe
                 }).attach();
 
         // Custom Toolbar (instead of standard actionbar)
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-
         // Initializes cart button layout at bottom of menu item list
-        TextView totalCount = (TextView)findViewById(R.id.cart_count);
+        TextView totalCount = findViewById(R.id.cart_count);
         totalCount.setText("0");
 
-        RelativeLayout relLay = (RelativeLayout)findViewById(R.id.cart_layout);
+        RelativeLayout relLay = findViewById(R.id.cart_layout);
         relLay.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v) {
@@ -82,14 +81,16 @@ public class MenuActivity extends AppCompatActivity implements OnCartChangeListe
         });
     }
 
+    @SuppressLint("SetTextI18n")
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == 1) {
             if(resultCode == RESULT_OK) {
-                cartList = (ArrayList<MenuItem>) data.getSerializableExtra("cartList");
+                // Ignore warning
+                cartList = (ArrayList<CommonFood>) data.getSerializableExtra("cartList");
                 cartCount = data.getIntExtra("cartCount", 0);
-                TextView totalCount = (TextView)findViewById(R.id.cart_count);
+                TextView totalCount = findViewById(R.id.cart_count);
                 totalCount.setText("" + cartCount);
             }
 
@@ -106,12 +107,12 @@ public class MenuActivity extends AppCompatActivity implements OnCartChangeListe
      * @return the (updated) cartCount
      * TODO: enforce unique name when creating menu items
      */
-    public int onCartChangedAdd(MenuItem cartItem) {
+    public int onCartChangedAdd(CommonFood cartItem) {
         if (cartCount < MAX_CART_ITEM) {
             try {
                 boolean contains = false;
-                for (MenuItem i : cartList) {
-                    if (i.getFoodName().equals(cartItem.getFoodName()) &&
+                for (CommonFood i : cartList) {
+                    if (i.getName().equals(cartItem.getName()) &&
                             i.getStandName().equals(cartItem.getStandName()) &&
                             i.getBrandName().equals(cartItem.getBrandName())) {
                         // cartItems have a unique ((foodName, brandName), standName)
@@ -121,12 +122,12 @@ public class MenuActivity extends AppCompatActivity implements OnCartChangeListe
                     }
                 }
                 if(!contains){
-                    MenuItem newItem = new MenuItem(cartItem);
+                    CommonFood newItem = new CommonFood(cartItem);
                     newItem.increaseCount();
                     cartList.add(newItem);
                 }
                 cartCount++;
-                TextView totalCount = (TextView)findViewById(R.id.cart_count);
+                TextView totalCount = findViewById(R.id.cart_count);
                 totalCount.setText(String.valueOf(cartCount));
 
             } catch (ArithmeticException e){
@@ -153,12 +154,12 @@ public class MenuActivity extends AppCompatActivity implements OnCartChangeListe
      * @return the (updated) cartCount
      * TODO: enforce unique name when creating menu items
      */
-    public int onCartChangedRemove(MenuItem cartItem) {
+    public int onCartChangedRemove(CommonFood cartItem) {
         if (cartCount > 0) {
             try {
                 boolean contains = false;
-                for (MenuItem i : cartList) {
-                    if (i.getFoodName().equals(cartItem.getFoodName()) &&
+                for (CommonFood i : cartList) {
+                    if (i.getName().equals(cartItem.getName()) &&
                             i.getStandName().equals(cartItem.getStandName()) &&
                             i.getBrandName().equals(cartItem.getBrandName())) {
                         // cartItems have a unique ((foodName, brandName), standName)
@@ -174,7 +175,7 @@ public class MenuActivity extends AppCompatActivity implements OnCartChangeListe
                     throw new ArithmeticException("This menuItem is not in the cart!");
                 }
                 cartCount--;
-                TextView totalCount = (TextView)findViewById(R.id.cart_count);
+                TextView totalCount = findViewById(R.id.cart_count);
                 totalCount.setText(String.valueOf(cartCount));
 
             } catch (ArithmeticException e){
@@ -199,6 +200,9 @@ public class MenuActivity extends AppCompatActivity implements OnCartChangeListe
         return true;
     }
 
+    // TODO:
+    //  -make toolbar generalized for all activities
+    //  -make Toast messages cancalable for all activities
     @Override
     public boolean onOptionsItemSelected(@NonNull android.view.MenuItem item) {
         switch (item.getItemId()) {
@@ -209,11 +213,18 @@ public class MenuActivity extends AppCompatActivity implements OnCartChangeListe
                 return true;
             case R.id.account_action:
                 // User chooses the "Account" item
-                // TODO make account activity
+                Intent intent2 = new Intent(MenuActivity.this, AccountActivity.class);
+                startActivity(intent2);
                 return true;
             case R.id.settings_action:
                 // User chooses the "Settings" item
                 // TODO make settings activity
+                return true;
+            case R.id.map_action:
+                //User chooses the "Map" item
+                Intent mapIntent = new Intent(MenuActivity.this, MapsActivity.class);
+                startActivity(mapIntent);
+                return true;
             default:
                 return super.onOptionsItemSelected(item);
         }

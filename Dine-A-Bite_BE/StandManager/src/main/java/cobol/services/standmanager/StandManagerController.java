@@ -1,38 +1,32 @@
 package cobol.services.standmanager;
 
+import cobol.commons.CommonFood;
+import cobol.commons.CommonStand;
+import cobol.commons.ResponseModel;
+import cobol.commons.exception.CommunicationException;
 import cobol.commons.order.CommonOrder;
 import cobol.commons.order.CommonOrderItem;
 import cobol.commons.order.Recommendation;
+import cobol.commons.order.SuperOrder;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
-import org.springframework.web.bind.annotation.*;
-
-
-import cobol.commons.MenuItem;
-import cobol.commons.ResponseModel;
-import cobol.commons.StandInfo;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static cobol.commons.ResponseModel.status.OK;
 
 @RestController
 public class StandManagerController {
-
-    /**
-     * The controller has a list of all schedulers.
-     * More information on schedulers in class Scheduler
-     */
-    private List<Scheduler> schedulers = new ArrayList<Scheduler>();
+    @Autowired
+    private SchedulerHandler schedulerHandler;
 
     /**
      * API endpoint to test if the server is still alive.
@@ -50,50 +44,40 @@ public class StandManagerController {
     }
 
     /**
-     * just a function for testing and starting some schedulers for practice
+     * adds schedulers to SM
+     *
+     * @param stands
+     * @throws JsonProcessingException when wrong input param
      */
-    @RequestMapping("/start")
-    public void start(){
-        // Initialize stand menus and schedulers
-        System.out.println("TESTTEST");
-        ArrayList<MenuItem> menu = new ArrayList<>();
-        MenuItem mi = new MenuItem("burger", BigDecimal.valueOf(3.0), 4, 20, "mcdo", "", null);
-        menu.add(mi);
-        Scheduler a = new Scheduler(menu, "food1", 1, "mcdo");
-        Scheduler b = new Scheduler(menu, "food2", 2, "burgerking");
+    @PostMapping("/update")
+    public void update(@RequestBody List<CommonStand> stands) throws CommunicationException {
 
-        schedulers.add(a);
-        schedulers.add(b);
-        // start running schedulers
-        for (int i=0;i<schedulers.size();i++){
-            schedulers.get(i).start();
+        for (CommonStand stand : stands) {
+            schedulerHandler.updateSchedulers(stand);
         }
 
+
     }
 
-    @RequestMapping("delete")
-    public JSONObject deleteSchedulers() {
-        schedulers.clear();
-        JSONObject obj = new JSONObject();
-        obj.put("del", true);
-        return obj;
+    @PostMapping("/deleteScheduler")
+    public void deleteScheduler(@RequestParam String standName, @RequestParam String brandName) {
+
+
+        Optional<Scheduler> schedulerOptional = schedulerHandler.getSchedulers().stream()
+                .filter(s -> s.getStandName().equals(standName) &&
+                        s.getBrand().equals(brandName)).findAny();
+        schedulerOptional.ifPresent(scheduler -> schedulerHandler.removeScheduler(scheduler));
     }
+
 
     /**
-     * @param info class object StandInfo which is used to start a scheduler for stand added in order manager
-     *             available at localhost:8081/newStand
+     * @param stand class object StandInfo which is used to start a scheduler for stand added in order manager
+     *              available at localhost:8081/newStand
      * @return true (if no errors)
      */
     @RequestMapping(value = "/newStand", consumes = "application/json")
-    public JSONObject addNewStand(@RequestBody() StandInfo info) {
-        Scheduler s = new Scheduler(info.getMenu(), info.getName(), info.getId(), info.getBrand());
-        s.setLat(info.getLat());
-        s.setLon(info.getLon());
-        schedulers.add(s);
-        s.start();
-        JSONObject obj = new JSONObject();
-        obj.put("added", true);
-        return obj;
+    public JSONObject addNewStand(@RequestBody() CommonStand stand) throws CommunicationException {
+        return schedulerHandler.updateSchedulers(stand);
     }
 
 
@@ -102,8 +86,76 @@ public class StandManagerController {
      *              TODO: really implement this
      */
     @RequestMapping(value = "/placeOrder", consumes = "application/json")
-    public void placeOrder(@RequestBody() CommonOrder order){
-        //add order to right scheduler
+    public void placeOrder(@RequestBody() CommonOrder order) {
+        schedulerHandler.addOrderToScheduler(order);
+    }
+
+    /**
+     * This method will split a superorder and give a recommendation for all the orders
+     *
+     * @param superOrder List with orderitems and corresponding brand
+     * @return JSONArray each element containing a field "recommendations" and a field "order" similar to return of placeOrder
+     * recommendation field will be a JSONArray of Recommendation object
+     */
+    @PostMapping(value = "/getSuperRecommendation", consumes = "application/json", produces = "application/json")
+    public ResponseEntity<JSONArray> getSuperRecommendation(@RequestBody SuperOrder superOrder) throws JsonProcessingException {
+
+        // initialize response
+        JSONArray completeResponse= new JSONArray();
+
+        // Extract and copy complete list of CommonOrderItems from superOrder
+        List<CommonOrderItem> items = new ArrayList<>(superOrder.getOrderItems());
+
+        // search items that can be executed together
+        List<HashSet<CommonOrderItem>> itemSplit = new ArrayList<>();
+
+        // Get schedulers from this brand
+        List<Scheduler> brandSchedulers = schedulerHandler.getSchedulers()
+                .stream().filter(s -> s.getBrand().equals(superOrder.getBrandName()))
+                .collect(Collectors.toList());
+
+        // Split order items in sets which can be executed together
+        for (Scheduler scheduler : brandSchedulers) {
+            // As long items list is not empty, search stand which can do it
+            if (!items.isEmpty()) {
+                List<String> stringMenu = scheduler.getMenu().stream().map(CommonFood::getName).collect(Collectors.toList());
+                List<CommonOrderItem> canExecuteTogether = items.stream().filter(item -> stringMenu.contains(item.getFoodName())).collect(Collectors.toList());
+
+                itemSplit.add(new HashSet<>(canExecuteTogether));
+                items.removeAll(canExecuteTogether);
+            } else {
+                break;
+            }
+        }
+
+
+        for (HashSet<CommonOrderItem> commonOrderItems : itemSplit) {
+
+            JSONObject orderResponse= new JSONObject();
+
+            // -- Construct a virtual order -- //
+            CommonOrder order = new CommonOrder();
+            // add order items for this order
+            order.setOrderItems(new ArrayList<>(commonOrderItems));
+            // set brandName
+            order.setBrandName(superOrder.getBrandName());
+            // set coordinates
+            order.setLatitude(superOrder.getLatitude());
+            order.setLongitude(superOrder.getLongitude());
+
+            // -- Ask recommendation for newly created order -- //
+            List<Recommendation> recommendations= schedulerHandler.recommend(order);
+
+            // -- Add to response of this super order recommendation -- //
+            orderResponse.put("order", order);
+            orderResponse.put("recommendations", recommendations);
+
+            completeResponse.add(orderResponse);
+        }
+
+
+        // return list of commonorderitems with corresponding recommendation
+        return ResponseEntity.ok(completeResponse);
     }
 
 
@@ -113,94 +165,10 @@ public class StandManagerController {
      */
     @RequestMapping(value = "/getRecommendation", consumes = "application/json")
     @ResponseBody
-    public JSONObject postCommonOrder(@RequestBody() CommonOrder order) throws JsonProcessingException {
+    public List<Recommendation> postCommonOrder(@RequestBody() CommonOrder order) throws JsonProcessingException {
         System.out.println("User requested recommended stand for " + order.getId());
-        return recommend(order);
+        return schedulerHandler.recommend(order);
     }
 
-
-    /**
-     * @param order the order for which you want to find corresponding stands
-     * @return list of schedulers (so the stands) which offer the correct food to complete the order
-     */
-    public ArrayList<Scheduler> findCorrespondStands(CommonOrder order){
-        // first get the Array with all the food of the order
-        ArrayList<CommonOrderItem> orderItems = new ArrayList<>(order.getOrderItems());
-
-
-        // group all stands (schedulers) with the correct type of food available
-        ArrayList<Scheduler> goodSchedulers = new ArrayList<>();
-
-        for (int i = 0; i < schedulers.size(); i++) {
-            boolean validStand = true;
-
-            Scheduler currentScheduler = schedulers.get(i);
-
-            for (CommonOrderItem orderItem : orderItems) {
-                String food= orderItem.getFoodname();
-                if (currentScheduler.checkType(food)) {
-                    validStand = true;
-                } else {
-                    validStand = false;
-                    break;
-                }
-            }
-
-            if (validStand){
-                goodSchedulers.add(currentScheduler);
-            }
-        }
-        return goodSchedulers;
-    }
-
-
-    /**
-     * @param order is the order for which the recommended stands are required
-     * @return JSON with a certain amount of recommended stands (currently based on lowest queue time only)
-     */
-    public JSONObject recommend(CommonOrder order) throws JsonProcessingException {
-        /* choose how many recommends you want */
-        int amountOfRecommends = 3;
-
-        /* find stands (schedulers) which offer correct food for the order */
-        ArrayList<Scheduler> goodSchedulers = findCorrespondStands(order);
-
-        /* sort the stands (schedulers) based on remaining time */
-        //Collections.sort(goodSchedulers, new SchedulerComparatorTime(order.getFull_order()));
-
-        /* sort the stands (schedulers) based on distance */
-        Collections.sort(goodSchedulers, new SchedulerComparatorDistance(order.getLatitude(),order.getLongitude()));
-
-        /* TODO: this is how you sort based on combination, weight is how much time you add for each unit of distance */
-        /* sort the stands (schedulers) based on combination of time and distance */
-        //double weight = 5;
-        //Collections.sort(goodSchedulers, new SchedulerComparator(order.getLat(), order.getLon(), weight);
-
-        /* check if you have enough stands (for amount of recommendations you want) */
-        if (goodSchedulers.size() < amountOfRecommends) {
-            amountOfRecommends = goodSchedulers.size();
-        }
-
-        /* put everything into a JSON file to give as return value */
-        List<Recommendation> recommendations=new ArrayList<>();
-
-        for (int i = 0 ; i < amountOfRecommends ; i++){
-            Scheduler curScheduler = goodSchedulers.get(i);
-            System.out.println(curScheduler.getStandName());
-            SchedulerComparatorDistance sc = new SchedulerComparatorDistance(curScheduler.getLat(),curScheduler.getLon());
-            SchedulerComparatorTime st = new SchedulerComparatorTime(new ArrayList<>(order.getOrderItems()));
-
-            recommendations.add(new Recommendation(curScheduler.getStandId(), curScheduler.getStandName(), sc.getDistance(order.getLatitude(), order.getLongitude()), st.getTimesum(curScheduler)));
-            System.out.println(st.getTimesum(curScheduler));
-        }
-
-        // Arraylist recommendations to jsonobject
-        ObjectMapper mapper=new ObjectMapper();
-        String jsonString=mapper.writeValueAsString(recommendations);
-        JSONObject obj= new JSONObject();
-        obj.put("recommendations", jsonString);
-
-        return obj;
-    }
 
 }

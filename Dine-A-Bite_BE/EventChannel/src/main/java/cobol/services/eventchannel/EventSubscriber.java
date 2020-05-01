@@ -3,6 +3,7 @@ package cobol.services.eventchannel;
 import cobol.commons.Event;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 
@@ -15,10 +16,8 @@ public class EventSubscriber {
     EventSubscriber(String types) {
         id = numSubscribers;
         numSubscribers++;
-        String[] temp_types = types.split(",");
-        for (String type : temp_types) {
-            this.types.add(type);
-        }
+        String[] tempTypes = types.split(",");
+        Collections.addAll(this.types, tempTypes);
     }
 
     /**
@@ -30,9 +29,9 @@ public class EventSubscriber {
     }
 
     /**
+     * add the event to the unhandled event list
+     *
      * @param e the event
-     *          <p>
-     *          add the event to the unhandled event list
      */
     void handleEvent(Event e) {
         unhandledEvents.add(e);
@@ -40,6 +39,10 @@ public class EventSubscriber {
 
     public void addType(String type) {
         this.types.add(type);
+    }
+
+    public void removeType(String type) {
+        this.types.remove(type);
     }
 
     public List<String> getTypes() {
@@ -51,6 +54,8 @@ public class EventSubscriber {
     }
 
     public List<Event> getUnhandledEvents() {
-        return unhandledEvents;
+        List<Event> ret = unhandledEvents;
+        unhandledEvents = new ArrayList<>();
+        return ret;
     }
 }

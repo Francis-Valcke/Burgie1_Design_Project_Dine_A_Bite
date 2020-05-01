@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Contains the main cart page view -->
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
@@ -13,9 +15,9 @@
         android:id="@+id/cart_list"
         android:layout_width="wrap_content"
         android:layout_height="0dp"
-        android:layout_marginLeft="15dp"
+        android:layout_marginLeft="10dp"
         android:layout_marginTop="10dp"
-        android:layout_marginRight="15dp"
+        android:layout_marginRight="10dp"
         android:layout_marginBottom="10dp"
         android:layout_weight="1"
         android:divider="#FFFFFF"
@@ -24,15 +26,17 @@
     <RelativeLayout
         android:id="@+id/cart_total_layout"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="10dp">
 
         <TextView
             android:id="@+id/cart_total_text"
             android:layout_width="wrap_content"
-            android:layout_height="50dp"
+            android:layout_height="wrap_content"
             android:layout_marginStart="20dp"
             android:text="@string/cart_total_text"
-            android:textColor="#000"
+            android:textColor="@color/black"
             android:textSize="20sp"
             android:gravity="center" />
 
@@ -44,27 +48,19 @@
             android:layout_alignParentEnd="true"
             android:layout_marginStart="20dp"
             android:layout_marginEnd="20dp"
-            android:text="Total"
-            android:textColor="#000"
-            android:textSize="20sp" />
+            android:text="@string/total"
+            android:textColor="@color/black"
+            android:textSize="20sp"
+            tools:ignore="RelativeOverlap" />
 
     </RelativeLayout>
-    <RelativeLayout
-        android:layout_width="wrap_content"
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/button_confirm_order"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/colorPrimary"
-        android:layout_margin="3dp"
-        android:layout_gravity="center">
-        <TextView
-            android:id="@+id/confirm_order"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_margin="3dp"
-            android:clickable="true"
-            android:focusable="true"
-            android:text="@string/confirm_order"
-            android:textColor="#FFFFFF"
-            android:textSize="18sp" />
-    </RelativeLayout>
+        android:text="@string/confirm_order"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"/>
+
 </LinearLayout>

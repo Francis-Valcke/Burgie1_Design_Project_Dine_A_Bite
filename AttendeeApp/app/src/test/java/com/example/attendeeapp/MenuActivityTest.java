@@ -8,6 +8,7 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager2.widget.ViewPager2;
 
+import com.example.attendeeapp.json.CommonFood;
 import com.google.android.material.tabs.TabLayout;
 
 import org.junit.Assert;
@@ -22,14 +23,15 @@ import org.robolectric.shadows.ShadowLooper;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.robolectric.Shadows.shadowOf;
 
 @RunWith(RobolectricTestRunner.class)
 public class MenuActivityTest {
 
     // TODO: test permission granting
-
     private MenuActivity menuActivity;
 
     @Before
@@ -116,8 +118,8 @@ public class MenuActivityTest {
      */
     @Test
     public void LaunchingNextActivity() {
-        ArrayList<MenuItem> cartList = new ArrayList<MenuItem>();
-        MenuItem i = new MenuItem("food", new BigDecimal(0), "");
+        ArrayList<CommonFood> cartList = new ArrayList<CommonFood>();
+        CommonFood i = new CommonFood("food", new BigDecimal(0), "");
         cartList.add(i);
         menuActivity.onCartChangedAdd(i);
 
@@ -131,8 +133,8 @@ public class MenuActivityTest {
 
         assertEquals(CartActivity.class, shadowIntent.getIntentClass());
         // Add MenuItem equals method comparer
-        ArrayList<MenuItem> testList = (ArrayList<MenuItem>) startedIntent.getSerializableExtra("cartList");
-        assertEquals(cartList.get(0).getFoodName(), testList.get(0).getFoodName());
+        ArrayList<CommonFood> testList = (ArrayList<CommonFood>) startedIntent.getSerializableExtra("cartList");
+        assertEquals(cartList.get(0).getName(), testList.get(0).getName());
         assertEquals(1, testList.get(0).getCount());
         assertEquals(1, startedIntent.getIntExtra("cartCount", -1));
     }
@@ -157,12 +159,12 @@ public class MenuActivityTest {
     public void testOnCartChanged_1() {
         TextView cartCountText = menuActivity.findViewById(R.id.cart_count);
         int cartCount = 0;
-        ArrayList<MenuItem> cartList = new ArrayList<MenuItem>();
+        ArrayList<CommonFood> cartList = new ArrayList<CommonFood>();
 
         // Adding the items, same food, same brand, different price, different stand
         int testCount = 0;
         for (int i = 0; i < 30; i++) {
-            MenuItem m = new MenuItem("food", new BigDecimal(5.51 * ((int)(i/15) + 1)),
+            CommonFood m = new CommonFood("food", new BigDecimal(5.51 * ((int)(i/15) + 1)),
                     "brand");
             if( i/15 == 0 ) m.setStandName("stand0");
             cartList.add(m);
@@ -184,7 +186,7 @@ public class MenuActivityTest {
         testCount = 20;
 
         for (int i = 0; i < food.length*brand.length; i++) {
-            MenuItem m = new MenuItem(food[i%food.length], new BigDecimal(Math.random()*100),
+            CommonFood m = new CommonFood(food[i%food.length], new BigDecimal(Math.random()*100),
                     brand[i/(food.length*brand.length)]);
             m.setStandName(stand[i%stand.length]);
 
@@ -221,11 +223,11 @@ public class MenuActivityTest {
     public void testOnCartChanged_2() {
         TextView cartCountText = menuActivity.findViewById(R.id.cart_count);
         int cartCount = 0;
-        ArrayList<MenuItem> cartList = new ArrayList<MenuItem>();
+        ArrayList<CommonFood> cartList = new ArrayList<CommonFood>();
 
         // Adding the items, same food, different brand, different price, same stand
         for (int i = 0; i < 30; i++) {
-            MenuItem m = new MenuItem("food", new BigDecimal(5.51 * (i%3 + 1)),
+            CommonFood m = new CommonFood("food", new BigDecimal(5.51 * (i%3 + 1)),
                     "brand" + i%3);
             m.setStandName("stand");
             cartList.add(m);
@@ -262,11 +264,11 @@ public class MenuActivityTest {
     public void testOnCartChanged_3() {
         TextView cartCountText = menuActivity.findViewById(R.id.cart_count);
         int cartCount = 0;
-        ArrayList<MenuItem> cartList = new ArrayList<MenuItem>();
+        ArrayList<CommonFood> cartList = new ArrayList<CommonFood>();
 
         // Adding the items, different food, same brand, same price, same stand (global="")
         for (int i = 0; i < 30; i++) {
-            MenuItem m = new MenuItem("food" + i%3, new BigDecimal(5.51),
+            CommonFood m = new CommonFood("food" + i%3, new BigDecimal(5.51),
                     "brand");
             cartList.add(m);
 

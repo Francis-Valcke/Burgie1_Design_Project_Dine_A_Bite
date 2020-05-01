@@ -10,17 +10,19 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.example.attendeeapp.json.CommonFood;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 
 /**
  * Handles the bottomSheet for a given menuItem that contains more details about the item
+ * TODO: handle runtime changes like rotating
  */
 public class MenuBottomSheetDialog extends BottomSheetDialogFragment {
 
-    private MenuItem item;
+    private CommonFood item;
     private OnCartChangeListener cartListener;
 
-    public MenuBottomSheetDialog(MenuItem menuItem) {
+    public MenuBottomSheetDialog(CommonFood menuItem) {
         item = menuItem;
     }
 
@@ -28,30 +30,31 @@ public class MenuBottomSheetDialog extends BottomSheetDialogFragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
+
         View view = inflater.inflate(R.layout.fragment_menu_bottom_sheet, container,
                             false);
 
         // Handle TextView to display the menu item name, if this name has a stand, display it too
-        TextView listItemText = (TextView)view.findViewById(R.id.menu_item_bottom);
-        String name = item.getFoodName();
+        TextView listItemText = view.findViewById(R.id.menu_item_bottom);
+        String name = item.getName();
         if(!item.getStandName().equals("")) name += " (" + item.getStandName() + ")";
         listItemText.setText(name);
 
         // Handle TextView to display the menu item price
-        TextView listItemPrice = (TextView)view.findViewById(R.id.price_item_bottom);
+        TextView listItemPrice = view.findViewById(R.id.price_item_bottom);
         listItemPrice.setText(item.getPriceEuro());
 
         // Handle TextView to display the brandName
-        TextView listItemBrand = (TextView)view.findViewById(R.id.brandName_bottom);
+        TextView listItemBrand = view.findViewById(R.id.brandName_bottom);
         listItemBrand.setText(item.getBrandName());
 
         // Handle TextView to display the description
-        TextView listItemDescr = (TextView)view.findViewById(R.id.description_bottom);
-        listItemDescr.setText(item.getDescription());
-        if (item.getDescription().equals("")) listItemDescr.setVisibility(View.GONE);
+        TextView listItemDescription = view.findViewById(R.id.description_bottom);
+        listItemDescription.setText(item.getDescription());
+        if (item.getDescription().equals("")) listItemDescription.setVisibility(View.GONE);
 
         // Handle plus and minus Buttons and add onClickListeners for one menu item
-        Button plusBtn = (Button)view.findViewById(R.id.bottom_sheet_plus);
+        Button plusBtn = view.findViewById(R.id.bottom_sheet_plus);
         plusBtn.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v) {
@@ -60,7 +63,7 @@ public class MenuBottomSheetDialog extends BottomSheetDialogFragment {
             }
         });
 
-        Button minusBtn = (Button)view.findViewById(R.id.bottom_sheet_minus);
+        Button minusBtn = view.findViewById(R.id.bottom_sheet_minus);
         minusBtn.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v) {
@@ -72,7 +75,7 @@ public class MenuBottomSheetDialog extends BottomSheetDialogFragment {
         return view;
     }
 
-    public void setCartChangeListener(OnCartChangeListener listener){
+    void setCartChangeListener(OnCartChangeListener listener){
         this.cartListener = listener;
     }
 }

@@ -9,9 +9,12 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import javax.validation.constraints.NotNull;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 
 import static java.util.stream.Collectors.toList;
 
@@ -19,22 +22,27 @@ import static java.util.stream.Collectors.toList;
  * The non entity version of the User class that is used across all modules to represent users.
  */
 @Data
-@SuperBuilder
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 public class CommonUser implements UserDetails, Serializable {
 
-    String username;
-    List<String> role;
+    private String username;
+    private String password;
+    private String email;
+    private String surname;
+    private String name;
+    @Builder.Default
+    private List<String> roles = new ArrayList<>();
 
-    @Override
-    public String getPassword() {
-        return null;
+    public CommonUser(String username, List<String> roles) {
+        this.username = username;
+        this.roles = roles;
     }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return this.role.stream().map(SimpleGrantedAuthority::new).collect(toList());
+        return this.roles.stream().map(role -> new SimpleGrantedAuthority("ROLE_" + role)).collect(toList());
     }
 
     @Override
@@ -57,5 +65,16 @@ public class CommonUser implements UserDetails, Serializable {
         return true;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        CommonUser that = (CommonUser) o;
+        return username.equals(that.username);
+    }
 
+    @Override
+    public int hashCode() {
+        return Objects.hash(username);
+    }
 }

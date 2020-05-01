@@ -5,6 +5,7 @@ import cobol.commons.Event;
 import cobol.services.eventchannel.EventBroker;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.json.simple.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
@@ -16,10 +17,9 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.context.WebApplicationContext;
 
-import java.util.ArrayList;;
+import java.util.ArrayList;
 import java.util.List;
 
-import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -46,6 +46,7 @@ public class EventChannelTest {
         EventBroker broker = EventBroker.getInstance();
         Thread brokerThread = new Thread(broker);
         brokerThread.start();
+        objectMapper.registerModule(new JavaTimeModule());
         this.mockMvc = webAppContextSetup(this.applicationContext)
                 .build();
         if (!setupDone) {
@@ -56,10 +57,14 @@ public class EventChannelTest {
                     );
             JSONObject testData = new JSONObject();
             testData.put("data", "This is a test");
-            String[] typesOne = {"1", "2"};
-            Event eventOne = new Event(testData, typesOne);
-            String[] typesTwo = {"3", "4"};
-            Event eventTwo = new Event(testData, typesTwo);
+            List<String> typesOne = new ArrayList<>();
+            typesOne.add("1");
+            typesOne.add("2");
+            Event eventOne = new Event(testData, typesOne, "test");
+            List<String> typesTwo = new ArrayList<>();
+            typesTwo.add("3");
+            typesTwo.add("4");
+            Event eventTwo = new Event(testData, typesTwo, "test");
             eventList.add(eventOne);
             eventList.add(eventTwo);
             for (Event e : eventList) {
@@ -117,7 +122,6 @@ public class EventChannelTest {
                 )
                 .andExpect(status().isOk());
     }
-
     @Test
     public void testEventPolling() throws Exception {
         String data = this.mockMvc
@@ -127,10 +131,9 @@ public class EventChannelTest {
                 )
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
-        JSONObject response = objectMapper.readValue(data, JSONObject.class);
-        String details = (String) response.get("details");
-        List<Event> eventList = objectMapper.readValue(details, new TypeReference<List<Event>>() {
-        });
+        //JSONObject response = objectMapper.readValue(data, JSONObject.class);
+        //String details = (String) response.get("details");
+        List<Event> eventList = objectMapper.readValue(data, new TypeReference<List<Event>>() {});
         assert (eventList.size() == 3); //event from channel 1,2 and 3;
         for (Event e : eventList) {
             assert (e.getMyId() == 0 || e.getMyId() == 1);

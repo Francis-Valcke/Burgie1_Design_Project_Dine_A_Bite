@@ -20,7 +20,6 @@ public class ResponseModel {
         return map;
     }
 
-
     public enum status{
         OK, ERROR
     }

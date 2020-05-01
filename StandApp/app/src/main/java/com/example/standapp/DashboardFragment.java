@@ -2,399 +2,364 @@ package com.example.standapp;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
-import android.app.Dialog;
+import android.Manifest;
+import android.annotation.SuppressLint;
+import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
+import android.content.pm.PackageManager;
+import android.location.Location;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ListView;
-import android.widget.Spinner;
 import android.widget.Toast;
 
-import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+import com.example.standapp.data.LoginDataSource;
+import com.example.standapp.data.LoginRepository;
+import com.example.standapp.data.model.LoggedInUser;
+import com.example.standapp.json.CommonStand;
+import com.example.standapp.json.CommonFood;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.android.material.textfield.TextInputEditText;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+
+// TODO change stock based on incoming orders (branch feature/stand_app/stock)
 
 public class DashboardFragment extends Fragment {
 
-    private ListView listView;
-    private ArrayList<DashboardItem> items = new ArrayList<DashboardItem>();
-    private DashboardListViewAdapter adapter;
-    private Spinner spinner;
-    private Button addButton;
-    private Button submitButton;
-    private HashMap<String,DashboardItem> hash_snacks;
-    private EditText standname;
-    private EditText brandname;
+    private Context mContext;
+    private boolean isNewStand = false;
+    private ArrayList<CommonFood> items = new ArrayList<>();
 
+    // Stores the current stock of the menu items;
+    // this way the stock send to the backend is calculated to be equal to the added stock
+    private HashMap<String, Integer> addedStockMap = new HashMap<>();
+
+    // Location data of stand
+    private FusedLocationProviderClient fusedLocationClient;
+    private Location lastLocation;
+
+    @Override
+    public void onAttach(@NonNull Context context) {
+        // Called when a fragment is first attached to its context.
+        super.onAttach(context);
+        mContext = context;
+    }
+
+    @SuppressWarnings("unchecked")
     @Nullable
     @Override
-    public View onCreateView(@NonNull final LayoutInflater inflater, @Nullable final ViewGroup container, @Nullable Bundle savedInstanceState) {
-        //setRetainInstance(true);
-        //View view = getView() != null ? getView() : inflater.inflate(R.layout.activity_manager_dashboard, container, false);
-        final View view = inflater.inflate(R.layout.activity_manager_dashboard, container, false);
-        View view_profile = inflater.inflate(R.layout.fragment_profile, container, false);
-        standname = view_profile.findViewById(R.id.editText_standname);
-        brandname = view_profile.findViewById(R.id.editText_brandname);
+    public View onCreateView(@NonNull final LayoutInflater inflater,
+                             @Nullable final ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
 
-        addButton = view.findViewById(R.id.add_button);
-        submitButton = view.findViewById(R.id.submit_button);
-        spinner = view.findViewById(R.id.spinner);
-        ArrayAdapter<CharSequence> arrayAdapter = ArrayAdapter.createFromResource(getContext(), R.array.snacks, android.R.layout.simple_spinner_item);
-        arrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinner.setAdapter(arrayAdapter);
+        View view = inflater.inflate(R.layout.activity_dashboard_fragment, container,
+                false);
+        Button submitButton = view.findViewById(R.id.submit_menu_button);
+        Button addButton = view.findViewById(R.id.add_menu_item_button);
+        ListView menuList = view.findViewById(R.id.menu_list);
 
-        listView = view.findViewById(R.id.listView_dashboard);
+        final LoggedInUser user = LoginRepository.getInstance(new LoginDataSource()).getLoggedInUser();
 
-        adapter = new DashboardListViewAdapter(getActivity(), items);
-        listView.setAdapter(adapter);
-        initHash();
+        // Getting the log in information from profile fragment
+        final Bundle bundle = getArguments();
+        String standName = "";
+        String brandName = "";
+        if (bundle != null && Utils.isLoggedIn(getContext(), bundle)) {
+            standName = bundle.getString("standName");
+            brandName = bundle.getString("brandName");
+            Toast.makeText(mContext, standName, Toast.LENGTH_SHORT).show();
 
-        // When you click on the Add button, this will add the chosen snack in the dashboard
+            // Ask for permission to get location data and set lastLocation variable
+            checkLocationPermission();
+
+            items = (ArrayList<CommonFood>) bundle.getSerializable("items");
+            isNewStand = bundle.getBoolean("newStand");
+        }
+
+        final DashboardListViewAdapter adapter
+                = new DashboardListViewAdapter(Objects.requireNonNull(getActivity()), items, addedStockMap);
+        menuList.setAdapter(adapter);
+
+        @SuppressLint("InflateParams")
+        final View addDialogLayout = inflater.inflate(R.layout.add_menu_item_dialog, null,
+                false);
+        final TextInputEditText nameInput = addDialogLayout.findViewById(R.id.menu_item_name);
+        final TextInputEditText priceInput = addDialogLayout.findViewById(R.id.menu_item_price);
+        final TextInputEditText stockInput = addDialogLayout.findViewById(R.id.menu_item_stock);
+        final TextInputEditText descriptionInput = addDialogLayout.findViewById(R.id.menu_item_description);
+        final TextInputEditText prepTimeInput = addDialogLayout.findViewById(R.id.menu_item_prep_time);
+        final View finalView = view;
+
+        // Adding a new menu item to the menu list of the stand
+        final MaterialAlertDialogBuilder dialog = new MaterialAlertDialogBuilder(mContext)
+                .setView(addDialogLayout)
+                .setPositiveButton("Save", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        // Check if fields are filled in (except for description)
+                        if (Objects.requireNonNull(nameInput.getText()).toString().isEmpty()
+                                || Objects.requireNonNull(priceInput.getText()).toString().isEmpty()
+                                || Objects.requireNonNull(stockInput.getText()).toString().isEmpty()
+                                || Objects.requireNonNull(prepTimeInput.getText()).toString().isEmpty()) {
+                            AlertDialog.Builder alertDialog = new AlertDialog.Builder(finalView.getContext())
+                                    .setTitle("Invalid menu item")
+                                    .setMessage("The menu item you tried to add is invalid, " +
+                                            "please try again. " +
+                                            "You should fill in the necessary fields.")
+                                    .setNeutralButton("Ok", null);
+                            alertDialog.show();
+                        } else {
+                            String name = Objects.requireNonNull(nameInput.getText()).toString();
+                            BigDecimal price = new BigDecimal(priceInput.getText().toString());
+                            int stock = Integer.parseInt(stockInput.getText().toString());
+                            String description = Objects.requireNonNull(descriptionInput.getText()).toString();
+                            int preparationTime = Integer.parseInt(prepTimeInput.getText().toString()) * 60;
+                            List<String> category = new ArrayList<>();
+                            category.add("");
+                            CommonFood item = new CommonFood(name, price, preparationTime, stock, "", description, category);
+                            items.add(item);
+                            addedStockMap.put(name, stock);
+                            adapter.notifyDataSetChanged();
+                            nameInput.setText("");
+                            priceInput.setText("");
+                            stockInput.setText("");
+                            descriptionInput.setText("");
+                            prepTimeInput.setText("");
+                        }
+                        ViewGroup parent = (ViewGroup) addDialogLayout.getParent();
+                        if (parent != null) parent.removeView(addDialogLayout);
+                    }
+                }).setOnDismissListener(new DialogInterface.OnDismissListener() {
+                    @Override
+                    public void onDismiss(DialogInterface dialog) {
+                        ViewGroup parent = (ViewGroup) addDialogLayout.getParent();
+                        if (parent != null) parent.removeView(addDialogLayout);
+                    }
+                });
+
         addButton.setOnClickListener(new View.OnClickListener() {
+
             @Override
             public void onClick(View v) {
-                String selected_item = spinner.getSelectedItem().toString();
-                DashboardItem item = new DashboardItem(hash_snacks.get(selected_item));
-                items.add(item);
-                adapter.notifyDataSetChanged();
+                // open dialog to fill in information
+                dialog.show();
             }
         });
 
+        // Submit and send the new or changed menu list to the backend
+        final String finalBrandName = brandName;
+        final String finalStandName = standName;
         submitButton.setOnClickListener(new View.OnClickListener() {
+
             @Override
             public void onClick(View v) {
-                // Create JSON Object to send to the server
-                final JSONObject js = new JSONObject();
-                JSONArray js_value = new JSONArray(); //[brandname,lon,lat]
-                double longitude = 360.0;
-                double latitude = 360.0;
+                if (bundle != null && Utils.isLoggedIn(mContext, bundle)
+                        && Utils.isConnected(mContext)) {
 
-                try {
-                    js_value.put(brandname.getText().toString()); //first the brandname is added, after that the two coordinates are added in the next lines
-                    js_value.put(longitude); //longitude -> TODO: hardcoded currently, fix later
-                    js_value.put(latitude); //latitude -> TODO: hardcoded currently, fix later
-                    js.put(standname.getText().toString(), js_value);
+                    HashMap<String, Integer> stock = new HashMap<>();
 
-                    for (DashboardItem i: items) {
-                        int new_count = Integer.parseInt(i.getCount());
-                        if (new_count == 0) continue; //if there are 0 items in stock, then no need to send it to the server
-                        int prep_time = Integer.parseInt(i.getPrep_time());
-                        float price = Float.parseFloat(i.getPrice());
+                    for (CommonFood item : items) {
+                        item.setBrandName(finalBrandName);
+                        item.setStandName(finalStandName);
 
-                        JSONArray js_item_values = new JSONArray();
-                        js_item_values.put(price);
-                        js_item_values.put(prep_time);
-                        js_item_values.put(new_count);
-                        js_item_values.put(i.getCategory());
-                        js_item_values.put(i.getDescription());
-
-                        js.put(i.getTitle(), js_item_values);
-                        i.setCount("0");
-                    }
-                    adapter.notifyDataSetChanged();
-                    if (js.length() == 1) {
-                        Toast mToast = Toast.makeText(getContext(), "Nothing to send!", Toast.LENGTH_SHORT);
-                        mToast.show();
-                        return; //if no items were added, then don't send anything
-                    }
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-
-                //Instantiate the RequestQueue
-                RequestQueue queue = Volley.newRequestQueue(getContext());
-                String url = "http://cobol.idlab.ugent.be:8091/addstand"; // TODO: fix url
-
-                //POST
-                StringRequest jsonRequest = new StringRequest(Request.Method.POST, url, new Response.Listener<String>() {
-                    @Override
-                    public void onResponse(String response) {
-                        Toast mToast = Toast.makeText(getContext(), response, Toast.LENGTH_SHORT);
-                        mToast.show();
-                    }
-                }, new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        error.printStackTrace();
-                        Toast mToast = Toast.makeText(getContext(), error.toString(), Toast.LENGTH_SHORT);
-                        mToast.show();
-                    }
-                }) {
-                    @Override
-                    public byte[] getBody() throws AuthFailureError {
-                        return js.toString().getBytes();
+                        // Temporarily set stock to added stock,
+                        // because that is what the backend expects,
+                        // change back after sending to backend
+                        // (ask Julien Van den Avenne)
+                        stock.put(item.getName(), item.getStock());
+                        if (addedStockMap.containsKey(item.getName())) {
+                            item.setStock(Objects.requireNonNull(addedStockMap.get(item.getName())));
+                        } else {
+                            item.setStock(0);
+                        }
                     }
 
-                    @Override
-                    public String getBodyContentType() {
-                        return "application/json";
+                    // Set location data
+                    checkLocationPermission();
+                    double latitude = 360;
+                    double longitude = 360;
+                    if (lastLocation != null) {
+                        latitude = lastLocation.getLatitude();
+                        longitude = lastLocation.getLongitude();
                     }
-                };
-                //Add the request to the RequestQueue
-                queue.add(jsonRequest);
-            }
-        });
 
+                    // create JSON string containing the information of the menu and the stand
+                    CommonStand commonStand = new CommonStand(finalStandName, finalBrandName,
+                            latitude, longitude, items);
+                    ObjectMapper mapper = new ObjectMapper();
+                    String jsonString = "";
+                    try {
+                        jsonString = mapper.writeValueAsString(commonStand);
+                    } catch (JsonProcessingException e) {
+                        e.printStackTrace();
+                    }
 
-        // When you click long on an item of the menu, the item gets deleted, but you will first receive a notification asking you if you are sure you want to delete it
-        listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-            @Override
-            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-                final int pos = position;
+                    // Instantiate the RequestQueue
+                    RequestQueue queue = Volley.newRequestQueue(mContext);
+                    String url;
+                    // Check if stand is new or not
+                    if (items.isEmpty() || isNewStand) {
+                        url = ServerConfig.OM_ADDRESS + "/addStand";
+                        isNewStand = false;
+                    } else {
+                        url = ServerConfig.OM_ADDRESS + "/updateStand";
+                    }
 
-                AlertDialog.Builder alert = new AlertDialog.Builder(getContext());
-                alert.setTitle("Are you sure?");
-                alert.setMessage("Do you want to delete this item");
-                alert.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                items.remove(pos);
-                                adapter.notifyDataSetChanged();
+                    // POST to server
+                    final String finalJsonString = jsonString;
+                    StringRequest jsonRequest = new StringRequest(Request.Method.POST, url,
+                            new Response.Listener<String>() {
+                        @Override
+                        public void onResponse(String response) {
+                            try {
+                                JSONObject jsonObject = new JSONObject(response);
+                                Toast.makeText(getContext(), jsonObject.get("details").toString(),
+                                        Toast.LENGTH_LONG).show();
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                                Toast.makeText(mContext, "Error with JSON parsing: "
+                                        + e.toString(), Toast.LENGTH_SHORT).show();
                             }
-                        });
-                alert.setNegativeButton("No", null);
-                alert.show();
-                return true;
+                        }
+                    }, new Response.ErrorListener() {
+                        @Override
+                        public void onErrorResponse(VolleyError error) {
+                            error.printStackTrace();
+                            Toast.makeText(mContext, error.toString(), Toast.LENGTH_LONG).show();
+                        }
+                    }) {
+                        @Override
+                        public byte[] getBody() {
+                            return finalJsonString.getBytes();
+                        }
+
+                        @Override
+                        public String getBodyContentType() {
+                            return "application/json";
+                        }
+
+                        @Override
+                        public Map<String, String> getHeaders() {
+                            HashMap<String, String> headers = new HashMap<>();
+                            headers.put("Content-Type", "application/json");
+                            headers.put("Authorization", user.getAutorizationToken());
+                            return headers;
+                        }
+                    };
+
+                    // Add the request to the RequestQueue
+                    queue.add(jsonRequest);
+                    System.out.println(jsonString);
+
+                    // Revert stock change
+                    for (CommonFood item : items) {
+                        item.setStock(Objects.requireNonNull(stock.get(item.getName())));
+                    }
+                    addedStockMap.clear();
+                }
             }
         });
 
+        Utils.isConnected(mContext);
 
-        // When you click once on an item, you will be able to edit it
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                showEditBox(items.get(position).getTitle(), items.get(position).getPrice(), items.get(position).getCount(), position);
-            }
-        });
         return view;
     }
 
     /**
-     * This onCreate function is the first function that will be run when the Manager Dashboard opens up
-     * @param savedInstanceState the instance that was saved since last time that you have closed the app
+     * Check if location permission is granted
+     * It not: request the location permission
+     * else if permission was granted, renew user location
      */
-    /*@Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_manager_dashboard);
-
-        addButton = (Button) findViewById(R.id.add_button);
-        submitButton = (Button) findViewById(R.id.submit_button);
-        spinner = (Spinner)findViewById(R.id.spinner);
-        ArrayAdapter<CharSequence> arrayAdapter = ArrayAdapter.createFromResource(this, R.array.snacks, android.R.layout.simple_spinner_item);
-        arrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinner.setAdapter(arrayAdapter);
-
-        listView = (ListView) findViewById(R.id.listView_dashboard);
-        items = new ArrayList<DashboardItem>();
-        adapter = new DashboardListViewAdapter(this, items);
-        listView.setAdapter(adapter);
-        initHash();
-
-        /**
-         * When you click on the Add button, this will add the chosen snack in the dashboard
-         */
-        /*addButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String selected_item = spinner.getSelectedItem().toString();
-                DashboardItem item = hash_snacks.get(selected_item);
-                items.add(item);
-                adapter.notifyDataSetChanged();
-            }
-        });
-
-        submitButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Create JSON Object to send to the server
-                JSONObject js = new JSONObject();
-                JSONArray js_location = new JSONArray(); //[lon,lat]
-
-                try {
-                    js_location.put(360); //longitude -> TODO: hardcoded currently, fix later
-                    js_location.put(360);//latitude -> TODO: hardcoded currently, fix later
-                    js.put("Elberds Burgers", js_location);
-
-                    for (DashboardItem i: items) {
-                        JSONArray js_item_values = new JSONArray();
-                        js_item_values.put(i.getPrice());
-                        js_item_values.put(i.getPreptime());
-                        js_item_values.put(i.getCount());
-                        js_item_values.put(i.getCategory());
-                        js_item_values.put(i.getDescription());
-
-                        js.put(i.getTitle(), js_item_values);
-                    }
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-
-                //Instantiate the RequestQueue
-                RequestQueue queue = Volley.newRequestQueue(DashboardFragment.this);
-                String url = "http://cobol.idlab.ugent.be:8092/standmenu?standname=food1"; // TODO: fix url
-
-                //Sen
-                JsonObjectRequest jsonRequest = new JsonObjectRequest(Request.Method.POST, url, js, new Response.Listener<JSONObject>() {
-                    @Override
-                    public void onResponse(JSONObject response) {
-                        Toast mToast = Toast.makeText(DashboardFragment.this, "Submission succesful!", Toast.LENGTH_SHORT);
-                        mToast.show();
-                    }
-                }, new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        Toast mToast = Toast.makeText(DashboardFragment.this, "Submission failed", Toast.LENGTH_SHORT);
-                        mToast.show();
-                    }
-                }) {
-                    @Override
-                    public Map<String, String> getHeaders() throws AuthFailureError {
-                        Map<String,String> headers = new HashMap<String,String>();
-                        headers.put("Content-Type","application/json");
-                        return headers;
-                    }
-                };
-                //Add the request to the RequestQueue
-                queue.add(jsonRequest);
-            }
-        });*/
-
-        /**
-         * When you click long on an item of the menu, the item gets deleted, but you will first receive a notification asking you if you are sure you want to delete it
-         */
-        /*listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-            @Override
-            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-                final int pos = position;
-                new AlertDialog.Builder(DashboardFragment.this)
-                        .setTitle("Are you sure?")
-                        .setMessage("Do you want to delete this item")
-                        .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialog, int which) {
-                                        items.remove(pos);
-                                        adapter.notifyDataSetChanged();
-                                    }
-                        })
-                        .setNegativeButton("No", null)
-                        .show();
-                return true;
-            }
-        });*/
-
-        /**
-         * When you click once on an item, you will be able to edit it
-         */
-        /*listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                showEditBox(items.get(position).getTitle(), items.get(position).getPrice(), items.get(position).getCount(), position);
-            }
-        });
-    }*/
-
-    /**
-     * This function edits the title and price of the item
-     * @param oldTitle the title of the item before you edit it
-     * @param oldPrice the price of the item before you edit it
-     * @param position the position of the item within the menu
-     */
-    private void showEditBox(String oldTitle, String oldPrice, String oldCount, final int position) {
-        final Dialog dialog = new Dialog(getContext());
-        dialog.setTitle("Edit Box");
-        dialog.setContentView(R.layout.edit_box);
-        final EditText editTitle = dialog.findViewById(R.id.editText_title);
-        editTitle.setText(oldTitle);
-        final EditText editPrice = dialog.findViewById(R.id.editText_price);
-        editPrice.setText(oldPrice);
-        final EditText editCount = dialog.findViewById(R.id.editText_count);
-        editCount.setText(oldCount);
-
-        Button editB = dialog.findViewById(R.id.button_edit);
-        editB.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                items.get(position).setTitle(editTitle.getText().toString());
-                items.get(position).setPrice(editPrice.getText().toString());
-                items.get(position).setCount(editCount.getText().toString());
-
-                adapter.notifyDataSetChanged();
-                dialog.dismiss();
-            }
-        });
-        dialog.show();
+    private void checkLocationPermission() {
+        if (ContextCompat.checkSelfPermission(Objects.requireNonNull(getContext()),
+                Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+            // Permission is not granted
+            // Request the permission
+            ActivityCompat.requestPermissions(Objects.requireNonNull(getActivity()),
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                    1);
+        } else {
+            // Request the latest user location
+            fusedLocationClient = LocationServices
+                    .getFusedLocationProviderClient(Objects.requireNonNull(getActivity()));
+            fusedLocationClient.getLastLocation()
+                    .addOnCompleteListener(new OnCompleteListener<Location>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Location> task) {
+                            if (task.isSuccessful() && task.getResult() != null){
+                                lastLocation = task.getResult();
+                            }
+                        }
+                    });
+        }
     }
 
     /**
-     * This initializes all possible snacks that the stand manager will find in the spinner within the manager dashboard
+     * Handle the requested permissions,
+     * here only the location permission is handled
+     * @param requestCode: 1 = location permission was requested
+     * @param permissions: the requested permission(s) names
+     * @param grantResults: if the permission is granted or not
      */
-    private void initHash() {
-        hash_snacks = new HashMap<String,DashboardItem>();
-
-        DashboardItem burger = new DashboardItem(R.drawable.burger, "Burger", "3.0","150","0","","");
-        DashboardItem doughnut = new DashboardItem(R.drawable.doughnut, "Doughnut", "3.5","150","0","","");
-        DashboardItem hot_dog = new DashboardItem(R.drawable.hot_dog, "Hot dog", "4.0","150","0","","");
-        DashboardItem large_fries = new DashboardItem(R.drawable.large_fries, "Large fries", "4.0","150","0","","");
-        DashboardItem medium_fries = new DashboardItem(R.drawable.medium_fries, "Medium fries", "3.0","150","0","","");
-        DashboardItem small_fries = new DashboardItem(R.drawable.small_fries, "Small fries", "2.0","150","0","","");
-        DashboardItem pizza = new DashboardItem(R.drawable.pizza, "Pizza", "8.0","150","0","","");
-        DashboardItem sandwich = new DashboardItem(R.drawable.sandwich, "Sandwich", "3.5","150","0","","");
-        DashboardItem toast = new DashboardItem(R.drawable.toast, "Toast", "2.0","150","0","","");
-        DashboardItem juice = new DashboardItem(R.drawable.juice, "Juice", "5.0","150","0","","");
-
-        hash_snacks.put("Burger", burger);
-        hash_snacks.put("Doughnut", doughnut);
-        hash_snacks.put("Hot dog", hot_dog);
-        hash_snacks.put("Large fries", large_fries);
-        hash_snacks.put("Medium fries", medium_fries);
-        hash_snacks.put("Small fries", small_fries);
-        hash_snacks.put("Pizza", pizza);
-        hash_snacks.put("Sandwich", sandwich);
-        hash_snacks.put("Toast", toast);
-        hash_snacks.put("Juice", juice);
-    }
-
-    // save whatever you would have in onSaveInstanceState() and return a bundle with the saved data
-    /*public Bundle getState() {
-        //Bundle bundle = new Bundle();
-        //bundle.putParcelableArrayList("items", items);
-        return bundle;
-    }
-
     @Override
-    public void onPause() {
-        System.out.println("State PAUSED!");
-        super.onPause();
-        bundle = new Bundle();
-        bundle.putParcelableArrayList("items", items);
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
+        switch (requestCode) {
+            case 1: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    // permission was granted, yay!
+                    // Create location request to fetch latest user location
+                    fusedLocationClient = LocationServices
+                            .getFusedLocationProviderClient(Objects.requireNonNull(getActivity()));
+                    fusedLocationClient.getLastLocation()
+                            .addOnCompleteListener(new OnCompleteListener<Location>() {
+                                @Override
+                                public void onComplete(@NonNull Task<Location> task) {
+                                    if (task.isSuccessful() && task.getResult() != null){
+                                        lastLocation = task.getResult();
+                                    }
+                                }
+                            });
+                } else {
+                    // permission denied, boo! Disable the
+                    // functionality that depends on this permission.
+                }
+                return;
+            }
+            // other 'case' lines to check for other
+            // permissions this app might request.
+        }
     }
-
-    public ArrayList<DashboardItem> getItems() {
-        return items;
-    }
-    public void setItems(ArrayList<DashboardItem> item) {
-        items = item;
-        adapter.notifyDataSetChanged();
-    }*/
 }

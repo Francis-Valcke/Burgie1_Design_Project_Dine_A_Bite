@@ -21,12 +21,11 @@ import static java.util.stream.Collectors.toList;
  */
 @Entity
 @Table(name = "user")
-@SuperBuilder
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(callSuper=true)
-public class User extends CommonUser {
+public class User {
 
     @Id
     @NotNull
@@ -48,31 +47,11 @@ public class User extends CommonUser {
 
     @ElementCollection(fetch = FetchType.EAGER)
     @Builder.Default
+    @JoinTable(name = "user_role")
     @Column(name = "role_role")
-    private List<String> role = new ArrayList<>();
+    private List<String> roles = new ArrayList<>();
 
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return this.role.stream().map(SimpleGrantedAuthority::new).collect(toList());
-    }
-
-    @Override
-    public boolean isAccountNonExpired() {
-        return true;
-    }
-
-    @Override
-    public boolean isAccountNonLocked() {
-        return true;
-    }
-
-    @Override
-    public boolean isCredentialsNonExpired() {
-        return true;
-    }
-
-    @Override
-    public boolean isEnabled() {
-        return true;
+    public CommonUser asCommonUser() {
+        return new CommonUser(username, password, email, surname, name, roles);
     }
 }

@@ -1,5 +1,6 @@
 package cobol.services.authentication.config;
 
+import cobol.commons.security.Role;
 import cobol.commons.security.jwt.JwtAuthenticationFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -60,16 +61,15 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
                 .authorizeRequests()
-                .antMatchers("/admin").hasRole("ADMIN")
-                .antMatchers("/user").hasAnyRole("ADMIN", "USER")
+                .antMatchers("/admin").hasRole(Role.ADMIN)
+                .antMatchers("/user").hasAnyRole(Role.ADMIN, Role.USER)
+                .antMatchers("/getUser").hasAnyRole(Role.ADMIN, Role.APPLICATION)
                 .antMatchers("/authenticate").permitAll()
-                .antMatchers("/create").permitAll()
+                .antMatchers("/createUser").permitAll()
+                .antMatchers("/createStandManager").permitAll()
                 .antMatchers("/pingAS").permitAll()
                 .anyRequest().authenticated()
                 .and()
-                //.formLogin()
-                //.and()
-                //.apply(new JwtConfig(jwtTokenProviderService));
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
     }
