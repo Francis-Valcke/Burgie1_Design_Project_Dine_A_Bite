@@ -1,5 +1,7 @@
 package com.example.attendeeapp.polling;
 
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.app.TaskStackBuilder;
@@ -8,6 +10,7 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.util.Log;
@@ -43,9 +46,6 @@ import org.json.JSONObject;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.example.attendeeapp.NotificationChannelSetup.CHANNEL_DONE_ID;
-import static com.example.attendeeapp.NotificationChannelSetup.CHANNEL_START_ID;
-
 
 /**
  * Service that polls the server for order updates
@@ -57,6 +57,9 @@ public class PollingService extends Service {
     private int subscribeId;
     private LoggedInUser user = LoginRepository.getInstance(new LoginDataSource()).getLoggedInUser();
     private NotificationManagerCompat notificationManager;
+
+    public static final String CHANNEL_START_ID = "orderStart";
+    public static final String CHANNEL_DONE_ID = "orderDone";
 
     public static final long DEFAULT_SYNC_INTERVAL = 5 * 1000;
 
@@ -101,18 +104,20 @@ public class PollingService extends Service {
                                     CommonOrderStatusUpdate orderStatusUpdate = mapper.readValue(eventData.toString(), CommonOrderStatusUpdate.class);
                                     intent.putExtra("orderStatusUpdate", orderStatusUpdate);
 
+                                    // Initiate notification
+                                    notificationManager = NotificationManagerCompat.from(context);
+                                    // Create an Intent for the activity you want to start
+                                    Intent activityIntent = new Intent(getApplication(), OrderActivity.class);
+                                    // Create the TaskStackBuilder and add the intent, which inflates the back stack
+                                    TaskStackBuilder stackBuilder = TaskStackBuilder.create(getApplication());
+                                    stackBuilder.addNextIntentWithParentStack(activityIntent);
+                                    // Get the PendingIntent containing the entire back stack
+                                    PendingIntent resultPendingIntent =
+                                            stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
+                                    Bitmap largeIcon = BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher_foreground);
+
                                     if (orderStatusUpdate.getNewStatus() == CommonOrderStatusUpdate.status.CONFIRMED) {
                                         // Send Notification that order is being prepared
-                                        notificationManager = NotificationManagerCompat.from(context);
-                                        // Create an Intent for the activity you want to start
-                                        Intent activityIntent = new Intent(getApplication(), OrderActivity.class);
-                                        // Create the TaskStackBuilder and add the intent, which inflates the back stack
-                                        TaskStackBuilder stackBuilder = TaskStackBuilder.create(getApplication());
-                                        stackBuilder.addNextIntentWithParentStack(activityIntent);
-                                        // Get the PendingIntent containing the entire back stack
-                                        PendingIntent resultPendingIntent =
-                                                stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
-                                        Bitmap largeIcon = BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher_foreground);
 
                                         NotificationCompat.Builder notification = new NotificationCompat.Builder(context, CHANNEL_START_ID)
                                                 .setSmallIcon(R.mipmap.ic_launcher_foreground)
@@ -127,20 +132,9 @@ public class PollingService extends Service {
                                                 .setAutoCancel(true);
                                         // notificationId is a unique int for each notification that you must define
                                         notificationManager.notify(notificationID, notification.build());
-                                    }
 
-                                    else if (orderStatusUpdate.getNewStatus() == CommonOrderStatusUpdate.status.READY) {
+                                    } else if (orderStatusUpdate.getNewStatus() == CommonOrderStatusUpdate.status.READY) {
                                         // Send Notification that order is ready
-                                        notificationManager = NotificationManagerCompat.from(context);
-                                        // Create an Intent for the activity you want to start
-                                        Intent activityIntent = new Intent(getApplication(), OrderActivity.class);
-                                        // Create the TaskStackBuilder and add the intent, which inflates the back stack
-                                        TaskStackBuilder stackBuilder = TaskStackBuilder.create(getApplication());
-                                        stackBuilder.addNextIntentWithParentStack(activityIntent);
-                                        // Get the PendingIntent containing the entire back stack
-                                        PendingIntent resultPendingIntent =
-                                                stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
-                                        Bitmap largeIcon = BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher_foreground);
 
                                         NotificationCompat.Builder notification = new NotificationCompat.Builder(context, CHANNEL_DONE_ID)
                                                 .setSmallIcon(R.mipmap.ic_launcher_foreground)
@@ -197,6 +191,7 @@ public class PollingService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         context = getBaseContext();
+        createNotificationChannels();
         handler = new Handler();
         handler.post(runnableService);
         Log.i("Polling service", "Polling service started");
@@ -220,6 +215,32 @@ public class PollingService extends Service {
         broadcastIntent.setClass(this, RestartPolling.class);
         sendBroadcast(broadcastIntent);*/
         super.onDestroy();
+    }
+
+    /**
+     *  The notification settings here are just the default settings,
+     *  but the user has ultimate control over these settings and can disable them whenever he wants
+     */
+   private void createNotificationChannels() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel orderStart = new NotificationChannel(
+                    CHANNEL_START_ID,
+                    "Order Start",
+                    NotificationManager.IMPORTANCE_HIGH
+            );
+            orderStart.setDescription("This will notify you when your order is being prepared");
+
+            NotificationChannel orderDone = new NotificationChannel(
+                    CHANNEL_DONE_ID,
+                    "Order Done",
+                    NotificationManager.IMPORTANCE_HIGH
+            );
+            orderDone.setDescription("This will notify you when your order is ready to be picked up");
+
+            NotificationManager manager = getSystemService(NotificationManager.class);
+            manager.createNotificationChannel(orderStart);
+            manager.createNotificationChannel(orderDone);
+        }
     }
 
 }
