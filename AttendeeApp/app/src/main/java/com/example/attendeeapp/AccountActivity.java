@@ -16,6 +16,9 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.security.crypto.EncryptedSharedPreferences;
 import androidx.security.crypto.MasterKeys;
 
+import com.android.volley.AuthFailureError;
+import com.android.volley.Request;
+import com.android.volley.toolbox.JsonObjectRequest;
 import com.example.attendeeapp.appDatabase.OrderDatabaseService;
 import com.example.attendeeapp.data.LoginDataSource;
 import com.example.attendeeapp.data.LoginRepository;
@@ -28,19 +31,28 @@ import com.stripe.android.PaymentSessionConfig;
 import com.stripe.android.PaymentSessionData;
 import com.stripe.android.Stripe;
 import com.stripe.android.model.Address;
+import com.stripe.android.model.Customer;
 import com.stripe.android.model.PaymentMethod;
+import com.stripe.android.view.BillingAddressFields;
 import com.stripe.android.view.ShippingInfoWidget;
 
 import org.jetbrains.annotations.NotNull;
+import org.json.JSONException;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 
 public class AccountActivity extends AppCompatActivity {
 
+    public static final int REQUEST_TOP_TUP = 0;
+
+    LoggedInUser user;
     TextView username;
+    TextView balance;
     private PaymentSession paymentSession;
     Button topUp;
 
@@ -63,9 +75,13 @@ public class AccountActivity extends AppCompatActivity {
         ab.setTitle("Account");
 
         // Show username of currently logged in user
-        LoggedInUser user = LoginRepository.getInstance(new LoginDataSource()).getLoggedInUser();
+        user = LoginRepository.getInstance(new LoginDataSource()).getLoggedInUser();
         username = findViewById(R.id.username);
         username.setText(user.getDisplayName());
+
+        balance = findViewById(R.id.balance);
+        updateBalance();
+
 
         Button logOutButton = findViewById(R.id.button_log_out);
         logOutButton.setOnClickListener(new View.OnClickListener() {
@@ -106,24 +122,47 @@ public class AccountActivity extends AppCompatActivity {
 
         });
 
-        // Initialize Stipe payment
-        CustomerSession.initCustomerSession(this, new DineabiteEphemeralKeyProvider());
-        paymentSession = new PaymentSession(this, createPaymentSessionConfig());
-        setupPaymentSession();
-
-
 
         Button topUp = findViewById(R.id.button_top_up);
         topUp.setOnClickListener(button -> {
-            paymentSession.presentPaymentMethodSelection(null);
+            Intent intent = new Intent(this, TopUpActivity.class);
+            startActivityForResult(intent, REQUEST_TOP_TUP);
         });
 
+    }
 
-        Button paymentSetup = findViewById(R.id.button_payment_setup);
-        paymentSetup.setOnClickListener(button -> {
-            paymentSession.presentShippingFlow();
-        });
+    private void updateBalance() {
 
+        String url = ServerConfig.AS_ADDRESS + "/user/balance";
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, url, null,
+                response -> {
+                    try {
+
+                        if(response.get("status").equals("OK")){
+                            balance.setText(response.getString("details"));
+                            Log.i("STRIPE", "balance was updated successfully");
+                        }
+
+                    } catch (JSONException e) {
+                        Log.e("STRIPE", "updateBalance: ", e);
+                        e.printStackTrace();
+                    }
+                },
+                error -> {
+
+                    balance.setText("Balance could not be retrieved.");
+                    Log.e("STRIPE", "updateBalance: ", error);
+                }
+            ){
+                @Override
+                public Map<String, String> getHeaders() {
+                    Map<String, String>  headers  = new HashMap<>();
+                    headers.put("Authorization", user.getAuthorizationToken());
+                    return headers;
+                }
+        };
+
+        RequestQueueSingleton.getInstance(this).addToRequestQueue(request);
     }
 
     @Override
@@ -158,77 +197,13 @@ public class AccountActivity extends AppCompatActivity {
         }
     }
 
-    @NonNull
-    private PaymentSessionConfig createPaymentSessionConfig() {
-        return new PaymentSessionConfig.Builder()
-
-                // hide the phone field on the shipping information form
-                .setHiddenShippingInfoFields(
-                        ShippingInfoWidget.CustomizableShippingField.PHONE_FIELD
-                )
-
-                // make the address line 2 field optional
-                .setOptionalShippingInfoFields(
-                        ShippingInfoWidget.CustomizableShippingField.ADDRESS_LINE_TWO_FIELD
-                )
-
-                // collect shipping information
-                .setShippingInfoRequired(false)
-
-                // collect shipping method
-                .setShippingMethodsRequired(false)
-
-                // specify the payment method types that the customer can use;
-                // defaults to PaymentMethod.Type.Card
-                .setPaymentMethodTypes(
-                        Arrays.asList(PaymentMethod.Type.Card)
-                )
-
-                // if `true`, will show "Google Pay" as an option on the
-                // Payment Methods selection screen
-                .setShouldShowGooglePay(true)
-
-                .build();
-    }
-
-    private void setupPaymentSession() {
-        paymentSession.init(
-                new PaymentSession.PaymentSessionListener() {
-                    @Override
-                    public void onPaymentSessionDataChanged(@NotNull PaymentSessionData data) {
-                        if (data.getUseGooglePay()) {
-                            // customer intends to pay with Google Pay
-                        } else {
-                            final PaymentMethod paymentMethod = data.getPaymentMethod();
-                            if (paymentMethod != null) {
-                                // Display information about the selected payment method
-                            }
-                        }
-
-                        // Update your UI here with other data
-                        if (data.isPaymentReadyToCharge()) {
-                            // Use the data to complete your charge - see below.
-                        }
-                    }
-
-                    @Override
-                    public void onCommunicatingStateChanged(boolean isCommunicating) {
-
-                    }
-
-                    @Override
-                    public void onError(int errorCode, @NotNull String errorMessage) {
-                        Log.e("STRIPE", "onError: " + errorMessage, null);
-                    }
-                }
-        );
-    }
-
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (data != null) {
-            paymentSession.handlePaymentData(requestCode, resultCode, data);
+
+        if(requestCode == REQUEST_TOP_TUP) {
+            updateBalance();
         }
+
     }
 }

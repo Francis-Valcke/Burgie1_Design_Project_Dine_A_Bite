@@ -12,6 +12,7 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties
 public class ConfigurationBean {
 
-    private String stripeApiKey;
+    private String stripeSecretApiKey;
+    private String stripePublicApiKey;
 
 }

@@ -4,11 +4,13 @@ package cobol.services.authentication.domain.entity;
 import cobol.commons.security.CommonUser;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
+import org.springframework.boot.context.properties.bind.DefaultValue;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -47,6 +49,9 @@ public class User {
 
     @Column
     private String customerId;
+
+    @Column(nullable = false)
+    private double balance = 0;
 
     @ElementCollection(fetch = FetchType.EAGER)
     @Builder.Default

@@ -13,6 +13,10 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
+import java.util.HashMap;
+
+import static cobol.commons.ResponseModel.status.ERROR;
 import static cobol.commons.ResponseModel.status.OK;
 
 /**
@@ -23,7 +27,7 @@ import static cobol.commons.ResponseModel.status.OK;
 @RequestMapping("/user")
 public class UserController {
 
-    private UserRepository users;
+    private UserRepository userRepository;
 
     /**
      * API endpoint for retrieving information about the currently authenticated user.
@@ -33,7 +37,7 @@ public class UserController {
      */
     @GetMapping("")
     public ResponseEntity<CommonUser> info(@AuthenticationPrincipal CommonUser userDetails){
-        User user = users.findById(userDetails.getUsername())
+        User user = userRepository.findById(userDetails.getUsername())
                 .orElseThrow(() -> new UsernameNotFoundException(userDetails.getUsername() + " not found!"));
 
         return ResponseEntity.ok(user.asCommonUser());
@@ -41,7 +45,7 @@ public class UserController {
 
     @GetMapping("getUser")
     public ResponseEntity<CommonUser> getUser(@RequestParam String username) throws DoesNotExistException {
-        return ResponseEntity.ok(users.findById(username).orElseThrow(() -> new DoesNotExistException("The user does not exist.")).asCommonUser());
+        return ResponseEntity.ok(userRepository.findById(username).orElseThrow(() -> new DoesNotExistException("The user does not exist.")).asCommonUser());
     }
 
     /**
@@ -54,7 +58,7 @@ public class UserController {
     @DeleteMapping("")
     public ResponseEntity delete(@AuthenticationPrincipal UserDetails userDetails){
         try {
-            users.delete(users.findById(userDetails.getUsername()).orElseThrow(() -> new UsernameNotFoundException(userDetails.getUsername())));
+            userRepository.delete(userRepository.findById(userDetails.getUsername()).orElseThrow(() -> new UsernameNotFoundException(userDetails.getUsername())));
 
             return ResponseEntity.ok(
                     ResponseModel.builder()
@@ -74,8 +78,84 @@ public class UserController {
 
     }
 
+    @GetMapping("/balance")
+    public ResponseEntity<HashMap<Object, Object>> getBalance(@AuthenticationPrincipal CommonUser ap){
+        try {
+            User user = userRepository.findById(ap.getUsername()).orElseThrow(() -> new DoesNotExistException("The user does not exist, this is not possible"));
+
+            return ResponseEntity.ok(
+                    ResponseModel.builder()
+                    .status(OK)
+                    .details(user.getBalance())
+                    .build().generateResponse()
+            );
+
+        } catch (DoesNotExistException e) {
+            e.printStackTrace();
+            return ResponseEntity.notFound().build();
+        }
+
+    }
+
+    @PostMapping("/balance/add")
+    public ResponseEntity<HashMap<Object, Object>> doBalanceAdd(@RequestParam double amount, @AuthenticationPrincipal CommonUser ap){
+        try {
+            User user = userRepository.findById(ap.getUsername()).orElseThrow(() -> new DoesNotExistException("The user does not exist, this is not possible"));
+            user.setBalance(user.getBalance()+(amount));
+            userRepository.save(user);
+
+            return ResponseEntity.ok(
+                    ResponseModel.builder()
+                            .status(OK)
+                            .details(user.getBalance())
+                            .build().generateResponse()
+            );
+
+        } catch (DoesNotExistException e) {
+            e.printStackTrace();
+            return ResponseEntity.notFound().build();
+        }
+
+    }
+
+    @PostMapping("/balance/subtract")
+    public ResponseEntity<HashMap<Object, Object>> doBalanceSubtract(@RequestParam double amount, @AuthenticationPrincipal CommonUser ap){
+        try {
+            User user = userRepository.findById(ap.getUsername()).orElseThrow(() -> new DoesNotExistException("The user does not exist, this is not possible"));
+
+            double temp = user.getBalance() - amount;
+
+            if (temp < 0) {
+                return ResponseEntity.ok(
+                        ResponseModel.builder()
+                                .status(ERROR)
+                                .details("Not enough money!")
+                                .build().generateResponse()
+                );
+
+            } else {
+                user.setBalance(temp);
+                userRepository.save(user);
+
+                return ResponseEntity.ok(
+                        ResponseModel.builder()
+                                .status(OK)
+                                .details(user.getBalance())
+                                .build().generateResponse()
+                );
+            }
+
+
+        } catch (DoesNotExistException e) {
+            e.printStackTrace();
+            return ResponseEntity.notFound().build();
+        }
+
+    }
+
+
     @Autowired
-    public void setUsers(UserRepository users) {
-        this.users = users;
+    public void setUsers(UserRepository userRepository) {
+        this.userRepository = userRepository;
     }
 }
