@@ -36,7 +36,7 @@ public class MainActivity extends AppCompatActivity {
 
         // Clear db of all entries (for testing purposes)
         //OrderDatabaseService orderDatabaseService = new OrderDatabaseService(getApplicationContext());
-        //orderDatabaseService.deleteOrder(new CommonOrder());
+        //orderDatabaseService.deleteAllOrders();
 
         // Clear Shared Preference file (for testing purposes)
         // This will reset the logged in user -> you will again need to log in to the app

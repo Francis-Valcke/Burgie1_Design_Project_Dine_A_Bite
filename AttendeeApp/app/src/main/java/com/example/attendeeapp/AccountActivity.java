@@ -22,7 +22,7 @@ import com.example.attendeeapp.data.model.LoggedInUser;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 
-public class AccountActivity extends AppCompatActivity {
+public class AccountActivity extends ToolbarActivity {
 
     TextView username;
 
@@ -31,18 +31,9 @@ public class AccountActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_account);
 
-        // Custom Toolbar (instead of standard actionbar)
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-
-        // Get a support ActionBar corresponding to this toolbar
-        ActionBar ab = getSupportActionBar();
-
-        // Enable the Up button
-        assert ab != null;
-        ab.setDisplayHomeAsUpEnabled(true);
-
-        ab.setTitle("Account");
+        // Initialize the toolbar
+        initToolbar();
+        upButtonToolbar();
 
         // Show username of currently logged in user
         LoggedInUser user = LoginRepository.getInstance(new LoginDataSource()).getLoggedInUser();
@@ -91,33 +82,10 @@ public class AccountActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(@NonNull android.view.MenuItem item) {
-        switch (item.getItemId()) {
-            case android.R.id.home:
-                // This takes the user 'back', as if they pressed the left-facing triangle icon
-                // on the main android toolbar.
-                onBackPressed();
-                return true;
-            case R.id.orders_action:
-                // User chooses the "My Orders" item
-                Intent intent = new Intent(AccountActivity.this, OrderActivity.class);
-                startActivity(intent);
-                return true;
-            case R.id.account_action:
-                // User chooses the "Account" item
-                Intent intent2 = new Intent(AccountActivity.this, AccountActivity.class);
-                startActivity(intent2);
-                return true;
-            case R.id.settings_action:
-                // User chooses the "Settings" item
-                // TODO make settings activity
-                return true;
-            case R.id.map_action:
-                //User chooses the "Map" item
-                Intent mapIntent = new Intent(AccountActivity.this, MapsActivity.class);
-                startActivity(mapIntent);
-                return true;
-            default:
-                return super.onOptionsItemSelected(item);
+        if (item.getItemId() == R.id.account_action) {
+            // User chooses the "Account" item
+            return true;
         }
+        return super.onOptionsItemSelected(item);
     }
 }

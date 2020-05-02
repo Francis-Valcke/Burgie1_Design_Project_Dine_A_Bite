@@ -12,7 +12,7 @@ import org.jetbrains.annotations.NotNull;
 public class MenuFragmentAdapter extends FragmentStateAdapter {
 
     // Number of slider tabs available
-    private static final int NUM_PAGES = 2;
+    private static final int NUM_PAGES = 3;
 
     MenuFragmentAdapter(@NonNull FragmentActivity fragmentActivity) {
         super(fragmentActivity);
@@ -20,7 +20,7 @@ public class MenuFragmentAdapter extends FragmentStateAdapter {
 
     /**
      * Creates global or stand fragment depending on the slider position
-     * @param position: 0 = global fragment, 1 = stand fragment
+     * @param position: 0 = global fragment, 1 = stand fragment, 2 = category fragment
      * @return the newly created fragment
      */
     @NotNull
@@ -32,6 +32,8 @@ public class MenuFragmentAdapter extends FragmentStateAdapter {
                 return new MenuFragmentGlobal();
             case 1:
                 return new MenuFragmentStand();
+            case 2:
+                return new MenuFragmentCategory();
         }
         return new MenuFragmentGlobal();
     }
