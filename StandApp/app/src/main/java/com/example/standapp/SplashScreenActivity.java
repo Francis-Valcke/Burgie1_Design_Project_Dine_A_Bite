@@ -32,14 +32,5 @@ public class SplashScreenActivity extends AppCompatActivity {
             }
         };
         loading.start();
-
-        /*EasySplashScreen config = new EasySplashScreen(SplashScreenActivity.this)
-                .withFullScreen()
-                .withTargetActivity(MainActivity.class)
-                .withSplashTimeOut(2500)
-                .withLogo(R.mipmap.ic_launcher_foreground);
-
-        View easySplashScreen = config.create();
-        setContentView(easySplashScreen);*/
     }
 }
