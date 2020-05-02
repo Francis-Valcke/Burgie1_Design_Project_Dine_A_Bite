@@ -2,16 +2,20 @@ package cobol.commons.order;
 
 import lombok.Data;
 
-import java.util.Calendar;
+//import java.util.Calendar;
+import java.time.Duration;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.TimeZone;
 
 @Data
 public class CommonOrder {
 
     private int id;
 
-    private Calendar startTime;
-    private Calendar expectedTime;
+    private ZonedDateTime startTime;
+    private ZonedDateTime expectedTime;
     private State orderState;
     private String brandName;
     private String standName;
@@ -24,7 +28,8 @@ public class CommonOrder {
 
     public CommonOrder(){}
 
-    public CommonOrder(int id, Calendar startTime, Calendar expectedTime, State orderState, String brandName, String standName, List<CommonOrderItem> orderItems, double latitude, double longitude) {
+    public CommonOrder(int id, ZonedDateTime startTime, ZonedDateTime expectedTime, State orderState, String brandName, String standName, List<CommonOrderItem> orderItems, double latitude, double longitude) {
+        TimeZone.setDefault(TimeZone.getTimeZone("Europe/Brussels"));
         this.id = id;
         this.startTime = startTime;
         this.expectedTime = expectedTime;
@@ -49,7 +54,14 @@ public class CommonOrder {
      * @return RemainingTime in seconds
      */
     public int computeRemainingTime(){
-        return (int) (expectedTime.getTimeInMillis()-startTime.getTimeInMillis())/1000;
+        ZonedDateTime actual = ZonedDateTime.now(ZoneId.of("Europe/Brussels"));
+        if (actual.isAfter(expectedTime)){
+            return -1;
+        }
+        else {
+            Duration remaining = Duration.between(actual, expectedTime);
+            return (int) remaining.getSeconds();
+        }
     }
 
 }

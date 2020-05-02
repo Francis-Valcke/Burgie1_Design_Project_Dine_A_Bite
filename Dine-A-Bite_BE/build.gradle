@@ -6,6 +6,10 @@ plugins {
         id 'jacoco'
 }
 
+jacoco {
+    toolVersion = "0.8.5"
+}
+
 version = '0.5'
 
 def outputDir = "$rootDir/jars"

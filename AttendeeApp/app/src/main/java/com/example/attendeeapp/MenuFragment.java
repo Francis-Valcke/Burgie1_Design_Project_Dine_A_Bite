@@ -40,14 +40,14 @@ abstract class MenuFragment extends Fragment {
     SwipeRefreshLayout pullToRefresh;
     Toast mToast;
 
-    private LoggedInUser user = LoginRepository.getInstance(new LoginDataSource()).getLoggedInUser();
+    protected LoggedInUser user = LoginRepository.getInstance(new LoginDataSource()).getLoggedInUser();
 
     /**
      * Updates the current global/stand menu with the updated version returned from the server
      * Error are handled in the fetchMenu function
-     * @param response: the JSON response from the server
+     * @param response: List of food items from the server
      */
-    private void updateMenu(List<CommonFood> response) {
+    protected void updateMenu(List<CommonFood> response) {
         // Renew the list
         menuItems.clear();
 
@@ -90,7 +90,6 @@ abstract class MenuFragment extends Fragment {
                                                             new Response.Listener<JSONArray>() {
             @Override
             public void onResponse(JSONArray response) {
-
                 try {
                     ObjectMapper om = new ObjectMapper();
                     List<CommonFood> foodList=om.readValue(response.toString(), new TypeReference<List<CommonFood>>() {});
@@ -111,6 +110,8 @@ abstract class MenuFragment extends Fragment {
                             Toast.LENGTH_LONG);
                     mToast.show();
                 }
+                // Refreshing is done
+                pullToRefresh.setRefreshing(false);
             }
         }, new Response.ErrorListener() {
             @Override
@@ -137,6 +138,8 @@ abstract class MenuFragment extends Fragment {
                                             Toast.LENGTH_LONG);
                     mToast.show();
                 }
+                // Refreshing is done
+                pullToRefresh.setRefreshing(false);
             }
         }) { // Add JSON headers
             @Override

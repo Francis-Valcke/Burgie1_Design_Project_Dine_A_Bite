@@ -15,6 +15,7 @@ import com.example.attendeeapp.data.LoginRepository;
 import com.example.attendeeapp.data.model.LoggedInUser;
 import com.example.attendeeapp.polling.RequestQueueSingleton;
 import com.example.attendeeapp.ui.login.LoginActivity;
+import com.jakewharton.threetenabp.AndroidThreeTen;
 import com.stripe.android.PaymentConfiguration;
 
 import java.io.IOException;
@@ -32,6 +33,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
+        AndroidThreeTen.init(this);
         PaymentConfiguration.init(
                 getApplicationContext(),
                 "pk_test_GxEIF5eJVuGKv6O5Jsz6l8wr00qoki9cHO"
@@ -41,7 +43,7 @@ public class MainActivity extends AppCompatActivity {
 
         // Clear db of all entries (for testing purposes)
         //OrderDatabaseService orderDatabaseService = new OrderDatabaseService(getApplicationContext());
-        //orderDatabaseService.deleteOrder(new CommonOrder());
+        //orderDatabaseService.deleteAllOrders();
 
         // Clear Shared Preference file (for testing purposes)
         // This will reset the logged in user -> you will again need to log in to the app

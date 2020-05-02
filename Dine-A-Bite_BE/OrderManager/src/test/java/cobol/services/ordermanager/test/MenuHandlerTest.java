@@ -10,6 +10,7 @@ import cobol.services.ordermanager.domain.repository.CategoryRepository;
 import cobol.services.ordermanager.domain.repository.StandRepository;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.google.common.io.Resources;
 import org.junit.After;
 import org.junit.Assert;
@@ -72,6 +73,7 @@ public class MenuHandlerTest {
         URL url = Thread.currentThread().getContextClassLoader().getResource("dataset.json");
         String body = Resources.toString(url, StandardCharsets.UTF_8);
         ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new JavaTimeModule());
         brands = mapper.readValue(body, new TypeReference<List<Brand>>() {
         });
 
@@ -95,6 +97,7 @@ public class MenuHandlerTest {
 
 
         ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new JavaTimeModule());
         //call menu from menuhandler and extract MenuItems
         MvcResult result = this.mockMvc.perform(get("/menu").contentType(MediaType.APPLICATION_JSON)
                 .header("Authorization", token))

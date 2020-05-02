@@ -63,7 +63,7 @@ public class MenuActivityTest {
         assertTrue(pager_adapter instanceof MenuFragmentAdapter);
 
         // Check if the viewpager has 2 tabs and is showing the first one
-        assertEquals(2, pager_adapter.getItemCount());
+        assertEquals(3, pager_adapter.getItemCount());
         assertEquals(0, viewPager.getCurrentItem());
     }
 
@@ -77,9 +77,10 @@ public class MenuActivityTest {
         assertNotNull(tab);
 
         // Check if the tabLayout has 2 tabs and is showing the first one
-        assertEquals(2, tab.getTabCount());
+        assertEquals(3, tab.getTabCount());
         assertEquals(menuActivity.getString(R.string.tab_global), tab.getTabAt(0).getText());
         assertEquals(menuActivity.getString(R.string.tab_stand), tab.getTabAt(1).getText());
+        assertEquals(menuActivity.getString(R.string.tab_category), tab.getTabAt(2).getText());
         assertEquals(0, tab.getSelectedTabPosition());
     }
 

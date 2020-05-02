@@ -22,9 +22,6 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
-import com.example.attendeeapp.data.LoginDataSource;
-import com.example.attendeeapp.data.LoginRepository;
-import com.example.attendeeapp.data.model.LoggedInUser;
 
 import org.json.JSONObject;
 
@@ -39,11 +36,10 @@ import java.util.Objects;
  */
 public class MenuFragmentStand extends MenuFragment implements AdapterView.OnItemSelectedListener {
 
+    private Spinner spinner;
     private ArrayAdapter<String> standListAdapter;
-    // List of stand and brands: key = brandName, value = multiple standNames
-    private HashMap<String, String> standList = new HashMap<>();
-
-    private LoggedInUser user = LoginRepository.getInstance(new LoginDataSource()).getLoggedInUser();
+    // List of brands belonging to a stand (in sequence!)
+    private ArrayList<String> brandList = new ArrayList<>();
 
     @Nullable
     @Override
@@ -56,12 +52,13 @@ public class MenuFragmentStand extends MenuFragment implements AdapterView.OnIte
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
 
         // Create a spinner item for the different stands
-        Spinner spinner = view.findViewById(R.id.spinner);
+        spinner = view.findViewById(R.id.spinner);
         spinner.setOnItemSelectedListener(this);
 
         // Initiate the spinner item adapter
         standListAdapter = new ArrayAdapter<>(Objects.requireNonNull(getActivity()),
                 R.layout.stand_spinner_item, new ArrayList<String>());
+        standListAdapter.add("No stands available");
         spinner.setAdapter(standListAdapter);
 
         // Instantiates menu item list
@@ -79,7 +76,7 @@ public class MenuFragmentStand extends MenuFragment implements AdapterView.OnIte
             @Override
             public void onRefresh() {
                 fetchStandNames();
-                pullToRefresh.setRefreshing(false);
+                pullToRefresh.setRefreshing(true);
             }
         });
 
@@ -92,7 +89,9 @@ public class MenuFragmentStand extends MenuFragment implements AdapterView.OnIte
                                int pos, long id) {
         // An item was selected in the spinner, fetch the menu of the selected stand
         String standName = (String) parent.getItemAtPosition(pos);
-        fetchMenu(standName, standList.get(standName));
+        if (!standName.equals("No stands available")) {
+            fetchMenu(standName, brandList.get(pos));
+        }
     }
 
     public void onNothingSelected(AdapterView<?> parent) {
@@ -116,14 +115,22 @@ public class MenuFragmentStand extends MenuFragment implements AdapterView.OnIte
 
                         try {
                             standListAdapter.clear();
+                            brandList.clear();
+                            standListAdapter.add("No stands available");
+
                             for (Iterator<String> iter = response.keys(); iter.hasNext(); ) {
                                 String standName = iter.next();
                                 String brandName = response.getString(standName);
-                                standList.put(standName, brandName);
+                                brandList.add(brandName);
 
                                 // Add stand to the spinner list
                                 standListAdapter.add(standName);
                             }
+
+                            if (standListAdapter.getCount() != 1) standListAdapter.remove("No stands available");
+
+                            // Refresh spinner
+                            spinner.setAdapter(standListAdapter);
 
                         } catch (Exception e) { // Catch all exceptions TODO: only specific ones
                             Log.v("Exception fetchMenu", e.toString());
@@ -148,6 +155,8 @@ public class MenuFragmentStand extends MenuFragment implements AdapterView.OnIte
                             Toast.LENGTH_LONG);
                     mToast.show();
                 }
+                // Refreshing is done
+                pullToRefresh.setRefreshing(false);
             }
         }) { // Add JSON headers
             @Override

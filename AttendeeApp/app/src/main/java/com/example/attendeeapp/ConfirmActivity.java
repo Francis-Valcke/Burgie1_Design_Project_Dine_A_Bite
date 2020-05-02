@@ -45,10 +45,12 @@ import com.google.common.collect.Multimap;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.threeten.bp.Instant;
+import org.threeten.bp.ZoneId;
+import org.threeten.bp.ZonedDateTime;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -57,7 +59,7 @@ import java.util.Map;
 /**
  * Activity that handles the confirmation/choosing of the (recommended) stand of the placed order
  */
-public class ConfirmActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener {
+public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnItemSelectedListener {
 
     private ArrayAdapter<String> standListAdapter;
     private Location lastLocation;
@@ -78,6 +80,10 @@ public class ConfirmActivity extends AppCompatActivity implements AdapterView.On
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_confirm);
+
+        // Initialize the toolbar
+        initToolbar();
+        upButtonToolbar();
 
         // Ignore warning
         ordered = (ArrayList<CommonFood>) getIntent().getSerializableExtra("order");
@@ -108,16 +114,6 @@ public class ConfirmActivity extends AppCompatActivity implements AdapterView.On
         TextView remainingTime = findViewById(R.id.recommend_time);
         remainingTime.setVisibility(View.GONE);
 
-        // Custom Toolbar (instead of standard actionbar)
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-
-        // Get a support ActionBar corresponding to this toolbar
-        ActionBar ab = getSupportActionBar();
-
-        // Enable the Up button
-        assert ab != null;
-        ab.setDisplayHomeAsUpEnabled(true);
 
         // Create a spinner item for the different stands
         Spinner spinner = findViewById(R.id.stand_recommended_spinner);
@@ -263,7 +259,8 @@ public class ConfirmActivity extends AppCompatActivity implements AdapterView.On
                         try {
                             recommendations = mapper.readValue(response.get("recommendations").toString(),
                                     new TypeReference<List<Recommendation>>() {});
-                            orderReceived = mapper.readValue(response.get("order").toString(), CommonOrder.class);
+                            //orderReceived= mapper.readValue(response.get("order").toString(), CommonOrder.class);
+                            orderReceived = mapper.readerFor(CommonOrder.class).readValue(response.get("order").toString());
                             orderReceived.setTotalPrice(totalPrice);
                             orderReceived.setPrices(ordered);
                             orderReceived.setTotalCount(cartCount);
@@ -328,10 +325,9 @@ public class ConfirmActivity extends AppCompatActivity implements AdapterView.On
                 // Set expected time for order
                 // timestamp in seconds, calendar in milliseconds
                 long timestamp = recommendations.get(i).getTimeEstimate() * 1000;
-                timestamp += orderReceived.getStartTime().getTimeInMillis();
-                GregorianCalendar cal = new GregorianCalendar();
-                cal.setTimeInMillis(timestamp);
-                orderReceived.setExpectedTime(cal);
+                timestamp += orderReceived.getStartTime().toInstant().toEpochMilli();
+                ZonedDateTime zonedDateTime = ZonedDateTime.ofInstant(Instant.ofEpochMilli(timestamp), ZoneId.of("Europe/Brussels"));
+                orderReceived.setExpectedTime(zonedDateTime);
 
                 // Display the chosen recommendation from the recommendation list
                 TextView recommend = findViewById(R.id.stand_recommend);
@@ -384,45 +380,6 @@ public class ConfirmActivity extends AppCompatActivity implements AdapterView.On
         // Set the recommendation text to specific stand chosen text
         TextView recommend = findViewById(R.id.stand_recommend);
         recommend.setText(R.string.specific_stand_chosen);
-    }
-
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.main_menu, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(@NonNull android.view.MenuItem item) {
-        switch (item.getItemId()) {
-            case android.R.id.home:
-                // This takes the user 'back', as if they pressed the left-facing triangle icon
-                // on the main android toolbar.
-                onBackPressed();
-                return true;
-            case R.id.orders_action:
-                // User chooses the "My Orders" item
-                Intent intent = new Intent(ConfirmActivity.this, OrderActivity.class);
-                startActivity(intent);
-                return true;
-            case R.id.account_action:
-                // User chooses the "Account" item
-                // TODO make account activity
-                return true;
-            case R.id.settings_action:
-                // User chooses the "Settings" item
-                // TODO make settings activity
-                return true;
-            case R.id.map_action:
-                //User chooses the "Map" item
-                Intent mapIntent = new Intent(ConfirmActivity.this, MapsActivity.class);
-                startActivity(mapIntent);
-                return true;
-            default:
-                return super.onOptionsItemSelected(item);
-        }
     }
 
     @Override

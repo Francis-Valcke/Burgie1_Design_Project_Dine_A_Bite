@@ -36,7 +36,7 @@ public class MenuFragmentGlobal extends MenuFragment {
             @Override
             public void onRefresh() {
                 fetchMenu("", "");
-                pullToRefresh.setRefreshing(false);
+                pullToRefresh.setRefreshing(true);
             }
         });
 
