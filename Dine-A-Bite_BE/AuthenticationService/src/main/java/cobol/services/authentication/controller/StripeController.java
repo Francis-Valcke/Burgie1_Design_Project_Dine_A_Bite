@@ -23,6 +23,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -57,22 +58,24 @@ public class StripeController {
     }
 
     @PostMapping(value = "/createPaymentIntent", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<BetterResponseModel<?>> createPaymentIntent(double amount, @AuthenticationPrincipal CommonUser user) {
+    public ResponseEntity<BetterResponseModel<?>> createPaymentIntent(String amount, @AuthenticationPrincipal CommonUser user) {
 
         try {
 
             User userEntity = userRepository.findById(user.getUsername())
                     .orElseThrow(() -> new DoesNotExistException("This user does not exist in the database. This should not be possible!"));
 
+            BigDecimal decimalAmount = new BigDecimal(amount);
+
             // First try to create a transaction
-            ResponseEntity<BetterResponseModel<?>> transaction = createTransaction(amount, null, user);
+            ResponseEntity<BetterResponseModel<?>> transaction = createTransaction(decimalAmount, null, user);
             if (Objects.requireNonNull(transaction.getBody()).getStatus().equals(Status.ERROR)) {
                 // If there was an error creating the transaction, throw exception
                 throw transaction.getBody().getException();
             }
 
             // Then handle stripe
-            long longAmount = (long) (amount * 100);
+            long longAmount = Long.parseLong(amount) * 100;
 
             Stripe.apiKey = configurationBean.getStripeSecretApiKey();
 
@@ -99,12 +102,12 @@ public class StripeController {
 
 
     @PostMapping(value = "/createTransaction", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<BetterResponseModel<?>> createTransaction(double amount, @RequestParam(value = "user", required = false) String otherUser, @AuthenticationPrincipal CommonUser user) {
+    public ResponseEntity<BetterResponseModel<?>> createTransaction(BigDecimal amount, @RequestParam(value = "user", required = false) String otherUser, @AuthenticationPrincipal CommonUser user) {
 
         try {
 
             // When otherUser is specified, check if the authenticationPrincipal is our application that issued the request
-            if (!user.getRoles().contains(Role.APPLICATION)){
+            if (otherUser != null && !user.getRoles().contains(Role.APPLICATION)){
                 throw new NotAuthorizedException("User: " + user.getUsername() + " is not authorized to perform this action.");
             }
 
@@ -112,7 +115,7 @@ public class StripeController {
                     .orElseThrow(() -> new DoesNotExistException("This user does not exist in the database. This should not be possible!"));
 
             // Check if the transaction could go through ie remaining balance >=0
-            if (userEntity.getBalance()+amount <= 0){
+            if (userEntity.getBalance().add(amount).compareTo(BigDecimal.ZERO) < 0){
                 throw new NotEnoughMoneyException("There is not enough money on the account for this transaction.");
             }
 
@@ -135,7 +138,7 @@ public class StripeController {
         try {
 
             // When otherUser is specified, check if the authenticationPrincipal is our application that issued the request
-            if (!user.getRoles().contains(Role.APPLICATION)){
+            if (otherUser != null && !user.getRoles().contains(Role.APPLICATION)){
                 throw new NotAuthorizedException("User: " + user.getUsername() + " is not authorized to perform this action.");
             }
 
@@ -143,12 +146,12 @@ public class StripeController {
                     .orElseThrow(() -> new DoesNotExistException("This user does not exist in the database. This should not be possible!"));
 
             // Check again if the transaction could go through ie remaining balance >=0
-            if (userEntity.getBalance()+userEntity.getUnconfirmedPayment() <= 0){
+            if (userEntity.getBalance().add(userEntity.getUnconfirmedPayment()).compareTo(BigDecimal.ZERO) < 0){
                 throw new NotEnoughMoneyException("There is not enough money on the account for this transaction.");
             }
 
-            userEntity.setBalance(userEntity.getBalance() + userEntity.getUnconfirmedPayment());
-            userEntity.setUnconfirmedPayment(0);
+            userEntity.setBalance(userEntity.getBalance().add(userEntity.getUnconfirmedPayment()));
+            userEntity.setUnconfirmedPayment(BigDecimal.ZERO);
             userRepository.save(userEntity);
 
             GetBalanceResponse details = new GetBalanceResponse(userEntity.getBalance());
@@ -164,14 +167,14 @@ public class StripeController {
         try {
 
             // When otherUser is specified, check if the authenticationPrincipal is our application that issued the request
-            if (!user.getRoles().contains(Role.APPLICATION)){
+            if (otherUser != null && !user.getRoles().contains(Role.APPLICATION)){
                 throw new NotAuthorizedException("User: " + user.getUsername() + " is not authorized to perform this action.");
             }
 
             User userEntity = userRepository.findById(otherUser == null ? user.getUsername() : otherUser)
                     .orElseThrow(() -> new DoesNotExistException("This user does not exist in the database. This should not be possible!"));
 
-            userEntity.setUnconfirmedPayment(0);
+            userEntity.setUnconfirmedPayment(BigDecimal.ZERO);
             userRepository.save(userEntity);
 
             BetterResponseModel.GetBalanceResponse details = new BetterResponseModel.GetBalanceResponse(userEntity.getBalance());

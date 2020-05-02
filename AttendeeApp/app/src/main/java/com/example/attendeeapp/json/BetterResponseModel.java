@@ -1,12 +1,13 @@
 package com.example.attendeeapp.json;
 
+import java.math.BigDecimal;
+
 public class BetterResponseModel<T> {
 
     private String status;
     private String details;
     private T payload;
     private Throwable exception;
-
 
     public static <T> BetterResponseModel<T> ok(String details, T payload){
         return new BetterResponseModel<T>(details, payload);
@@ -15,7 +16,6 @@ public class BetterResponseModel<T> {
     public static <T> BetterResponseModel<T> error(String details, Throwable e){
         return new BetterResponseModel<T>(details, e);
     }
-
 
     public BetterResponseModel() {
     }
@@ -78,6 +78,8 @@ public class BetterResponseModel<T> {
         public static final String ERROR = "ERROR";
     }
 
+    // ---- Implement DATA objects here ----
+
     public static class CreatePaymentIntentResponse {
 
         private String clientSecret;
@@ -110,20 +112,20 @@ public class BetterResponseModel<T> {
 
     public static class GetBalanceResponse {
 
-        private double balance;
+        private BigDecimal balance;
 
         public GetBalanceResponse() {
         }
 
-        public GetBalanceResponse(double balance) {
+        public GetBalanceResponse(BigDecimal balance) {
             this.balance = balance;
         }
 
-        public double getBalance() {
+        public BigDecimal getBalance() {
             return balance;
         }
 
-        public void setBalance(double balance) {
+        public void setBalance(BigDecimal balance) {
             this.balance = balance;
         }
     }

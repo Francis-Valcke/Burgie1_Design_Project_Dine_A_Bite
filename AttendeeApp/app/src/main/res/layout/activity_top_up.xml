@@ -5,6 +5,17 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
+    <ProgressBar
+            android:id="@+id/payment_loading"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_gravity="center"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/toolbar" />
+
     <include
             android:id="@+id/toolbar"
             layout="@layout/toolbar"

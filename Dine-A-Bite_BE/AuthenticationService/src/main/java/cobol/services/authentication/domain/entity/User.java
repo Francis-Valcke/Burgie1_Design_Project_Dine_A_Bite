@@ -50,11 +50,11 @@ public class User {
     @Column
     private String customerId;
 
-    @Column(nullable = false)
-    private double balance = 0;
+    @Builder.Default
+    private BigDecimal balance = new BigDecimal(0);
 
-
-    private double unconfirmedPayment = 0;
+    @Builder.Default
+    private BigDecimal unconfirmedPayment = new BigDecimal(0);
 
     @ElementCollection(fetch = FetchType.EAGER)
     @Builder.Default

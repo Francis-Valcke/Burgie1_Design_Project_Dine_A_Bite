@@ -54,6 +54,7 @@ dependencies {
     implementation "androidx.room:room-runtime:2.2.5"
     implementation 'com.stripe:stripe-android:14.4.0'
     implementation 'io.reactivex.rxjava3:rxjava:3.0.2'
+    implementation("com.squareup.okhttp3:okhttp:4.6.0")
     implementation 'com.google.android.gms:play-services-wallet:18.0.0'
     annotationProcessor "androidx.room:room-compiler:2.2.5"
 

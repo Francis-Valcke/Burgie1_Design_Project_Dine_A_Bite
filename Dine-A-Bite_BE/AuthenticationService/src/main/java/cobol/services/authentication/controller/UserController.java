@@ -97,63 +97,6 @@ public class UserController {
 
     }
 
-    @PostMapping("/balance/add")
-    public ResponseEntity<HashMap<Object, Object>> doBalanceAdd(@RequestParam double amount, @AuthenticationPrincipal CommonUser ap){
-        try {
-            User user = userRepository.findById(ap.getUsername()).orElseThrow(() -> new DoesNotExistException("The user does not exist, this is not possible"));
-            user.setBalance(user.getBalance()+(amount));
-            userRepository.save(user);
-
-            return ResponseEntity.ok(
-                    ResponseModel.builder()
-                            .status(OK)
-                            .details(user.getBalance())
-                            .build().generateResponse()
-            );
-
-        } catch (DoesNotExistException e) {
-            e.printStackTrace();
-            return ResponseEntity.notFound().build();
-        }
-
-    }
-
-    @PostMapping("/balance/subtract")
-    public ResponseEntity<HashMap<Object, Object>> doBalanceSubtract(@RequestParam double amount, @AuthenticationPrincipal CommonUser ap){
-        try {
-            User user = userRepository.findById(ap.getUsername()).orElseThrow(() -> new DoesNotExistException("The user does not exist, this is not possible"));
-
-            double temp = user.getBalance() - amount;
-
-            if (temp < 0) {
-                return ResponseEntity.ok(
-                        ResponseModel.builder()
-                                .status(ERROR)
-                                .details("Not enough money!")
-                                .build().generateResponse()
-                );
-
-            } else {
-                user.setBalance(temp);
-                userRepository.save(user);
-
-                return ResponseEntity.ok(
-                        ResponseModel.builder()
-                                .status(OK)
-                                .details(user.getBalance())
-                                .build().generateResponse()
-                );
-            }
-
-
-        } catch (DoesNotExistException e) {
-            e.printStackTrace();
-            return ResponseEntity.notFound().build();
-        }
-
-    }
-
-
     @Autowired
     public void setUsers(UserRepository userRepository) {
         this.userRepository = userRepository;

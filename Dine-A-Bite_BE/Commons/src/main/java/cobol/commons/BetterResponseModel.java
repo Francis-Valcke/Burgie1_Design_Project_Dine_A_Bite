@@ -1,5 +1,7 @@
 package cobol.commons;
 
+import java.math.BigDecimal;
+
 public class BetterResponseModel<T> {
 
     private String status;
@@ -110,20 +112,20 @@ public class BetterResponseModel<T> {
 
     public static class GetBalanceResponse {
 
-        private double balance;
+        private BigDecimal balance;
 
         public GetBalanceResponse() {
         }
 
-        public GetBalanceResponse(double balance) {
+        public GetBalanceResponse(BigDecimal balance) {
             this.balance = balance;
         }
 
-        public double getBalance() {
+        public BigDecimal getBalance() {
             return balance;
         }
 
-        public void setBalance(double balance) {
+        public void setBalance(BigDecimal balance) {
             this.balance = balance;
         }
     }

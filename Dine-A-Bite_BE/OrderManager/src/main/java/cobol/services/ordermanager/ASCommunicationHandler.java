@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -22,13 +23,13 @@ public class ASCommunicationHandler {
     @Autowired
     ASCommunicationHandler communicationHandler;
 
-    public BetterResponseModel<BetterResponseModel.GetBalanceResponse> callCreateTransaction(String username, double amount) throws IOException {
+    public BetterResponseModel<BetterResponseModel.GetBalanceResponse> callCreateTransaction(String username, BigDecimal amount) throws IOException {
 
         String url = OrderManager.ACURL + "/stripe/createTransaction";
 
         HashMap<String, String> params = new HashMap<>();
         params.put("user", username);
-        params.put("amount", String.valueOf(amount));
+        params.put("amount", amount.toString());
 
         url = buildUrl(url, params);
 

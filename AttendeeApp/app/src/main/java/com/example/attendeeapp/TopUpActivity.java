@@ -2,10 +2,13 @@ package com.example.attendeeapp;
 
 import android.content.Context;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -44,19 +47,22 @@ import org.jetbrains.annotations.NotNull;
 import org.json.JSONObject;
 
 import java.lang.ref.WeakReference;
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 
 public class TopUpActivity extends AppCompatActivity {
 
-    TextView username;
     private PaymentSession paymentSession;
+    private PaymentMethod selectedPaymentMethod;
+    private Context context;
+    private Stripe stripe;
+    private LoggedInUser user;
+
+    ProgressBar loadingProgressBar;
+    Toolbar toolbar;
+    Button paymentSetup;
     Button payButton;
-    Button payentSetup;
-    PaymentMethod selectedPaymentMethod;
-    Context context;
-    Stripe stripe;
-    LoggedInUser user;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,9 +70,15 @@ public class TopUpActivity extends AppCompatActivity {
         setContentView(R.layout.activity_top_up);
         context = this;
 
+        loadingProgressBar = findViewById(R.id.payment_loading);
+        toolbar = findViewById(R.id.toolbar);
+        paymentSetup = findViewById(R.id.button_payment_setup);
+        payButton = findViewById(R.id.button_pay);
+
         // Custom Toolbar (instead of standard actionbar)
-        Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        loadingProgressBar.setVisibility(View.GONE);
 
         // Get a support ActionBar corresponding to this toolbar
         ActionBar ab = getSupportActionBar();
@@ -80,19 +92,18 @@ public class TopUpActivity extends AppCompatActivity {
         // Show username of currently logged in user
         user = LoginRepository.getInstance(new LoginDataSource()).getLoggedInUser();
 
-        payButton = findViewById(R.id.button_pay);
         payButton.setEnabled(false);
         payButton.setOnClickListener(v -> {
             if (!v.isEnabled()){
                 Toast.makeText(context, "Please select a valid payment method first.", Toast.LENGTH_SHORT).show();
             } else {
                 // Execute the payment
+                loadingProgressBar.setVisibility(View.VISIBLE);
                 EditText amount = findViewById(R.id.plain_text_amount);
-                doPayment(Double.parseDouble(amount.getText().toString()));
+                doPayment(amount.getText().toString());
             }
         });
 
-        Button paymentSetup = findViewById(R.id.button_payment_setup);
         paymentSetup.setOnClickListener(button -> {
             paymentSession.presentPaymentMethodSelection(null);
         });
@@ -104,7 +115,7 @@ public class TopUpActivity extends AppCompatActivity {
         setupPaymentSession();
     }
 
-    private void doPayment(double amount) {
+    private void doPayment(String amount) {
 
         String url = ServerConfig.AS_ADDRESS + "/stripe/createPaymentIntent?amount="+amount;
         JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, url,null,
@@ -126,25 +137,27 @@ public class TopUpActivity extends AppCompatActivity {
 
                         stripe = new Stripe(getApplicationContext(), publicKey);
 
+                        assert selectedPaymentMethod.id != null;
                         stripe.confirmPayment(this,
                                 ConfirmPaymentIntentParams.createWithPaymentMethodId(
                                         selectedPaymentMethod.id,
                                         clientSecret
-
                                 )
                         );
+
 
 
                     } catch (Exception e) {
                         e.printStackTrace();
                         Log.e("STRIPE", "doPayment: ", e);
-
+                        loadingProgressBar.setVisibility(View.GONE);
                     }
 
                 },
                 error -> {
                     Toast.makeText(context, "ERROR", Toast.LENGTH_SHORT).show();
                     Log.e("STRIPE", "doPayment: ", error);
+                    loadingProgressBar.setVisibility(View.GONE);
                 }
             ){
 
@@ -187,12 +200,14 @@ public class TopUpActivity extends AppCompatActivity {
                     } catch (Exception e) {
                         e.printStackTrace();
                         Log.e("STRIPE", "confirmPayment: ", e);
+                        loadingProgressBar.setVisibility(View.GONE);
                     }
 
                 },
                 error -> {
                     Toast.makeText(context, "ERROR", Toast.LENGTH_SHORT).show();
                     Log.e("STRIPE", "confirmPayment: ", error);
+                    loadingProgressBar.setVisibility(View.GONE);
                 }
         ){
 
@@ -222,16 +237,19 @@ public class TopUpActivity extends AppCompatActivity {
                                 om.readValue(response.toString(), new TypeReference<BetterResponseModel<GetBalanceResponse>>() {});
 
                         Log.i("STRIPE", "cancelPayment: balance after operation:" + responseModel.getPayload().getBalance());
+                        loadingProgressBar.setVisibility(View.GONE);
 
                     } catch (Exception e) {
                         e.printStackTrace();
                         Log.e("STRIPE", "cancelPayment: ", e);
+                        loadingProgressBar.setVisibility(View.GONE);
                     }
 
                 },
                 error -> {
                     Toast.makeText(context, "ERROR", Toast.LENGTH_SHORT).show();
                     Log.e("STRIPE", "cancelPayment: ", error);
+                    loadingProgressBar.setVisibility(View.GONE);
                 }
         ){
 
@@ -292,8 +310,6 @@ public class TopUpActivity extends AppCompatActivity {
                     public void onError(int errorCode, @NotNull String errorMessage) {
                         Log.e("STRIPE", "onError: " + errorMessage, null);
                     }
-
-
                 }
         );
     }
@@ -312,9 +328,7 @@ public class TopUpActivity extends AppCompatActivity {
 
     }
 
-
-    private static final class PaymentResultCallback
-            implements ApiResultCallback<PaymentIntentResult> {
+    private static final class PaymentResultCallback implements ApiResultCallback<PaymentIntentResult> {
         @NonNull private final WeakReference<TopUpActivity> activityRef;
 
         PaymentResultCallback(@NonNull TopUpActivity activity) {

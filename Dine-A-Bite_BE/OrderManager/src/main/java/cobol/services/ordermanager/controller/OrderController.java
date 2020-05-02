@@ -24,6 +24,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -78,7 +79,7 @@ public class OrderController {
 
         // First calculate the total price of the order
         // TODO would make a lot more sense if the total price of the order was just sent with the order, but for now it will work this way too, just not that efficient.
-        double total = 0;
+        BigDecimal total = BigDecimal.ZERO;
         String brandName = orderObject.getBrandName();
         String standName = orderObject.getStandName();
 
@@ -87,11 +88,11 @@ public class OrderController {
             Food food = foodRepository.findFoodById(orderItem.getFoodName(), standName, brandName)
                     .orElseThrow(() -> new DoesNotExistException("A food item in the order does not exist in the database, this should not be possible."));
 
-            total += food.getPrice()*orderItem.getAmount();
+            total = total.add(BigDecimal.valueOf(-food.getPrice() * orderItem.getAmount()));
         }
 
         // With this price we try to create a transaction
-        BetterResponseModel<GetBalanceResponse> response = aSCommunicationHandler.callCreateTransaction(userDetails.getUsername(), -total);
+        BetterResponseModel<GetBalanceResponse> response = aSCommunicationHandler.callCreateTransaction(userDetails.getUsername(), total);
         if (response.getStatus().equals(Status.ERROR)){
             // There was an error creating the transaction. Throw this.
             throw response.getException();
