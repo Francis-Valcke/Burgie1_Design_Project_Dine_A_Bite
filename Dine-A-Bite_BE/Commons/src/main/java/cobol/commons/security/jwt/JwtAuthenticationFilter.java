@@ -43,11 +43,7 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
                     SecurityContextHolder.getContext().setAuthentication(auth);
                 }
             }
-        try {
             filterChain.doFilter(req, res);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
 
     }
 

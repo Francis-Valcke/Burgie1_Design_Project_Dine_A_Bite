@@ -5,9 +5,11 @@ import cobol.commons.BetterResponseModel.*;
 import cobol.commons.ResponseModel;
 import cobol.commons.exception.DoesNotExistException;
 import cobol.commons.security.CommonUser;
+import cobol.commons.security.Role;
 import cobol.services.authentication.config.ConfigurationBean;
 import cobol.services.authentication.domain.entity.User;
 import cobol.services.authentication.domain.repository.UserRepository;
+import cobol.services.ordermanager.exception.NotAuthorizedException;
 import cobol.services.ordermanager.exception.NotEnoughMoneyException;
 import com.stripe.Stripe;
 import com.stripe.exception.StripeException;
@@ -63,7 +65,7 @@ public class StripeController {
                     .orElseThrow(() -> new DoesNotExistException("This user does not exist in the database. This should not be possible!"));
 
             // First try to create a transaction
-            ResponseEntity<BetterResponseModel<?>> transaction = createTransaction(amount, user);
+            ResponseEntity<BetterResponseModel<?>> transaction = createTransaction(amount, null, user);
             if (Objects.requireNonNull(transaction.getBody()).getStatus().equals(Status.ERROR)) {
                 // If there was an error creating the transaction, throw exception
                 throw transaction.getBody().getException();
@@ -97,10 +99,16 @@ public class StripeController {
 
 
     @PostMapping(value = "/createTransaction", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<BetterResponseModel<?>> createTransaction(double amount, @AuthenticationPrincipal CommonUser user) {
+    public ResponseEntity<BetterResponseModel<?>> createTransaction(double amount, @RequestParam(value = "user", required = false) String otherUser, @AuthenticationPrincipal CommonUser user) {
 
         try {
-            User userEntity = userRepository.findById(user.getUsername())
+
+            // When otherUser is specified, check if the authenticationPrincipal is our application that issued the request
+            if (!user.getRoles().contains(Role.APPLICATION)){
+                throw new NotAuthorizedException("User: " + user.getUsername() + " is not authorized to perform this action.");
+            }
+
+            User userEntity = userRepository.findById(otherUser == null ? user.getUsername() : otherUser)
                     .orElseThrow(() -> new DoesNotExistException("This user does not exist in the database. This should not be possible!"));
 
             // Check if the transaction could go through ie remaining balance >=0
@@ -116,17 +124,22 @@ public class StripeController {
 
             return ResponseEntity.ok(BetterResponseModel.ok("Created the transaction.", details));
 
-        } catch (DoesNotExistException | NotEnoughMoneyException e) {
+        } catch (DoesNotExistException | NotEnoughMoneyException | NotAuthorizedException e) {
             return ResponseEntity.ok(BetterResponseModel.error(e.getMessage(), e));
         }
 
     }
 
     @GetMapping(value = "/confirmTransaction", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<BetterResponseModel<?>> confirmTransaction(@AuthenticationPrincipal CommonUser user) {
+    public ResponseEntity<BetterResponseModel<?>> confirmTransaction(@RequestParam(value = "user", required = false) String otherUser, @AuthenticationPrincipal CommonUser user) {
         try {
 
-            User userEntity = userRepository.findById(user.getUsername())
+            // When otherUser is specified, check if the authenticationPrincipal is our application that issued the request
+            if (!user.getRoles().contains(Role.APPLICATION)){
+                throw new NotAuthorizedException("User: " + user.getUsername() + " is not authorized to perform this action.");
+            }
+
+            User userEntity = userRepository.findById(otherUser == null ? user.getUsername() : otherUser)
                     .orElseThrow(() -> new DoesNotExistException("This user does not exist in the database. This should not be possible!"));
 
             // Check again if the transaction could go through ie remaining balance >=0
@@ -141,16 +154,21 @@ public class StripeController {
             GetBalanceResponse details = new GetBalanceResponse(userEntity.getBalance());
             return ResponseEntity.ok(BetterResponseModel.ok("Confirmed the transaction.", details));
 
-        } catch (DoesNotExistException | NotEnoughMoneyException e) {
+        } catch (DoesNotExistException | NotEnoughMoneyException | NotAuthorizedException e) {
             return ResponseEntity.ok(BetterResponseModel.error(e.getMessage(), e));
         }
     }
 
     @GetMapping(value = "/cancelTransaction", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<BetterResponseModel<?>> cancelTransaction(@AuthenticationPrincipal CommonUser user) {
+    public ResponseEntity<BetterResponseModel<?>> cancelTransaction(@RequestParam(value = "user", required = false) String otherUser, @AuthenticationPrincipal CommonUser user) {
         try {
 
-            User userEntity = userRepository.findById(user.getUsername())
+            // When otherUser is specified, check if the authenticationPrincipal is our application that issued the request
+            if (!user.getRoles().contains(Role.APPLICATION)){
+                throw new NotAuthorizedException("User: " + user.getUsername() + " is not authorized to perform this action.");
+            }
+
+            User userEntity = userRepository.findById(otherUser == null ? user.getUsername() : otherUser)
                     .orElseThrow(() -> new DoesNotExistException("This user does not exist in the database. This should not be possible!"));
 
             userEntity.setUnconfirmedPayment(0);
@@ -160,7 +178,7 @@ public class StripeController {
 
             return ResponseEntity.ok(BetterResponseModel.ok("Cancelled the transaction.", details));
 
-        } catch (DoesNotExistException e) {
+        } catch (DoesNotExistException | NotAuthorizedException e) {
             return ResponseEntity.ok(BetterResponseModel.error(e.getMessage(), e));
         }
     }

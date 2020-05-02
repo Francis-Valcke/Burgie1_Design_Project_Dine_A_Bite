@@ -1,10 +1,13 @@
 package cobol.services.ordermanager.controller;
 
+import cobol.commons.BetterResponseModel;
+import cobol.commons.BetterResponseModel.*;
 import cobol.commons.exception.DoesNotExistException;
 import cobol.commons.order.CommonOrder;
 import cobol.commons.order.CommonOrderItem;
 import cobol.commons.order.Recommendation;
 import cobol.commons.security.CommonUser;
+import cobol.services.ordermanager.ASCommunicationHandler;
 import cobol.services.ordermanager.CommunicationHandler;
 import cobol.services.ordermanager.OrderProcessor;
 import cobol.services.ordermanager.domain.entity.Food;
@@ -20,6 +23,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -33,6 +37,8 @@ public class OrderController {
     private ObjectMapper objectMapper;
     @Autowired
     private OrderProcessor orderProcessor = null;
+    @Autowired
+    private ASCommunicationHandler aSCommunicationHandler;
     @Autowired
     private CommunicationHandler communicationHandler;
     @Autowired
@@ -68,8 +74,10 @@ public class OrderController {
      * @throws ParseException Json parsing error
      */
     @PostMapping(value = "/placeOrder", consumes = "application/json", produces = "application/json")
-    public ResponseEntity<JSONObject> placeOrder(@AuthenticationPrincipal CommonUser userDetails, @RequestBody CommonOrder orderObject) throws JsonProcessingException, ParseException, DoesNotExistException {
+    public ResponseEntity<JSONObject> placeOrder(@AuthenticationPrincipal CommonUser userDetails, @RequestBody CommonOrder orderObject) throws Throwable {
 
+        // First calculate the total price of the order
+        // TODO would make a lot more sense if the total price of the order was just sent with the order, but for now it will work this way too, just not that efficient.
         double total = 0;
         String brandName = orderObject.getBrandName();
         String standName = orderObject.getStandName();
@@ -81,9 +89,13 @@ public class OrderController {
 
             total += food.getPrice()*orderItem.getAmount();
         }
-        // With this price 
 
-
+        // With this price we try to create a transaction
+        BetterResponseModel<GetBalanceResponse> response = aSCommunicationHandler.callCreateTransaction(userDetails.getUsername(), -total);
+        if (response.getStatus().equals(Status.ERROR)){
+            // There was an error creating the transaction. Throw this.
+            throw response.getException();
+        }
 
 
         // Add order to the processor
@@ -119,12 +131,19 @@ public class OrderController {
      */
     @RequestMapping(value = "/confirmStand", method = RequestMethod.GET)
     @ResponseBody
-    public ResponseEntity<String> confirmStand(@RequestParam(name = "orderId") int orderId, @RequestParam(name = "standName") String standName, @RequestParam(name = "brandName") String brandName) throws JsonProcessingException, DoesNotExistException {
+    public ResponseEntity<String> confirmStand(@RequestParam(name = "orderId") int orderId, @RequestParam(name = "standName") String standName, @RequestParam(name = "brandName") String brandName, @AuthenticationPrincipal CommonUser userDetails) throws Throwable {
         // Update order, confirm stand
         Order updatedOrder = orderProcessor.confirmStand(orderId, standName, brandName);
 
         // Publish event to standmanager
         String response= communicationHandler.publishConfirmedStand(updatedOrder.asCommonOrder(), standName, brandName);
+
+        // Also complete the payment
+        BetterResponseModel<GetBalanceResponse> asResponse = aSCommunicationHandler.callConfirmTransaction(userDetails.getUsername());
+        if (asResponse.getStatus().equals(Status.ERROR)){
+            // There was an error creating the transaction. Throw this.
+            throw asResponse.getException();
+        }
 
         return ResponseEntity.ok(response);
     }

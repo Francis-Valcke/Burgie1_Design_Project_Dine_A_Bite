@@ -7,7 +7,6 @@ public class BetterResponseModel<T> {
     private T payload;
     private Throwable exception;
 
-
     public static <T> BetterResponseModel<T> ok(String details, T payload){
         return new BetterResponseModel<T>(details, payload);
     }
@@ -15,7 +14,6 @@ public class BetterResponseModel<T> {
     public static <T> BetterResponseModel<T> error(String details, Throwable e){
         return new BetterResponseModel<T>(details, e);
     }
-
 
     public BetterResponseModel() {
     }
@@ -77,6 +75,8 @@ public class BetterResponseModel<T> {
         public static final String OK = "OK";
         public static final String ERROR = "ERROR";
     }
+
+    // ---- Implement DATA objects here ----
 
     public static class CreatePaymentIntentResponse {
 
