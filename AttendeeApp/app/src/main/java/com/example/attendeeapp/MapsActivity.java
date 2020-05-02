@@ -50,9 +50,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             Map<String, Double> coordinates = standLocations.get(standName);
             double lat = coordinates.get("latitude");
             double lon = coordinates.get("longitude");
-            LatLng newStand = new LatLng(lat, lon);
-            googleMap.addMarker(new MarkerOptions().position(newStand).title(standName));
-            googleMap.moveCamera(CameraUpdateFactory.newLatLng(newStand));
+            if (lat != 360 && lon != 360) {
+                LatLng newStand = new LatLng(lat, lon);
+                googleMap.addMarker(new MarkerOptions().position(newStand).title(standName));
+                googleMap.moveCamera(CameraUpdateFactory.newLatLng(newStand));
+            }
         }
 
         googleMap.setMyLocationEnabled(true);
