@@ -2,6 +2,7 @@ package com.example.attendeeapp;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
@@ -16,6 +17,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
@@ -47,6 +49,7 @@ public class CartActivity extends ToolbarActivity {
     private Toast mToast;
     private Intent returnIntent;
     private BigDecimal totalPrice = new BigDecimal(0);
+    private AlertDialog mDialog = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -93,13 +96,27 @@ public class CartActivity extends ToolbarActivity {
                 // Send order with JSON + location
                 if (cartAdapter.getCartList().size() > 0) {
                     checkLocationPermission();
+                    boolean differentBrands = false;
+                    CommonFood firstItem = ordered.get(0);
+                    for (CommonFood i : ordered.subList(1, ordered.size())) {
+                        if (!i.getBrandName().equals(firstItem.getBrandName())) {
+                            // If brand is new alert the user
+                            showBrandAlertMessage(ordered);
+                            differentBrands = true;
+                            break;
+                        }
+                    }
+                    if (!differentBrands) {
+                        Intent intent = new Intent(CartActivity.this, ConfirmActivity.class);
+                        intent.putExtra("order", ordered);
+                        intent.putExtra("location", lastLocation);
+                        intent.putExtra("totalPrice", totalPrice);
+                        intent.putExtra("cartCount", cartAdapter.getCartCount());
+                        startActivity(intent);
+                    }
+
                     //if(cartAdapter.getCartList().get(0).getStandName().equals("")) {
-                    Intent intent = new Intent(CartActivity.this, ConfirmActivity.class);
-                    intent.putExtra("order", ordered);
-                    intent.putExtra("location", lastLocation);
-                    intent.putExtra("totalPrice", totalPrice);
-                    intent.putExtra("cartCount", cartAdapter.getCartCount());
-                    startActivity(intent);
+
                     /*} else {
                         Intent intent = new Intent(CartActivity.this, OrderActivity.class);
                         intent.putExtra("order_list", ordered);
@@ -132,6 +149,40 @@ public class CartActivity extends ToolbarActivity {
         returnIntent.putExtra("cartList", cartAdapter.getCartList());
         returnIntent.putExtra("cartCount", cartAdapter.getCartCount());
         super.onBackPressed();
+    }
+
+    public void showBrandAlertMessage(final ArrayList<CommonFood> ordered) {
+        // Alert user if he not better like the recommended stand
+        AlertDialog.Builder builder = new AlertDialog.Builder(CartActivity.this);
+
+        builder.setPositiveButton("Continue", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                // User clicked Continue button
+                dialog.cancel();
+
+                // Continue with multiple brands in a split up order
+                Intent intent = new Intent(CartActivity.this, ConfirmActivity.class);
+                intent.putExtra("order", ordered);
+                intent.putExtra("location", lastLocation);
+                intent.putExtra("totalPrice", totalPrice);
+                intent.putExtra("cartCount", cartAdapter.getCartCount());
+                startActivity(intent);
+
+            }
+        });
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                // User cancelled the dialog
+                dialog.cancel();
+            }
+        });
+
+        builder.setMessage("The items in your cart are from multiple brands." +
+                "\n\nIf you choose to continue, your order will be split up.")
+                .setTitle("Continue with multiple brands");
+        if (mDialog != null) mDialog.cancel();
+        mDialog = builder.create();
+        mDialog.show();
     }
 
     /**
