@@ -120,8 +120,8 @@ public class TopUpActivity extends AppCompatActivity {
                                 om.readValue(response.toString(), new TypeReference<BetterResponseModel<CreatePaymentIntentResponse>>() {});
 
                         if (responseModel.getStatus().equals(Status.OK)){
-                            clientSecret = responseModel.getDetails().getClientSecret();
-                            publicKey = responseModel.getDetails().getPublicKey();
+                            clientSecret = responseModel.getPayload().getClientSecret();
+                            publicKey = responseModel.getPayload().getPublicKey();
                         } else throw new Exception("Status not OK from server");
 
                         stripe = new Stripe(getApplicationContext(), publicKey);
@@ -173,7 +173,7 @@ public class TopUpActivity extends AppCompatActivity {
 
     private void confirmPayment() {
 
-        String url = ServerConfig.AS_ADDRESS + "/stripe/confirmPaymentIntent";
+        String url = ServerConfig.AS_ADDRESS + "/stripe/confirmTransaction";
         JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, url,null,
                 response -> {
 
@@ -181,7 +181,7 @@ public class TopUpActivity extends AppCompatActivity {
                         ObjectMapper om = new ObjectMapper();
                         BetterResponseModel<GetBalanceResponse> responseModel =
                                 om.readValue(response.toString(), new TypeReference<BetterResponseModel<GetBalanceResponse>>() {});
-                        Log.i("STRIPE", "confirmPayment: balance after operation:" + responseModel.getDetails().getBalance());
+                        Log.i("STRIPE", "confirmPayment: balance after operation:" + responseModel.getPayload().getBalance());
                         finish();
 
                     } catch (Exception e) {
@@ -212,7 +212,7 @@ public class TopUpActivity extends AppCompatActivity {
 
     private void cancelPayment() {
 
-        String url = ServerConfig.AS_ADDRESS + "/stripe/cancelPaymentIntent";
+        String url = ServerConfig.AS_ADDRESS + "/stripe/cancelTransaction";
         JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, url,null,
                 response -> {
 
@@ -221,7 +221,7 @@ public class TopUpActivity extends AppCompatActivity {
                         BetterResponseModel<GetBalanceResponse> responseModel =
                                 om.readValue(response.toString(), new TypeReference<BetterResponseModel<GetBalanceResponse>>() {});
 
-                        Log.i("STRIPE", "cancelPayment: balance after operation:" + responseModel.getDetails().getBalance());
+                        Log.i("STRIPE", "cancelPayment: balance after operation:" + responseModel.getPayload().getBalance());
 
                     } catch (Exception e) {
                         e.printStackTrace();

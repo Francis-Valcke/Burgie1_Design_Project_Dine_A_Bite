@@ -2,11 +2,14 @@ package cobol.services.ordermanager.controller;
 
 import cobol.commons.exception.DoesNotExistException;
 import cobol.commons.order.CommonOrder;
+import cobol.commons.order.CommonOrderItem;
 import cobol.commons.order.Recommendation;
 import cobol.commons.security.CommonUser;
 import cobol.services.ordermanager.CommunicationHandler;
 import cobol.services.ordermanager.OrderProcessor;
+import cobol.services.ordermanager.domain.entity.Food;
 import cobol.services.ordermanager.domain.entity.Order;
+import cobol.services.ordermanager.domain.repository.FoodRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -17,6 +20,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -30,6 +35,8 @@ public class OrderController {
     private OrderProcessor orderProcessor = null;
     @Autowired
     private CommunicationHandler communicationHandler;
+    @Autowired
+    private FoodRepository foodRepository;
 
     /**
      * This method will retrieve information about a given order identified by the orderId.
@@ -61,7 +68,23 @@ public class OrderController {
      * @throws ParseException Json parsing error
      */
     @PostMapping(value = "/placeOrder", consumes = "application/json", produces = "application/json")
-    public ResponseEntity<JSONObject> placeOrder(@AuthenticationPrincipal CommonUser userDetails, @RequestBody CommonOrder orderObject) throws JsonProcessingException, ParseException {
+    public ResponseEntity<JSONObject> placeOrder(@AuthenticationPrincipal CommonUser userDetails, @RequestBody CommonOrder orderObject) throws JsonProcessingException, ParseException, DoesNotExistException {
+
+        double total = 0;
+        String brandName = orderObject.getBrandName();
+        String standName = orderObject.getStandName();
+
+        for (CommonOrderItem orderItem : orderObject.getOrderItems()) {
+            // Find the food item in the database to get its price
+            Food food = foodRepository.findFoodById(orderItem.getFoodName(), standName, brandName)
+                    .orElseThrow(() -> new DoesNotExistException("A food item in the order does not exist in the database, this should not be possible."));
+
+            total += food.getPrice()*orderItem.getAmount();
+        }
+        // With this price 
+
+
+
 
         // Add order to the processor
         Order newOrder = new Order(orderObject);

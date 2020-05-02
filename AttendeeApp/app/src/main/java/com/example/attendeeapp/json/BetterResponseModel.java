@@ -3,14 +3,42 @@ package com.example.attendeeapp.json;
 public class BetterResponseModel<T> {
 
     private String status;
-    private T details;
+    private String details;
+    private T payload;
+    private Throwable exception;
+
+
+    public static <T> BetterResponseModel<T> ok(String details, T payload){
+        return new BetterResponseModel<T>(details, payload);
+    }
+
+    public static <T> BetterResponseModel<T> error(String details, Throwable e){
+        return new BetterResponseModel<T>(details, e);
+    }
+
 
     public BetterResponseModel() {
     }
 
-    public BetterResponseModel(String status, T details) {
+    public BetterResponseModel(String status, String details, T payload, Throwable exception) {
         this.status = status;
         this.details = details;
+        this.payload = payload;
+        this.exception = exception;
+    }
+
+    private BetterResponseModel(String details, Throwable exception) {
+        this.status = Status.ERROR;
+        this.details = details;
+        this.exception = exception;
+        this.payload = null;
+    }
+
+    private BetterResponseModel(String details, T payload) {
+        this.status = Status.OK;
+        this.details = details;
+        this.exception = null;
+        this.payload = payload;
     }
 
     public String getStatus() {
@@ -21,12 +49,28 @@ public class BetterResponseModel<T> {
         this.status = status;
     }
 
-    public T getDetails() {
+    public T getPayload() {
+        return payload;
+    }
+
+    public void setPayload(T payload) {
+        this.payload = payload;
+    }
+
+    public String getDetails() {
         return details;
     }
 
-    public void setDetails(T details) {
+    public void setDetails(String details) {
         this.details = details;
+    }
+
+    public Throwable getException() {
+        return exception;
+    }
+
+    public void setException(Throwable exception) {
+        this.exception = exception;
     }
 
     public static class Status{
