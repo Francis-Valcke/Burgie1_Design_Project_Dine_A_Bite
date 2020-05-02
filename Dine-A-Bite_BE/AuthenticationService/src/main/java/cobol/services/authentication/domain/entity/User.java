@@ -53,6 +53,9 @@ public class User {
     @Column(nullable = false)
     private double balance = 0;
 
+
+    private double unconfirmedPayment = 0;
+
     @ElementCollection(fetch = FetchType.EAGER)
     @Builder.Default
     @JoinTable(name = "user_role")

@@ -1,6 +1,8 @@
 package cobol.services.authentication.controller;
 
 import cobol.commons.BetterResponseModel;
+import cobol.commons.BetterResponseModel.*;
+import cobol.commons.ResponseModel;
 import cobol.commons.exception.DoesNotExistException;
 import cobol.commons.security.CommonUser;
 import cobol.services.authentication.config.ConfigurationBean;
@@ -20,6 +22,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import static cobol.commons.ResponseModel.status.OK;
 
 
 @RestController
@@ -47,8 +51,14 @@ public class StripeController {
         return key.getRawJson();
     }
 
-    @GetMapping(value = "/createPaymentIntent", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<BetterResponseModel<?>> createPaymentIntent(double amount) throws StripeException, DoesNotExistException {
+    @PostMapping(value = "/createPaymentIntent", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<BetterResponseModel<?>> createPaymentIntent(double amount, @AuthenticationPrincipal CommonUser user) throws StripeException, DoesNotExistException {
+
+        User userEntity = userRepository.findById(user.getUsername())
+                .orElseThrow(() -> new DoesNotExistException("This user does not exist in the database. This should not be possible!"));
+
+        userEntity.setUnconfirmedPayment(amount);
+        userRepository.save(userEntity);
 
         long longAmount = (long)(amount*100);
 
@@ -58,20 +68,67 @@ public class StripeController {
                 PaymentIntentCreateParams.builder()
                         .setAmount(longAmount)
                         .setCurrency("eur")
+                        .setCustomer(userEntity.getCustomerId())
                         .build();
 
         PaymentIntent intent = PaymentIntent.create(params);
 
-        BetterResponseModel.CreatePaymentIntentResponse details = new BetterResponseModel.CreatePaymentIntentResponse(
+        CreatePaymentIntentResponse details = new CreatePaymentIntentResponse(
                 intent.getClientSecret(),
-                configurationBean.getStripePublicApiKey());
+                configurationBean.getStripePublicApiKey()
+        );
 
-        BetterResponseModel<BetterResponseModel.CreatePaymentIntentResponse> response = new BetterResponseModel<>(
-                BetterResponseModel.Status.OK,
+        BetterResponseModel<CreatePaymentIntentResponse> response = new BetterResponseModel<>(
+                Status.OK,
                 details
         );
 
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping(value = "/confirmPaymentIntent", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<BetterResponseModel<?>> confirmPaymentIntent(@AuthenticationPrincipal CommonUser user) {
+        try {
+
+            User userEntity = userRepository.findById(user.getUsername())
+                    .orElseThrow(() -> new DoesNotExistException("This user does not exist in the database. This should not be possible!"));
+
+            userEntity.setBalance(userEntity.getBalance() + userEntity.getUnconfirmedPayment());
+            userEntity.setUnconfirmedPayment(0);
+            userRepository.save(userEntity);
+
+            GetBalanceResponse details = new GetBalanceResponse(userEntity.getBalance());
+
+            return ResponseEntity.ok(
+                    new BetterResponseModel<>(Status.OK, details)
+            );
+
+        } catch (DoesNotExistException e) {
+            e.printStackTrace();
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @GetMapping(value = "/cancelPaymentIntent", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<BetterResponseModel<?>> cancelPaymentIntent(@AuthenticationPrincipal CommonUser user) {
+        try {
+
+            User userEntity = userRepository.findById(user.getUsername())
+                    .orElseThrow(() -> new DoesNotExistException("This user does not exist in the database. This should not be possible!"));
+
+            userEntity.setUnconfirmedPayment(0);
+            userRepository.save(userEntity);
+
+            BetterResponseModel.GetBalanceResponse details = new BetterResponseModel.GetBalanceResponse(userEntity.getBalance());
+
+            return ResponseEntity.ok(
+                    new BetterResponseModel<>(BetterResponseModel.Status.OK, details)
+            );
+
+        } catch (DoesNotExistException e) {
+            e.printStackTrace();
+            return ResponseEntity.notFound().build();
+        }
     }
 
 

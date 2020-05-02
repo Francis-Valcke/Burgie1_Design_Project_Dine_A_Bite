@@ -1,10 +1,12 @@
 package com.example.attendeeapp.json;
 
-
 public class BetterResponseModel<T> {
 
-    String status;
-    T details;
+    private String status;
+    private T details;
+
+    public BetterResponseModel() {
+    }
 
     public BetterResponseModel(String status, T details) {
         this.status = status;
@@ -34,13 +36,16 @@ public class BetterResponseModel<T> {
 
     public static class CreatePaymentIntentResponse {
 
+        private String clientSecret;
+        private String publicKey;
+
+        public CreatePaymentIntentResponse() {
+        }
+
         public CreatePaymentIntentResponse(String clientSecret, String publicKey) {
             this.clientSecret = clientSecret;
             this.publicKey = publicKey;
         }
-
-        String clientSecret;
-        String publicKey;
 
         public String getClientSecret() {
             return clientSecret;
@@ -58,4 +63,25 @@ public class BetterResponseModel<T> {
             this.publicKey = publicKey;
         }
     }
+
+    public static class GetBalanceResponse {
+
+        private double balance;
+
+        public GetBalanceResponse() {
+        }
+
+        public GetBalanceResponse(double balance) {
+            this.balance = balance;
+        }
+
+        public double getBalance() {
+            return balance;
+        }
+
+        public void setBalance(double balance) {
+            this.balance = balance;
+        }
+    }
 }
+

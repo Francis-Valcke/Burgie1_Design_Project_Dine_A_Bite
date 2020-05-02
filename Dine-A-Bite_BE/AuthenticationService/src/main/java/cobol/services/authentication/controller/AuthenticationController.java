@@ -112,7 +112,7 @@ public class AuthenticationController {
                 throw new DuplicateUserException("A user with that name exists already.");
 
             // Create an associated stripe customer
-            Stripe.apiKey = configurationBean.getStripeApiKey();
+            Stripe.apiKey = configurationBean.getStripeSecretApiKey();
             HashMap<String, Object> params = new HashMap<>();
             params.put("description", data.getUsername());
             Customer customer = Customer.create(params);

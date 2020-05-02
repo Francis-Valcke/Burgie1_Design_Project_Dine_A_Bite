@@ -15,18 +15,21 @@ import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
+import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
 import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.StringRequest;
 import com.example.attendeeapp.data.LoginDataSource;
 import com.example.attendeeapp.data.LoginRepository;
 import com.example.attendeeapp.data.model.LoggedInUser;
 import com.example.attendeeapp.json.BetterResponseModel;
+import com.example.attendeeapp.polling.RequestQueueSingleton;
 import com.example.attendeeapp.stripe.DineabiteEphemeralKeyProvider;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.stripe.android.ApiResultCallback;
 import com.stripe.android.CustomerSession;
+import com.stripe.android.PaymentIntentResult;
 import com.stripe.android.PaymentSession;
 import com.stripe.android.PaymentSessionConfig;
 import com.stripe.android.PaymentSessionData;
@@ -38,9 +41,11 @@ import com.stripe.android.view.BillingAddressFields;
 import com.example.attendeeapp.json.BetterResponseModel.*;
 
 import org.jetbrains.annotations.NotNull;
-import org.json.JSONException;
+import org.json.JSONObject;
 
-import java.util.Objects;
+import java.lang.ref.WeakReference;
+import java.util.HashMap;
+import java.util.Map;
 
 public class TopUpActivity extends AppCompatActivity {
 
@@ -50,6 +55,8 @@ public class TopUpActivity extends AppCompatActivity {
     Button payentSetup;
     PaymentMethod selectedPaymentMethod;
     Context context;
+    Stripe stripe;
+    LoggedInUser user;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,7 +78,7 @@ public class TopUpActivity extends AppCompatActivity {
         ab.setTitle("Top Up");
 
         // Show username of currently logged in user
-        LoggedInUser user = LoginRepository.getInstance(new LoginDataSource()).getLoggedInUser();
+        user = LoginRepository.getInstance(new LoginDataSource()).getLoggedInUser();
 
         payButton = findViewById(R.id.button_pay);
         payButton.setEnabled(false);
@@ -81,7 +88,7 @@ public class TopUpActivity extends AppCompatActivity {
             } else {
                 // Execute the payment
                 EditText amount = findViewById(R.id.plain_text_amount);
-                pay(Double.valueOf(amount.getText().toString()));
+                doPayment(Double.parseDouble(amount.getText().toString()));
             }
         });
 
@@ -97,16 +104,12 @@ public class TopUpActivity extends AppCompatActivity {
         setupPaymentSession();
     }
 
-    private void pay(double amount) {
+    private void doPayment(double amount) {
 
-
-
-
-        String url = ServerConfig.AS_ADDRESS + "/stripe/createPaymentIntent";
-        JsonObjectRequest paymentIntentRequest = new JsonObjectRequest(Request.Method.GET, url,null,
+        String url = ServerConfig.AS_ADDRESS + "/stripe/createPaymentIntent?amount="+amount;
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, url,null,
                 response -> {
 
-                    Stripe stripe;
                     String clientSecret;
                     String publicKey;
 
@@ -114,7 +117,8 @@ public class TopUpActivity extends AppCompatActivity {
 
                         ObjectMapper om = new ObjectMapper();
                         BetterResponseModel<CreatePaymentIntentResponse> responseModel =
-                                om.readValue(response.toString(), new TypeReference<BetterResponseModel<CreatePaymentIntentResponse>>(){});
+                                om.readValue(response.toString(), new TypeReference<BetterResponseModel<CreatePaymentIntentResponse>>() {});
+
                         if (responseModel.getStatus().equals(Status.OK)){
                             clientSecret = responseModel.getDetails().getClientSecret();
                             publicKey = responseModel.getDetails().getPublicKey();
@@ -126,35 +130,125 @@ public class TopUpActivity extends AppCompatActivity {
                                 ConfirmPaymentIntentParams.createWithPaymentMethodId(
                                         selectedPaymentMethod.id,
                                         clientSecret
+
                                 )
                         );
 
 
                     } catch (Exception e) {
                         e.printStackTrace();
+                        Log.e("STRIPE", "doPayment: ", e);
+
                     }
 
                 },
                 error -> {
                     Toast.makeText(context, "ERROR", Toast.LENGTH_SHORT).show();
-
+                    Log.e("STRIPE", "doPayment: ", error);
                 }
-            );
+            ){
 
+            @Override
+            public Map<String, String> getHeaders() throws AuthFailureError {
 
+                Map<String, String>  headers  = new HashMap<>();
+                headers.put("Authorization", user.getAuthorizationToken());
+                return headers;
 
+            }
 
+            @Override
+            protected Map<String, String> getParams() throws AuthFailureError {
 
+                Map<String,String> params = new HashMap<>();
+                params.put("amount", String.valueOf(amount));
+                return params;
 
+            }
+        };
 
+        RequestQueueSingleton.getInstance(this).addToRequestQueue(request);
 
-        this.finish();
     }
 
+    private void confirmPayment() {
 
+        String url = ServerConfig.AS_ADDRESS + "/stripe/confirmPaymentIntent";
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, url,null,
+                response -> {
 
+                    try {
+                        ObjectMapper om = new ObjectMapper();
+                        BetterResponseModel<GetBalanceResponse> responseModel =
+                                om.readValue(response.toString(), new TypeReference<BetterResponseModel<GetBalanceResponse>>() {});
+                        Log.i("STRIPE", "confirmPayment: balance after operation:" + responseModel.getDetails().getBalance());
+                        finish();
 
-    @NonNull
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        Log.e("STRIPE", "confirmPayment: ", e);
+                    }
+
+                },
+                error -> {
+                    Toast.makeText(context, "ERROR", Toast.LENGTH_SHORT).show();
+                    Log.e("STRIPE", "confirmPayment: ", error);
+                }
+        ){
+
+            @Override
+            public Map<String, String> getHeaders() throws AuthFailureError {
+
+                Map<String, String>  headers  = new HashMap<>();
+                headers.put("Authorization", user.getAuthorizationToken());
+                return headers;
+
+            }
+        };
+
+        RequestQueueSingleton.getInstance(this).addToRequestQueue(request);
+
+    }
+
+    private void cancelPayment() {
+
+        String url = ServerConfig.AS_ADDRESS + "/stripe/cancelPaymentIntent";
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, url,null,
+                response -> {
+
+                    try {
+                        ObjectMapper om = new ObjectMapper();
+                        BetterResponseModel<GetBalanceResponse> responseModel =
+                                om.readValue(response.toString(), new TypeReference<BetterResponseModel<GetBalanceResponse>>() {});
+
+                        Log.i("STRIPE", "cancelPayment: balance after operation:" + responseModel.getDetails().getBalance());
+
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        Log.e("STRIPE", "cancelPayment: ", e);
+                    }
+
+                },
+                error -> {
+                    Toast.makeText(context, "ERROR", Toast.LENGTH_SHORT).show();
+                    Log.e("STRIPE", "cancelPayment: ", error);
+                }
+        ){
+
+            @Override
+            public Map<String, String> getHeaders() throws AuthFailureError {
+
+                Map<String, String>  headers  = new HashMap<>();
+                headers.put("Authorization", user.getAuthorizationToken());
+                return headers;
+
+            }
+        };
+
+        RequestQueueSingleton.getInstance(this).addToRequestQueue(request);
+
+    }
+
     private PaymentSessionConfig createPaymentSessionConfig() {
         return new PaymentSessionConfig.Builder()
 
@@ -204,13 +298,70 @@ public class TopUpActivity extends AppCompatActivity {
         );
     }
 
-
-
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (data != null) {
+
+        if (requestCode == 6000 && data != null) {
             paymentSession.handlePaymentData(requestCode, resultCode, data);
         }
+
+        if (requestCode == 50000) {
+            stripe.onPaymentResult(requestCode, data, new PaymentResultCallback(this));
+        }
+
     }
+
+
+    private static final class PaymentResultCallback
+            implements ApiResultCallback<PaymentIntentResult> {
+        @NonNull private final WeakReference<TopUpActivity> activityRef;
+
+        PaymentResultCallback(@NonNull TopUpActivity activity) {
+            activityRef = new WeakReference<>(activity);
+        }
+
+        @Override
+        public void onSuccess(@NonNull PaymentIntentResult result) {
+            final TopUpActivity activity = activityRef.get();
+            if (activity == null) {
+                return;
+            }
+
+            PaymentIntent paymentIntent = result.getIntent();
+            PaymentIntent.Status status = paymentIntent.getStatus();
+
+            if (status == PaymentIntent.Status.Succeeded) {
+                // Complete the payment by topping up the digital wallet at the server
+
+                Toast.makeText(activity, "Payment Success", Toast.LENGTH_SHORT).show();
+                Log.i("STRIPE", "Payment nog successful, no payment method selected");
+                activity.confirmPayment();
+
+
+            } else if (status == PaymentIntent.Status.RequiresPaymentMethod) {
+                // Payment failed – allow retrying using a different payment method
+
+                Toast.makeText(activity, "Payment failed, no payment method selected.", Toast.LENGTH_SHORT).show();
+                Log.i("STRIPE", "Payment nog successful, no payment method selected");
+                activity.cancelPayment();
+
+            }
+        }
+
+        @Override
+        public void onError(@NonNull Exception e) {
+            final TopUpActivity activity = activityRef.get();
+            if (activity == null) {
+                return;
+            }
+
+            // Payment request failed – allow retrying using the same payment method
+            Toast.makeText(activity, "There was an error executing the payment.", Toast.LENGTH_SHORT).show();
+            Log.e("STRIPE", "onError: ", e);
+            activity.cancelPayment();
+        }
+    }
+
+
 }
