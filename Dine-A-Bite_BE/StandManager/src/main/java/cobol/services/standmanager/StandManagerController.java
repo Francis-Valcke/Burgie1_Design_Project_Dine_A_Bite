@@ -121,8 +121,10 @@ public class StandManagerController {
                 List<String> stringMenu = scheduler.getMenu().stream().map(CommonFood::getName).collect(Collectors.toList());
                 List<CommonOrderItem> canExecuteTogether = items.stream().filter(item -> stringMenu.contains(item.getFoodName())).collect(Collectors.toList());
 
-                itemSplit.add(new HashSet<>(canExecuteTogether));
-                items.removeAll(canExecuteTogether);
+                if(!canExecuteTogether.isEmpty()){
+                    itemSplit.add(new HashSet<>(canExecuteTogether));
+                    items.removeAll(canExecuteTogether);
+                }
             } else {
                 break;
             }
@@ -130,7 +132,6 @@ public class StandManagerController {
 
 
         for (HashSet<CommonOrderItem> commonOrderItems : itemSplit) {
-
             JSONObject orderResponse= new JSONObject();
 
             // -- Construct a virtual order -- //
