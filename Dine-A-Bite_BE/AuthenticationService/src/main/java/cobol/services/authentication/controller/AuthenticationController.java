@@ -5,6 +5,7 @@ import cobol.commons.security.Role;
 import cobol.commons.security.exception.DuplicateUserException;
 import cobol.services.authentication.AuthenticationHandler;
 import cobol.services.authentication.AuthenticationRequest;
+import cobol.commons.stub.AuthenticationServiceStub;
 import cobol.services.authentication.config.ConfigurationBean;
 import cobol.services.authentication.domain.entity.User;
 import cobol.services.authentication.domain.repository.UserRepository;
@@ -50,7 +51,7 @@ public class AuthenticationController {
      *
      * @return "AuthenticationService is alive!"
      */
-    @GetMapping("/pingAS")
+    @GetMapping(AuthenticationServiceStub.GET_PING)
     public ResponseEntity<HashMap<Object,Object>> ping(HttpServletRequest request) {
         log.debug("Authentication Service was pinged by: " + request.getRemoteAddr());
 
@@ -70,7 +71,7 @@ public class AuthenticationController {
      * @param data expects a json body with username and password provided.
      * @return token when login successful.
      */
-    @PostMapping("/authenticate")
+    @PostMapping(AuthenticationServiceStub.POST_AUTHENTICATE)
     public ResponseEntity<HashMap<Object,Object>> login(@RequestBody AuthenticationRequest data){
         try {
             String username = data.getUsername();
@@ -106,8 +107,8 @@ public class AuthenticationController {
      * @param details expects a json body with username and password provided.
      * @return status op user creation.
      */
-    @PostMapping("/createUser")
-    public ResponseEntity<HashMap<Object,Object>> create(@RequestBody AuthenticationRequest details){
+    @PostMapping(AuthenticationServiceStub.POST_CREATE_USER)
+    public ResponseEntity<HashMap<Object,Object>> create(@RequestBody AuthenticationRequest data){
 
         try {
 
@@ -135,7 +136,7 @@ public class AuthenticationController {
      * @param data expects a json body with username and password provided.
      * @return status op user creation.
      */
-    @PostMapping("/createStandManager")
+    @PostMapping(AuthenticationServiceStub.POST_CREATE_STAND_MANAGER)
     public ResponseEntity<HashMap<Object,Object>> createStandManager(@RequestBody AuthenticationRequest data){
 
         try {

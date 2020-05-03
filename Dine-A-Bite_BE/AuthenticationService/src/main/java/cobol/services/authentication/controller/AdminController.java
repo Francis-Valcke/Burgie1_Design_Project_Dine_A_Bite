@@ -1,6 +1,8 @@
 package cobol.services.authentication.controller;
 
 import cobol.commons.ResponseModel;
+import cobol.commons.stub.AuthenticationServiceStub;
+import cobol.services.authentication.AuthenticationService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,7 +16,6 @@ import static cobol.commons.ResponseModel.status.OK;
  */
 @AllArgsConstructor
 @RestController
-@RequestMapping("/admin")
 public class AdminController {
 
 
@@ -23,7 +24,7 @@ public class AdminController {
      *
      * @return ResponseEntity
      */
-    @GetMapping("")
+    @GetMapping(AuthenticationServiceStub.GET_ADMIN_INFO)
     public ResponseEntity info(){
 
         return ResponseEntity.ok(

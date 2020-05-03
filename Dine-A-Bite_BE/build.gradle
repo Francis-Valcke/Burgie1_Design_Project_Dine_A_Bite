@@ -105,6 +105,8 @@ project(':Commons'){
         implementation group: 'org.springframework.boot', name: 'spring-boot-starter-security', version: '2.2.5.RELEASE'
         implementation group: 'org.springframework.boot', name: 'spring-boot-starter-web', version: '2.2.5.RELEASE'
 
+        implementation group: 'com.squareup.okhttp3', name: 'okhttp', version: '4.6.0'
+
         //Support for json web tokens in java
         implementation group: 'io.jsonwebtoken', name: 'jjwt', version: '0.9.1'
 

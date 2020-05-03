@@ -4,6 +4,7 @@ import cobol.commons.BetterResponseModel;
 import cobol.commons.BetterResponseModel.CreatePaymentIntentResponse;
 import cobol.commons.BetterResponseModel.GetBalanceResponse;
 import cobol.commons.BetterResponseModel.Status;
+import cobol.commons.BetterResponseModel.*;
 import cobol.commons.exception.DoesNotExistException;
 import cobol.commons.security.CommonUser;
 import cobol.commons.security.Role;
@@ -24,20 +25,21 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
+import static cobol.commons.stub.AuthenticationServiceStub.*;
 
 @RestController
-@RequestMapping("/stripe")
 public class StripeController {
 
     UserRepository userRepository;
     ConfigurationBean configurationBean;
 
-    @GetMapping(value = "/key", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = GET_STRIPE_KEY, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<BetterResponseModel<?>> getEphemeralKey(@RequestParam("api_version") String version, @AuthenticationPrincipal CommonUser user) {
 
         try {
@@ -63,7 +65,7 @@ public class StripeController {
         }
     }
 
-    @PostMapping(value = "/createPaymentIntent", produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = POST_STRIPE_CREATE_PAYMENT_INTENT, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<BetterResponseModel<?>> createPaymentIntent(String amount, @AuthenticationPrincipal CommonUser user) {
 
         try {
@@ -106,7 +108,7 @@ public class StripeController {
         }
     }
 
-    @PostMapping(value = "/createTransaction", produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = POST_STRIPE_CREATE_TRANSACTION, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<BetterResponseModel<?>> createTransaction(BigDecimal amount, @RequestParam(value = "user", required = false) String otherUser, @AuthenticationPrincipal CommonUser user) {
 
         try {
@@ -138,7 +140,7 @@ public class StripeController {
 
     }
 
-    @GetMapping(value = "/confirmTransaction", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = GET_STRIPE_CONFIRM_TRANSACTION, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<BetterResponseModel<?>> confirmTransaction(@RequestParam(value = "user", required = false) String otherUser, @AuthenticationPrincipal CommonUser user) {
         try {
 
@@ -167,7 +169,7 @@ public class StripeController {
         }
     }
 
-    @GetMapping(value = "/cancelTransaction", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = GET_STRIPE_CANCEL_TRANSACTION, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<BetterResponseModel<?>> cancelTransaction(@RequestParam(value = "user", required = false) String otherUser, @AuthenticationPrincipal CommonUser user) {
         try {
 

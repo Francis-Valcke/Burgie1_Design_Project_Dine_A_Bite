@@ -3,6 +3,7 @@ package cobol.services.authentication.controller;
 import cobol.commons.BetterResponseModel;
 import cobol.commons.exception.DoesNotExistException;
 import cobol.commons.security.CommonUser;
+import cobol.commons.stub.AuthenticationServiceStub;
 import cobol.services.authentication.domain.entity.User;
 import cobol.services.authentication.domain.repository.UserRepository;
 import cobol.commons.ResponseModel;
@@ -19,13 +20,13 @@ import java.util.HashMap;
 
 import static cobol.commons.ResponseModel.status.ERROR;
 import static cobol.commons.ResponseModel.status.OK;
+import static cobol.commons.stub.AuthenticationServiceStub.*;
 
 /**
  * REST api controller what requires ROLE_ADMIN or ROLE_USER for access.
  */
 @AllArgsConstructor
 @RestController
-@RequestMapping("/user")
 public class UserController {
 
     private UserRepository userRepository;
@@ -36,17 +37,12 @@ public class UserController {
      * @param userDetails easy way for accessing the authenticated user.
      * @return ResponseEntity
      */
-    @GetMapping("")
+    @GetMapping(GET_USER)
     public ResponseEntity<CommonUser> info(@AuthenticationPrincipal CommonUser userDetails){
         User user = userRepository.findById(userDetails.getUsername())
                 .orElseThrow(() -> new UsernameNotFoundException(userDetails.getUsername() + " not found!"));
 
         return ResponseEntity.ok(user.asCommonUser());
-    }
-
-    @GetMapping("getUser")
-    public ResponseEntity<CommonUser> getUser(@RequestParam String username) throws DoesNotExistException {
-        return ResponseEntity.ok(userRepository.findById(username).orElseThrow(() -> new DoesNotExistException("The user does not exist.")).asCommonUser());
     }
 
     /**
@@ -56,7 +52,7 @@ public class UserController {
      *                    Example: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJmcmFuY2lzIiwicm9sZXMiOlsiQURNSU4iLCJVU0VSIl0sImlhdCI6MTU4NDExMDYxOSwiZXhwIjoxNTg0MTEwNjc5fQ.arfl_AQUSqmRsBtMgN-NxNRe16NTCgAqzdJxJTkeeh8
      * @return ResponseEntity
      */
-    @DeleteMapping("")
+    @DeleteMapping(DELETE_USER)
     public ResponseEntity delete(@AuthenticationPrincipal UserDetails userDetails){
         try {
             userRepository.delete(userRepository.findById(userDetails.getUsername()).orElseThrow(() -> new UsernameNotFoundException(userDetails.getUsername())));
@@ -79,7 +75,8 @@ public class UserController {
 
     }
 
-    @GetMapping("/balance")
+
+    @GetMapping(GET_USER_BALANCE)
     public ResponseEntity<BetterResponseModel<?>> getBalance(@AuthenticationPrincipal CommonUser ap){
         try {
             User user = userRepository.findById(ap.getUsername()).orElseThrow(() -> new DoesNotExistException("The user does not exist, this is not possible"));

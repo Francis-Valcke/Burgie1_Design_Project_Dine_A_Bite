@@ -23,9 +23,7 @@ import javax.annotation.Resource;
  * Configuration class for configuring Spring Security filters.
  * Assigning authentication datasource.
  */
-@EnableWebSecurity
 @Configuration
-@ComponentScan({"cobol.services.authentication", "cobol.commons"})
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     private JwtAuthenticationFilter jwtAuthenticationFilter;
