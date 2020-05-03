@@ -13,6 +13,5 @@ import org.springframework.context.annotation.Configuration;
 public class ConfigurationBean {
 
     private boolean unitTest;
-    private String token;
 
 }
