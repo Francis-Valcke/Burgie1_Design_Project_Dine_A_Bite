@@ -5,6 +5,7 @@ import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
@@ -34,6 +35,7 @@ import com.example.standapp.json.CommonStand;
 import com.example.standapp.json.CommonFood;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.android.gms.common.internal.service.Common;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -51,11 +53,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-public class DashboardFragment extends Fragment {
+public class DashboardFragment extends Fragment implements MenuItemFragment.OnMenuItemChangedListener {
 
     private Context mContext;
     private boolean isNewStand = false;
     private ArrayList<CommonFood> items = new ArrayList<>();
+    private DashboardListViewAdapter adapter;
 
     // Stores the current stock of the menu items;
     // this way the stock send to the backend is calculated to be equal to the added stock
@@ -103,12 +106,11 @@ public class DashboardFragment extends Fragment {
             isNewStand = bundle.getBoolean("newStand");
         }
 
-        final DashboardListViewAdapter adapter
-                = new DashboardListViewAdapter(Objects.requireNonNull(getActivity()), items, addedStockMap);
+        adapter = new DashboardListViewAdapter(Objects.requireNonNull(getActivity()), items, addedStockMap);
         menuList.setAdapter(adapter);
 
         @SuppressLint("InflateParams")
-        final View addDialogLayout = inflater.inflate(R.layout.add_menu_item_dialog, null,
+        final View addDialogLayout = inflater.inflate(R.layout.menu_item_dialog, null,
                 false);
         final TextInputEditText nameInput = addDialogLayout.findViewById(R.id.menu_item_name);
         final TextInputEditText priceInput = addDialogLayout.findViewById(R.id.menu_item_price);
@@ -168,10 +170,9 @@ public class DashboardFragment extends Fragment {
 
             @Override
             public void onClick(View v) {
-                // open dialog to fill in information
-                //dialog.show();
+                // Open dialog to fill in information for adding new menu item
                 MenuItemFragment menuItemFragment = new MenuItemFragment();
-                getChildFragmentManager().beginTransaction().replace(R.id.child_fragment_container, menuItemFragment).commit();
+                menuItemFragment.show(getChildFragmentManager().beginTransaction(), "menu_item_dialog");
 
                 // https://stackoverflow.com/questions/23142956/sending-data-from-nested-fragments-to-parent-fragment
             }
@@ -363,5 +364,12 @@ public class DashboardFragment extends Fragment {
             // other 'case' lines to check for other
             // permissions this app might request.
         }
+    }
+
+    @Override
+    public void onMenuItemChanged(CommonFood item) {
+        items.add(item);
+        addedStockMap.put(item.getName(), item.getStock());
+        adapter.notifyDataSetChanged();
     }
 }
