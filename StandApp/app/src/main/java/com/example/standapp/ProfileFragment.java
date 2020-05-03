@@ -46,8 +46,8 @@ import java.util.Objects;
 
 public class ProfileFragment extends Fragment {
 
-    private String standName;
-    private String brandName;
+    private String standName = "";
+    private String brandName = "";
     private LoggedInUser user;
 
     // ID from the Event Channel
@@ -77,7 +77,7 @@ public class ProfileFragment extends Fragment {
         final TextView brandNameTextView = view.findViewById(R.id.brand_name);
         Button editStandNameButton = view.findViewById(R.id.edit_stand_name_button);
         Button editBrandNameButton = view.findViewById(R.id.edit_brand_name_button);
-        Button verifyButton = view.findViewById(R.id.button_verify);
+        final Button verifyButton = view.findViewById(R.id.button_verify);
         Button logOutButton = view.findViewById(R.id.button_log_out);
 
         user = LoginRepository.getInstance(new LoginDataSource()).getLoggedInUser();
@@ -87,9 +87,13 @@ public class ProfileFragment extends Fragment {
         if (bundle != null) standNameTextView.setText(bundle.getString("standName"));
         if (bundle != null) brandNameTextView.setText(bundle.getString("brandName"));
 
+        verifyButton.setEnabled(false);
+
         // Dialog for editing stand name
-        final View inputStandNameLayout = inflater.inflate(R.layout.edit_name_dialog, container, false);
-        final TextInputEditText editTextStandName = inputStandNameLayout.findViewById(R.id.edit_text_name);
+        final View inputStandNameLayout = inflater.inflate(R.layout.edit_name_dialog,
+                container, false);
+        final TextInputEditText editTextStandName
+                = inputStandNameLayout.findViewById(R.id.edit_text_name);
         final MaterialAlertDialogBuilder dialogStandName =
                 new MaterialAlertDialogBuilder(mContext)
                 .setView(inputStandNameLayout)
@@ -101,6 +105,10 @@ public class ProfileFragment extends Fragment {
                         editTextStandName.setText("");
                         ViewGroup parent = (ViewGroup) inputStandNameLayout.getParent();
                         parent.removeView(inputStandNameLayout);
+
+                        if (!standName.isEmpty() && !brandName.isEmpty()){
+                            verifyButton.setEnabled(true);
+                        }
                     }
                 }).setOnDismissListener(new DialogInterface.OnDismissListener() {
                     @Override
@@ -121,8 +129,10 @@ public class ProfileFragment extends Fragment {
         });
 
         // Dialog for editing brand name
-        final View inputBrandNameLayout = inflater.inflate(R.layout.edit_name_dialog, container, false);
-        final TextInputEditText editTextBrandName = inputBrandNameLayout.findViewById(R.id.edit_text_name);
+        final View inputBrandNameLayout = inflater.inflate(R.layout.edit_name_dialog,
+                container, false);
+        final TextInputEditText editTextBrandName
+                = inputBrandNameLayout.findViewById(R.id.edit_text_name);
         final MaterialAlertDialogBuilder dialogBrandName =
                 new MaterialAlertDialogBuilder(mContext)
                 .setView(inputBrandNameLayout)
@@ -134,6 +144,10 @@ public class ProfileFragment extends Fragment {
                         editTextBrandName.setText("");
                         ViewGroup parent = (ViewGroup) inputBrandNameLayout.getParent();
                         parent.removeView(inputBrandNameLayout);
+
+                        if (!standName.isEmpty() && !brandName.isEmpty()){
+                            verifyButton.setEnabled(true);
+                        }
                     }
                 }).setOnDismissListener(new DialogInterface.OnDismissListener() {
                     @Override
@@ -159,6 +173,8 @@ public class ProfileFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 if (!standName.isEmpty() && !brandName.isEmpty() && Utils.isConnected(getContext())) {
+
+                    verifyButton.setEnabled(false);
 
                     // Delete data from previous logged in stand
                     if (bundle != null) bundle.putSerializable("items", new ArrayList<CommonFood>());
@@ -292,7 +308,8 @@ public class ProfileFragment extends Fragment {
                 error.printStackTrace();
                 if (error instanceof ServerError) {
                     // TODO server should handle this exception and send a response
-                    Toast.makeText(getContext(), "Server could not find menu of stand", Toast.LENGTH_LONG).show();
+                    Toast.makeText(getContext(), "Server could not find menu of stand",
+                            Toast.LENGTH_LONG).show();
                     if (bundle != null) bundle.putBoolean("newStand", true);
                 } else {
                     Toast.makeText(getContext(), error.toString(), Toast.LENGTH_LONG).show();
@@ -342,13 +359,14 @@ public class ProfileFragment extends Fragment {
 
                 // Step 2: Subscribe to stand and subscriberID channels
                 System.out.println("SubscriberID = " + subscriberId);
-                String url2 = ServerConfig.EC_ADDRESS + "/registerSubscriber/toChannel?type=s_" + standName
-                        + "_" + brandName + "&id=" + subscriberId;
+                String url2 = ServerConfig.EC_ADDRESS + "/registerSubscriber/toChannel?type=s_"
+                        + standName + "_" + brandName + "&id=" + subscriberId;
                 url2 = url2.replace(' ', '+');
 
                 // GET request to server
                 final String finalUrl = url2;
-                StringRequest request2 = new StringRequest(Request.Method.GET, url2, new Response.Listener<String>() {
+                StringRequest request2 = new StringRequest(Request.Method.GET, url2,
+                        new Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
                         System.out.println("Response on GET request to " + finalUrl + ": " + response);
