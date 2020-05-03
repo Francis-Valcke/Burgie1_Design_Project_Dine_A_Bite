@@ -4,6 +4,7 @@ import cobol.commons.CommonFood;
 import cobol.commons.CommonStand;
 import cobol.commons.ResponseModel;
 import cobol.commons.exception.CommunicationException;
+import cobol.commons.exception.OrderException;
 import cobol.commons.order.CommonOrder;
 import cobol.commons.order.CommonOrderItem;
 import cobol.commons.order.Recommendation;
@@ -98,7 +99,7 @@ public class StandManagerController {
      * recommendation field will be a JSONArray of Recommendation object
      */
     @PostMapping(value = "/getSuperRecommendation", consumes = "application/json", produces = "application/json")
-    public ResponseEntity<JSONArray> getSuperRecommendation(@RequestBody SuperOrder superOrder) throws JsonProcessingException {
+    public ResponseEntity<JSONArray> getSuperRecommendation(@RequestBody SuperOrder superOrder) throws JsonProcessingException, OrderException {
 
         // initialize response
         JSONArray completeResponse= new JSONArray();
@@ -121,16 +122,20 @@ public class StandManagerController {
                 List<String> stringMenu = scheduler.getMenu().stream().map(CommonFood::getName).collect(Collectors.toList());
                 List<CommonOrderItem> canExecuteTogether = items.stream().filter(item -> stringMenu.contains(item.getFoodName())).collect(Collectors.toList());
 
-                itemSplit.add(new HashSet<>(canExecuteTogether));
-                items.removeAll(canExecuteTogether);
+                if(!canExecuteTogether.isEmpty()){
+                    itemSplit.add(new HashSet<>(canExecuteTogether));
+                    items.removeAll(canExecuteTogether);
+                }
             } else {
                 break;
             }
         }
 
+        if(!items.isEmpty()){
+            throw new OrderException("Super order contains items from other brands");
+        }
 
         for (HashSet<CommonOrderItem> commonOrderItems : itemSplit) {
-
             JSONObject orderResponse= new JSONObject();
 
             // -- Construct a virtual order -- //
