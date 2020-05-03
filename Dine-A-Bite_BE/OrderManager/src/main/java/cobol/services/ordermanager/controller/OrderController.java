@@ -11,8 +11,10 @@ import cobol.commons.security.CommonUser;
 import cobol.services.ordermanager.ASCommunicationHandler;
 import cobol.services.ordermanager.CommunicationHandler;
 import cobol.services.ordermanager.OrderProcessor;
+import cobol.services.ordermanager.domain.entity.Brand;
 import cobol.services.ordermanager.domain.entity.Food;
 import cobol.services.ordermanager.domain.entity.Order;
+import cobol.services.ordermanager.domain.repository.BrandRepository;
 import cobol.services.ordermanager.domain.repository.FoodRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -32,6 +34,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 public class OrderController {
@@ -47,6 +50,8 @@ public class OrderController {
     private CommunicationHandler communicationHandler;
     @Autowired
     private FoodRepository foodRepository;
+    @Autowired
+    private BrandRepository brandRepository;
 
     /**
      * This method will retrieve information about a given order identified by the orderId.
@@ -81,17 +86,22 @@ public class OrderController {
     public ResponseEntity<JSONObject> placeOrder(@AuthenticationPrincipal CommonUser userDetails, @RequestBody CommonOrder orderObject) throws Throwable {
 
         // First calculate the total price of the order
-        // TODO would make a lot more sense if the total price of the order was just sent with the order, but for now it will work this way too, just not that efficient.
+        Brand brand = brandRepository.findById(orderObject.getBrandName())
+                .orElseThrow(() -> new DoesNotExistException("The brand of the given order does not exist in the database, this should not be possible."));
+
+        // Get all distinct food items that are present for the brand
+        List<Food> brandFood = brand.getStandList().stream().flatMap(s -> s.getFoodList().stream()).distinct().collect(Collectors.toList());
+        // Each ordered item should be in this list, search this list to find the price.
         BigDecimal total = BigDecimal.ZERO;
-        String brandName = orderObject.getBrandName();
-        String standName = orderObject.getStandName();
-
         for (CommonOrderItem orderItem : orderObject.getOrderItems()) {
-            // Find the food item in the database to get its price
-            Food food = foodRepository.findFoodById(orderItem.getFoodName(), standName, brandName)
-                    .orElseThrow(() -> new DoesNotExistException("A food item in the order does not exist in the database, this should not be possible."));
-
-            total = total.add(BigDecimal.valueOf(-food.getPrice() * orderItem.getAmount()));
+            total = total.subtract(
+                    brandFood.stream()
+                    .filter(f -> f.getName().equals(orderItem.getFoodName()) && f.getBrandName().equals(orderObject.getBrandName()))
+                    .findAny()
+                    .orElseThrow(() -> new DoesNotExistException("OrderItem " +orderItem.getFoodName() + " does not exist in the backend, this should not be possible"))
+                    .getPrice()
+                    .multiply(new BigDecimal(orderItem.getAmount()))
+            );
         }
 
         // With this price we try to create a transaction
@@ -100,7 +110,6 @@ public class OrderController {
             // There was an error creating the transaction. Throw this.
             throw response.getException();
         }
-
 
         // Add order to the processor
         Order newOrder = new Order(orderObject);
