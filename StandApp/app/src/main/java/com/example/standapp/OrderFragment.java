@@ -79,7 +79,8 @@ public class OrderFragment extends Fragment {
 
         View view = inflater.inflate(R.layout.activity_order, container, false);
 
-        final LoggedInUser user = LoginRepository.getInstance(new LoginDataSource()).getLoggedInUser();
+        final LoggedInUser user = LoginRepository.getInstance(new LoginDataSource())
+                .getLoggedInUser();
 
         // Getting the log in information from profile fragment
         final Bundle bundle = getArguments();
@@ -140,12 +141,14 @@ public class OrderFragment extends Fragment {
                                 JSONObject eventJSON = (JSONObject) response.get(i);
                                 Event event = mapper.readValue(eventJSON.toString(), Event.class);
                                 if (!event.getDataType().equals("Order")) return;
-                                listEvents.add(0, event);
+                                //listEvents.add(0, event);
+                                listEvents.add(event);
 
                                 JSONObject eventData = (JSONObject) eventJSON.get("eventData");
                                 JSONObject order = (JSONObject) eventData.get("order");
                                 orders.add(mapper.readValue(order.toString(), CommonOrder.class));
-                                listOrders.add(0, mapper.readValue(order.toString(), CommonOrder.class));
+                                //listOrders.add(0, mapper.readValue(order.toString(), CommonOrder.class));
+                                listOrders.add(mapper.readValue(order.toString(), CommonOrder.class));
                             } catch (JSONException | JsonProcessingException e) {
                                 e.printStackTrace();
                             }
@@ -153,7 +156,8 @@ public class OrderFragment extends Fragment {
 
                         for (CommonOrder order : orders) {
                             String orderName = "#" + order.getId();
-                            listDataHeader.add(0, orderName);
+                            //listDataHeader.add(0, orderName);
+                            listDataHeader.add(orderName);
                             listStatus.put(orderName, CommonOrderStatusUpdate.status.PENDING);
                             List<String> orderItems = new ArrayList<>();
                             for (CommonOrderItem item : order.getOrderItems()) {
@@ -221,7 +225,7 @@ public class OrderFragment extends Fragment {
         }
     }
 
-
+    // TODO fix reversing of orders list (graphical glitch?)
     // Receives the order updates from the polling service
     private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
         @Override
@@ -232,17 +236,20 @@ public class OrderFragment extends Fragment {
             if (eventUpdate != null && eventUpdate.getDataType().equals("Order")) {
                 // Add objects to the beginning of the ArrayLists
                 // -> most recent order at the top of the list on screen
-                listEvents.add(0, eventUpdate);
+                //listEvents.add(0, eventUpdate);
+                listEvents.add(eventUpdate);
 
                 ObjectMapper mapper = new ObjectMapper();
                 JsonNode eventData = eventUpdate.getEventData();
                 JsonNode orderJson = eventData.get("order");
                 try {
                     CommonOrder orderUpdate = mapper.treeToValue(orderJson, CommonOrder.class);
-                    listOrders.add(0, orderUpdate);
+                    //listOrders.add(0, orderUpdate);
+                    listOrders.add(orderUpdate);
 
                     String orderName = "#" + orderUpdate.getId();
-                    listDataHeader.add(0, orderName);
+                    //listDataHeader.add(0, orderName);
+                    listDataHeader.add(orderName);
                     listStatus.put(orderName, CommonOrderStatusUpdate.status.PENDING);
                     List<String> orderItems = new ArrayList<>();
                     for (CommonOrderItem item : orderUpdate.getOrderItems()) {

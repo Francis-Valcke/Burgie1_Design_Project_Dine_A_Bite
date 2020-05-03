@@ -1,5 +1,6 @@
 package com.example.standapp;
 
+import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
 import android.os.Bundle;
@@ -73,29 +74,47 @@ public class MenuItemFragment extends DialogFragment {
         final TextInputEditText descriptionInput = view.findViewById(R.id.menu_item_description);
         final TextInputEditText prepTimeInput = view.findViewById(R.id.menu_item_prep_time);
 
+        final View finalView = view;
+
         toolbar.setTitle("New menu item");
         toolbar.inflateMenu(R.menu.dialog_menu);
         toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
-                // Save the new/changed menu item in CommonFood object
-                String name = Objects.requireNonNull(nameInput.getText()).toString();
-                BigDecimal price = new BigDecimal(Objects.requireNonNull(priceInput.getText()).toString());
-                int stock = Integer.parseInt(Objects.requireNonNull(stockInput.getText()).toString());
-                String description = Objects.requireNonNull(descriptionInput.getText()).toString();
-                int preparationTime = Integer.parseInt(Objects.requireNonNull(prepTimeInput.getText())
-                        .toString()) * 60;
-                List<String> category = new ArrayList<>();
-                category.add("");
-                CommonFood menuItem = new CommonFood(name, price, preparationTime, stock, "",
-                        description, category);
+                // Check if required field are filled in to be able to save menu item
+                if (Objects.requireNonNull(nameInput.getText()).toString().isEmpty()
+                        || Objects.requireNonNull(priceInput.getText()).toString().isEmpty()
+                        || Objects.requireNonNull(stockInput.getText()).toString().isEmpty()
+                        || Objects.requireNonNull(prepTimeInput.getText()).toString().isEmpty()) {
+                    AlertDialog.Builder alertDialog = new AlertDialog.Builder(finalView.getContext())
+                            .setTitle("Invalid menu item")
+                            .setMessage("The menu item you tried to add is invalid, " +
+                                    "please try again. " +
+                                    "You should fill in the necessary fields.")
+                            .setNeutralButton("Ok", null);
+                    alertDialog.show();
+                } else {
+                    // Save the new/changed menu item in CommonFood object
+                    // And send to container (parent) fragment
+                    String name = Objects.requireNonNull(nameInput.getText()).toString();
+                    BigDecimal price = new BigDecimal(Objects.requireNonNull(priceInput.getText()).toString());
+                    int stock = Integer.parseInt(Objects.requireNonNull(stockInput.getText()).toString());
+                    String description = Objects.requireNonNull(descriptionInput.getText()).toString();
+                    int preparationTime = Integer.parseInt(Objects.requireNonNull(prepTimeInput.getText())
+                            .toString()) * 60;
+                    List<String> category = new ArrayList<>();
+                    category.add("");
+                    CommonFood menuItem = new CommonFood(name, price, preparationTime, stock, "",
+                            description, category);
 
-                if (mOnMenuItemChangedListener != null) {
-                    mOnMenuItemChangedListener.onMenuItemChanged(menuItem);
+                    if (mOnMenuItemChangedListener != null) {
+                        mOnMenuItemChangedListener.onMenuItemChanged(menuItem);
+                    }
+
+                    dismiss();
+                    return true;
                 }
-
-                dismiss();
-                return true;
+                return false;
             }
         });
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
@@ -115,9 +134,11 @@ public class MenuItemFragment extends DialogFragment {
      * Listener for adding or changing menu items from within MenuItemFragment (DialogFragment)
      *
      * Container (parent) fragment must implement this interface
+     *
+     * https://stackoverflow.com/questions/23142956/sending-data-from-nested-fragments-to-parent-fragment
      */
     public interface OnMenuItemChangedListener {
-        public void onMenuItemChanged(CommonFood item);
+        void onMenuItemChanged(CommonFood item);
     }
 
     /**
