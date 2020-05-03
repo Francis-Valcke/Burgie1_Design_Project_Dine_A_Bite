@@ -42,27 +42,12 @@ public class Converters {
     }
 
     @TypeConverter
-    public static Calendar fromTimestamp(Long value) {
-        Calendar cal = Calendar.getInstance();
-        if (value == null) {
-            return null;
-        }
-        cal.setTimeInMillis(value);
-        return cal;
-    }
-
-    @TypeConverter
-    public static Long CalendarToTimestamp(Calendar cal) {
-        return cal == null? null : cal.getTime().getTime();
-    }
-
-    @TypeConverter
     public static Long ZonedDateTimeToTimestamp(ZonedDateTime zonedDateTime) {
         return zonedDateTime == null ? null : zonedDateTime.toInstant().toEpochMilli();
     }
 
     @TypeConverter
-    public static ZonedDateTime ZonedDateTimefromTimestamp(Long value) {
+    public static ZonedDateTime ZonedDateTimeFromTimestamp(Long value) {
         return ZonedDateTime.ofInstant(Instant.ofEpochMilli(value), ZoneId.of("Europe/Brussels"));
     }
 

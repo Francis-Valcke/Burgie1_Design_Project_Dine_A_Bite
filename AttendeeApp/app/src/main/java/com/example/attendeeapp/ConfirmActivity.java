@@ -288,7 +288,6 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
         jsonOrder.remove("id");
         jsonOrder.remove("startTime");
         jsonOrder.remove("expectedTime");
-        jsonOrder.remove("standId");
 
         // TODO: to remove the following, when server can handle updated CommonOrderItem
         try {
@@ -404,7 +403,6 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
         jsonOrder.remove("id");
         jsonOrder.remove("startTime");
         jsonOrder.remove("expectedTime");
-        jsonOrder.remove("standId");
 
         // TODO: to remove the following, when server can handle updated CommonOrderItem
         try {
