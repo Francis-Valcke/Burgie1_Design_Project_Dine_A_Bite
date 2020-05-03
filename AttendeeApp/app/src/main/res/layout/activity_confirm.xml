@@ -68,14 +68,13 @@
                 android:gravity="center" />
             <TextView
                 android:id="@+id/recommend_distance"
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="50dp"
                 android:layout_marginStart="20dp"
                 android:layout_marginEnd="20dp"
                 android:textColor="@color/black"
                 android:textSize="20sp"
                 android:layout_gravity="center"
-                android:layout_weight="1"
                 android:gravity="center" />
 
         </LinearLayout>
@@ -96,14 +95,13 @@
                 android:gravity="center" />
             <TextView
                 android:id="@+id/recommend_time"
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="50dp"
                 android:layout_marginStart="20dp"
                 android:layout_marginEnd="20dp"
                 android:textColor="@color/black"
                 android:textSize="20sp"
                 android:layout_gravity="center"
-                android:layout_weight="1"
                 android:gravity="center" />
 
         </LinearLayout>

@@ -24,7 +24,7 @@ import java.util.ArrayList;
 /**
  * Activity for handling the global/stand menu view page
  */
-public class MenuActivity extends AppCompatActivity implements OnCartChangeListener {
+public class MenuActivity extends ToolbarActivity implements OnCartChangeListener {
 
     private static final int MAX_CART_ITEM = 25;
     private ArrayList<CommonFood> cartList = new ArrayList<>();
@@ -42,6 +42,9 @@ public class MenuActivity extends AppCompatActivity implements OnCartChangeListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_menu);
 
+        // Initialize the toolbar
+        initToolbar();
+
         // Create a viewpager to slide between the global and stand menu
         ViewPager2 viewPager = findViewById(R.id.menu_view_pager);
         viewPager.setAdapter(new MenuFragmentAdapter(this));
@@ -57,13 +60,13 @@ public class MenuActivity extends AppCompatActivity implements OnCartChangeListe
                                 break;
                             case 1:
                                 tab.setText(R.string.tab_stand);
+                                break;
+                            case 2:
+                                tab.setText(R.string.tab_category);
+                                break;
                         }
                     }
                 }).attach();
-
-        // Custom Toolbar (instead of standard actionbar)
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
 
         // Initializes cart button layout at bottom of menu item list
         TextView totalCount = findViewById(R.id.cart_count);
@@ -193,41 +196,5 @@ public class MenuActivity extends AppCompatActivity implements OnCartChangeListe
         return cartCount;
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.main_menu, menu);
-        return true;
-    }
-
-    // TODO:
-    //  -make toolbar generalized for all activities
-    //  -make Toast messages cancalable for all activities
-    @Override
-    public boolean onOptionsItemSelected(@NonNull android.view.MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.orders_action:
-                // User chooses the "My Orders" item
-                Intent intent = new Intent(MenuActivity.this, OrderActivity.class);
-                startActivity(intent);
-                return true;
-            case R.id.account_action:
-                // User chooses the "Account" item
-                Intent intent2 = new Intent(MenuActivity.this, AccountActivity.class);
-                startActivity(intent2);
-                return true;
-            case R.id.settings_action:
-                // User chooses the "Settings" item
-                // TODO make settings activity
-                return true;
-            case R.id.map_action:
-                //User chooses the "Map" item
-                Intent mapIntent = new Intent(MenuActivity.this, MapsActivity.class);
-                startActivity(mapIntent);
-                return true;
-            default:
-                return super.onOptionsItemSelected(item);
-        }
-    }
 }
 

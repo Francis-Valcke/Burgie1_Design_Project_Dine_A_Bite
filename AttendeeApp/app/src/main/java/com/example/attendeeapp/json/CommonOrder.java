@@ -91,7 +91,7 @@ public class CommonOrder implements Serializable {
     }
 
     public int computeRemainingTime(){
-        return (int) Duration.between(expectedTime, startTime).toMillis();
+        return (int) Duration.between(startTime, expectedTime).toMillis();
     }
 
     public State getOrderState() {
