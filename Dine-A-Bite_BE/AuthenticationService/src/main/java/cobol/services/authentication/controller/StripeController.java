@@ -1,8 +1,9 @@
 package cobol.services.authentication.controller;
 
 import cobol.commons.BetterResponseModel;
-import cobol.commons.BetterResponseModel.*;
-import cobol.commons.ResponseModel;
+import cobol.commons.BetterResponseModel.CreatePaymentIntentResponse;
+import cobol.commons.BetterResponseModel.GetBalanceResponse;
+import cobol.commons.BetterResponseModel.Status;
 import cobol.commons.exception.DoesNotExistException;
 import cobol.commons.security.CommonUser;
 import cobol.commons.security.Role;
@@ -27,9 +28,6 @@ import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-
-import static cobol.commons.ResponseModel.status.ERROR;
-import static cobol.commons.ResponseModel.status.OK;
 
 
 @RestController

@@ -3,48 +3,32 @@ package com.example.attendeeapp;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
 import androidx.security.crypto.EncryptedSharedPreferences;
 import androidx.security.crypto.MasterKeys;
 
-import com.android.volley.AuthFailureError;
-import com.android.volley.Request;
-import com.android.volley.toolbox.JsonObjectRequest;
 import com.example.attendeeapp.appDatabase.OrderDatabaseService;
 import com.example.attendeeapp.data.LoginDataSource;
 import com.example.attendeeapp.data.LoginRepository;
 import com.example.attendeeapp.data.model.LoggedInUser;
-import com.example.attendeeapp.polling.RequestQueueSingleton;
-import com.example.attendeeapp.stripe.DineabiteEphemeralKeyProvider;
-import com.stripe.android.CustomerSession;
+import com.example.attendeeapp.json.BetterResponseModel;
+import com.example.attendeeapp.json.BetterResponseModel.*;
+import com.example.attendeeapp.polling.OkHttpRequestTool;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.stripe.android.PaymentSession;
-import com.stripe.android.PaymentSessionConfig;
-import com.stripe.android.PaymentSessionData;
-import com.stripe.android.Stripe;
-import com.stripe.android.model.Address;
-import com.stripe.android.model.Customer;
-import com.stripe.android.model.PaymentMethod;
-import com.stripe.android.view.BillingAddressFields;
-import com.stripe.android.view.ShippingInfoWidget;
-
-import org.jetbrains.annotations.NotNull;
-import org.json.JSONException;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
+import java.util.Objects;
+
+import io.reactivex.rxjava3.disposables.CompositeDisposable;
+import okhttp3.Request;
 
 public class AccountActivity extends ToolbarActivity {
 
@@ -55,11 +39,14 @@ public class AccountActivity extends ToolbarActivity {
     TextView balance;
     private PaymentSession paymentSession;
     Button topUp;
+    CompositeDisposable disposables;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_account);
+
+        disposables = new CompositeDisposable();
 
         // Initialize the toolbar
         initToolbar();
@@ -125,35 +112,35 @@ public class AccountActivity extends ToolbarActivity {
     private void updateBalance() {
 
         String url = ServerConfig.AS_ADDRESS + "/user/balance";
-        JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, url, null,
+        Request request = new Request.Builder()
+                .url(url)
+                .method("GET", null)
+                .addHeader("Authorization", user.getAuthorizationToken())
+                .build();
+
+        disposables.add(OkHttpRequestTool.wrapRequest(request).subscribe(
                 response -> {
                     try {
+                        ObjectMapper om = new ObjectMapper();
+                        BetterResponseModel<GetBalanceResponse> object =
+                                om.readValue(response, new TypeReference<BetterResponseModel<GetBalanceResponse>>() {});
 
-                        if(response.get("status").equals("OK")){
-                            balance.setText(response.getString("details"));
-                            Log.i("STRIPE", "balance was updated successfully");
+                        if (object.isOk()){
+                            balance.setText(String.valueOf(object.getPayload().getBalance()));
+                        } else {
+                            // There was an error processing the request
+                            System.out.println();
                         }
-
-                    } catch (JSONException e) {
-                        Log.e("STRIPE", "updateBalance: ", e);
-                        e.printStackTrace();
+                    } catch (Throwable throwable) {
+                        System.out.println();
                     }
                 },
-                error -> {
-
-                    balance.setText("Balance could not be retrieved.");
-                    Log.e("STRIPE", "updateBalance: ", error);
+                throwable -> {
+                    // There was an error executing the request
+                    throw throwable;
                 }
-            ){
-                @Override
-                public Map<String, String> getHeaders() {
-                    Map<String, String>  headers  = new HashMap<>();
-                    headers.put("Authorization", user.getAuthorizationToken());
-                    return headers;
-                }
-        };
+        ));
 
-        RequestQueueSingleton.getInstance(this).addToRequestQueue(request);
     }
 
     @Override
@@ -169,7 +156,7 @@ public class AccountActivity extends ToolbarActivity {
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        if(requestCode == REQUEST_TOP_TUP) {
+        if (requestCode == REQUEST_TOP_TUP) {
             updateBalance();
         }
 

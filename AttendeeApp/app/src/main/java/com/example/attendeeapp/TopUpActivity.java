@@ -25,7 +25,7 @@ import com.example.attendeeapp.data.LoginDataSource;
 import com.example.attendeeapp.data.LoginRepository;
 import com.example.attendeeapp.data.model.LoggedInUser;
 import com.example.attendeeapp.json.BetterResponseModel;
-import com.example.attendeeapp.polling.RequestQueueSingleton;
+import com.example.attendeeapp.polling.OkHttpRequestTool;
 import com.example.attendeeapp.stripe.DineabiteEphemeralKeyProvider;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -50,6 +50,10 @@ import java.lang.ref.WeakReference;
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
+
+import okhttp3.MediaType;
+import okhttp3.RequestBody;
 
 public class TopUpActivity extends AppCompatActivity {
 
@@ -117,8 +121,21 @@ public class TopUpActivity extends AppCompatActivity {
 
     private void doPayment(String amount) {
 
-        String url = ServerConfig.AS_ADDRESS + "/stripe/createPaymentIntent?amount="+amount;
-        JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, url,null,
+        HashMap<String,String> params = new HashMap<>();
+        params.put("amount", amount);
+
+        String url = ServerConfig.AS_ADDRESS + "/stripe/createPaymentIntent";
+        url = OkHttpRequestTool.buildUrl(url, params);
+
+        RequestBody body = RequestBody.create("", MediaType.parse("application/json"));
+
+        okhttp3.Request request = new okhttp3.Request.Builder()
+                .url(url)
+                .method("POST", body)
+                .addHeader("Authorization", user.getAuthorizationToken())
+                .build();
+
+        OkHttpRequestTool.wrapRequest(request).subscribe(
                 response -> {
 
                     String clientSecret;
@@ -128,7 +145,7 @@ public class TopUpActivity extends AppCompatActivity {
 
                         ObjectMapper om = new ObjectMapper();
                         BetterResponseModel<CreatePaymentIntentResponse> responseModel =
-                                om.readValue(response.toString(), new TypeReference<BetterResponseModel<CreatePaymentIntentResponse>>() {});
+                                om.readValue(response, new TypeReference<BetterResponseModel<CreatePaymentIntentResponse>>() {});
 
                         if (responseModel.getStatus().equals(Status.OK)){
                             clientSecret = responseModel.getPayload().getClientSecret();
@@ -154,46 +171,32 @@ public class TopUpActivity extends AppCompatActivity {
                     }
 
                 },
-                error -> {
+                throwable -> {
                     Toast.makeText(context, "ERROR", Toast.LENGTH_SHORT).show();
-                    Log.e("STRIPE", "doPayment: ", error);
+                    Log.e("STRIPE", "doPayment: ", throwable);
                     loadingProgressBar.setVisibility(View.GONE);
                 }
-            ){
-
-            @Override
-            public Map<String, String> getHeaders() throws AuthFailureError {
-
-                Map<String, String>  headers  = new HashMap<>();
-                headers.put("Authorization", user.getAuthorizationToken());
-                return headers;
-
-            }
-
-            @Override
-            protected Map<String, String> getParams() throws AuthFailureError {
-
-                Map<String,String> params = new HashMap<>();
-                params.put("amount", String.valueOf(amount));
-                return params;
-
-            }
-        };
-
-        RequestQueueSingleton.getInstance(this).addToRequestQueue(request);
+        );
 
     }
 
     private void confirmPayment() {
 
         String url = ServerConfig.AS_ADDRESS + "/stripe/confirmTransaction";
-        JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, url,null,
+
+        okhttp3.Request request = new okhttp3.Request.Builder()
+                .url(url)
+                .method("GET", null)
+                .addHeader("Authorization", user.getAuthorizationToken())
+                .build();
+
+        OkHttpRequestTool.wrapRequest(request).subscribe(
                 response -> {
 
                     try {
                         ObjectMapper om = new ObjectMapper();
                         BetterResponseModel<GetBalanceResponse> responseModel =
-                                om.readValue(response.toString(), new TypeReference<BetterResponseModel<GetBalanceResponse>>() {});
+                                om.readValue(response, new TypeReference<BetterResponseModel<GetBalanceResponse>>() {});
                         Log.i("STRIPE", "confirmPayment: balance after operation:" + responseModel.getPayload().getBalance());
                         finish();
 
@@ -204,37 +207,32 @@ public class TopUpActivity extends AppCompatActivity {
                     }
 
                 },
-                error -> {
+                throwable -> {
                     Toast.makeText(context, "ERROR", Toast.LENGTH_SHORT).show();
-                    Log.e("STRIPE", "confirmPayment: ", error);
+                    Log.e("STRIPE", "confirmPayment: ", throwable);
                     loadingProgressBar.setVisibility(View.GONE);
                 }
-        ){
-
-            @Override
-            public Map<String, String> getHeaders() throws AuthFailureError {
-
-                Map<String, String>  headers  = new HashMap<>();
-                headers.put("Authorization", user.getAuthorizationToken());
-                return headers;
-
-            }
-        };
-
-        RequestQueueSingleton.getInstance(this).addToRequestQueue(request);
+        );
 
     }
 
     private void cancelPayment() {
 
         String url = ServerConfig.AS_ADDRESS + "/stripe/cancelTransaction";
-        JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, url,null,
+
+        okhttp3.Request request = new okhttp3.Request.Builder()
+                .url(url)
+                .method("GET", null)
+                .addHeader("Authorization", user.getAuthorizationToken())
+                .build();
+
+        OkHttpRequestTool.wrapRequest(request).subscribe(
                 response -> {
 
                     try {
                         ObjectMapper om = new ObjectMapper();
                         BetterResponseModel<GetBalanceResponse> responseModel =
-                                om.readValue(response.toString(), new TypeReference<BetterResponseModel<GetBalanceResponse>>() {});
+                                om.readValue(response, new TypeReference<BetterResponseModel<GetBalanceResponse>>() {});
 
                         Log.i("STRIPE", "cancelPayment: balance after operation:" + responseModel.getPayload().getBalance());
                         loadingProgressBar.setVisibility(View.GONE);
@@ -246,24 +244,12 @@ public class TopUpActivity extends AppCompatActivity {
                     }
 
                 },
-                error -> {
+                throwable -> {
                     Toast.makeText(context, "ERROR", Toast.LENGTH_SHORT).show();
-                    Log.e("STRIPE", "cancelPayment: ", error);
+                    Log.e("STRIPE", "cancelPayment: ", throwable);
                     loadingProgressBar.setVisibility(View.GONE);
                 }
-        ){
-
-            @Override
-            public Map<String, String> getHeaders() throws AuthFailureError {
-
-                Map<String, String>  headers  = new HashMap<>();
-                headers.put("Authorization", user.getAuthorizationToken());
-                return headers;
-
-            }
-        };
-
-        RequestQueueSingleton.getInstance(this).addToRequestQueue(request);
+        );
 
     }
 

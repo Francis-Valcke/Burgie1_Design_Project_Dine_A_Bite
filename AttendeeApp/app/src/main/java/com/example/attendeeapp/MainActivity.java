@@ -13,7 +13,6 @@ import androidx.security.crypto.MasterKeys;
 import com.example.attendeeapp.data.LoginDataSource;
 import com.example.attendeeapp.data.LoginRepository;
 import com.example.attendeeapp.data.model.LoggedInUser;
-import com.example.attendeeapp.polling.RequestQueueSingleton;
 import com.example.attendeeapp.ui.login.LoginActivity;
 import com.jakewharton.threetenabp.AndroidThreeTen;
 import com.stripe.android.PaymentConfiguration;
@@ -38,7 +37,6 @@ public class MainActivity extends AppCompatActivity {
                 getApplicationContext(),
                 "pk_test_GxEIF5eJVuGKv6O5Jsz6l8wr00qoki9cHO"
         );
-        RequestQueueSingleton.init(getApplicationContext());
         setContentView(R.layout.activity_main);
 
         // Clear db of all entries (for testing purposes)

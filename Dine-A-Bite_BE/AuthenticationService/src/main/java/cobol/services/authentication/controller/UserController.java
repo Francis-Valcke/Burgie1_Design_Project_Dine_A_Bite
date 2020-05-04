@@ -1,5 +1,6 @@
 package cobol.services.authentication.controller;
 
+import cobol.commons.BetterResponseModel;
 import cobol.commons.exception.DoesNotExistException;
 import cobol.commons.security.CommonUser;
 import cobol.services.authentication.domain.entity.User;
@@ -79,20 +80,19 @@ public class UserController {
     }
 
     @GetMapping("/balance")
-    public ResponseEntity<HashMap<Object, Object>> getBalance(@AuthenticationPrincipal CommonUser ap){
+    public ResponseEntity<BetterResponseModel<?>> getBalance(@AuthenticationPrincipal CommonUser ap){
         try {
             User user = userRepository.findById(ap.getUsername()).orElseThrow(() -> new DoesNotExistException("The user does not exist, this is not possible"));
 
             return ResponseEntity.ok(
-                    ResponseModel.builder()
-                    .status(OK)
-                    .details(user.getBalance())
-                    .build().generateResponse()
+                    BetterResponseModel.ok(
+                            "Payload contains the balance of the user",
+                            new BetterResponseModel.GetBalanceResponse(user.getBalance())
+                    )
             );
 
         } catch (DoesNotExistException e) {
-            e.printStackTrace();
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.ok(BetterResponseModel.error(e.getMessage(), e));
         }
 
     }
