@@ -76,7 +76,7 @@ public class OrderFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
 
-        View view = inflater.inflate(R.layout.activity_order, container, false);
+        View view = inflater.inflate(R.layout.fragment_order, container, false);
 
         final LoggedInUser user = LoginRepository.getInstance(new LoginDataSource())
                 .getLoggedInUser();
