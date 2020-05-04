@@ -6,33 +6,39 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
-import android.view.Menu;
-import android.view.MenuInflater;
+import android.widget.CompoundButton;
 import android.widget.ExpandableListView;
+import android.widget.Switch;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+import com.example.attendeeapp.appDatabase.OrderDatabaseService;
 import com.example.attendeeapp.data.LoginDataSource;
 import com.example.attendeeapp.data.LoginRepository;
 import com.example.attendeeapp.data.model.LoggedInUser;
 import com.example.attendeeapp.json.CommonOrder;
 import com.example.attendeeapp.json.CommonOrderStatusUpdate;
 import com.example.attendeeapp.polling.PollingService;
-import com.example.attendeeapp.appDatabase.OrderDatabaseService;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import org.json.JSONArray;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -42,6 +48,7 @@ import java.util.Map;
 public class OrderActivity extends ToolbarActivity {
 
     private int subscribeId = -1;
+    private Switch runningOrderSwitch;
     private ArrayList<CommonOrder> orders;
     private OrderDatabaseService orderDatabaseService;
     private OrderItemExpandableAdapter adapter;
@@ -76,20 +83,38 @@ public class OrderActivity extends ToolbarActivity {
         return false;
     }
 
+
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_order);
 
+        runningOrderSwitch= findViewById(R.id.running_order_switch);
         // Initialize the toolbar
         initToolbar();
         upButtonToolbar();
 
         final CommonOrder newOrder = (CommonOrder) getIntent().getSerializableExtra("order");
 
+        orders= new ArrayList<>();
+
         // Database initialization and loading of the stored data
         orderDatabaseService = new OrderDatabaseService(getApplicationContext());
-        orders = (ArrayList<CommonOrder>) orderDatabaseService.getAll();
+        adapter = new OrderItemExpandableAdapter(this, orders, orderDatabaseService);
+        // Initiate the expandable order ListView
+        ExpandableListView expandList = findViewById(R.id.order_expand_list);
+        expandList.setAdapter(adapter);
+        updateUserOrdersFromDB();
+
+        // add event listener to switch
+        runningOrderSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+               updateUserOrdersFromDB();
+            }
+        });
 
         if (orders == null || (orders.size() == 0 && newOrder == null)) {
             // No (new) orders
@@ -104,11 +129,8 @@ public class OrderActivity extends ToolbarActivity {
             confirmNewOrderStand(newOrder, chosenStand, chosenBrand);
         }
 
-        // Initiate the expandable order ListView
-        ExpandableListView expandList = findViewById(R.id.order_expand_list);
-        adapter = new OrderItemExpandableAdapter(this, orders, orderDatabaseService);
 
-        expandList.setAdapter(adapter);
+
 
         // Register as subscriber to the orderId event channel
         if (!isPollingServiceRunning(PollingService.class)){
@@ -120,6 +142,11 @@ public class OrderActivity extends ToolbarActivity {
             // orderId's will not be empty, else this code is not reachable
             getSubscriberId(orderIds);
         }
+
+
+
+
+
     }
 
     @Override
@@ -203,6 +230,86 @@ public class OrderActivity extends ToolbarActivity {
         // Add the request to the RequestQueue
         queue.add(stringRequest);
     }
+
+
+    public void updateUserOrdersFromDB(){
+
+
+        RequestQueue queue= Volley.newRequestQueue(this);
+        String url= ServerConfig.OM_ADDRESS;
+        url=String.format("%1$s/getUserOrders", url);
+
+        JsonArrayRequest request= new JsonArrayRequest(Request.Method.GET, url,null,
+                new Response.Listener<JSONArray>(){
+            @Override
+            public void onResponse(JSONArray response) {
+                ObjectMapper mapper= new ObjectMapper();
+                try {
+                    List<CommonOrder> allUserOrders= mapper.readValue(response.toString(),
+                            new TypeReference<List<CommonOrder>>() {});
+
+                    // TODO: implement something better to update local database @Nathan
+                    /*orderDatabaseService.deleteAllOrders();
+                    for (CommonOrder order : allUserOrders) {
+                        orderDatabaseService.insertOrder(order);
+                    }*/
+
+                    orders.clear();
+                    orders.addAll(allUserOrders);
+
+                    ArrayList<CommonOrder> readyOrders= new ArrayList<CommonOrder>();
+                    if(runningOrderSwitch.isChecked()){
+                        for (CommonOrder order : orders) {
+                            if(order.getOrderState()== CommonOrder.State.READY){
+                                readyOrders.add(order);
+                            }
+                        }
+                        orders.removeAll(readyOrders);
+                    }
+
+
+
+                    Collections.sort(orders, new Comparator<CommonOrder>() {
+                        @Override
+                        public int compare(CommonOrder o1, CommonOrder o2) {
+                            return o1.getId()- o2.getId();
+                        }
+                    });
+                    adapter.notifyDataSetChanged();
+
+
+                    Toast mToast = null;
+                    if (mToast != null) mToast.cancel();
+                    mToast = Toast.makeText(OrderActivity.this, "Orders updated",
+                            Toast.LENGTH_SHORT);
+                    mToast.show();
+                } catch (JsonProcessingException e) {
+                    e.printStackTrace();
+                }
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Toast mToast = null;
+                if (mToast != null) mToast.cancel();
+                mToast = Toast.makeText(OrderActivity.this, "Your orders could not be retrieved from the server",
+                        Toast.LENGTH_SHORT);
+                mToast.show();
+            }
+        }){
+            // Add JSON headers
+            @Override
+            public @NonNull Map<String, String> getHeaders()  {
+                Map<String, String> headers = new HashMap<>();
+                headers.put("Authorization", user.getAuthorizationToken());
+                return headers;
+            }
+        };
+
+        queue.add(request);
+    }
+
+
 
     /**
      * Subscribes to the server eventChannel for the given order
