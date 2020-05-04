@@ -44,7 +44,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-public class DashboardFragment extends Fragment implements MenuItemFragment.OnMenuItemChangedListener {
+public class DashboardFragment extends Fragment
+        implements MenuItemFragment.OnMenuItemChangedListener {
 
     private Context mContext;
     private boolean isNewStand = false;
@@ -97,7 +98,8 @@ public class DashboardFragment extends Fragment implements MenuItemFragment.OnMe
             isNewStand = bundle.getBoolean("newStand");
         }
 
-        adapter = new DashboardListViewAdapter(Objects.requireNonNull(getActivity()), items, addedStockMap);
+        adapter = new DashboardListViewAdapter(Objects.requireNonNull(getActivity()), items,
+                this);
         menuList.setAdapter(adapter);
 
         addButton.setOnClickListener(new View.OnClickListener() {
@@ -106,7 +108,8 @@ public class DashboardFragment extends Fragment implements MenuItemFragment.OnMe
             public void onClick(View v) {
                 // Open dialog to fill in information for adding new menu item
                 MenuItemFragment menuItemFragment = new MenuItemFragment();
-                menuItemFragment.show(getChildFragmentManager().beginTransaction(), "menu_item_dialog");
+                menuItemFragment.show(getChildFragmentManager().beginTransaction(),
+                        "menu_item_dialog");
             }
         });
 
@@ -301,9 +304,26 @@ public class DashboardFragment extends Fragment implements MenuItemFragment.OnMe
     }
 
     @Override
-    public void onMenuItemChanged(CommonFood item) {
+    public void onMenuItemAdded(CommonFood item) {
         items.add(item);
         addedStockMap.put(item.getName(), item.getStock());
+        adapter.notifyDataSetChanged();
+    }
+
+    @Override
+    public void onMenuItemChanged(CommonFood item, int addedStock, int position) {
+        items.set(position, item);
+        int curr = 0;
+        if (addedStockMap.containsKey(item.getName())) {
+            curr = Objects.requireNonNull(addedStockMap.get(item.getName()));
+        }
+        addedStockMap.put(item.getName(), curr + addedStock);
+        adapter.notifyDataSetChanged();
+    }
+
+    @Override
+    public void onMenuItemDeleted(int position) {
+        items.remove(position);
         adapter.notifyDataSetChanged();
     }
 }

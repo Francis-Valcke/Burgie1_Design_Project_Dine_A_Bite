@@ -48,7 +48,6 @@ import java.util.Map;
 import java.util.Objects;
 
 // TODO (optional) change polling to FCM
-// TODO or keep a separate order number count per stand?
 
 public class OrderFragment extends Fragment {
 
