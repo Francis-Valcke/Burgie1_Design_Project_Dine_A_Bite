@@ -1,5 +1,6 @@
 package com.example.attendeeapp;
 
+import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Toast;
@@ -56,10 +57,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 googleMap.moveCamera(CameraUpdateFactory.newLatLng(newStand));
             }
         }
-
-        googleMap.setMyLocationEnabled(true);
         googleMap.getUiSettings().setZoomControlsEnabled(true);
-        googleMap.getUiSettings().setMyLocationButtonEnabled(true);
+        Location lastLocation = (Location) getIntent().getParcelableExtra("locationClient");
+        if (lastLocation != null) {
+            googleMap.setMyLocationEnabled(true);
+            googleMap.getUiSettings().setMyLocationButtonEnabled(true);
+        }
+
     }
 
     /**

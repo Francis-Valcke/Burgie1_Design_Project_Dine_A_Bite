@@ -26,6 +26,7 @@
     <string name="stand_recommend">Choose your stand</string>
     <string name="stand_recommendation">Your recommended stand: </string>
     <string name="stand_spinner_recommend">Pick your favorite recommendation: </string>
+    <string name="brand_recommend">Brand:</string>
     <string name="confirm_stand">Confirm your stand</string>
     <string name="specific_stand_chosen">Your own chosen stand: </string>
     <string name="no_recommendation">No recommendation available.</string>
