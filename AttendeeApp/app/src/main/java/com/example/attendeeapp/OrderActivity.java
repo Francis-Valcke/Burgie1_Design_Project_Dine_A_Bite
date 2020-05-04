@@ -89,37 +89,43 @@ public class OrderActivity extends ToolbarActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // -- init UI -- //
         setContentView(R.layout.activity_order);
-
-        runningOrderSwitch= findViewById(R.id.running_order_switch);
-        // Initialize the toolbar
         initToolbar();
         upButtonToolbar();
 
-        final CommonOrder newOrder = (CommonOrder) getIntent().getSerializableExtra("order");
-
-        orders= new ArrayList<>();
-
-        // Database initialization and loading of the stored data
-        orderDatabaseService = new OrderDatabaseService(getApplicationContext());
-        adapter = new OrderItemExpandableAdapter(this, orders, orderDatabaseService);
-        // Initiate the expandable order ListView
-        ExpandableListView expandList = findViewById(R.id.order_expand_list);
-        expandList.setAdapter(adapter);
-        updateUserOrdersFromDB();
-
+        runningOrderSwitch= findViewById(R.id.running_order_switch);
         // add event listener to switch
         runningOrderSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-               updateUserOrdersFromDB();
+                updateUserOrdersFromDB();
             }
         });
 
+
+        // order passed by confirm order activity
+        final CommonOrder newOrder = (CommonOrder) getIntent().getSerializableExtra("order");
+
+
+        // -- data init -- //
+
+        orderDatabaseService = new OrderDatabaseService(getApplicationContext());
+
+        // initialize orders to present
+        orders= new ArrayList<>();
+        adapter = new OrderItemExpandableAdapter(this, orders, orderDatabaseService);
+
+        // Couple data to UI
+        ExpandableListView expandList = findViewById(R.id.order_expand_list);
+        expandList.setAdapter(adapter);
+        updateUserOrdersFromDB();
+
+
+        // If there are no orders, nothing to poll
         if (orders == null || (orders.size() == 0 && newOrder == null)) {
             // No (new) orders
             return;
-
         } else if (newOrder != null) {
             // Send the order and chosen stand and brandName to the server and confirm the chosen stand
             String chosenStand = getIntent().getStringExtra("stand");
@@ -128,8 +134,6 @@ public class OrderActivity extends ToolbarActivity {
             newOrder.setBrandName(chosenBrand);
             confirmNewOrderStand(newOrder, chosenStand, chosenBrand);
         }
-
-
 
 
         // Register as subscriber to the orderId event channel
@@ -142,6 +146,9 @@ public class OrderActivity extends ToolbarActivity {
             // orderId's will not be empty, else this code is not reachable
             getSubscriberId(orderIds);
         }
+
+
+
 
 
 
@@ -195,12 +202,7 @@ public class OrderActivity extends ToolbarActivity {
         StringRequest stringRequest = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
-
-                // Only add the order if successful
-                orders.add(newOrder);
-                orderDatabaseService.insertOrder(newOrder);
-                adapter.notifyDataSetChanged();
-
+                updateUserOrdersFromDB();
                 Toast mToast = null;
                 if (mToast != null) mToast.cancel();
                 mToast = Toast.makeText(OrderActivity.this, "Your order was successful",
@@ -248,11 +250,11 @@ public class OrderActivity extends ToolbarActivity {
                     List<CommonOrder> allUserOrders= mapper.readValue(response.toString(),
                             new TypeReference<List<CommonOrder>>() {});
 
-                    // TODO: implement something better to update local database @Nathan
-                    /*orderDatabaseService.deleteAllOrders();
+                    // TODO: Update local database better way @Nathan
+                    orderDatabaseService.deleteAllOrders();
                     for (CommonOrder order : allUserOrders) {
                         orderDatabaseService.insertOrder(order);
-                    }*/
+                    }
 
                     orders.clear();
                     orders.addAll(allUserOrders);

@@ -47,11 +47,9 @@ public class CommonOrder implements Serializable {
     private double latitude;
     private double longitude;
 
-    @JsonIgnore
     @TypeConverters(Converters.class)
     private BigDecimal totalPrice;
 
-    @JsonIgnore
     private int totalCount;
     @JsonIgnore
     private boolean updateSeen = true;

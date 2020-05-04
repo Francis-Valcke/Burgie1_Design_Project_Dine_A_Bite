@@ -1,14 +1,18 @@
 package cobol.services.ordermanager.controller;
 
 import cobol.commons.exception.DoesNotExistException;
+import cobol.commons.exception.OrderException;
 import cobol.commons.order.CommonOrder;
+import cobol.commons.order.CommonOrderItem;
 import cobol.commons.order.Recommendation;
 import cobol.commons.order.SuperOrder;
 import cobol.commons.security.CommonUser;
 import cobol.services.ordermanager.CommunicationHandler;
 import cobol.services.ordermanager.OrderProcessor;
+import cobol.services.ordermanager.domain.entity.Food;
 import cobol.services.ordermanager.domain.entity.Order;
 import cobol.services.ordermanager.domain.entity.User;
+import cobol.services.ordermanager.domain.repository.FoodRepository;
 import cobol.services.ordermanager.domain.repository.UserRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -23,7 +27,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
-
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -33,6 +37,9 @@ public class OrderController {
 
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private FoodRepository foodRepository;
+
     @Autowired
     private ObjectMapper objectMapper;
     @Autowired
@@ -70,10 +77,23 @@ public class OrderController {
      * @throws ParseException Json parsing error
      */
     @PostMapping(value = "/placeOrder", consumes = "application/json", produces = "application/json")
-    public ResponseEntity<JSONObject> placeOrder(@AuthenticationPrincipal CommonUser userDetails, @RequestBody CommonOrder orderObject) throws JsonProcessingException, UsernameNotFoundException{
+    public ResponseEntity<JSONObject> placeOrder(@AuthenticationPrincipal CommonUser userDetails, @RequestBody CommonOrder orderObject) throws JsonProcessingException, UsernameNotFoundException, OrderException {
+        // Update CommonOrder with current prices
+        for (CommonOrderItem commonOrderItem : orderObject.getOrderItems()) {
+
+            Optional<Food> optionalFood= foodRepository.findFoodByBrand(orderObject.getBrandName()).stream().filter(food -> food.getFoodId().getName().equals(commonOrderItem.getFoodName())).findFirst();
+            if(optionalFood.isPresent()){
+                commonOrderItem.setPrice(BigDecimal.valueOf(optionalFood.get().getPrice()));
+            }
+            else{
+                throw new OrderException("Could not find price of an orderItem");
+            }
+        }
 
         // Add order to the processor
         Order newOrder = new Order(orderObject);
+
+
         User user = userRepository.findById(userDetails.getUsername()).orElse(userRepository.save(new User(userDetails)));
         newOrder.setUser(user);
         newOrder = orderProcessor.addNewOrder(newOrder);
@@ -161,8 +181,6 @@ public class OrderController {
      */
     @GetMapping("/confirmStand")
     public ResponseEntity<String> confirmStand(@RequestParam(name = "orderId") int orderId, @RequestParam(name = "standName") String standName, @RequestParam(name = "brandName") String brandName) throws JsonProcessingException, DoesNotExistException {
-        Optional<Order> test = orderProcessor.getOrder(orderId);
-
         // Update order, confirm stand
         Order updatedOrder = orderProcessor.confirmStand(orderId, standName, brandName);
 

@@ -6,19 +6,18 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "orders")
 public class Order implements Serializable {
 
-    // Static counter that keeps track of number of order
-    // TODO: needs to change, counter must be kept in database
-    private static int orderCounter = 1;
 
 
     //----- Backend Information -----//
@@ -84,13 +83,15 @@ public class Order implements Serializable {
         this.latitude = orderObject.getLatitude();
         this.longitude = orderObject.getLongitude();
         this.orderItems = new ArrayList<>();
-        for (CommonOrderItem orderItem : orderObject.getOrderItems()) {
-            this.addOrderItem(new OrderItem(orderItem, this));
+
+        for (CommonOrderItem commonOrderItem : orderObject.getOrderItems()) {
+
+            this.addOrderItem(new OrderItem(commonOrderItem, this));
+
         }
         this.orderState = orderObject.getOrderState();
         this.startTime = ZonedDateTime.now(ZoneId.of("Europe/Brussels"));
         this.expectedTime = ZonedDateTime.from(startTime);
-
     }
 
     /**
@@ -109,6 +110,14 @@ public class Order implements Serializable {
             brandName = this.stand.getBrandName();
         }
 
+        int totalAmount=0;
+        BigDecimal totalPrice=new BigDecimal(0);
+        for (OrderItem orderItem : this.orderItems) {
+            totalAmount+=orderItem.getAmount();
+            totalPrice= totalPrice.add(orderItem.getPrice().multiply(BigDecimal.valueOf(orderItem.getAmount())));
+        }
+
+
         return new CommonOrder(
                 this.id,
                 this.startTime,
@@ -118,7 +127,9 @@ public class Order implements Serializable {
                 standName,
                 this.orderItems.stream().map(OrderItem::asCommonOrderItem).collect(Collectors.toList()),
                 this.latitude,
-                this.longitude
+                this.longitude,
+                totalAmount,
+                totalPrice
         );
 
 
