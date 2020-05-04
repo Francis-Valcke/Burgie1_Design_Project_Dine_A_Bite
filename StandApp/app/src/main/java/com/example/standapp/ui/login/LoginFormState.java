@@ -33,7 +33,7 @@ class LoginFormState {
                    @Nullable Integer emailError) {
         this.usernameError = usernameError;
         this.passwordError = passwordError;
-        this.emailError = null;
+        this.emailError = emailError;
         this.isDataValid = false;
     }
 
