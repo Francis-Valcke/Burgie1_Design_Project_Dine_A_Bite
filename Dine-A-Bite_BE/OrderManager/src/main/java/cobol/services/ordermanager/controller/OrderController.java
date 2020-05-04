@@ -9,6 +9,7 @@ import cobol.services.ordermanager.CommunicationHandler;
 import cobol.services.ordermanager.OrderProcessor;
 import cobol.services.ordermanager.domain.entity.Order;
 import cobol.services.ordermanager.domain.entity.User;
+import cobol.services.ordermanager.domain.repository.UserRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -19,16 +20,19 @@ import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 public class OrderController {
 
-
+    @Autowired
+    private UserRepository userRepository;
     @Autowired
     private ObjectMapper objectMapper;
     @Autowired
@@ -66,11 +70,12 @@ public class OrderController {
      * @throws ParseException Json parsing error
      */
     @PostMapping(value = "/placeOrder", consumes = "application/json", produces = "application/json")
-    public ResponseEntity<JSONObject> placeOrder(@AuthenticationPrincipal CommonUser userDetails, @RequestBody CommonOrder orderObject) throws JsonProcessingException, ParseException {
+    public ResponseEntity<JSONObject> placeOrder(@AuthenticationPrincipal CommonUser userDetails, @RequestBody CommonOrder orderObject) throws JsonProcessingException, UsernameNotFoundException{
 
         // Add order to the processor
         Order newOrder = new Order(orderObject);
-        newOrder.setUser(new User(userDetails.getUsername()));
+        User user = userRepository.findById(userDetails.getUsername()).orElse(userRepository.save(new User(userDetails)));
+        newOrder.setUser(user);
         newOrder = orderProcessor.addNewOrder(newOrder);
 
         // Put order in json to send to standmanager (as commonOrder object)
@@ -170,7 +175,8 @@ public class OrderController {
 
     @GetMapping(value= "/getUserOrders", produces = "application/json")
     public ResponseEntity<List<CommonOrder>> getUserOrders(@AuthenticationPrincipal CommonUser userDetails){
-        return ResponseEntity.ok(orderProcessor.getOrdersByUser(userDetails.getUsername()));
+        User user = userRepository.findById(userDetails.getUsername()).orElseThrow(() -> new UsernameNotFoundException("Can't find user to fetch orders from"));
+        return ResponseEntity.ok(user.getOrders().stream().map(Order::asCommonOrder).collect(Collectors.toList()));
     }
 
 }

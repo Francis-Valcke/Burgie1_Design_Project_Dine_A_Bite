@@ -89,11 +89,8 @@ public class OrderProcessor {
         newOrder.setRemtime(0);
 
         newOrder.setState(CommonOrder.State.PENDING);
-        //orderRepository.saveAndFlush(newOrder);
 
         newOrder=orderRepository.save(newOrder);
-
-        Optional<Order> testOrder = this.getOrder(newOrder.getId());
 
         // subscribe to the channel of the order
         communicationHandler.registerOnOrder(subscriberId, newOrder.getId());
@@ -214,8 +211,5 @@ public class OrderProcessor {
         }
     }
 
-    public List<CommonOrder> getOrdersByUser(String userName) {
-        return orderRepository.findAll().stream().filter(o -> o.getUser().getUsername().equals(userName)).map(Order::asCommonOrder).collect(Collectors.toList());
-    }
 }
 
