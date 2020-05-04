@@ -15,6 +15,8 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -38,6 +40,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -75,6 +78,7 @@ public class ProfileFragment extends Fragment {
         TextView usernameTextView = view.findViewById(R.id.username);
         final TextView standNameTextView = view.findViewById(R.id.stand_name);
         final TextView brandNameTextView = view.findViewById(R.id.brand_name);
+        final TextView revenueTextView = view.findViewById(R.id.revenue_amount);
         Button editStandNameButton = view.findViewById(R.id.edit_stand_name_button);
         Button editBrandNameButton = view.findViewById(R.id.edit_brand_name_button);
         final Button verifyButton = view.findViewById(R.id.button_verify);
@@ -86,6 +90,16 @@ public class ProfileFragment extends Fragment {
         final Bundle bundle = getArguments();
         if (bundle != null) standNameTextView.setText(bundle.getString("standName"));
         if (bundle != null) brandNameTextView.setText(bundle.getString("brandName"));
+        RevenueViewModel model = new ViewModelProvider(requireActivity()).get(RevenueViewModel.class);
+        final Observer<BigDecimal> revenueObserver = new Observer<BigDecimal>() {
+            @Override
+            public void onChanged(@Nullable final BigDecimal bigDecimal) {
+                assert bigDecimal != null;
+                String revenueString = "€ " + bigDecimal.toString();
+                revenueTextView.setText(revenueString);
+            }
+        };
+        model.getRevenue().observe(getViewLifecycleOwner(), revenueObserver);
 
         verifyButton.setEnabled(false);
 
@@ -290,12 +304,16 @@ public class ProfileFragment extends Fragment {
             @Override
             public void onResponse(JSONArray response) {
                 try {
+                    RevenueViewModel model = new ViewModelProvider(requireActivity()).get(RevenueViewModel.class);
                     System.out.println(response.toString());
                     ObjectMapper mapper = new ObjectMapper();
                     mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
                     CommonFood[] parsedItems = mapper.readValue(response.toString(), CommonFood[].class);
                     Collections.addAll(items, parsedItems);
                     if (bundle != null) bundle.putSerializable("items", items);
+                    for (CommonFood item : items) {
+                        model.addPrice(item.getName(), item.getPrice());
+                    }
                 } catch (Exception e) {
                     Log.v("Exception fetch menu:", e.toString());
                     Toast.makeText(getContext(), "Could not get menu from server!",
