@@ -23,7 +23,7 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * Contains the common toolbar settings for the app
- * Requests location permissions of the app
+ * Requests location permissions functions are available here
  */
 public class ToolbarActivity extends AppCompatActivity {
 

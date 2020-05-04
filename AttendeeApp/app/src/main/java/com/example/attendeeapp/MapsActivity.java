@@ -31,7 +31,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-
+/**
+ * Activity that show a map of all the stand locations
+ */
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
     protected Map<String, Map<String, Double>> standLocations = new HashMap<>();

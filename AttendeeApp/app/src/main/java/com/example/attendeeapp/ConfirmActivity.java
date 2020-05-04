@@ -4,7 +4,6 @@ import android.annotation.SuppressLint;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Typeface;
-import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -30,6 +29,7 @@ import com.example.attendeeapp.data.LoginRepository;
 import com.example.attendeeapp.data.model.LoggedInUser;
 import com.example.attendeeapp.json.CommonFood;
 import com.example.attendeeapp.json.CommonOrder;
+import com.example.attendeeapp.json.CommonOrderItem;
 import com.example.attendeeapp.json.Recommendation;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -43,32 +43,59 @@ import org.threeten.bp.ZoneId;
 import org.threeten.bp.ZonedDateTime;
 
 import java.math.BigDecimal;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Activity that handles the confirmation/choosing of the (recommended) stand of the placed order
+ *
+ * The FLOW in this activity is as follows:
+ * - The order from CartActivity is split up over the different brands
+ * - For each brand, an order is placed at the server and recommendations are fetched
+ * - If an order of one brand is ordered from the SAME specific stand, the order is placed with /placeOrder
+ *   If an order of one brand has no specific stand for all order items, the order is placed with /placeSuperOrder
+ *      If this SuperOrder cannot be made in one stand (although the brand is the same), the server can split it up
+ *      => if the order is split up, the user must be notified
+ * - Next the user must confirm a stand for the returned order from the server and the confirmed order is saved locally
+ * - The confirmation of stands must be done for each brand separately
+ *      If the order (of one brand) was placed with /placeSuperOrder and split up,
+ *      the user must confirm all stands for the split up order
+ * - If all orders have a confirmed stand, the confirmedOrder list is sent over to orderActivity
+ *  to be sent to the server for confirmation
  */
 public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnItemSelectedListener {
 
     private ArrayAdapter<String> standListAdapter;
-    private Location lastLocation;
-    private ArrayList<CommonFood> ordered;
-    private int cartCount;
-    private BigDecimal totalPrice;
-    private List<Recommendation> recommendations = null;
-    private CommonOrder orderReceived = null;
-    private int chosenRecommend = -1; // index in the recommendation list of the chosen recommend
+    private ArrayList<CommonFood> ordered; // current ordered items
+    private int cartCount; // current cartCount
+    private BigDecimal totalPrice; // current totalPrice
+    private List<Recommendation> recommendations = null; // current stand recommendations
+    private CommonOrder orderReceived = null; // current stand order
+    // index in the recommendation list of the currently chosen recommendation in the spinner
+    private int chosenRecommend = -1;
+    // if a recommendation of the recommendation list contains the specific chosen stand, it is saved here
+    private Recommendation specificRecommendation = null;
+
     private String specificStand;
     private String specificBrand;
     private HashMap<String, ArrayList<CommonFood>> brandItemMap = new HashMap<>();
     private Iterator<Map.Entry<String, ArrayList<CommonFood>>> mapIterator;
-    private ArrayList<Intent> orderIntents = new ArrayList<>();
+    private ArrayList<CommonOrder> confirmedOrders = new ArrayList<>();
+
+    // current stand confirmation number for a certain brand
     private int confirmNumber = 1;
-    private Recommendation specificRecommendation = null;
+    // current stand confirmation number for a certain brand,
+    // when an order of the same brand is split up over multiple stands
+    private int confirmSplitOrderNumber = 0;
+    // the recommendations of a split order of the same brand
+    private JSONArray splitOrderRecommendations = null;
+
     private Toast mToast = null;
     private AlertDialog mDialog = null;
 
@@ -85,18 +112,6 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
 
         // Ignore warning
         ordered = (ArrayList<CommonFood>) getIntent().getSerializableExtra("order");
-        cartCount = getIntent().getIntExtra("cartCount", 0);
-        totalPrice = (BigDecimal) getIntent().getSerializableExtra("totalPrice");
-        lastLocation = getIntent().getParcelableExtra("location");
-
-        // gevallen: meerdere brands: 1 brand, global menu, 1 brand global menu + stand, 1 brand stand menu
-        // Methode: orden items per brand
-        // check if 1 brand has 1 specific stand (normal order)
-        // else do global request (superOrder)
-        // this for ALL brand possibilities
-        // Keep orders saved!!!
-        // TODO: only in confirm stand charge money to pay!
-        // First do for one brand!!!
 
         // Divide items into different brands
         for (CommonFood item : ordered) {
@@ -115,6 +130,7 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
         spinner.setOnItemSelectedListener(this);
 
         mapIterator = brandItemMap.entrySet().iterator();
+        // Let user confirm for items of the first same brand
         confirmNextStand();
 
         Button chooseRecommendButton = findViewById(R.id.button_confirm_stand);
@@ -129,18 +145,25 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
                                     || specificStand.equals("")) ) {
                         noRecommend = false;
 
-                        // Continue to order overview with recommended stand
-                        Intent intent = new Intent(ConfirmActivity.this, OrderActivity.class);
-                        intent.putExtra("order", orderReceived);
-                        intent.putExtra("stand", recommendations.get(chosenRecommend).getStandName());
-                        intent.putExtra("brand", recommendations.get(chosenRecommend).getBrandName());
-                        orderIntents.add(intent);
+                        // Add order with confirmed stand to confirmedOrderList
+                        orderReceived.setStandName(recommendations.get(chosenRecommend).getStandName());
+                        orderReceived.setBrandName(recommendations.get(chosenRecommend).getBrandName());
+                        confirmedOrders.add(orderReceived);
 
-                        if (confirmNumber - 1f == brandItemMap.keySet().size()) {
-                            startActivity(intent);
+                        if (confirmNumber - 1 == brandItemMap.keySet().size() &&
+                                confirmSplitOrderNumber == splitOrderRecommendations.length()) {
+                            // Continue to overview with confirmed stands for the orders
+                            Intent listIntent = new Intent(ConfirmActivity.this, OrderActivity.class);
+                            listIntent.putExtra("orderList", confirmedOrders);
+                            startActivity(listIntent);
                         } else {
-                            // Continue confirming stands
-                            confirmNextStand();
+                            if (splitOrderRecommendations.length() > confirmSplitOrderNumber) {
+                                // Continue confirming next stand for split order
+                                confirmNextSplitStand();
+                            } else {
+                                // Continue confirming stands for the next brand
+                                confirmNextStand();
+                            }
                         }
 
                     } else if (recommendations.size() > 0) {
@@ -158,18 +181,26 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
                                 // TODO: update expected timings when
                                 //  order from specific stand without recommendation is made !! important
                                 //  (need timing for the order from server)
-                                // Continue to order overview with chosen stand
-                                Intent intent = new Intent(ConfirmActivity.this, OrderActivity.class);
-                                intent.putExtra("order", orderReceived);
-                                intent.putExtra("stand", specificStand);
-                                intent.putExtra("brand", specificBrand);
-                                orderIntents.add(intent);
+                                // Add order with confirmed stand to confirmedOrderList
+                                orderReceived.setStandName(specificStand);
+                                orderReceived.setBrandName(specificBrand);
+                                confirmedOrders.add(orderReceived);
 
-                                if (confirmNumber - 1 == brandItemMap.keySet().size()) {
-                                    startActivity(intent);
+                                if (confirmNumber - 1 == brandItemMap.keySet().size() &&
+                                        confirmSplitOrderNumber == splitOrderRecommendations.length()) {
+                                    // Continue to overview with confirmed stands for the orders
+                                    Intent listIntent = new Intent(ConfirmActivity.this, OrderActivity.class);
+                                    listIntent.putExtra("orderIntentList", confirmedOrders);
+                                    startActivity(listIntent);
                                 } else {
-                                    // Continue confirming stands
-                                    confirmNextStand();
+                                    // Continue confirming stands for the next brand
+                                    if (splitOrderRecommendations.length() > confirmSplitOrderNumber) {
+                                        // Continue confirming next stand for split order
+                                        confirmNextSplitStand();
+                                    } else {
+                                        // Continue confirming stands for the next brand
+                                        confirmNextStand();
+                                    }
                                 }
 
                             }
@@ -203,17 +234,33 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
 
     }
 
+    /**
+     * Requests a recommendation for the items of the next brand available in the brandItemMap
+     * Method is called as much as there are different brands in the total order of the user
+     */
     private void confirmNextStand() {
+        // Get next brand - orderItems entry of the map
         Map.Entry<String, ArrayList<CommonFood>> brandPair = mapIterator.next();
         String brandKey = brandPair.getKey();
-        // Overwrite ordered to be used in requestOrderRecommend
+        // Overwrite ordered to be used in request(Super)OrderRecommend
+        // Now contains all orderItems that have the same certain brand
         ordered = brandPair.getValue();
 
+        // Display which brand and number of the different brands is currently being confirmed
         TextView confirmNumberTxt = findViewById(R.id.confirm_number);
         confirmNumberTxt.setText("(" + confirmNumber + "/" + brandItemMap.keySet().size() + ")");
         confirmNumber++;
 
+        TextView confirmBrandTxt = findViewById(R.id.confirm_brand);
+        confirmBrandTxt.setText(brandKey);
+
+        // Should only be visible if order from one brand has to be split up over multiple stands
+        // This is done in confirmNextSplitStand
+        TextView confirmBrandNumberTxt = findViewById(R.id.confirm_brand_number);
+        confirmBrandNumberTxt.setVisibility(View.GONE);
+
         // Check if the user wants to order from a specific stand (all ordered items are from the same stand/brand)
+        // If specificStand equals "", no specific stand can be determined, and a superOrder must be made
         specificStand = ordered.get(0).getStandName();
         specificBrand = ordered.get(0).getBrandName();
         for (CommonFood i : ordered.subList(1, ordered.size())) {
@@ -222,13 +269,37 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
                 break;
             }
         }
+
+        resetRecommendationFields();
+
+        // Reset initial values as if ConfirmActivity was restarted
+        TextView recommendText = findViewById(R.id.stand_recommend_text);
+        recommendText.setText(R.string.no_recommendation);
+        recommendText.setTypeface(null, Typeface.NORMAL);
+
+        recommendations = null;
+        orderReceived = null;
+        chosenRecommend = -1;
+        confirmSplitOrderNumber = 0;
+        splitOrderRecommendations = new JSONArray();
+        specificRecommendation = null;
+
         if (specificStand.equals("")) {
+            // If order items may come from different stands, request a superOrder
+            Log.d("OrderMessage","Requesting super order");
             requestSuperOrderRecommend();
         } else {
+            // If all items of the order are chosen from the same stand, no superOrder is required
+            Log.d("OrderMessage","Requesting normal order");
             requestOrderRecommend();
         }
+    }
 
-
+    /**
+     * Make distance and time of recommendation invisible until recommendation comes available
+     * Initializes a new spinner for the current stand recommendations
+     */
+    private void resetRecommendationFields() {
         // Make distance and time of recommendation invisible until recommendation comes available
         TextView distanceText = findViewById(R.id.recommend_distance_text);
         distanceText.setVisibility(View.GONE);
@@ -239,7 +310,6 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
         remainingTimeText.setVisibility(View.GONE);
         TextView remainingTime = findViewById(R.id.recommend_time);
         remainingTime.setVisibility(View.GONE);
-
 
         // Create a spinner item for the different stands
         Spinner spinner = findViewById(R.id.stand_recommended_spinner);
@@ -256,7 +326,33 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
     }
 
     /**
-     * Sends order of user to the server in JSON to request a recommendation
+     * Called when an order of the same brand has been split up over multiple stand by the server
+     * Used to display and handle the next stand confirmation of the split order
+     */
+    private void confirmNextSplitStand() {
+
+        resetRecommendationFields();
+
+        try {
+            handleReceivedRecommendation(splitOrderRecommendations.getJSONObject(confirmSplitOrderNumber));
+        } catch (JSONException | JsonProcessingException e) {
+            Log.v("JSON exception", "JSON exception in confirmActivity");
+        }
+
+        confirmSplitOrderNumber++;
+
+        // Should only be visible if order from one brand has to be split up over multiple stands
+        // Display which split stand number is currently being confirmed
+        TextView confirmBrandNumberTxt = findViewById(R.id.confirm_brand_number);
+        confirmBrandNumberTxt.setVisibility(View.VISIBLE);
+        confirmBrandNumberTxt.setText("(" + confirmSplitOrderNumber + "/" + splitOrderRecommendations.length() + ")");
+
+    }
+
+    /**
+     * Sends order of user of the same brand to the server in JSON to request a recommendation
+     * when ALL items are from the same specific stand (and brand)
+     *
      * Send a JSON object with ordered items and user location
      * Format: CommonOrder converted to JSON
      * Location is (360, 360) when user location is unknown
@@ -272,8 +368,7 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
         }
 
         // Make JSON Object with ordered items and location
-        CommonOrder orderSent = new CommonOrder(ordered, specificStand,
-                specificBrand, latitude, longitude);
+        CommonOrder orderSent = new CommonOrder(ordered, specificStand, specificBrand, latitude, longitude);
         JSONObject jsonOrder = null;
         try {
             ObjectMapper mapper = new ObjectMapper();
@@ -309,39 +404,8 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
                 new Response.Listener<JSONObject>() {
                     @Override
                     public void onResponse(JSONObject response) {
-                        ObjectMapper mapper = new ObjectMapper();
-                        //mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
                         try {
-                            recommendations = mapper.readValue(response.get("recommendations").toString(),
-                                    new TypeReference<List<Recommendation>>() {});
-                            //orderReceived= mapper.readValue(response.get("order").toString(), CommonOrder.class);
-                            orderReceived = mapper.readerFor(CommonOrder.class).readValue(response.get("order").toString());
-                            orderReceived.setTotalPrice(totalPrice);
-                            orderReceived.setPrices(ordered);
-                            orderReceived.setTotalCount(cartCount);
-                            // TODO: add ALL menuItem information to the orderItems!
-
-                            // Add recommendation stands to the spinner
-                            if (recommendations.size() > 0) standListAdapter.remove("No stands available");
-                            for (Recommendation i : recommendations) {
-                                // If specific stand is part of recommendation, link recommendation with specific stand
-                                if (specificStand.equals(i.getStandName()) && specificBrand.equals(i.getBrandName())) {
-                                    specificRecommendation = i;
-                                } else {
-                                    standListAdapter.add(i.getStandName());
-                                }
-                            }
-                            // If no specific stand was chosen, update the view
-                            if (specificStand.equals("")) {
-                                chosenRecommend = 0;
-                                showRecommendation(0);
-                            }
-                            // If specific stand is part of recommendations, updates its view
-                            else if (specificRecommendation != null) {
-                                chosenRecommend = recommendations.indexOf(specificRecommendation);
-                                showSpecificStand();
-                            }
-
+                            handleReceivedRecommendation(response);
                         } catch (JsonProcessingException | JSONException e) {
                             Log.v("JSON exception", "JSON exception in confirmActivity");
                         }
@@ -371,7 +435,9 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
 
 
     /**
-     * Sends order of user to the server in JSON to request a recommendation
+     * Sends order items of user of the same brand to the server in JSON to request a recommendation
+     * A SuperOrder is required when all ordered items may be from different stands (but the same brand)
+     *
      * Send a JSON object with ordered items and user location
      * Format: CommonOrder converted to JSON
      * Location is (360, 360) when user location is unknown
@@ -387,8 +453,7 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
         }
 
         // Make JSON Object with ordered items and location
-        CommonOrder orderSent = new CommonOrder(ordered, specificStand,
-                specificBrand, latitude, longitude);
+        CommonOrder orderSent = new CommonOrder(ordered, specificStand, specificBrand, latitude, longitude);
         JSONObject jsonOrder = null;
         try {
             ObjectMapper mapper = new ObjectMapper();
@@ -424,38 +489,14 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
                 new Response.Listener<JSONArray>() {
                     @Override
                     public void onResponse(JSONArray response) {
-                        ObjectMapper mapper = new ObjectMapper();
-                        //mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
                         try {
-                            JSONObject jsonResponse = response.getJSONObject(0);
-                            recommendations = mapper.readValue(jsonResponse.get("recommendations").toString(),
-                                    new TypeReference<List<Recommendation>>() {});
-                            //orderReceived= mapper.readValue(response.get("order").toString(), CommonOrder.class);
-                            orderReceived = mapper.readerFor(CommonOrder.class).readValue(jsonResponse.get("order").toString());
-                            orderReceived.setTotalPrice(totalPrice);
-                            orderReceived.setPrices(ordered);
-                            orderReceived.setTotalCount(cartCount);
-                            // TODO: add ALL menuItem information to the orderItems!
-
-                            // Add recommendation stands to the spinner
-                            if (recommendations.size() > 0) standListAdapter.remove("No stands available");
-                            for (Recommendation i : recommendations) {
-                                // If specific stand is part of recommendation, link recommendation with specific stand
-                                if (specificStand.equals(i.getStandName()) && specificBrand.equals(i.getBrandName())) {
-                                    specificRecommendation = i;
-                                } else {
-                                    standListAdapter.add(i.getStandName());
-                                }
-                            }
-                            // If no specific stand was chosen, update the view
-                            if (specificStand.equals("")) {
-                                chosenRecommend = 0;
-                                showRecommendation(0);
-                            }
-                            // If specific stand is part of recommendations, updates its view
-                            else if (specificRecommendation != null) {
-                                chosenRecommend = recommendations.indexOf(specificRecommendation);
-                                showSpecificStand();
+                            splitOrderRecommendations = response;
+                            if (response.length() > 1) {
+                                confirmNextSplitStand();
+                            } else {
+                                // Order has not been split up
+                                confirmSplitOrderNumber = 1;
+                                handleReceivedRecommendation(splitOrderRecommendations.getJSONObject(0));
                             }
 
                         } catch (JsonProcessingException | JSONException e) {
@@ -489,16 +530,62 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
         queue.add(jsonRequest);
     }
 
+    /**
+     * Handles one recommendation/order pair to handle the confirmation of a stand for that order
+     * Called by the place(Super)Order http request response listeners and confirmNextSplitStand
+     * @param response: jsonObject containing the recommendation(s) and the order
+     * @throws JSONException
+     * @throws JsonProcessingException
+     */
+    private void handleReceivedRecommendation(JSONObject response) throws JSONException, JsonProcessingException {
+        ObjectMapper mapper = new ObjectMapper();
+        //mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        recommendations = mapper.readValue(response.get("recommendations").toString(),
+                new TypeReference<List<Recommendation>>() {});
+        //orderReceived= mapper.readValue(response.get("order").toString(), CommonOrder.class);
+        orderReceived = mapper.readerFor(CommonOrder.class).readValue(response.get("order").toString());
 
+        orderReceived.setPrices(ordered);
+        // Recalculate the totalPrice and total cartCount of the order
+        // if order was split up, recalculation is definitely required
+        cartCount = 0;
+        totalPrice = new BigDecimal(0);
+        for (CommonOrderItem i : orderReceived.getOrderItems()) {
+            cartCount += i.getAmount();
+            totalPrice = totalPrice.add(i.getPrice());
+        }
+        orderReceived.setTotalPrice(totalPrice);
+        orderReceived.setTotalCount(cartCount);
+        // TODO: add ALL menuItem information to the orderItems!
 
-
+        // Add recommendation stands to the spinner
+        if (recommendations.size() > 0) standListAdapter.remove("No stands available");
+        for (Recommendation i : recommendations) {
+            // If specific stand is part of recommendation, link recommendation with specific stand
+            if (specificStand.equals(i.getStandName()) && specificBrand.equals(i.getBrandName())) {
+                specificRecommendation = i;
+            } else {
+                standListAdapter.add(i.getStandName());
+            }
+        }
+        // If no specific stand was chosen, update the view
+        if (specificStand.equals("")) {
+            chosenRecommend = 0;
+            showRecommendation(0);
+        }
+        // If specific stand is part of recommendations, updates the view with specific stand recommendation
+        else if (specificRecommendation != null) {
+            chosenRecommend = recommendations.indexOf(specificRecommendation);
+            showSpecificStand();
+        }
+    }
 
     /**
      * Function that updates the textViews to show the received recommendation info
      * @param i the number of the recommendation in the recommendation list
      */
     @SuppressLint("SetTextI18n")
-    public void showRecommendation(int i) {
+    private void showRecommendation(int i) {
         if(recommendations != null) {
             if (recommendations.size() > 0) {
                 // Set expected time for order
@@ -534,9 +621,10 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
     }
 
     /**
-     * Display the user specific chosen stand, if available
+     * Display the user specific chosen stand when a recommendation with this chosen stand
+     * is available for the order
      */
-    public void showSpecificStand() {
+    private void showSpecificStand() {
         // Display the specific stand chosen by the user
         if (specificRecommendation != null) { // specific stand is part of the recommendations
             showRecommendation(recommendations.indexOf(specificRecommendation));
@@ -560,6 +648,7 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
         TextView recommend = findViewById(R.id.stand_recommend);
         recommend.setText(R.string.specific_stand_chosen);
     }
+
 
     @Override
     public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
