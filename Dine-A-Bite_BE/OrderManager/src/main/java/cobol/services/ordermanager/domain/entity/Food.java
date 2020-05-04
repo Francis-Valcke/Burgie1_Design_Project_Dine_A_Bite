@@ -142,7 +142,7 @@ public class Food {
 
         } else { // It is a new item
             this.description = cf.getDescription();
-            this.price = cf.getPrice().floatValue();
+            this.price = cf.getPrice();
 
             CategoryRepository categoryRepository = SpringContext.getBean(CategoryRepository.class);
             for (String s : cf.getCategory()) {
