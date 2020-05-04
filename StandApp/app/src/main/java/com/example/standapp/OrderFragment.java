@@ -16,6 +16,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.android.volley.Request;
@@ -41,6 +42,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -229,6 +231,7 @@ public class OrderFragment extends Fragment {
     private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
+            RevenueViewModel model;
 
             Event eventUpdate = (Event) intent.getSerializableExtra("eventUpdate");
 
@@ -260,6 +263,12 @@ public class OrderFragment extends Fragment {
 
                     // Decrease current stock based on incoming order
                     decreaseStock(orderUpdate.getOrderItems());
+
+                    //update revenue
+                    if (orderUpdate.getOrderState() == CommonOrder.status.PENDING) {
+                        model = new ViewModelProvider(requireActivity()).get(RevenueViewModel.class);
+                        model.updateRevenue(orderUpdate.getOrderItems());
+                    }
 
                     Log.d("Order fragment", "Received a new order");
                 } catch (JsonProcessingException e) {
