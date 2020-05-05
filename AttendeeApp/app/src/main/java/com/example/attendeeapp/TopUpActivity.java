@@ -12,12 +12,14 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.widget.Toolbar;
 
 import com.example.attendeeapp.data.LoginDataSource;
 import com.example.attendeeapp.data.LoginRepository;
 import com.example.attendeeapp.data.model.LoggedInUser;
 import com.example.attendeeapp.json.BetterResponseModel;
+import com.example.attendeeapp.json.BetterResponseModel.CreatePaymentIntentResponse;
+import com.example.attendeeapp.json.BetterResponseModel.GetBalanceResponse;
+import com.example.attendeeapp.json.BetterResponseModel.Status;
 import com.example.attendeeapp.polling.OkHttpRequestTool;
 import com.example.attendeeapp.stripe.DineABiteEphemeralKeyProvider;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -33,7 +35,6 @@ import com.stripe.android.model.ConfirmPaymentIntentParams;
 import com.stripe.android.model.PaymentIntent;
 import com.stripe.android.model.PaymentMethod;
 import com.stripe.android.view.BillingAddressFields;
-import com.example.attendeeapp.json.BetterResponseModel.*;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -54,7 +55,6 @@ public class TopUpActivity extends ToolbarActivity {
     private LoggedInUser user;
 
     ProgressBar loadingProgressBar;
-    //Toolbar toolbar;
     Button paymentSetup;
     Button payButton;
 
@@ -65,13 +65,9 @@ public class TopUpActivity extends ToolbarActivity {
         context = this;
 
         loadingProgressBar = findViewById(R.id.payment_loading);
-        //toolbar = findViewById(R.id.toolbar);
         paymentSetup = findViewById(R.id.button_payment_setup);
         payButton = findViewById(R.id.button_pay);
         loadingProgressBar.setVisibility(View.GONE);
-
-        // Custom Toolbar (instead of standard actionbar)
-        //setSupportActionBar(toolbar);
 
         // Initialize the toolbar
         initToolbar();
