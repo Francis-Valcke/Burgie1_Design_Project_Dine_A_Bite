@@ -28,7 +28,7 @@ import okhttp3.ResponseBody;
  */
 public class LoginDataSource {
 
-    private volatile String mResponseBody;
+    private volatile String mResponseBody = null;
 
     // only one client, singleton,
     // multiple instances will create more memory.
@@ -65,12 +65,12 @@ public class LoginDataSource {
                 MediaType.parse("application/json; charset=utf-8"));
 
         // Authenticate user POST request to Authentication service
-        Request request2 = new Request.Builder()
+        Request request = new Request.Builder()
                 .url(ServerConfig.AS_ADDRESS + "/authenticate")
                 .post(body)
                 .build();
 
-        httpClient.newCall(request2).enqueue(new Callback() {
+        httpClient.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
                 e.printStackTrace();
@@ -78,12 +78,12 @@ public class LoginDataSource {
 
             @Override
             public void onResponse(@NotNull Call call, @NotNull Response response) {
-                try (ResponseBody responseBody2 = response.body()) {
+                try (ResponseBody responseBody = response.body()) {
                     if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
                     Log.d("LoginDataSource", "/authenticate response");
 
                     // ResponseBody can only be accessed once
-                    if (responseBody2 != null) mResponseBody = responseBody2.string();
+                    if (responseBody != null) mResponseBody = responseBody.string();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -97,14 +97,14 @@ public class LoginDataSource {
             try {
                 Thread.sleep(500);
                 if (interruptCounter >= 20) {
-                    System.out.println("No response from server after 10 seconds");
+                    System.out.println("No response from server after 10 seconds"); // DEBUG
                     throw new InterruptedException("No response from server");
                 }
             } catch (InterruptedException e) {
                 e.printStackTrace();
                 return new Result.Error(new IOException("Error logging in", e));
             }
-            System.out.println("Waiting for response from server...");
+            System.out.println("Waiting for response from server..."); // DEBUG
         }
 
         // Getting the information from the authentication response
@@ -119,13 +119,12 @@ public class LoginDataSource {
         } catch (IOException e) {
             mResponseBody = null;
             e.printStackTrace();
-            // Ignore warning
             return new Result.Error(new IOException("Error logging in", e));
         }
 
         // Create new LoggedInUser and save in LoginRepository
+        mResponseBody = null;
         LoggedInUser user = new LoggedInUser(token, username);
-        // Ignore warning
         return new Result.Success<>(user);
     }
 
@@ -179,7 +178,16 @@ public class LoginDataSource {
                 try (ResponseBody responseBody = response.body()) {
                     if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
                     Log.d("LoginDataSource", "/createStandManager response");
-                    if (responseBody != null) System.out.println(responseBody.string());
+                    if (responseBody != null) {
+                        // ResponseBody can only be accessed once
+                        // Check if the account already exists
+                        // - Status == ERROR means the account already exists or something is wrong
+                        ObjectMapper mapper = new ObjectMapper();
+                        JsonNode jsonNode = mapper.readTree(responseBody.string());
+                        System.out.println(jsonNode.toPrettyString()); // DEBUG
+                        String status = jsonNode.get("status").textValue();
+                        if (status.equals("ERROR")) throw new IOException(status);
+                    }
 
                     // Authenticate user POST request to Authentication service
                     Request request2 = new Request.Builder()
@@ -219,13 +227,14 @@ public class LoginDataSource {
             try {
                 Thread.sleep(500);
                 if (interruptCounter >= 20) {
-                    System.out.println("No response from server after 10 seconds");
+                    System.out.println("No response from server after 10 seconds"); // DEBUG
                     throw new InterruptedException("No response from server");
                 }
             } catch (InterruptedException e) {
                 e.printStackTrace();
+                return new Result.Error(new IOException("Error logging in", e));
             }
-            System.out.println("Waiting for response from server...");
+            System.out.println("Waiting for response from server..."); // DEBUG
         }
 
         // Getting the information from the authentication response
@@ -240,13 +249,12 @@ public class LoginDataSource {
         } catch (IOException e) {
             mResponseBody = null;
             e.printStackTrace();
-            // Ignore warning
             return new Result.Error(new IOException("Error logging in", e));
         }
 
         // Create new LoggedInUser and save in LoginRepository
+        mResponseBody = null;
         LoggedInUser user = new LoggedInUser(token, username);
-        // Ignore warning
         return new Result.Success<>(user);
     }
 
