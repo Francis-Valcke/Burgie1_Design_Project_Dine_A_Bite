@@ -107,9 +107,7 @@ public class OrderActivity extends ToolbarActivity {
         // order passed by confirm order activity
         final CommonOrder newOrder = (CommonOrder) getIntent().getSerializableExtra("order");
 
-
         // -- data init -- //
-
         orderDatabaseService = new OrderDatabaseService(getApplicationContext());
 
         // initialize orders to present
@@ -146,12 +144,6 @@ public class OrderActivity extends ToolbarActivity {
             // orderId's will not be empty, else this code is not reachable
             getSubscriberId(orderIds);
         }
-
-
-
-
-
-
 
 
     }
