@@ -23,7 +23,6 @@ import org.threeten.bp.ZoneId;
 import org.threeten.bp.ZonedDateTime;
 
 import java.util.ArrayList;
-import java.util.GregorianCalendar;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
@@ -203,7 +202,7 @@ public class OrderItemExpandableAdapter extends BaseExpandableListAdapter {
 
                 currentOrder.setStartTime(zonedDateTime);
 
-                // Update database is currently not necessary because a new timeinstance is used as reference
+                // Update database is currently not necessary because a new time instance is used as reference
                 // Update database that startTime is consistent when app would be closed
                 //orderDatabaseService.updateOrder(currentOrder);
 

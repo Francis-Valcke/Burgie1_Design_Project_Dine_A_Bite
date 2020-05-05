@@ -66,45 +66,40 @@ public class MainActivity extends AppCompatActivity {
 
         int SPLASH_TIME_OUT = 800;
         final Context mContext = this;
-        new Handler().postDelayed(new Runnable() {
+        new Handler().postDelayed(() -> {
 
-            @Override
-            public void run() {
+            LoginRepository loginRepository = LoginRepository.getInstance(new LoginDataSource());
 
-                LoginRepository loginRepository = LoginRepository.getInstance(new LoginDataSource());
-
-                // Fetch user credentials if stored
-                LoggedInUser user;
-                try {
-                    String masterKeyAlias = MasterKeys.getOrCreate(MasterKeys.AES256_GCM_SPEC);
-                    SharedPreferences sharedPreferences = EncryptedSharedPreferences.create(
-                            getString(R.string.shared_pref_file_key),
-                            masterKeyAlias,
-                            mContext,
-                            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-                            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
-                    );
-                    String username = sharedPreferences.getString("username", null);
-                    String userId = sharedPreferences.getString("user_id", null);
-                    System.out.println("Username: " + username);
-                    if (username != null && userId != null) {
-                        user = new LoggedInUser(userId, username);
-                        loginRepository.setLoggedInUser(user);
-                    }
-                } catch (GeneralSecurityException | IOException e) {
-                    e.printStackTrace();
+            // Fetch user credentials if stored
+            LoggedInUser user;
+            try {
+                String masterKeyAlias = MasterKeys.getOrCreate(MasterKeys.AES256_GCM_SPEC);
+                SharedPreferences sharedPreferences = EncryptedSharedPreferences.create(
+                        getString(R.string.shared_pref_file_key),
+                        masterKeyAlias,
+                        mContext,
+                        EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                        EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+                );
+                String username = sharedPreferences.getString("username", null);
+                String userId = sharedPreferences.getString("user_id", null);
+                System.out.println("Username: " + username);
+                if (username != null && userId != null) {
+                    user = new LoggedInUser(userId, username);
+                    loginRepository.setLoggedInUser(user);
                 }
-
-                if (!loginRepository.isLoggedIn()) {
-                    Intent loginIntent = new Intent(MainActivity.this, LoginActivity.class);
-                    startActivity(loginIntent);
-                } else {
-                    Intent menuIntent = new Intent(MainActivity.this, MenuActivity.class);
-                    startActivity(menuIntent);
-                }
-                finish();
+            } catch (GeneralSecurityException | IOException e) {
+                e.printStackTrace();
             }
 
+            if (!loginRepository.isLoggedIn()) {
+                Intent loginIntent = new Intent(MainActivity.this, LoginActivity.class);
+                startActivity(loginIntent);
+            } else {
+                Intent menuIntent = new Intent(MainActivity.this, MenuActivity.class);
+                startActivity(menuIntent);
+            }
+            finish();
         }, SPLASH_TIME_OUT);
 
     }

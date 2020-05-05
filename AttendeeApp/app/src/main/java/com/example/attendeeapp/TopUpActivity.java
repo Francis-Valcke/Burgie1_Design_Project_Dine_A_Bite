@@ -88,12 +88,11 @@ public class TopUpActivity extends ToolbarActivity {
             }
         });
 
-        paymentSetup.setOnClickListener(button -> {
-            paymentSession.presentPaymentMethodSelection(null);
-        });
+        paymentSetup.setOnClickListener(button ->
+                paymentSession.presentPaymentMethodSelection(null));
 
 
-        // Initialize Stipe payment
+        // Initialize Stripe payment
         CustomerSession.initCustomerSession(this, new DineABiteEphemeralKeyProvider());
         paymentSession = new PaymentSession(this, createPaymentSessionConfig());
         setupPaymentSession();
