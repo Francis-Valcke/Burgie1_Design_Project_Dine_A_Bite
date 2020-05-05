@@ -74,13 +74,14 @@ public class OrderController {
      * @param orderObject the order recieved from the attendee app
      * @return JSONObject including CommonOrder "order" and JSONArray "Recommendation"
      * @throws JsonProcessingException Json processing error
-     * @throws ParseException Json parsing error
      */
     @PostMapping(value = "/placeOrder", consumes = "application/json", produces = "application/json")
     public ResponseEntity<JSONObject> placeOrder(@AuthenticationPrincipal CommonUser userDetails, @RequestBody CommonOrder orderObject) throws JsonProcessingException, UsernameNotFoundException, OrderException {
-        // Update CommonOrder with current prices
-        for (CommonOrderItem commonOrderItem : orderObject.getOrderItems()) {
 
+        /* -- Update incoming CommonOrder object -- */
+
+        // Update prices of the moment the order is placed
+        for (CommonOrderItem commonOrderItem : orderObject.getOrderItems()) {
             Optional<Food> optionalFood= foodRepository.findFoodByBrand(orderObject.getBrandName()).stream().filter(food -> food.getFoodId().getName().equals(commonOrderItem.getFoodName())).findFirst();
             if(optionalFood.isPresent()){
                 commonOrderItem.setPrice(BigDecimal.valueOf(optionalFood.get().getPrice()));
@@ -90,13 +91,19 @@ public class OrderController {
             }
         }
 
-        // Add order to the processor
+
+        /* -- Convert CommonOrder to normal Order object -- */
+
         Order newOrder = new Order(orderObject);
-
-
+        // Set user for this order
         User user = userRepository.findById(userDetails.getUsername()).orElse(userRepository.save(new User(userDetails)));
         newOrder.setUser(user);
+
+        // Add order to the processor
         newOrder = orderProcessor.addNewOrder(newOrder);
+
+
+        /* -- Prepare and send updated order to standmanager --*/
 
         // Put order in json to send to standmanager (as commonOrder object)
         CommonOrder mappedOrder = newOrder.asCommonOrder();
@@ -108,8 +115,12 @@ public class OrderController {
 
         // Ask standmanager for recommendation
         String responseString = communicationHandler.sendRestCallToStandManager("/getRecommendation", jsonString, null);
+        // Parse recommendations
         List<Recommendation> recommendations = mapper.readValue(responseString, new TypeReference<List<Recommendation>>() {});
         orderProcessor.addRecommendations(newOrder.getId(), recommendations);
+
+
+        /* -- Prepare and send response back to application -- */
 
         // send updated order and recommendation
         JSONObject completeResponse = new JSONObject();
@@ -133,11 +144,10 @@ public class OrderController {
     @PostMapping(value="/placeSuperOrder", consumes = "application/json", produces = "application/json")
     public ResponseEntity<JSONArray> placeSuperOrder(@RequestBody SuperOrder superOrder) throws JsonProcessingException, ParseException {
 
-        // Make complete response, values will be added
+        // Make complete response, values will be added later on
         JSONArray completeResponse= new JSONArray();
 
-
-        // ask StandManger to split these orderItems in Orders and give A recommendation
+        // ask StandManger to split these orderItems in Orders and give a recommendation
         JSONArray ordersRecommendations= communicationHandler.getSuperRecommendationFromSM(superOrder);
 
         // parse orders and recommendations
@@ -158,10 +168,12 @@ public class OrderController {
             orderProcessor.addRecommendations(order.getId(), recommendations);
 
 
+            // make response for every seperate order
             JSONObject orderResponse= new JSONObject();
             orderResponse.put("order", order.asCommonOrder());
             orderResponse.put("recommendations", recommendations);
 
+            // Place all orders with their recommendations in the complete array response
             completeResponse.add(orderResponse);
         }
 
