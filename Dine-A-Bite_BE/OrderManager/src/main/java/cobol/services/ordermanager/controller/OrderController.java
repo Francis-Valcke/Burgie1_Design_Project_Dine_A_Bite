@@ -1,7 +1,8 @@
 package cobol.services.ordermanager.controller;
 
 import cobol.commons.BetterResponseModel;
-import cobol.commons.BetterResponseModel.*;
+import cobol.commons.BetterResponseModel.GetBalanceResponse;
+import cobol.commons.BetterResponseModel.Status;
 import cobol.commons.exception.DoesNotExistException;
 import cobol.commons.exception.OrderException;
 import cobol.commons.order.CommonOrder;
@@ -15,9 +16,8 @@ import cobol.services.ordermanager.OrderProcessor;
 import cobol.services.ordermanager.domain.entity.Brand;
 import cobol.services.ordermanager.domain.entity.Food;
 import cobol.services.ordermanager.domain.entity.Order;
-import cobol.services.ordermanager.domain.repository.BrandRepository;
-import cobol.services.ordermanager.domain.repository.BrandRepository;
 import cobol.services.ordermanager.domain.entity.User;
+import cobol.services.ordermanager.domain.repository.BrandRepository;
 import cobol.services.ordermanager.domain.repository.FoodRepository;
 import cobol.services.ordermanager.domain.repository.UserRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -33,10 +33,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -48,6 +45,8 @@ public class OrderController {
     private UserRepository userRepository;
     @Autowired
     private FoodRepository foodRepository;
+    @Autowired
+    private BrandRepository brandRepository;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -57,10 +56,6 @@ public class OrderController {
     private ASCommunicationHandler aSCommunicationHandler;
     @Autowired
     private CommunicationHandler communicationHandler;
-    @Autowired
-    private FoodRepository foodRepository;
-    @Autowired
-    private BrandRepository brandRepository;
 
     /**
      * This method will retrieve information about a given order identified by the orderId.
@@ -127,10 +122,10 @@ public class OrderController {
         for (CommonOrderItem commonOrderItem : orderObject.getOrderItems()) {
             Optional<Food> optionalFood= foodRepository.findFoodByBrand(orderObject.getBrandName()).stream().filter(food -> food.getFoodId().getName().equals(commonOrderItem.getFoodName())).findFirst();
             if(optionalFood.isPresent()){
-                commonOrderItem.setPrice(BigDecimal.valueOf(optionalFood.get().getPrice()));
+                commonOrderItem.setPrice(optionalFood.get().getPrice());
             }
             else{
-                throw new OrderException("Could not find price of an orderItem");
+                throw new OrderException("Could not find price of an orderItem: "+ commonOrderItem.getFoodName() + " for brand: " + orderObject.getBrandName());
             }
         }
 
