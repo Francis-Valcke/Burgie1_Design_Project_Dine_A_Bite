@@ -72,4 +72,5 @@
     <string name="register">Register</string>
     <string name="create_account">Create account</string>
     <string name="email">Email</string>
+    <string name="categories">Categories</string>
 </resources>

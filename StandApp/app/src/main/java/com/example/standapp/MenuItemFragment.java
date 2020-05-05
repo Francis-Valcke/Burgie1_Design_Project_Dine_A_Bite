@@ -18,6 +18,8 @@ import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
 
 import com.example.standapp.json.CommonFood;
+import com.google.android.material.chip.Chip;
+import com.google.android.material.chip.ChipGroup;
 import com.google.android.material.textfield.TextInputEditText;
 
 import java.math.BigDecimal;
@@ -28,7 +30,11 @@ import java.util.Objects;
 public class MenuItemFragment extends DialogFragment {
 
     private Toolbar toolbar;
+    private ChipGroup chipGroup;
     private OnMenuItemChangedListener mOnMenuItemChangedListener;
+
+    private String[] categories = {"American", "Italian", "Japanese", "Asian", "Mexican", "Belgian",
+            "Burger", "Fries", "Pizza"};
 
     @Override
     public void onAttach(@NonNull Context context) {
@@ -62,6 +68,7 @@ public class MenuItemFragment extends DialogFragment {
 
         View view = inflater.inflate(R.layout.menu_item_dialog, container, false);
         toolbar = view.findViewById(R.id.toolbar);
+        chipGroup = view.findViewById(R.id.chip_group_category);
 
         return view;
     }
@@ -95,9 +102,33 @@ public class MenuItemFragment extends DialogFragment {
                 descriptionInput.setText(item.getDescription());
                 prepTimeInput.setText("" + item.getPreparationTime());
 
+                if (!item.getCategory().isEmpty()) {
+                    for (String category : categories) {
+                        @SuppressLint("InflateParams")
+                        Chip chip = (Chip) getLayoutInflater().inflate(R.layout.chip_category, null);
+                        chip.setText(category);
+                        if (item.getCategory().contains(category)) chip.setChecked(true);
+                        chipGroup.addView(chip);
+                    }
+                } else {
+                    for (String category : categories) {
+                        @SuppressLint("InflateParams")
+                        Chip chip = (Chip) getLayoutInflater().inflate(R.layout.chip_category, null);
+                        chip.setText(category);
+                        chipGroup.addView(chip);
+                    }
+                }
+
                 // Editing preparation time is disabled,
                 // because the backend will re-calculate this time
                 prepTimeInput.setEnabled(false);
+            }
+        } else {
+            for (String category : categories) {
+                @SuppressLint("InflateParams")
+                Chip chip = (Chip) getLayoutInflater().inflate(R.layout.chip_category, null);
+                chip.setText(category);
+                chipGroup.addView(chip);
             }
         }
 
@@ -132,6 +163,13 @@ public class MenuItemFragment extends DialogFragment {
                             int stock = Integer.parseInt(Objects.requireNonNull(stockInput.getText()).toString());
                             String description = Objects.requireNonNull(descriptionInput.getText()).toString();
 
+                            // Get categories that are checked
+                            ArrayList<String> categories = new ArrayList<>();
+                            for (int id : chipGroup.getCheckedChipIds()) {
+                                Chip chip = chipGroup.findViewById(id);
+                                categories.add(chip.getText().toString());
+                            }
+
                             CommonFood menuItem;
                             if (finalIsEditing) {
                                 toolbar.setTitle("Edit menu item");
@@ -142,6 +180,7 @@ public class MenuItemFragment extends DialogFragment {
                                 menuItem.setPrice(price);
                                 menuItem.increaseStock(stock); // addedStock
                                 menuItem.setDescription(description);
+                                menuItem.replaceCategoryList(categories);
 
                                 // Send to container (parent) fragment
                                 if (mOnMenuItemChangedListener != null) {
