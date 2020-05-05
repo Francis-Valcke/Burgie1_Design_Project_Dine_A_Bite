@@ -78,6 +78,17 @@
             android:label="@string/title_activity_login" />
 
         <activity
+            android:name=".ui.login.RegisterActivity"
+            android:label="@string/register"
+            android:parentActivityName=".ui.login.LoginActivity">
+
+            <!-- Parent activity meta-data to support 4.0 and lower -->
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".ui.login.LoginActivity" />
+        </activity>
+
+        <activity
             android:name=".OrderActivity"
             android:parentActivityName=".MenuActivity">
 
