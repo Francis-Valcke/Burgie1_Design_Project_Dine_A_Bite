@@ -167,7 +167,6 @@ public class OrderController {
         completeResponse.put("order", newOrder.asCommonOrder());
         completeResponse.put("recommendations", recommendations);
 
-        CommonOrder test_order = newOrder.asCommonOrder();
 
         return ResponseEntity.ok(completeResponse);
 

@@ -2,13 +2,12 @@ package com.example.standapp;
 
 public class ServerConfig {
 
-//    public static final String AS_ADDRESS = "http://valcke.site:8080";
-    public static final String AS_ADDRESS = "http://cobol.idlab.ugent.be:8090";
+    private static final boolean localTest = true;
+    private static final boolean emulator= false;
 
-//    public static final String OM_ADDRESS = "http://valcke.site:8081";
-    public static final String OM_ADDRESS = "http://cobol.idlab.ugent.be:8091";
-
-//    public static final String EC_ADDRESS = "http://valcke.site:8083";
-    public static final String EC_ADDRESS = "http://cobol.idlab.ugent.be:8093";
+    private static final String ip = emulator ? "10.0.2.2" : "192.168.1.43";
+    public static final String OM_ADDRESS = localTest ? "http://"+ip+":8081" : "http://cobol.idlab.ugent.be:8091";
+    public static final String EC_ADDRESS = localTest ? "http://"+ip+":8083" : "http://cobol.idlab.ugent.be:8093";
+    public static final String AS_ADDRESS = localTest ? "http://"+ip+":8080" : "http://cobol.idlab.ugent.be:8090";
 
 }
