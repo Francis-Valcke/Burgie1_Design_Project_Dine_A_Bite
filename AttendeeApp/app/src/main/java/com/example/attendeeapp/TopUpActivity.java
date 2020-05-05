@@ -2,32 +2,24 @@ package com.example.attendeeapp;
 
 import android.content.Context;
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
-import com.android.volley.AuthFailureError;
-import com.android.volley.Request;
-import com.android.volley.toolbox.JsonObjectRequest;
 import com.example.attendeeapp.data.LoginDataSource;
 import com.example.attendeeapp.data.LoginRepository;
 import com.example.attendeeapp.data.model.LoggedInUser;
 import com.example.attendeeapp.json.BetterResponseModel;
 import com.example.attendeeapp.polling.OkHttpRequestTool;
-import com.example.attendeeapp.stripe.DineabiteEphemeralKeyProvider;
-import com.fasterxml.jackson.core.JsonProcessingException;
+import com.example.attendeeapp.stripe.DineABiteEphemeralKeyProvider;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.stripe.android.ApiResultCallback;
@@ -44,18 +36,16 @@ import com.stripe.android.view.BillingAddressFields;
 import com.example.attendeeapp.json.BetterResponseModel.*;
 
 import org.jetbrains.annotations.NotNull;
-import org.json.JSONObject;
 
 import java.lang.ref.WeakReference;
-import java.math.BigDecimal;
 import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
 
 import okhttp3.MediaType;
 import okhttp3.RequestBody;
 
-public class TopUpActivity extends AppCompatActivity {
+public class TopUpActivity extends ToolbarActivity {
+
+    private static final String TAG = TopUpActivity.class.getSimpleName();
 
     private PaymentSession paymentSession;
     private PaymentMethod selectedPaymentMethod;
@@ -64,7 +54,7 @@ public class TopUpActivity extends AppCompatActivity {
     private LoggedInUser user;
 
     ProgressBar loadingProgressBar;
-    Toolbar toolbar;
+    //Toolbar toolbar;
     Button paymentSetup;
     Button payButton;
 
@@ -75,23 +65,17 @@ public class TopUpActivity extends AppCompatActivity {
         context = this;
 
         loadingProgressBar = findViewById(R.id.payment_loading);
-        toolbar = findViewById(R.id.toolbar);
+        //toolbar = findViewById(R.id.toolbar);
         paymentSetup = findViewById(R.id.button_payment_setup);
         payButton = findViewById(R.id.button_pay);
-
-        // Custom Toolbar (instead of standard actionbar)
-        setSupportActionBar(toolbar);
-
         loadingProgressBar.setVisibility(View.GONE);
 
-        // Get a support ActionBar corresponding to this toolbar
-        ActionBar ab = getSupportActionBar();
+        // Custom Toolbar (instead of standard actionbar)
+        //setSupportActionBar(toolbar);
 
-        // Enable the Up button
-        assert ab != null;
-        ab.setDisplayHomeAsUpEnabled(true);
-
-        ab.setTitle("Top Up");
+        // Initialize the toolbar
+        initToolbar();
+        upButtonToolbar();
 
         // Show username of currently logged in user
         user = LoginRepository.getInstance(new LoginDataSource()).getLoggedInUser();
@@ -114,7 +98,7 @@ public class TopUpActivity extends AppCompatActivity {
 
 
         // Initialize Stipe payment
-        CustomerSession.initCustomerSession(this, new DineabiteEphemeralKeyProvider());
+        CustomerSession.initCustomerSession(this, new DineABiteEphemeralKeyProvider());
         paymentSession = new PaymentSession(this, createPaymentSessionConfig());
         setupPaymentSession();
     }
@@ -150,7 +134,7 @@ public class TopUpActivity extends AppCompatActivity {
                         if (responseModel.getStatus().equals(Status.OK)){
                             clientSecret = responseModel.getPayload().getClientSecret();
                             publicKey = responseModel.getPayload().getPublicKey();
-                        } else throw new Exception("Status not OK from server");
+                        } else throw responseModel.getException();
 
                         stripe = new Stripe(getApplicationContext(), publicKey);
 
@@ -162,18 +146,16 @@ public class TopUpActivity extends AppCompatActivity {
                                 )
                         );
 
-
-
                     } catch (Exception e) {
-                        e.printStackTrace();
-                        Log.e("STRIPE", "doPayment: ", e);
+                        Toast.makeText(context, "Payment could not be processed.", Toast.LENGTH_SHORT).show();
+                        Log.e(TAG, "doPayment: ", e);
                         loadingProgressBar.setVisibility(View.GONE);
                     }
 
                 },
                 throwable -> {
-                    Toast.makeText(context, "ERROR", Toast.LENGTH_SHORT).show();
-                    Log.e("STRIPE", "doPayment: ", throwable);
+                    Toast.makeText(context, "Payment could not be processed.", Toast.LENGTH_SHORT).show();
+                    Log.e(TAG, "doPayment: ", throwable);
                     loadingProgressBar.setVisibility(View.GONE);
                 }
         );
@@ -197,19 +179,21 @@ public class TopUpActivity extends AppCompatActivity {
                         ObjectMapper om = new ObjectMapper();
                         BetterResponseModel<GetBalanceResponse> responseModel =
                                 om.readValue(response, new TypeReference<BetterResponseModel<GetBalanceResponse>>() {});
-                        Log.i("STRIPE", "confirmPayment: balance after operation:" + responseModel.getPayload().getBalance());
-                        finish();
+                        if (responseModel.isOk()){
+                            Log.i(TAG, "confirmPayment: confirmPayment: balance after operation: "+ responseModel.getPayload().getBalance());
+                            finish();
+                        } else throw responseModel.getException();
 
                     } catch (Exception e) {
-                        e.printStackTrace();
-                        Log.e("STRIPE", "confirmPayment: ", e);
+                        Toast.makeText(context, "Payment could not be confirmed.", Toast.LENGTH_SHORT).show();
+                        Log.e(TAG, "confirmPayment: ", e);
                         loadingProgressBar.setVisibility(View.GONE);
                     }
 
                 },
                 throwable -> {
-                    Toast.makeText(context, "ERROR", Toast.LENGTH_SHORT).show();
-                    Log.e("STRIPE", "confirmPayment: ", throwable);
+                    Toast.makeText(context, "Payment could not be confirmed.", Toast.LENGTH_SHORT).show();
+                    Log.e(TAG, "confirmPayment: ", throwable);
                     loadingProgressBar.setVisibility(View.GONE);
                 }
         );
@@ -234,19 +218,20 @@ public class TopUpActivity extends AppCompatActivity {
                         BetterResponseModel<GetBalanceResponse> responseModel =
                                 om.readValue(response, new TypeReference<BetterResponseModel<GetBalanceResponse>>() {});
 
-                        Log.i("STRIPE", "cancelPayment: balance after operation:" + responseModel.getPayload().getBalance());
-                        loadingProgressBar.setVisibility(View.GONE);
+                        if (responseModel.isOk()){
+                            Log.i(TAG, "confirmPayment: cancelPayment: balance after operation:" + responseModel.getPayload().getBalance());
+                            loadingProgressBar.setVisibility(View.GONE);
+                        } else throw responseModel.getException();
 
                     } catch (Exception e) {
-                        e.printStackTrace();
-                        Log.e("STRIPE", "cancelPayment: ", e);
+                        Toast.makeText(context, "Payment could not be cancelled.", Toast.LENGTH_SHORT).show();
+                        Log.e(TAG, "cancelPayment: ", e);
                         loadingProgressBar.setVisibility(View.GONE);
                     }
-
                 },
                 throwable -> {
-                    Toast.makeText(context, "ERROR", Toast.LENGTH_SHORT).show();
-                    Log.e("STRIPE", "cancelPayment: ", throwable);
+                    Toast.makeText(context, "Payment could not be cancelled.", Toast.LENGTH_SHORT).show();
+                    Log.e(TAG, "cancelPayment: ", throwable);
                     loadingProgressBar.setVisibility(View.GONE);
                 }
         );
@@ -281,7 +266,7 @@ public class TopUpActivity extends AppCompatActivity {
                         // Update your UI here with other data
                         if (data.isPaymentReadyToCharge()) {
                             payButton.setEnabled(true);
-                            Log.i("STRIPE", "Ready to charge!");
+                            Log.i(TAG, "onPaymentSessionDataChanged: Ready to charge!");
                         } else {
                             payButton.setEnabled(false);
                         }
@@ -294,7 +279,7 @@ public class TopUpActivity extends AppCompatActivity {
 
                     @Override
                     public void onError(int errorCode, @NotNull String errorMessage) {
-                        Log.e("STRIPE", "onError: " + errorMessage, null);
+                        Log.e(TAG, "onError: "+ errorMessage, null);
                     }
                 }
         );
@@ -335,7 +320,7 @@ public class TopUpActivity extends AppCompatActivity {
                 // Complete the payment by topping up the digital wallet at the server
 
                 Toast.makeText(activity, "Payment Success", Toast.LENGTH_SHORT).show();
-                Log.i("STRIPE", "Payment nog successful, no payment method selected");
+                Log.i(TAG, "onSuccess: payment success.");
                 activity.confirmPayment();
 
 
@@ -343,7 +328,7 @@ public class TopUpActivity extends AppCompatActivity {
                 // Payment failed – allow retrying using a different payment method
 
                 Toast.makeText(activity, "Payment failed, no payment method selected.", Toast.LENGTH_SHORT).show();
-                Log.i("STRIPE", "Payment nog successful, no payment method selected");
+                Log.i(TAG, "Payment failed. Requires a payment method to be selected.");
                 activity.cancelPayment();
 
             }
@@ -358,7 +343,7 @@ public class TopUpActivity extends AppCompatActivity {
 
             // Payment request failed – allow retrying using the same payment method
             Toast.makeText(activity, "There was an error executing the payment.", Toast.LENGTH_SHORT).show();
-            Log.e("STRIPE", "onError: ", e);
+            Log.e(TAG, "onError: ", e);
             activity.cancelPayment();
         }
     }

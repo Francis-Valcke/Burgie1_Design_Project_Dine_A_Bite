@@ -3,9 +3,11 @@ package com.example.attendeeapp;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -31,6 +33,8 @@ import io.reactivex.rxjava3.disposables.CompositeDisposable;
 import okhttp3.Request;
 
 public class AccountActivity extends ToolbarActivity {
+
+    private static final String TAG = AccountActivity.class.getSimpleName();
 
     public static final int REQUEST_TOP_TUP = 0;
 
@@ -123,21 +127,21 @@ public class AccountActivity extends ToolbarActivity {
                     try {
                         ObjectMapper om = new ObjectMapper();
                         BetterResponseModel<GetBalanceResponse> object =
-                                om.readValue(response, new TypeReference<BetterResponseModel<GetBalanceResponse>>() {});
+                                om.readValue(response, new TypeReference<BetterResponseModel<GetBalanceResponse>>() {
+                                });
 
-                        if (object.isOk()){
+                        if (object.isOk()) {
                             balance.setText(String.valueOf(object.getPayload().getBalance()));
-                        } else {
-                            // There was an error processing the request
-                            System.out.println();
-                        }
+                        } else throw object.getException();
+
                     } catch (Throwable throwable) {
-                        System.out.println();
+                        Toast.makeText(this, "Could not retrieve balance from the server.", Toast.LENGTH_SHORT).show();
+                        Log.e(TAG, "updateBalance: ", throwable);
                     }
                 },
                 throwable -> {
-                    // There was an error executing the request
-                    throw throwable;
+                    Toast.makeText(this, "Could not retrieve balance from the server.", Toast.LENGTH_SHORT).show();
+                    Log.e(TAG, "updateBalance: ", throwable);
                 }
         ));
 

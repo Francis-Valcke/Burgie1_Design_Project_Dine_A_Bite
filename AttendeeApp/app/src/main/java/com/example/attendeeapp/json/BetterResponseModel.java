@@ -133,5 +133,6 @@ public class BetterResponseModel<T> {
             this.balance = balance;
         }
     }
+
 }
 

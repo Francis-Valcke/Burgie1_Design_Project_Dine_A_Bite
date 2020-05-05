@@ -17,12 +17,6 @@ import java.util.Objects;
 @Service
 public class ASCommunicationHandler {
 
-    @Autowired
-    ConfigurationBean configurationBean;
-
-    @Autowired
-    ASCommunicationHandler communicationHandler;
-
     public BetterResponseModel<BetterResponseModel.GetBalanceResponse> callCreateTransaction(String username, BigDecimal amount) throws IOException {
 
         String url = OrderManager.ACURL + "/stripe/createTransaction";

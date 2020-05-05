@@ -38,21 +38,29 @@ public class StripeController {
     ConfigurationBean configurationBean;
 
     @GetMapping(value = "/key", produces = MediaType.APPLICATION_JSON_VALUE)
-    public String getEphemeralKey(@RequestParam("api_version") String version, @AuthenticationPrincipal CommonUser user) throws StripeException, DoesNotExistException {
+    public ResponseEntity<BetterResponseModel<?>> getEphemeralKey(@RequestParam("api_version") String version, @AuthenticationPrincipal CommonUser user) {
 
-        User userEntity = userRepository.findById(user.getUsername())
-                .orElseThrow(() -> new DoesNotExistException("This user does not exist in the database. This should not be possible!"));
+        try {
+            User userEntity = userRepository.findById(user.getUsername())
+                    .orElseThrow(() -> new DoesNotExistException("This user does not exist in the database. This should not be possible!"));
 
-        RequestOptions requestOptions = (new RequestOptions.RequestOptionsBuilder())
-                .setStripeVersionOverride("2020-03-02")
-                .setApiKey("sk_test_gd0OhhbEHENmKoo0HRhUYX1r00P0pmGByO")
-                //.setStripeVersion("{{API_VERSION}}")
-                .build();
-        Map<String, Object> options = new HashMap<String, Object>();
-        options.put("customer", userEntity.getCustomerId());
-        EphemeralKey key = EphemeralKey.create(options, requestOptions);
+            RequestOptions requestOptions = (new RequestOptions.RequestOptionsBuilder())
+                    .setStripeVersionOverride(version)
+                    .setApiKey(configurationBean.getStripeSecretApiKey())
+                    .build();
+            Map<String, Object> options = new HashMap<String, Object>();
+            options.put("customer", userEntity.getCustomerId());
+            EphemeralKey key = EphemeralKey.create(options, requestOptions);
 
-        return key.getRawJson();
+            return ResponseEntity.ok(
+                  BetterResponseModel.ok(
+                          "The payload contains the ephemeral key in json. The entire payload needs to be passed ephemeralKeyUpdateListener.onKeyUpdate()",
+                          key.getRawJson()
+                  )
+            );
+        } catch (DoesNotExistException | StripeException e) {
+            return ResponseEntity.ok(BetterResponseModel.error(e.getMessage(), e));
+        }
     }
 
     @PostMapping(value = "/createPaymentIntent", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -97,7 +105,6 @@ public class StripeController {
             return ResponseEntity.ok(BetterResponseModel.error(e.getMessage(), e));
         }
     }
-
 
     @PostMapping(value = "/createTransaction", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<BetterResponseModel<?>> createTransaction(BigDecimal amount, @RequestParam(value = "user", required = false) String otherUser, @AuthenticationPrincipal CommonUser user) {

@@ -2,38 +2,30 @@ package com.example.attendeeapp.stripe;
 
 import android.app.Activity;
 import android.util.Log;
+import android.view.View;
+import android.widget.Toast;
 
-import com.android.volley.AuthFailureError;
-import com.android.volley.Cache;
-import com.android.volley.Network;
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.toolbox.BasicNetwork;
-import com.android.volley.toolbox.DiskBasedCache;
-import com.android.volley.toolbox.HurlStack;
-import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.Volley;
 import com.example.attendeeapp.ServerConfig;
 import com.example.attendeeapp.data.LoginDataSource;
 import com.example.attendeeapp.data.LoginRepository;
 import com.example.attendeeapp.data.model.LoggedInUser;
+import com.example.attendeeapp.json.BetterResponseModel;
 import com.example.attendeeapp.polling.OkHttpRequestTool;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.stripe.android.EphemeralKeyProvider;
 import com.stripe.android.EphemeralKeyUpdateListener;
 import com.stripe.android.Stripe;
+import com.stripe.android.model.ConfirmPaymentIntentParams;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.io.IOException;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.Objects;
 
-import io.reactivex.rxjava3.core.Single;
-import io.reactivex.rxjava3.disposables.CompositeDisposable;
-import io.reactivex.rxjava3.schedulers.Schedulers;
+public class DineABiteEphemeralKeyProvider implements EphemeralKeyProvider {
 
-public class DineabiteEphemeralKeyProvider extends Activity implements EphemeralKeyProvider {
+    private static final String TAG = DineABiteEphemeralKeyProvider.class.getSimpleName();
 
     private LoggedInUser user = LoginRepository.getInstance(new LoginDataSource()).getLoggedInUser();
 
@@ -54,11 +46,22 @@ public class DineabiteEphemeralKeyProvider extends Activity implements Ephemeral
 
         OkHttpRequestTool.wrapRequest(request).subscribe(
                 response -> {
-                    ephemeralKeyUpdateListener.onKeyUpdate(Objects.requireNonNull(response));
+
+                    try {
+
+                        ObjectMapper om = new ObjectMapper();
+                        BetterResponseModel<String> responseModel =
+                                om.readValue(response, new TypeReference<BetterResponseModel<String>>() {});
+                        if (responseModel.isOk()) {
+                            ephemeralKeyUpdateListener.onKeyUpdate(Objects.requireNonNull(responseModel.getPayload()));
+                        } else throw responseModel.getException();
+
+                    } catch (Exception e) {
+                        Log.e(TAG, "createEphemeralKey: ", e);
+                    }
+
                 },
-                throwable -> {
-                    Log.e("STRIPE", "createEphemeralKey: ", throwable);
-                }
+                throwable -> Log.e(TAG, "createEphemeralKey: ", throwable)
         );
 
     }
