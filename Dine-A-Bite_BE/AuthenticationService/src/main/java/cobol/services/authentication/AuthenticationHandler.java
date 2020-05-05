@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 
@@ -36,7 +37,7 @@ public class AuthenticationHandler {
                 .username(details.getUsername())
                 .password(passwordEncoder.encode(details.getPassword()))
                 .customerId(customer.getId())
-                .roles(Collections.singletonList(Role.USER))
+                .roles(Arrays.asList(role))
                 .build()
         );
     }
