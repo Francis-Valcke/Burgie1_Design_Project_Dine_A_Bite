@@ -71,7 +71,7 @@ public class ProfileFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
 
-        final View view = inflater.inflate(R.layout.activity_profile, container, false);
+        final View view = inflater.inflate(R.layout.fragment_profile, container, false);
         TextView usernameTextView = view.findViewById(R.id.username);
         final TextView standNameTextView = view.findViewById(R.id.stand_name);
         final TextView brandNameTextView = view.findViewById(R.id.brand_name);

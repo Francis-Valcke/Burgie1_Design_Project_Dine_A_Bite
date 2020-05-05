@@ -74,7 +74,7 @@ public class DashboardFragment extends Fragment
                              @Nullable final ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
 
-        View view = inflater.inflate(R.layout.activity_dashboard_fragment, container,
+        View view = inflater.inflate(R.layout.fragment_dashboard, container,
                 false);
         Button submitButton = view.findViewById(R.id.submit_menu_button);
         Button addButton = view.findViewById(R.id.add_menu_item_button);
