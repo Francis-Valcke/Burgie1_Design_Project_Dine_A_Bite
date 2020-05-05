@@ -3,14 +3,14 @@ package com.example.attendeeapp;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
+import androidx.annotation.Nullable;
 import androidx.security.crypto.EncryptedSharedPreferences;
 import androidx.security.crypto.MasterKeys;
 
@@ -18,27 +18,52 @@ import com.example.attendeeapp.appDatabase.OrderDatabaseService;
 import com.example.attendeeapp.data.LoginDataSource;
 import com.example.attendeeapp.data.LoginRepository;
 import com.example.attendeeapp.data.model.LoggedInUser;
+import com.example.attendeeapp.json.BetterResponseModel;
+import com.example.attendeeapp.json.BetterResponseModel.*;
+import com.example.attendeeapp.polling.OkHttpRequestTool;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.stripe.android.PaymentSession;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
+import java.util.Objects;
+
+import io.reactivex.rxjava3.disposables.CompositeDisposable;
+import okhttp3.Request;
 
 public class AccountActivity extends ToolbarActivity {
 
+    private static final String TAG = AccountActivity.class.getSimpleName();
+
+    public static final int REQUEST_TOP_TUP = 0;
+
+    LoggedInUser user;
     TextView username;
+    TextView balance;
+    private PaymentSession paymentSession;
+    Button topUp;
+    CompositeDisposable disposables;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_account);
 
+        disposables = new CompositeDisposable();
+
         // Initialize the toolbar
         initToolbar();
         upButtonToolbar();
 
         // Show username of currently logged in user
-        LoggedInUser user = LoginRepository.getInstance(new LoginDataSource()).getLoggedInUser();
+        user = LoginRepository.getInstance(new LoginDataSource()).getLoggedInUser();
         username = findViewById(R.id.username);
         username.setText(user.getDisplayName());
+
+        balance = findViewById(R.id.balance);
+        updateBalance();
+
 
         Button logOutButton = findViewById(R.id.button_log_out);
         logOutButton.setOnClickListener(new View.OnClickListener() {
@@ -78,6 +103,48 @@ public class AccountActivity extends ToolbarActivity {
             }
 
         });
+
+
+        Button topUp = findViewById(R.id.button_top_up);
+        topUp.setOnClickListener(button -> {
+            Intent intent = new Intent(this, TopUpActivity.class);
+            startActivityForResult(intent, REQUEST_TOP_TUP);
+        });
+
+    }
+
+    private void updateBalance() {
+
+        String url = ServerConfig.AS_ADDRESS + "/user/balance";
+        Request request = new Request.Builder()
+                .url(url)
+                .method("GET", null)
+                .addHeader("Authorization", user.getAuthorizationToken())
+                .build();
+
+        disposables.add(OkHttpRequestTool.wrapRequest(request).subscribe(
+                response -> {
+                    try {
+                        ObjectMapper om = new ObjectMapper();
+                        BetterResponseModel<GetBalanceResponse> object =
+                                om.readValue(response, new TypeReference<BetterResponseModel<GetBalanceResponse>>() {
+                                });
+
+                        if (object.isOk()) {
+                            balance.setText(String.valueOf(object.getPayload().getBalance()));
+                        } else throw object.getException();
+
+                    } catch (Throwable throwable) {
+                        Toast.makeText(this, "Could not retrieve balance from the server.", Toast.LENGTH_SHORT).show();
+                        Log.e(TAG, "updateBalance: ", throwable);
+                    }
+                },
+                throwable -> {
+                    Toast.makeText(this, "Could not retrieve balance from the server.", Toast.LENGTH_SHORT).show();
+                    Log.e(TAG, "updateBalance: ", throwable);
+                }
+        ));
+
     }
 
     @Override
@@ -87,5 +154,15 @@ public class AccountActivity extends ToolbarActivity {
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == REQUEST_TOP_TUP) {
+            updateBalance();
+        }
+
     }
 }

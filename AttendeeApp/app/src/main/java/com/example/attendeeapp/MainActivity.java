@@ -15,6 +15,7 @@ import com.example.attendeeapp.data.LoginRepository;
 import com.example.attendeeapp.data.model.LoggedInUser;
 import com.example.attendeeapp.ui.login.LoginActivity;
 import com.jakewharton.threetenabp.AndroidThreeTen;
+import com.stripe.android.PaymentConfiguration;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
@@ -32,6 +33,10 @@ public class MainActivity extends AppCompatActivity {
 
         super.onCreate(savedInstanceState);
         AndroidThreeTen.init(this);
+        PaymentConfiguration.init(
+                getApplicationContext(),
+                "pk_test_GxEIF5eJVuGKv6O5Jsz6l8wr00qoki9cHO"
+        );
         setContentView(R.layout.activity_main);
 
         // Clear db of all entries (for testing purposes)

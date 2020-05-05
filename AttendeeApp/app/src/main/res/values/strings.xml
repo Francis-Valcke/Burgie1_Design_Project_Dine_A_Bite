@@ -51,4 +51,12 @@
     <string name="personal_information">Personal Information</string>
     <string name="username">Username:</string>
     <string name="log_out">Log out</string>
+    <string name="text_balance">Balance:</string>
+    <string name="string_top_up">Top up</string>
+    <string name="button_payment_setup">payment setup</string>
+    <string name="text_top_up">Top up your account</string>
+    <string name="button_pay">pay</string>
+    <string name="button_select_payment_method">Payment Method</string>
+    <string name="euro_sign">€</string>
+    <string name="string_amount">Amount</string>
 </resources>
