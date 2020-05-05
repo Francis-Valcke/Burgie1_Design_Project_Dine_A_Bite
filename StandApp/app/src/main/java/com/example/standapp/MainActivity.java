@@ -58,7 +58,6 @@ public class MainActivity extends AppCompatActivity
         if (savedInstanceState == null) {
             navigationView.setCheckedItem(R.id.nav_profile);
         }
-
     }
 
     /**
@@ -97,6 +96,25 @@ public class MainActivity extends AppCompatActivity
             drawer.closeDrawer(GravityCompat.START);
         } else {
             super.onBackPressed();
+        }
+    }
+
+    // This function will be called when clicking on the notification of an incoming order
+    // with the intent that was used to relaunch it
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+
+        String menuFragment = intent.getStringExtra("menuFragment");
+        System.out.println("menufragment contains: " + menuFragment);
+        // If menuFragment is defined, then this activity was launched with a fragment selection
+        if (menuFragment != null) {
+            // Here we can decide what do depending on the value (string) of menuFragment
+            if (menuFragment.equals("orderFragment")) {
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.fragment_container, order)
+                        .commit();
+            }
         }
     }
 

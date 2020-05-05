@@ -41,6 +41,8 @@
         
         <activity
             android:name=".MainActivity"
+            android:clearTaskOnLaunch="true"
+            android:launchMode="singleTop"
             android:theme="@style/AppTheme.NoActionBar" />
 
         <service

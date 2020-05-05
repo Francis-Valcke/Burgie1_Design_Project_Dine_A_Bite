@@ -28,6 +28,7 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.Volley;
+import com.example.standapp.MainActivity;
 import com.example.standapp.OrderFragment;
 import com.example.standapp.R;
 import com.example.standapp.ServerConfig;
@@ -105,14 +106,18 @@ public class PollingService extends Service {
                         // Send Notification that order is being prepared
                         notificationManager = NotificationManagerCompat.from(context);
                         // Create an Intent for the activity you want to start
-                        Intent activityIntent = new Intent(getApplication(), OrderFragment.class);
+                        Intent resultIntent = new Intent(getApplication(), MainActivity.class);
+                        // Set the MainActivity to the foreground if it is already running;
+                        // This is important because without this, a new instance of MainActivity gets created
+                        resultIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                        resultIntent.putExtra("menuFragment", "orderFragment");
                         // Create the TaskStackBuilder and add the intent, which inflates the back stack
-                        //TaskStackBuilder stackBuilder = TaskStackBuilder.create(context);
-                        //stackBuilder.addNextIntentWithParentStack(activityIntent);
+                        TaskStackBuilder stackBuilder = TaskStackBuilder.create(getApplication());
+                        stackBuilder.addNextIntentWithParentStack(resultIntent);
                         // Get the PendingIntent containing the entire back stack
-                        //PendingIntent resultPendingIntent =
-                        //        stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);"""
-                        PendingIntent contentIntent = PendingIntent.getActivity(context, 0, activityIntent, 0);
+                        PendingIntent resultPendingIntent =
+                                stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
+                        // Add large icon on the right side of the notification
                         Bitmap largeIcon = BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher_foreground);
 
                         NotificationCompat.Builder notification = new NotificationCompat.Builder(context, CHANNEL_ORDER_ID)
@@ -124,7 +129,7 @@ public class PollingService extends Service {
                                 .setCategory(NotificationCompat.CATEGORY_STATUS)
                                 .setColor(Color.GREEN)
                                 // Set the intent that will fire when the user taps the notification
-                                .setContentIntent(contentIntent)
+                                .setContentIntent(resultPendingIntent)
                                 .setAutoCancel(true);
                         // notificationId is a unique int for each notification that you must define
                         notificationManager.notify(notificationID, notification.build());
