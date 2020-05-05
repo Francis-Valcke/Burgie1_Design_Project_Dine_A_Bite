@@ -30,7 +30,7 @@ public class Food {
     private int stock;
 
     private String description;
-    private float price;
+    private BigDecimal price;
     private int preparationTime;
 
     @ManyToMany(fetch = FetchType.EAGER)
@@ -80,7 +80,7 @@ public class Food {
 
         //Setting general fields
         this.description = cf.getDescription();
-        this.price = cf.getPrice().floatValue();
+        this.price = cf.getPrice();
         this.preparationTime = cf.getPreparationTime();
         this.stock = cf.getStock();
 
@@ -100,7 +100,7 @@ public class Food {
 
         //Setting general fields
         this.description = cf.getDescription().equals("") ? this.description : cf.getDescription();
-        this.price = cf.getPrice().floatValue() < 0 ? this.price : cf.getPrice().floatValue();
+        this.price = cf.getPrice().floatValue() < 0 ? this.price : cf.getPrice();
         this.preparationTime = cf.getPreparationTime() < 0 ? this.preparationTime : cf.getPreparationTime();
         //Stock will be 0 if no stock has changed
         this.stock += cf.getStock();
@@ -142,7 +142,7 @@ public class Food {
 
         } else { // It is a new item
             this.description = cf.getDescription();
-            this.price = cf.getPrice().floatValue();
+            this.price = cf.getPrice();
 
             CategoryRepository categoryRepository = SpringContext.getBean(CategoryRepository.class);
             for (String s : cf.getCategory()) {
@@ -164,7 +164,7 @@ public class Food {
     public CommonFood asCommonFood() {
         return new CommonFood(
                 foodId.name,
-                BigDecimal.valueOf(price),
+                price,
                 preparationTime,
                 stock,
                 foodId.stand.getName(),
@@ -307,11 +307,11 @@ public class Food {
         this.description = description;
     }
 
-    public float getPrice() {
+    public BigDecimal getPrice() {
         return price;
     }
 
-    public void setPrice(float price) {
+    public void setPrice(BigDecimal price) {
         this.price = price;
     }
 

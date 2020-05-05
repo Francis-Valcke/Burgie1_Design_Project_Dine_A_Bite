@@ -1,4 +1,4 @@
-package cobol.services.ordermanager;
+package cobol.services.authentication.config;
 
 
 import lombok.Data;
@@ -12,6 +12,7 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties
 public class ConfigurationBean {
 
-    private boolean unitTest;
+    private String stripeSecretApiKey;
+    private String stripePublicApiKey;
 
 }
