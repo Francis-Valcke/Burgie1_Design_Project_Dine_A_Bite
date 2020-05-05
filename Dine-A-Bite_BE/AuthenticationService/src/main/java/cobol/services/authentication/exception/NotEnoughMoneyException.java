@@ -1,4 +1,4 @@
-package cobol.services.ordermanager.exception;
+package cobol.services.authentication.exception;
 
 public class NotEnoughMoneyException extends Throwable {
     public NotEnoughMoneyException() {

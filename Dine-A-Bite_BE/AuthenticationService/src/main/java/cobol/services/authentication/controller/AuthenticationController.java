@@ -3,6 +3,8 @@ package cobol.services.authentication.controller;
 import cobol.commons.ResponseModel;
 import cobol.commons.security.Role;
 import cobol.commons.security.exception.DuplicateUserException;
+import cobol.services.authentication.AuthenticationHandler;
+import cobol.services.authentication.AuthenticationRequest;
 import cobol.services.authentication.config.ConfigurationBean;
 import cobol.services.authentication.domain.entity.User;
 import cobol.services.authentication.domain.repository.UserRepository;
@@ -41,6 +43,7 @@ public class AuthenticationController {
     private JwtProviderService jwtProviderService;
     private UserRepository users;
     private ConfigurationBean configurationBean;
+    private AuthenticationHandler authenticationHandler;
 
     /**
      * API endpoint to test if the server is still alive.
@@ -100,35 +103,20 @@ public class AuthenticationController {
     /**
      * API endpoint to create a new account.
      *
-     * @param data expects a json body with username and password provided.
+     * @param details expects a json body with username and password provided.
      * @return status op user creation.
      */
     @PostMapping("/createUser")
-    public ResponseEntity<HashMap<Object,Object>> create(@RequestBody AuthenticationRequest data){
+    public ResponseEntity<HashMap<Object,Object>> create(@RequestBody AuthenticationRequest details){
 
         try {
-            if (users.existsById(data.getUsername()))
-                throw new DuplicateUserException("A user with that name exists already.");
 
-            // Create an associated stripe customer
-            Stripe.apiKey = configurationBean.getStripeSecretApiKey();
-            HashMap<String, Object> params = new HashMap<>();
-            params.put("description", data.getUsername());
-            Customer customer = Customer.create(params);
-
-            users.save(User.builder()
-                    .username(data.getUsername())
-                    .password(passwordEncoder.encode(data.getPassword()))
-                    .customerId(customer.getId())
-                    .roles(Collections.singletonList(Role.USER))
-                    .build()
-            );
-
+            authenticationHandler.createUser(details, Role.USER);
 
             return ResponseEntity.ok(
                     ResponseModel.builder()
                             .status(OK.toString())
-                            .details("User: " + data.getUsername() + " created.")
+                            .details("User: " + details.getUsername() + " created.")
                             .build().generateResponse()
             );
         } catch (DuplicateUserException | StripeException e) {
@@ -151,15 +139,7 @@ public class AuthenticationController {
     public ResponseEntity<HashMap<Object,Object>> createStandManager(@RequestBody AuthenticationRequest data){
 
         try {
-            if (users.existsById(data.getUsername()))
-                throw new DuplicateUserException("A user with that name exists already.");
-
-            users.save(User.builder()
-                    .username(data.getUsername())
-                    .password(passwordEncoder.encode(data.getPassword()))
-                    .roles(Arrays.asList(Role.USER, Role.STAND))
-                    .build()
-            );
+            authenticationHandler.createUser(data, Role.USER, Role.STAND);
 
             return ResponseEntity.ok(
                     ResponseModel.builder()
@@ -167,7 +147,7 @@ public class AuthenticationController {
                             .details("Stand Manager: " + data.getUsername() + " created.")
                             .build().generateResponse()
             );
-        } catch (DuplicateUserException e) {
+        } catch (DuplicateUserException | StripeException e) {
             return ResponseEntity.ok(
                     ResponseModel.builder()
                             .status(ERROR.toString())
@@ -200,5 +180,10 @@ public class AuthenticationController {
     @Autowired
     public void setConfigurationBean(ConfigurationBean configurationBean) {
         this.configurationBean = configurationBean;
+    }
+
+    @Autowired
+    public void setAuthenticationHandler(AuthenticationHandler authenticationHandler) {
+        this.authenticationHandler = authenticationHandler;
     }
 }
