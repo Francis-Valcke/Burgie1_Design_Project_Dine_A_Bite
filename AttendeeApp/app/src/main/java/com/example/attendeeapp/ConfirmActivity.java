@@ -190,7 +190,7 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
                                         confirmSplitOrderNumber == splitOrderRecommendations.length()) {
                                     // Continue to overview with confirmed stands for the orders
                                     Intent listIntent = new Intent(ConfirmActivity.this, OrderActivity.class);
-                                    listIntent.putExtra("orderIntentList", confirmedOrders);
+                                    listIntent.putExtra("orderList", confirmedOrders);
                                     startActivity(listIntent);
                                 } else {
                                     // Continue confirming stands for the next brand

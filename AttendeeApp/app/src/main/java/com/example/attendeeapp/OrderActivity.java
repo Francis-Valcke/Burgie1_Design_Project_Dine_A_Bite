@@ -85,23 +85,21 @@ public class OrderActivity extends ToolbarActivity {
         initToolbar();
         upButtonToolbar();
 
-        final CommonOrder newOrder = (CommonOrder) getIntent().getSerializableExtra("order");
+        ArrayList<CommonOrder> newOrderList = (ArrayList<CommonOrder>) getIntent().getSerializableExtra("orderList");
 
         // Database initialization and loading of the stored data
         orderDatabaseService = new OrderDatabaseService(getApplicationContext());
         orders = (ArrayList<CommonOrder>) orderDatabaseService.getAll();
 
-        if (orders == null || (orders.size() == 0 && newOrder == null)) {
+        if (orders == null || (orders.size() == 0 && newOrderList == null)) {
             // No (new) orders
             return;
 
-        } else if (newOrder != null) {
-            // Send the order and chosen stand and brandName to the server and confirm the chosen stand
-            String chosenStand = getIntent().getStringExtra("stand");
-            String chosenBrand = getIntent().getStringExtra("brand");
-            newOrder.setStandName(chosenStand);
-            newOrder.setBrandName(chosenBrand);
-            confirmNewOrderStand(newOrder, chosenStand, chosenBrand);
+        } else if (newOrderList != null) {
+            // Send all orders of the list to the server and confirm the chosen stand
+            for (CommonOrder i : newOrderList) {
+                confirmNewOrderStand(i);
+            }
         }
 
         // Initiate the expandable order ListView
@@ -116,7 +114,11 @@ public class OrderActivity extends ToolbarActivity {
             for (CommonOrder order : orders) {
                 orderIds.add(order.getId());
             }
-            if (newOrder != null) orderIds.add(newOrder.getId());
+            if (newOrderList != null) {
+                for (CommonOrder i : newOrderList) {
+                    orderIds.add(i.getId());
+                }
+            }
             // orderId's will not be empty, else this code is not reachable
             getSubscriberId(orderIds);
         }
@@ -150,11 +152,11 @@ public class OrderActivity extends ToolbarActivity {
     /**
      * Confirm the chosen stand and brand when a new order is made
      * @param newOrder
-     * @param chosenStand
-     * @param chosenBrand
      */
-    public void confirmNewOrderStand(final CommonOrder newOrder, String chosenStand, String chosenBrand) {
+    public void confirmNewOrderStand(final CommonOrder newOrder) {
         // Instantiate the RequestQueue
+        String chosenStand = newOrder.getStandName();
+        String chosenBrand = newOrder.getBrandName();
         RequestQueue queue = Volley.newRequestQueue(this);
         String url = ServerConfig.OM_ADDRESS;
         url = String.format("%1$s/confirmStand?orderId=%2$s&standName=%3$s&brandName=%4$s",
