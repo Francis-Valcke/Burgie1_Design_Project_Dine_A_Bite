@@ -39,17 +39,14 @@ public class LoginViewModel extends ViewModel {
         // because main thread is UI thread
         // In the mean time, the progress bar will keep on loading
         // until there is a LoginResult
-        new android.os.Handler().post(new Runnable() {
-            @Override
-            public void run() {
-                Result<LoggedInUser> result = loginRepository.login(username, password);
+        new android.os.Handler().post(() -> {
+            Result<LoggedInUser> result = loginRepository.login(username, password);
 
-                if (result instanceof Result.Success) {
-                    LoggedInUser data = ((Result.Success<LoggedInUser>) result).getData();
-                    loginResult.setValue(new LoginResult(new LoggedInUserView(data.getDisplayName())));
-                } else {
-                    loginResult.setValue(new LoginResult(R.string.login_failed));
-                }
+            if (result instanceof Result.Success) {
+                LoggedInUser data = ((Result.Success<LoggedInUser>) result).getData();
+                loginResult.setValue(new LoginResult(new LoggedInUserView(data.getDisplayName())));
+            } else {
+                loginResult.setValue(new LoginResult(R.string.login_failed));
             }
         });
     }
@@ -61,17 +58,14 @@ public class LoginViewModel extends ViewModel {
         // because main thread is UI thread
         // In the mean time, the progress bar will keep on loading
         // until there is a LoginResult
-        new android.os.Handler().post(new Runnable() {
-            @Override
-            public void run() {
-                Result<LoggedInUser> result = loginRepository.register(username, password, email);
+        new android.os.Handler().post(() -> {
+            Result<LoggedInUser> result = loginRepository.register(username, password, email);
 
-                if (result instanceof Result.Success) {
-                    LoggedInUser data = ((Result.Success<LoggedInUser>) result).getData();
-                    loginResult.setValue(new LoginResult(new LoggedInUserView(data.getDisplayName())));
-                } else {
-                    loginResult.setValue(new LoginResult(R.string.login_failed));
-                }
+            if (result instanceof Result.Success) {
+                LoggedInUser data = ((Result.Success<LoggedInUser>) result).getData();
+                loginResult.setValue(new LoginResult(new LoggedInUserView(data.getDisplayName())));
+            } else {
+                loginResult.setValue(new LoginResult(R.string.login_failed));
             }
         });
     }
