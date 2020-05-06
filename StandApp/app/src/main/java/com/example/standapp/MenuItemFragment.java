@@ -6,6 +6,8 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -21,6 +23,7 @@ import com.example.standapp.json.CommonFood;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.google.android.material.textfield.TextInputEditText;
 
 import java.math.BigDecimal;
@@ -96,6 +99,7 @@ public class MenuItemFragment extends DialogFragment {
         final TextInputEditText stockInput = view.findViewById(R.id.menu_item_stock);
         final TextInputEditText descriptionInput = view.findViewById(R.id.menu_item_description);
         final TextInputEditText prepTimeInput = view.findViewById(R.id.menu_item_prep_time);
+        final SwitchMaterial pricePromotionSwitch = view.findViewById(R.id.switch_price_promotion);
 
         final View finalView = view;
 
@@ -152,6 +156,11 @@ public class MenuItemFragment extends DialogFragment {
                 // Editing preparation time is disabled,
                 // because the backend will re-calculate this time
                 prepTimeInput.setEnabled(false);
+
+                if (item.getCategory().contains("PRICE PROMOTION")) {
+                    pricePromotionSwitch.setEnabled(true);
+                    pricePromotionSwitch.setChecked(true);
+                }
             }
         } else {
             for (String category : categories) {
@@ -203,6 +212,34 @@ public class MenuItemFragment extends DialogFragment {
         final int finalPosition = position;
         final boolean finalIsEditing = isEditing;
 
+        priceInput.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                // Do nothing
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                // Do nothing
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                // Can only set "PRICE PROMOTION" when editing the menu item (not adding)
+                // and only when the price is lower than before
+                if (Objects.requireNonNull(priceInput.getText()).toString().length() == 0) return;
+                if (finalIsEditing) {
+                    BigDecimal newPrice = new BigDecimal(Objects.requireNonNull(priceInput.getText()).toString());
+                    BigDecimal oldPrice = finalItem.getPrice();
+                    if (newPrice.compareTo(oldPrice) < 0) pricePromotionSwitch.setEnabled(true);
+                    else {
+                        pricePromotionSwitch.setEnabled(false);
+                        pricePromotionSwitch.setChecked(false);
+                    }
+                }
+            }
+        });
+
         toolbar.setTitle("New menu item");
         toolbar.inflateMenu(R.menu.dialog_menu);
         toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
@@ -248,6 +285,11 @@ public class MenuItemFragment extends DialogFragment {
                                 menuItem.increaseStock(stock); // addedStock
                                 menuItem.setDescription(description);
                                 menuItem.replaceCategoryList(categories);
+                                if (pricePromotionSwitch.isChecked()) {
+                                    menuItem.addCategory("PRICE PROMOTION");
+                                } else {
+                                    menuItem.removeCategory("PRICE PROMOTION");
+                                }
 
                                 // Send to container (parent) fragment
                                 if (mOnMenuItemChangedListener != null) {
