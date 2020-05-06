@@ -63,7 +63,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/authenticate").permitAll()
                 .antMatchers("/createUser").permitAll()
                 .antMatchers("/createStandManager").permitAll()
-                .antMatchers("/pingAS").permitAll()
+                .antMatchers("/ping").permitAll()
                 .antMatchers("/stripe/*").hasAnyRole(Role.ADMIN, Role.APPLICATION, Role.USER)
                 .anyRequest().authenticated()
                 .and()

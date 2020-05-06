@@ -2,11 +2,16 @@ package cobol.services.ordermanager;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 
-
-@SpringBootApplication
+@EnableWebSecurity
 @EnableScheduling
+@EnableConfigurationProperties
+@ComponentScan({"cobol.services.ordermanager", "cobol.commons"})
+@SpringBootApplication
 public class OrderManager {
 
     public static final String authToken= "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJPcmRlck1hbmFnZXIiLCJyb2xlcyI6WyJBUFBMSUNBVElPTiJdLCJpYXQiOjE1ODg0MzYyMzcsImV4cCI6MTc0NjExNjIzN30.kW4au3AIHA918DEJ2QgE8uXS1SNX9rCja1Bx3Zltgzw";

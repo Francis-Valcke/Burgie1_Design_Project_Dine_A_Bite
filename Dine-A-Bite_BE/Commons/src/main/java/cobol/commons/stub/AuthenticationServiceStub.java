@@ -35,7 +35,6 @@ public class AuthenticationServiceStub extends ServiceStub {
     // AdminController
     public static final String GET_ADMIN_INFO = "/admin";
 
-
     final OkHttpClient client = new OkHttpClient().newBuilder().build();
 
     @Override
@@ -50,7 +49,7 @@ public class AuthenticationServiceStub extends ServiceStub {
 
         try {
 
-            Response response = client.newCall(request).execute();
+            client.newCall(request).execute();
             enabled = true;
 
         } catch (IOException e) {

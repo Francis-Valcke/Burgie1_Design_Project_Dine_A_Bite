@@ -1,7 +1,3 @@
-server:
-  port: 8080
-
-
 #spring:
 #  datasource:
 #    url: jdbc:h2:mem:myDb;DB_CLOSE_DELAY=-1
@@ -15,7 +11,3 @@ server:
 #    properties:
 #      hibernate:
 #        dialect: org.hibernate.dialect.H2Dialect
-
-authenticationservice:
-  stripe_secret_api_key: sk_test_gd0OhhbEHENmKoo0HRhUYX1r00P0pmGByO
-  stripe_public_api_key: pk_test_GxEIF5eJVuGKv6O5Jsz6l8wr00qoki9cHO

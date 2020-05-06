@@ -1,6 +1,5 @@
-package cobol.services.ordermanager.security;
+package cobol.services.eventchannel.config;
 
-import cobol.commons.security.Role;
 import cobol.commons.security.jwt.JwtAuthenticationFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -12,23 +11,16 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-
-import javax.sql.DataSource;
 
 /**
  * Configuration class for configuring Spring Security filters.
  * Assigning authentication datasource.
  */
-@EnableWebSecurity
 @Configuration
-@ComponentScan({"cobol.services.ordermanager", "cobol.commons"})
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
-    private DataSource dataSource;
     private JwtAuthenticationFilter jwtAuthenticationFilter;
-    private UserDetailsService userDetailsService;
 
     /**
      * Overridden method for configuring the AuthenticationManagerBuilder.
@@ -58,14 +50,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
                 .authorizeRequests()
-                //Requests that should not be authenticated
-                .antMatchers("/pingOM").permitAll()
-                //Permissions for the DBController
-                .antMatchers("/db/*").hasRole(Role.ADMIN)
-                //.antMatchers("/db/*").permitAll()
-                //Permissions for StandController
-                .antMatchers("/verify", "/addStand", "/updateStand", "/deleteStand").hasRole(Role.STAND)
-                //Others
+                .antMatchers("/pingEC").permitAll()
                 .anyRequest().authenticated()
                 .and()
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

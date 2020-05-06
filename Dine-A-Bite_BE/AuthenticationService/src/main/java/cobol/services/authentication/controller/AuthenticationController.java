@@ -108,7 +108,7 @@ public class AuthenticationController {
      * @return status op user creation.
      */
     @PostMapping(AuthenticationServiceStub.POST_CREATE_USER)
-    public ResponseEntity<HashMap<Object,Object>> create(@RequestBody AuthenticationRequest data){
+    public ResponseEntity<HashMap<Object,Object>> create(@RequestBody AuthenticationRequest details){
 
         try {
 

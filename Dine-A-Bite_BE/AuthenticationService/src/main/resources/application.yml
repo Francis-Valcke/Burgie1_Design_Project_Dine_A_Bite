@@ -5,9 +5,9 @@ spring:
   datasource:
 
 #    local testing
-#    url: jdbc:mysql://localhost:3306/auth?useLegacyDatetimeCode=false&serverTimezone=UTC
-#    username: root
-#    password: root
+    url: jdbc:mysql://localhost:3306/auth?useLegacyDatetimeCode=false&serverTimezone=UTC
+    username: root
+    password: root
 
 #    remote testing
 #    url: jdbc:mysql://cobol.idlab.ugent.be:3306/auth_test?useLegacyDatetimeCode=false&serverTimezone=UTC
@@ -15,9 +15,9 @@ spring:
 #    password: cobol2020
 
 #    production
-    url: jdbc:mysql://cobol.idlab.ugent.be:3306/auth?useLegacyDatetimeCode=false&serverTimezone=UTC
-    username: www
-    password: cobol2020
+#    url: jdbc:mysql://cobol.idlab.ugent.be:3306/auth?useLegacyDatetimeCode=false&serverTimezone=UTC
+#    username: www
+#    password: cobol2020
 
 
 #    cachePrepStmts: true
@@ -56,5 +56,7 @@ logging:
   file:
     name: app.log
 
-stripe_secret_api_key: sk_test_gd0OhhbEHENmKoo0HRhUYX1r00P0pmGByO
-stripe_public_api_key: pk_test_GxEIF5eJVuGKv6O5Jsz6l8wr00qoki9cHO
+authenticationservice:
+  stripe_secret_api_key: sk_test_gd0OhhbEHENmKoo0HRhUYX1r00P0pmGByO
+  stripe_public_api_key: pk_test_GxEIF5eJVuGKv6O5Jsz6l8wr00qoki9cHO
+

@@ -1,5 +1,7 @@
 package cobol.services.authentication.test;
 
+import cobol.commons.stub.AuthenticationServiceStub;
+import cobol.services.authentication.controller.AuthenticationController;
 import cobol.services.authentication.domain.entity.User;
 import cobol.services.authentication.domain.repository.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -16,6 +18,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.context.WebApplicationContext;
 
+import static cobol.commons.stub.AuthenticationServiceStub.*;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -52,7 +55,7 @@ public class ApplicationTest {
     public void pingTest() throws Exception {
         this.mockMvc
                 .perform(
-                        get("/pingAS")
+                        get(GET_PING)
                 )
                 .andExpect(status().isOk());
     }
@@ -61,7 +64,7 @@ public class ApplicationTest {
     public void getUserInfoWithoutAuthenticationTest() throws Exception {
         this.mockMvc
                 .perform(
-                        get("/user")
+                        get(GET_USER)
                 )
                 .andExpect(status().isForbidden());
     }
@@ -82,14 +85,14 @@ public class ApplicationTest {
         String token = authenticateUser("user");
         this.mockMvc
                 .perform(
-                        get("/user")
+                        get(GET_USER)
                                 .header("Authorization", "Bearer " + token)
                 )
                 .andExpect(status().isOk());
 
         this.mockMvc
                 .perform(
-                        get("/admin")
+                        get(GET_ADMIN_INFO)
                                 .header("Authorization", "Bearer " + token)
                 )
                 .andExpect(status().isForbidden());
@@ -100,14 +103,14 @@ public class ApplicationTest {
         String token = authenticateUser("admin");
         this.mockMvc
                 .perform(
-                        get("/user")
+                        get(GET_USER)
                                 .header("Authorization", "Bearer " + token)
                 )
                 .andExpect(status().isOk());
 
         this.mockMvc
                 .perform(
-                        get("/admin")
+                        get(GET_ADMIN_INFO)
                                 .header("Authorization", "Bearer " + token)
                 )
                 .andExpect(status().isOk());
@@ -116,7 +119,7 @@ public class ApplicationTest {
     private void createUser(String user) throws Exception {
         this.mockMvc
                 .perform(
-                        post("/createUser")
+                        post(POST_CREATE_USER)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsBytes(
                                         User.builder().username(user).password(user+user).build()
@@ -128,7 +131,7 @@ public class ApplicationTest {
     private String authenticateUser(String user) throws Exception {
         JSONObject response = new JSONObject(this.mockMvc
                 .perform(
-                        post("/authenticate")
+                        post(POST_AUTHENTICATE)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsBytes(
                                         User.builder().username(user).password(user+user).build()

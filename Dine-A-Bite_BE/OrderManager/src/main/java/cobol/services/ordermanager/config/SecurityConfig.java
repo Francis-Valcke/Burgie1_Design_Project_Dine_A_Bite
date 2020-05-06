@@ -1,5 +1,6 @@
-package cobol.services.standmanager.security;
+package cobol.services.ordermanager.config;
 
+import cobol.commons.security.Role;
 import cobol.commons.security.jwt.JwtAuthenticationFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -20,9 +21,7 @@ import javax.sql.DataSource;
  * Configuration class for configuring Spring Security filters.
  * Assigning authentication datasource.
  */
-@EnableWebSecurity
 @Configuration
-@ComponentScan({"cobol.services.standmanager", "cobol.commons"})
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     private DataSource dataSource;
@@ -57,7 +56,14 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
                 .authorizeRequests()
-                .antMatchers("/pingSM").permitAll()
+                //Requests that should not be authenticated
+                .antMatchers("/pingOM").permitAll()
+                //Permissions for the DBController
+                .antMatchers("/db/*").hasRole(Role.ADMIN)
+                //.antMatchers("/db/*").permitAll()
+                //Permissions for StandController
+                .antMatchers("/verify", "/addStand", "/updateStand", "/deleteStand").hasRole(Role.STAND)
+                //Others
                 .anyRequest().authenticated()
                 .and()
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

@@ -1,4 +1,4 @@
-package cobol.services.ordermanager;
+package cobol.services.ordermanager.config;
 
 
 import lombok.Data;
@@ -8,8 +8,7 @@ import org.springframework.context.annotation.Configuration;
 
 @Data
 @Configuration
-@EnableConfigurationProperties
-@ConfigurationProperties
+@ConfigurationProperties(prefix = "ordermanager")
 public class ConfigurationBean {
 
     private boolean unitTest;
