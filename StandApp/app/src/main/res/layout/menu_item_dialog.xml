@@ -138,6 +138,15 @@
             android:paddingEnd="22dp"
             app:chipSpacing="1dp">
 
+            <com.google.android.material.chip.Chip
+                android:id="@+id/add_chip"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:chipIcon="@drawable/ic_add_black_24dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:text="@string/add_small"/>
+
         </com.google.android.material.chip.ChipGroup>
 
         <TextView

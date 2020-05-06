@@ -20,26 +20,39 @@ import androidx.fragment.app.Fragment;
 import com.example.standapp.json.CommonFood;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textfield.TextInputEditText;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
 public class MenuItemFragment extends DialogFragment {
 
+    private Context mContext;
     private Toolbar toolbar;
     private ChipGroup chipGroup;
     private OnMenuItemChangedListener mOnMenuItemChangedListener;
 
-    private String[] categories = {"American", "Italian", "Japanese", "Asian", "Mexican", "Belgian",
-            "Burger", "Fries", "Pizza"};
+    private ArrayList<String> categories = new ArrayList<>(Arrays.asList(
+            "American",
+            "Italian",
+            "Japanese",
+            "Asian",
+            "Mexican",
+            "Belgian",
+            "Burger",
+            "Fries",
+            "Pizza"
+    ));
 
     @Override
     public void onAttach(@NonNull Context context) {
         // Called when a fragment is first attached to its context.
         super.onAttach(context);
+        mContext = context;
     }
 
     @Override
@@ -110,6 +123,23 @@ public class MenuItemFragment extends DialogFragment {
                         if (item.getCategory().contains(category)) chip.setChecked(true);
                         chipGroup.addView(chip);
                     }
+                    for (String category : item.getCategory()) {
+                        if (!categories.contains(category)) {
+                            @SuppressLint("InflateParams")
+                            final Chip addedChip = (Chip) getLayoutInflater()
+                                    .inflate(R.layout.chip_category, null);
+                            addedChip.setText(category);
+                            addedChip.setChecked(true);
+                            addedChip.setCloseIconVisible(true);
+                            addedChip.setOnCloseIconClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    chipGroup.removeView(addedChip);
+                                }
+                            });
+                            chipGroup.addView(addedChip);
+                        }
+                    }
                 } else {
                     for (String category : categories) {
                         @SuppressLint("InflateParams")
@@ -131,6 +161,43 @@ public class MenuItemFragment extends DialogFragment {
                 chipGroup.addView(chip);
             }
         }
+
+        // Adding categories
+        Chip addChip = view.findViewById(R.id.add_chip);
+        addChip.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Ask for name of new category
+                @SuppressLint("InflateParams")
+                final View inputCategoryLayout = getLayoutInflater()
+                        .inflate(R.layout.edit_name_dialog, null);
+                final TextInputEditText editTextCategory
+                        = inputCategoryLayout.findViewById(R.id.edit_text_name);
+                MaterialAlertDialogBuilder dialog = new MaterialAlertDialogBuilder(mContext)
+                        .setView(inputCategoryLayout)
+                        .setPositiveButton("Add", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                // Create and add new category ass chip to chip group
+                                @SuppressLint("InflateParams")
+                                final Chip addedChip = (Chip) getLayoutInflater()
+                                        .inflate(R.layout.chip_category, null);
+                                addedChip.setText(Objects.requireNonNull(editTextCategory.getText())
+                                        .toString());
+                                addedChip.setChecked(true);
+                                addedChip.setCloseIconVisible(true);
+                                addedChip.setOnCloseIconClickListener(new View.OnClickListener() {
+                                    @Override
+                                    public void onClick(View v) {
+                                        chipGroup.removeView(addedChip);
+                                    }
+                                });
+                                chipGroup.addView(addedChip);
+                            }
+                        }).setTitle("Add new food category");
+                dialog.show();
+            }
+        });
 
         final CommonFood finalItem = item;
         final int finalPosition = position;
