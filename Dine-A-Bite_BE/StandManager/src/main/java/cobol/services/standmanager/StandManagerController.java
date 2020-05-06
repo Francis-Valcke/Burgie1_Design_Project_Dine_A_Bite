@@ -66,6 +66,7 @@ public class StandManagerController {
             schedulerOptional.ifPresent(scheduler -> schedulerHandler.removeScheduler(scheduler));
             return ResponseEntity.ok(BetterResponseModel.ok("Successfully deleted scheduler", null));
         } else {
+            System.out.println("ERROR: stand does not exist exception while deleting");
             return ResponseEntity.ok(BetterResponseModel.error("Error while deleting scheduler", new DoesNotExistException("Stand does not exist")));
         }
     }
@@ -83,6 +84,7 @@ public class StandManagerController {
             object = schedulerHandler.updateSchedulers(stand);
             return ResponseEntity.ok(BetterResponseModel.ok("Successfully added stand", object.toJSONString()));
         } catch (Throwable e) {
+            e.printStackTrace();
             return ResponseEntity.ok(BetterResponseModel.error("Error while updating stand", e));
         }
     }
@@ -98,6 +100,7 @@ public class StandManagerController {
         try {
             schedulerHandler.addOrderToScheduler(order);
         } catch (Throwable e) {
+            e.printStackTrace();
             return ResponseEntity.ok(BetterResponseModel.error("Error while placing order in standmanager", e));
         }
 
