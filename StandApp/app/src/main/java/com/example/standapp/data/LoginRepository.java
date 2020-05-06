@@ -1,7 +1,5 @@
 package com.example.standapp.data;
 
-import android.util.Log;
-
 import com.example.standapp.data.model.LoggedInUser;
 
 /**

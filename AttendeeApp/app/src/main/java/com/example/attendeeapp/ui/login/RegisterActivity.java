@@ -13,9 +13,9 @@ import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
-import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
@@ -31,15 +31,17 @@ import com.example.attendeeapp.data.model.LoggedInUser;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 
-public class LoginActivity extends AppCompatActivity {
+public class RegisterActivity extends AppCompatActivity {
+
+    // TODO Do something with the received email
 
     private LoginViewModel loginViewModel;
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_login);
+        setContentView(R.layout.activity_register);
         loginViewModel = new ViewModelProvider(this, new LoginViewModelFactory())
                 .get(LoginViewModel.class);
 
@@ -47,20 +49,23 @@ public class LoginActivity extends AppCompatActivity {
 
         final EditText usernameEditText = findViewById(R.id.username);
         final EditText passwordEditText = findViewById(R.id.password);
-        final Button loginButton = findViewById(R.id.login);
+        final EditText emailEditText = findViewById(R.id.email);
+        final Button registerButton = findViewById(R.id.register);
         final ProgressBar loadingProgressBar = findViewById(R.id.loading);
-        TextView signUpTextView = findViewById(R.id.text_view_sign_up);
 
         loginViewModel.getLoginFormState().observe(this, loginFormState -> {
             if (loginFormState == null) {
                 return;
             }
-            loginButton.setEnabled(loginFormState.isDataValid());
+            registerButton.setEnabled(loginFormState.isDataValid());
             if (loginFormState.getUsernameError() != null) {
                 usernameEditText.setError(getString(loginFormState.getUsernameError()));
             }
             if (loginFormState.getPasswordError() != null) {
                 passwordEditText.setError(getString(loginFormState.getPasswordError()));
+            }
+            if (loginFormState.getEmailError() != null) {
+                emailEditText.setError(getString(loginFormState.getEmailError()));
             }
         });
 
@@ -99,7 +104,7 @@ public class LoginActivity extends AppCompatActivity {
 
                 // Go to menu activity
                 Intent menuIntent
-                        = new Intent(LoginActivity.this, MenuActivity.class);
+                        = new Intent(RegisterActivity.this, MenuActivity.class);
                 startActivity(menuIntent);
 
                 // Complete and destroy login activity once successful
@@ -120,42 +125,41 @@ public class LoginActivity extends AppCompatActivity {
 
             @Override
             public void afterTextChanged(Editable s) {
-                loginViewModel.loginDataChanged(usernameEditText.getText().toString(),
-                        passwordEditText.getText().toString());
+                loginViewModel.registerDataChanged(usernameEditText.getText().toString(),
+                        passwordEditText.getText().toString(), emailEditText.getText().toString());
             }
         };
         usernameEditText.addTextChangedListener(afterTextChangedListener);
         passwordEditText.addTextChangedListener(afterTextChangedListener);
+        emailEditText.addTextChangedListener(afterTextChangedListener);
         passwordEditText.setOnEditorActionListener((v, actionId, event) -> {
             if (actionId == EditorInfo.IME_ACTION_DONE) {
-                loginViewModel.login(usernameEditText.getText().toString(),
-                        passwordEditText.getText().toString());
+                loginViewModel.register(usernameEditText.getText().toString(),
+                        passwordEditText.getText().toString(),
+                        emailEditText.getText().toString());
             }
             return false;
         });
 
-        loginButton.setOnClickListener(v -> {
+        registerButton.setOnClickListener(v -> {
             loadingProgressBar.setVisibility(View.VISIBLE);
-            loginViewModel.login(usernameEditText.getText().toString(),
-                    passwordEditText.getText().toString());
+
+            loginViewModel.register(usernameEditText.getText().toString(),
+                    passwordEditText.getText().toString(), emailEditText.getText().toString());
         });
 
-        signUpTextView.setOnClickListener(v -> {
-            // Start register activity
-            Intent intent = new Intent(LoginActivity.this, RegisterActivity.class);
-            startActivity(intent);
-        });
     }
 
     private void updateUiWithUser(LoggedInUserView model) {
-        String welcome = getString(R.string.welcome_back) + " " + model.getDisplayName();
+        String welcome = getString(R.string.welcome) + " " + model.getDisplayName();
         // initiate successful logged in experience
         Toast.makeText(getApplicationContext(), welcome, Toast.LENGTH_LONG).show();
     }
 
     private void showLoginFailed(@StringRes Integer errorString) {
-        Toast toast = Toast.makeText(getApplicationContext(), errorString, Toast.LENGTH_SHORT);
+        Toast toast = Toast.makeText(getApplicationContext(), errorString, Toast.LENGTH_LONG);
         toast.setGravity(Gravity.TOP, 0, 0);
         toast.show();
     }
+
 }

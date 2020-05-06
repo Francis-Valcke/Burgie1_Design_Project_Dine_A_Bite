@@ -175,9 +175,9 @@ public class OrderActivity extends ToolbarActivity {
 
     /**
      * Confirm the chosen stand and brand when a new order is made
-     * @param newOrder
-     * @param chosenStand
-     * @param chosenBrand
+     * @param newOrder new order
+     * @param chosenStand stand chosen
+     * @param chosenBrand brand chosen
      */
     public void confirmNewOrderStand(final CommonOrder newOrder, String chosenStand, String chosenBrand) {
         // Instantiate the RequestQueue
@@ -210,7 +210,6 @@ public class OrderActivity extends ToolbarActivity {
                         Toast.LENGTH_SHORT);
                 mToast.show();
 
-            }
         }) {
             // Add JSON headers
             @Override
@@ -321,25 +320,19 @@ public class OrderActivity extends ToolbarActivity {
         }
 
         // Request a string response from the provided URL
-        StringRequest stringRequest = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
-            @Override
-            public void onResponse(String response) {
-                subscribeId = Integer.parseInt(response);
-                // Start the polling service
-                Intent intent = new Intent(getApplicationContext(), PollingService.class);
-                intent.putExtra("subscribeId", subscribeId);
-                startService(intent);
-            }
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                Toast mToast = null;
-                if (mToast != null) mToast.cancel();
-                mToast = Toast.makeText(OrderActivity.this, "Could not subscribe to order updates",
-                        Toast.LENGTH_SHORT);
-                mToast.show();
+        StringRequest stringRequest = new StringRequest(Request.Method.GET, url, response -> {
+            subscribeId = Integer.parseInt(response);
+            // Start the polling service
+            Intent intent = new Intent(getApplicationContext(), PollingService.class);
+            intent.putExtra("subscribeId", subscribeId);
+            startService(intent);
+        }, error -> {
+            Toast mToast = null;
+            if (mToast != null) mToast.cancel();
+            mToast = Toast.makeText(OrderActivity.this, "Could not subscribe to order updates",
+                    Toast.LENGTH_SHORT);
+            mToast.show();
 
-            }
         }) {
             // Add JSON headers
             @Override
