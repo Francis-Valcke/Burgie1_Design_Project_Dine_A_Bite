@@ -1,6 +1,7 @@
 package cobol.services.systemtester.recommender;
 
-import cobol.services.systemtester.attendee.Attendee;
+import cobol.services.systemtester.EventSimulation;
+import cobol.services.systemtester.stage.*;
 import com.mashape.unirest.http.exceptions.UnirestException;
 import io.reactivex.Single;
 import lombok.extern.log4j.Log4j2;
@@ -10,21 +11,36 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.PostConstruct;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
 import java.util.concurrent.TimeUnit;
 
 @RestController
 @Log4j2
 public class RecommenderTesterController {
+    EventSimulation es;
 
     List<Attendee> attendees = new ArrayList<>();
+    @GetMapping("/setup")
+    public void setup() throws IOException {
+        es=new EventSimulation();
+    }
+    @GetMapping("/test")
+    public void testStands(){
+        es.setup(100);
+    }
+    @GetMapping("/end")
+    public void end() {
+        es.end();
+    }
 
     @GetMapping("/create")
     public ResponseEntity create(@RequestParam int count) {
 
         for (int i = 0; i < count; i++) {
-            Attendee attendee = new Attendee();
+            Attendee attendee = new Attendee(0,0);
             attendees.add(attendee);
             attendee.create().subscribe(
                 o -> log.info("User " + attendee.getId() + " created!"),

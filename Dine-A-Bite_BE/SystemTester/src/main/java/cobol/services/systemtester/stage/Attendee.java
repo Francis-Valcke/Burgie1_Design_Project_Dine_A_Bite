@@ -1,4 +1,4 @@
-package cobol.services.systemtester.attendee;
+package cobol.services.systemtester.stage;
 
 import cobol.commons.security.exception.DuplicateUserException;
 import cobol.services.systemtester.ServerConfig;
@@ -31,17 +31,23 @@ import java.util.stream.Collectors;
  */
 @Log4j2
 @Data
-public class Attendee {
+public class  Attendee {
 
     private static int idCounter = 0;
     private int id;
     private String token;
+    private double latitude;
+    private double longitude;
+    private double orderTime;
 
 
-    public Attendee() {
+    public Attendee(double latitude,double longitude ) {
         this.id = idCounter;
         idCounter++;
+        this.longitude=longitude;
+        this.latitude=latitude;
     }
+
 
 
     public Single<JSONObject> create() {
@@ -202,6 +208,16 @@ public class Attendee {
         }).observeOn(Schedulers.io());
 
     }
+    public void run(){
+        //if orderTime: placeOrder, confirmOrder --> get order
+    }
+    public void setOrdertime(double time){
+        if (time<1)time=1;
+        this.orderTime=time;
+    }
 
 
+    public int getId() {
+        return this.id;
+    }
 }
