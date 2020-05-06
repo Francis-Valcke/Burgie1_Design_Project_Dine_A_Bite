@@ -39,6 +39,7 @@ import com.example.attendeeapp.json.Recommendation;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.android.gms.common.internal.service.Common;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 
@@ -73,6 +74,7 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
     private String specificBrand;
     private Recommendation specificRecommendation = null;
     private Toast mToast = null;
+    private CommonOrder.recommendType recommendType = null;
 
     private LoggedInUser user = LoginRepository.getInstance(new LoginDataSource()).getLoggedInUser();
 
@@ -90,6 +92,7 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
         cartCount = getIntent().getIntExtra("cartCount", 0);
         totalPrice = (BigDecimal) getIntent().getSerializableExtra("totalPrice");
         lastLocation = getIntent().getParcelableExtra("location");
+        recommendType = (CommonOrder.recommendType) getIntent().getSerializableExtra("recType");
         requestOrderRecommend();
 
         // Check if the user wants to order from a specific stand (all ordered items are from the same stand/brand)
@@ -217,7 +220,7 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
 
         // Make JSON Object with ordered items and location
         CommonOrder orderSent = new CommonOrder(ordered, ordered.get(0).getStandName(),
-                ordered.get(0).getBrandName(), latitude, longitude);
+                ordered.get(0).getBrandName(), latitude, longitude, recommendType);
         JSONObject jsonOrder = null;
         try {
             ObjectMapper mapper = new ObjectMapper();

@@ -51,4 +51,11 @@
     <string name="personal_information">Personal Information</string>
     <string name="username">Username:</string>
     <string name="log_out">Log out</string>
+    <string name="recommend_type">Choose recommendation type:</string>
+
+    <string-array name="recommender_types_list">
+        <item>Distance</item>
+        <item>Time</item>
+        <item>Time and distance</item>
+    </string-array>
 </resources>
