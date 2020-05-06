@@ -61,6 +61,7 @@ public class Order implements Serializable {
             mappedBy = "order",
             fetch = FetchType.LAZY,
             cascade = CascadeType.ALL,
+            fetch= FetchType.LAZY,
             orphanRemoval = true
     )
     private List<OrderItem> orderItems;
