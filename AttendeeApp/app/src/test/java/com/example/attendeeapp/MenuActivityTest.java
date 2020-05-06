@@ -166,7 +166,7 @@ public class MenuActivityTest {
         // Adding the items, same food, same brand, different price, different stand
         int testCount = 0;
         for (int i = 0; i < 30; i++) {
-            CommonFood m = new CommonFood("food", new BigDecimal(5.51 * ((int)(i/15) + 1)),
+            CommonFood m = new CommonFood("food", new BigDecimal(5.51 * ((i/15) + 1)),
                     "brand");
             if( i/15 == 0 ) m.setStandName("stand0");
             cartList.add(m);

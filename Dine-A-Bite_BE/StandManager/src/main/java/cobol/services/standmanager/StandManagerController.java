@@ -1,9 +1,9 @@
 package cobol.services.standmanager;
 
-import cobol.commons.CommonFood;
 import cobol.commons.CommonStand;
 import cobol.commons.ResponseModel;
 import cobol.commons.exception.CommunicationException;
+import cobol.commons.exception.OrderException;
 import cobol.commons.order.CommonOrder;
 import cobol.commons.order.CommonOrderItem;
 import cobol.commons.order.Recommendation;
@@ -19,7 +19,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static cobol.commons.ResponseModel.status.OK;
 
@@ -90,6 +89,8 @@ public class StandManagerController {
         schedulerHandler.addOrderToScheduler(order);
     }
 
+
+
     /**
      * This method will split a superorder and give a recommendation for all the orders
      *
@@ -98,39 +99,17 @@ public class StandManagerController {
      * recommendation field will be a JSONArray of Recommendation object
      */
     @PostMapping(value = "/getSuperRecommendation", consumes = "application/json", produces = "application/json")
-    public ResponseEntity<JSONArray> getSuperRecommendation(@RequestBody SuperOrder superOrder) throws JsonProcessingException {
+    public ResponseEntity<JSONArray> getSuperRecommendation(@RequestBody SuperOrder superOrder) throws JsonProcessingException, OrderException {
 
         // initialize response
         JSONArray completeResponse= new JSONArray();
 
-        // Extract and copy complete list of CommonOrderItems from superOrder
-        List<CommonOrderItem> items = new ArrayList<>(superOrder.getOrderItems());
-
-        // search items that can be executed together
-        List<HashSet<CommonOrderItem>> itemSplit = new ArrayList<>();
-
-        // Get schedulers from this brand
-        List<Scheduler> brandSchedulers = schedulerHandler.getSchedulers()
-                .stream().filter(s -> s.getBrand().equals(superOrder.getBrandName()))
-                .collect(Collectors.toList());
-
-        // Split order items in sets which can be executed together
-        for (Scheduler scheduler : brandSchedulers) {
-            // As long items list is not empty, search stand which can do it
-            if (!items.isEmpty()) {
-                List<String> stringMenu = scheduler.getMenu().stream().map(CommonFood::getName).collect(Collectors.toList());
-                List<CommonOrderItem> canExecuteTogether = items.stream().filter(item -> stringMenu.contains(item.getFoodName())).collect(Collectors.toList());
-
-                itemSplit.add(new HashSet<>(canExecuteTogether));
-                items.removeAll(canExecuteTogether);
-            } else {
-                break;
-            }
-        }
+        /* -- Split superorder in smaller orders -- */
+        List<HashSet<CommonOrderItem>> itemSplit= schedulerHandler.splitSuperOrder(superOrder);
 
 
+        /* -- Get recommendations for seperate orders -- */
         for (HashSet<CommonOrderItem> commonOrderItems : itemSplit) {
-
             JSONObject orderResponse= new JSONObject();
 
             // -- Construct a virtual order -- //

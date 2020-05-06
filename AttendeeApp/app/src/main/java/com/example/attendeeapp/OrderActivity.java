@@ -6,30 +6,23 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
-import android.view.Menu;
-import android.view.MenuInflater;
 import android.widget.ExpandableListView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+import com.example.attendeeapp.appDatabase.OrderDatabaseService;
 import com.example.attendeeapp.data.LoginDataSource;
 import com.example.attendeeapp.data.LoginRepository;
 import com.example.attendeeapp.data.model.LoggedInUser;
 import com.example.attendeeapp.json.CommonOrder;
 import com.example.attendeeapp.json.CommonOrderStatusUpdate;
 import com.example.attendeeapp.polling.PollingService;
-import com.example.attendeeapp.appDatabase.OrderDatabaseService;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -151,6 +144,7 @@ public class OrderActivity extends ToolbarActivity {
 
     /**
      * Confirm the chosen stand and brand when a new order is made
+     * @param newOrder new order
      * @param newOrder
      */
     public void confirmNewOrderStand(final CommonOrder newOrder) {
@@ -167,31 +161,25 @@ public class OrderActivity extends ToolbarActivity {
         url = url.replace(' ' , '+');
 
         // Request a string response from the provided URL
-        StringRequest stringRequest = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
-            @Override
-            public void onResponse(String response) {
+        StringRequest stringRequest = new StringRequest(Request.Method.GET, url, response -> {
 
-                // Only add the order if successful
-                orders.add(newOrder);
-                orderDatabaseService.insertOrder(newOrder);
-                adapter.notifyDataSetChanged();
+            // Only add the order if successful
+            orders.add(newOrder);
+            orderDatabaseService.insertOrder(newOrder);
+            adapter.notifyDataSetChanged();
 
-                Toast mToast = null;
-                if (mToast != null) mToast.cancel();
-                mToast = Toast.makeText(OrderActivity.this, "Your order was successful",
-                        Toast.LENGTH_SHORT);
-                mToast.show();
-            }
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                Toast mToast = null;
-                if (mToast != null) mToast.cancel();
-                mToast = Toast.makeText(OrderActivity.this, "Your final order could not be received",
-                        Toast.LENGTH_SHORT);
-                mToast.show();
+            Toast mToast = null;
+            if (mToast != null) mToast.cancel();
+            mToast = Toast.makeText(OrderActivity.this, "Your order was successful",
+                    Toast.LENGTH_SHORT);
+            mToast.show();
+        }, error -> {
+            Toast mToast = null;
+            if (mToast != null) mToast.cancel();
+            mToast = Toast.makeText(OrderActivity.this, "Your final order could not be received",
+                    Toast.LENGTH_SHORT);
+            mToast.show();
 
-            }
         }) {
             // Add JSON headers
             @Override
@@ -222,25 +210,19 @@ public class OrderActivity extends ToolbarActivity {
         }
 
         // Request a string response from the provided URL
-        StringRequest stringRequest = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
-            @Override
-            public void onResponse(String response) {
-                subscribeId = Integer.parseInt(response);
-                // Start the polling service
-                Intent intent = new Intent(getApplicationContext(), PollingService.class);
-                intent.putExtra("subscribeId", subscribeId);
-                startService(intent);
-            }
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                Toast mToast = null;
-                if (mToast != null) mToast.cancel();
-                mToast = Toast.makeText(OrderActivity.this, "Could not subscribe to order updates",
-                        Toast.LENGTH_SHORT);
-                mToast.show();
+        StringRequest stringRequest = new StringRequest(Request.Method.GET, url, response -> {
+            subscribeId = Integer.parseInt(response);
+            // Start the polling service
+            Intent intent = new Intent(getApplicationContext(), PollingService.class);
+            intent.putExtra("subscribeId", subscribeId);
+            startService(intent);
+        }, error -> {
+            Toast mToast = null;
+            if (mToast != null) mToast.cancel();
+            mToast = Toast.makeText(OrderActivity.this, "Could not subscribe to order updates",
+                    Toast.LENGTH_SHORT);
+            mToast.show();
 
-            }
         }) {
             // Add JSON headers
             @Override

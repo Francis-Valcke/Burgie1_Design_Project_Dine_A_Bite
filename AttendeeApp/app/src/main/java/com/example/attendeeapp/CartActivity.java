@@ -69,6 +69,29 @@ public class CartActivity extends ToolbarActivity {
         // Handle button to confirm order
         // Only if there are items in the cart, the order can continue
         Button confirmButton = findViewById(R.id.button_confirm_order);
+        confirmButton.setOnClickListener(v -> {
+            // confirm order -> go to order view
+            // Send order with JSON + location
+            if (cartAdapter.getCartList().size() > 0) {
+                checkLocationPermission();
+                //if(cartAdapter.getCartList().get(0).getStandName().equals("")) {
+                Intent intent = new Intent(CartActivity.this, ConfirmActivity.class);
+                intent.putExtra("order", ordered);
+                intent.putExtra("location", lastLocation);
+                intent.putExtra("totalPrice", totalPrice);
+                intent.putExtra("cartCount", cartAdapter.getCartCount());
+                startActivity(intent);
+                /*} else {
+                    Intent intent = new Intent(CartActivity.this, OrderActivity.class);
+                    intent.putExtra("order_list", ordered);
+                    intent.putExtra("cartCount", cartAdapter.getCartCount());
+                    startActivity(intent);
+                }*/
+            } else {
+                if (mToast != null) mToast.cancel();
+                mToast = Toast.makeText(CartActivity.this, "No items in your cart!",
+                        Toast.LENGTH_SHORT);
+                mToast.show();
         confirmButton.setOnClickListener(new View.OnClickListener() {
 
             @Override

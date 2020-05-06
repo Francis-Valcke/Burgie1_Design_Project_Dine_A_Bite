@@ -189,16 +189,17 @@ public class CommonFood implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         CommonFood that = (CommonFood) o;
-        return preparationTime == that.preparationTime &&
+        return
+                //preparationTime == that.preparationTime &&
                 name.equals(that.name) &&
-                price.floatValue()==that.price.floatValue() &&
-                brandName.equals(that.brandName) &&
-                Objects.equals(new HashSet(category), new HashSet(that.category)) &&
-                description.equals(that.description);
+                //price.floatValue()==that.price.floatValue() &&
+                brandName.equals(that.brandName);
+                //Objects.equals(new HashSet(category), new HashSet(that.category)) &&
+                //description.equals(that.description);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, price.floatValue(), preparationTime, brandName, new HashSet(category), description);
+        return Objects.hash(name, brandName);
     }
 }
