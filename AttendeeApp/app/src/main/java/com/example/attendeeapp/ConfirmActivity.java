@@ -18,8 +18,6 @@ import androidx.appcompat.app.AlertDialog;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
@@ -42,13 +40,11 @@ import org.threeten.bp.ZoneId;
 import org.threeten.bp.ZonedDateTime;
 
 import java.math.BigDecimal;
-import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
-import java.util.Objects;
 
 /**
  * Activity that handles the confirmation/choosing of the (recommended) stand of the placed order
@@ -138,18 +134,29 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
                 // An order could be received to the server
                 if (recommendations.size() > 0 && (
                         (specificRecommendation != null || chosenRecommend != -1)
-                                || specificStand.equals("")) ) {
+                                || specificStand.equals(""))) {
                     noRecommend = false;
 
-                        startActivity(intent);
-                        
-                        
-                    // Continue to order overview with recommended stand
-                    Intent intent = new Intent(ConfirmActivity.this, OrderActivity.class);
-                    intent.putExtra("order", orderReceived);
-                    intent.putExtra("stand", recommendations.get(chosenRecommend).getStandName());
-                    intent.putExtra("brand", recommendations.get(chosenRecommend).getBrandName());
-                    startActivity(intent);
+                    // Add order with confirmed stand to confirmedOrderList
+                    orderReceived.setStandName(recommendations.get(chosenRecommend).getStandName());
+                    orderReceived.setBrandName(recommendations.get(chosenRecommend).getBrandName());
+                    confirmedOrders.add(orderReceived);
+
+                    if (confirmNumber - 1 == brandItemMap.keySet().size() &&
+                            confirmSplitOrderNumber == splitOrderRecommendations.length()) {
+                        // Continue to overview with confirmed stands for the orders
+                        Intent listIntent = new Intent(ConfirmActivity.this, OrderActivity.class);
+                        listIntent.putExtra("orderList", confirmedOrders);
+                        startActivity(listIntent);
+                    } else {
+                        if (splitOrderRecommendations.length() > confirmSplitOrderNumber) {
+                            // Continue confirming next stand for split order
+                            confirmNextSplitStand();
+                        } else {
+                            // Continue confirming stands for the next brand
+                            confirmNextStand();
+                        }
+                    }
                 } else if (recommendations.size() > 0) {
                     // specificRecommendation is not part of the returned recommendations
                     noRecommend = false;
@@ -164,15 +171,9 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
                         // TODO: update expected timings when
                         //  order from specific stand without recommendation is made !! important
                         //  (need timing for the order from server)
-                        // Continue to order overview with chosen stand
-                        Intent intent = new Intent(ConfirmActivity.this, OrderActivity.class);
-                        intent.putExtra("order", orderReceived);
-                        intent.putExtra("stand", specificStand);
-                        intent.putExtra("brand", specificBrand);
-                        startActivity(intent);
                         // Add order with confirmed stand to confirmedOrderList
-                        orderReceived.setStandName(recommendations.get(chosenRecommend).getStandName());
-                        orderReceived.setBrandName(recommendations.get(chosenRecommend).getBrandName());
+                        orderReceived.setStandName(specificStand);
+                        orderReceived.setBrandName(specificBrand);
                         confirmedOrders.add(orderReceived);
 
                         if (confirmNumber - 1 == brandItemMap.keySet().size() &&
@@ -182,6 +183,7 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
                             listIntent.putExtra("orderList", confirmedOrders);
                             startActivity(listIntent);
                         } else {
+                            // Continue confirming stands for the next brand
                             if (splitOrderRecommendations.length() > confirmSplitOrderNumber) {
                                 // Continue confirming next stand for split order
                                 confirmNextSplitStand();
@@ -190,10 +192,6 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
                                 confirmNextStand();
                             }
                         }
-
-                    } else if (recommendations.size() > 0) {
-                        // specificRecommendation is not part of the returned recommendations
-                        noRecommend = false;
 
                     });
                     builder.setNegativeButton("Cancel", (dialog, id) -> {
@@ -204,51 +202,9 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
                     builder.setMessage("You have a recommendation available." +
                             "\nAre you sure you want to choose your own stand?")
                             .setTitle("Continue with chosen stand");
-                    AlertDialog dialog = builder.create();
-                    dialog.show();
-
-                                // TODO: update expected timings when
-                                //  order from specific stand without recommendation is made !! important
-                                //  (need timing for the order from server)
-                                // Add order with confirmed stand to confirmedOrderList
-                                orderReceived.setStandName(specificStand);
-                                orderReceived.setBrandName(specificBrand);
-                                confirmedOrders.add(orderReceived);
-
-                                if (confirmNumber - 1 == brandItemMap.keySet().size() &&
-                                        confirmSplitOrderNumber == splitOrderRecommendations.length()) {
-                                    // Continue to overview with confirmed stands for the orders
-                                    Intent listIntent = new Intent(ConfirmActivity.this, OrderActivity.class);
-                                    listIntent.putExtra("orderList", confirmedOrders);
-                                    startActivity(listIntent);
-                                } else {
-                                    // Continue confirming stands for the next brand
-                                    if (splitOrderRecommendations.length() > confirmSplitOrderNumber) {
-                                        // Continue confirming next stand for split order
-                                        confirmNextSplitStand();
-                                    } else {
-                                        // Continue confirming stands for the next brand
-                                        confirmNextStand();
-                                    }
-                                }
-
-                            }
-                        });
-                        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int id) {
-                                // User cancelled the dialog
-                                dialog.cancel();
-                            }
-                        });
-
-                        builder.setMessage("You have a recommendation available." +
-                                "\nAre you sure you want to choose your own stand?")
-                                .setTitle("Continue with chosen stand");
-                        if (mDialog != null) mDialog.cancel();
-                        mDialog = builder.create();
-                        mDialog.show();
-
-                    }
+                    if (mDialog != null) mDialog.cancel();
+                    mDialog = builder.create();
+                    mDialog.show();
                 }
             }
             if (noRecommend) {
@@ -260,7 +216,6 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
                 mToast.show();
             }
         });
-
     }
 
     /**
@@ -431,35 +386,17 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
         // Request recommendation from server for sent order (both in JSON)
         JsonObjectRequest jsonRequest = new JsonObjectRequest(Request.Method.POST, url, jsonOrder,
                 response -> {
-                    ObjectMapper mapper = new ObjectMapper();
-                    //mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
                     try {
-                        recommendations = mapper.readValue(response.get("recommendations").toString(),
-                                new TypeReference<List<Recommendation>>() {});
-                        //orderReceived= mapper.readValue(response.get("order").toString(), CommonOrder.class);
-                        orderReceived = mapper.readerFor(CommonOrder.class).readValue(response.get("order").toString());
-                        orderReceived.setTotalPrice(totalPrice);
-                        orderReceived.setPrices(ordered);
-                        orderReceived.setTotalCount(cartCount);
-                        // TODO: add ALL menuItem information to the orderItems!
-                new Response.Listener<JSONObject>() {
-                    @Override
-                    public void onResponse(JSONObject response) {
-                        try {
-                            handleReceivedRecommendation(response);
-                        } catch (JsonProcessingException | JSONException e) {
-                            Log.v("JSON exception", "JSON exception in confirmActivity");
-                        }
+                        handleReceivedRecommendation(response);
+                    } catch (JsonProcessingException | JSONException e) {
+                        Log.v("JSON exception", "JSON exception in confirmActivity");
                     }
-                }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                if (mToast != null) mToast.cancel();
-                mToast = Toast.makeText(ConfirmActivity.this, "Recommendation could not be fetched.",
-                        Toast.LENGTH_SHORT);
-                mToast.show();
-            }
-        }) { // Add JSON headers
+                }, error -> {
+                    if (mToast != null) mToast.cancel();
+                    mToast = Toast.makeText(ConfirmActivity.this, "Recommendation could not be fetched.",
+                            Toast.LENGTH_SHORT);
+                    mToast.show();
+                }) { // Add JSON headers
             @Override
             public @NonNull
             Map<String, String> getHeaders() {
@@ -470,14 +407,6 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
             }
         };
 
-                        // Add recommendation stands to the spinner
-                        if (recommendations.size() > 0) standListAdapter.remove("No stands available");
-                        for (Recommendation i : recommendations) {
-                            // If specific stand is part of recommendation, link recommendation with specific stand
-                            if (specificStand.equals(i.getStandName()) && specificBrand.equals(i.getBrandName())) {
-                                specificRecommendation = i;
-                            } else {
-                                standListAdapter.add(i.getStandName());
         // Add the request to the RequestQueue
         queue.add(jsonRequest);
     }
@@ -535,35 +464,29 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
 
         // Request recommendation from server for sent order (both in JSON)
         JsonArrayRequest jsonRequest = new JsonArrayRequest(Request.Method.POST, url, null,
-                new Response.Listener<JSONArray>() {
-                    @Override
-                    public void onResponse(JSONArray response) {
-                        try {
-                            splitOrderRecommendations = response;
-                            if (response.length() > 1) {
-                                confirmNextSplitStand();
-                            } else {
-                                // Order has not been split up
-                                confirmSplitOrderNumber = 1;
-                                handleReceivedRecommendation(splitOrderRecommendations.getJSONObject(0));
-                            }
-
-                        } catch (JsonProcessingException | JSONException e) {
-                            Log.v("JSON exception", "JSON exception in confirmActivity");
-                        }
-                        // If no specific stand was chosen, update the view
-                        if (specificStand.equals("")) {
-                            chosenRecommend = 0;
-                            showRecommendation(0);
-                        }
-                        // If specific stand is part of recommendations, updates its view
-                        else if (specificRecommendation != null) {
-                            chosenRecommend = recommendations.indexOf(specificRecommendation);
-                            showSpecificStand();
+                response -> {
+                    try {
+                        splitOrderRecommendations = response;
+                        if (response.length() > 1) {
+                            confirmNextSplitStand();
+                        } else {
+                            // Order has not been split up
+                            confirmSplitOrderNumber = 1;
+                            handleReceivedRecommendation(splitOrderRecommendations.getJSONObject(0));
                         }
 
                     } catch (JsonProcessingException | JSONException e) {
                         Log.v("JSON exception", "JSON exception in confirmActivity");
+                    }
+                    // If no specific stand was chosen, update the view
+                    if (specificStand.equals("")) {
+                        chosenRecommend = 0;
+                        showRecommendation(0);
+                    }
+                    // If specific stand is part of recommendations, updates its view
+                    else if (specificRecommendation != null) {
+                        chosenRecommend = recommendations.indexOf(specificRecommendation);
+                        showSpecificStand();
                     }
                 }, error -> {
                     if (mToast != null) mToast.cancel();

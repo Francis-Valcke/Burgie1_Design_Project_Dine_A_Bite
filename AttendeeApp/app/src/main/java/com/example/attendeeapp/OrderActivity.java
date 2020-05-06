@@ -145,7 +145,6 @@ public class OrderActivity extends ToolbarActivity {
     /**
      * Confirm the chosen stand and brand when a new order is made
      * @param newOrder new order
-     * @param newOrder
      */
     public void confirmNewOrderStand(final CommonOrder newOrder) {
         // Instantiate the RequestQueue
