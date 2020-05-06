@@ -1,14 +1,11 @@
 package com.example.attendeeapp;
 
 import android.annotation.SuppressLint;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Typeface;
 import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -18,16 +15,10 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
 
-import com.android.volley.NoConnectionError;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import com.example.attendeeapp.data.LoginDataSource;
@@ -39,8 +30,6 @@ import com.example.attendeeapp.json.Recommendation;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Multimap;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -52,14 +41,13 @@ import org.threeten.bp.ZonedDateTime;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 /**
  * Activity that handles the confirmation/choosing of the (recommended) stand of the placed order
  */
-public class ConfirmActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener {
+public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnItemSelectedListener {
 
     private ArrayAdapter<String> standListAdapter;
     private Location lastLocation;
@@ -80,6 +68,10 @@ public class ConfirmActivity extends AppCompatActivity implements AdapterView.On
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_confirm);
+
+        // Initialize the toolbar
+        initToolbar();
+        upButtonToolbar();
 
         // Ignore warning
         ordered = (ArrayList<CommonFood>) getIntent().getSerializableExtra("order");
@@ -110,16 +102,6 @@ public class ConfirmActivity extends AppCompatActivity implements AdapterView.On
         TextView remainingTime = findViewById(R.id.recommend_time);
         remainingTime.setVisibility(View.GONE);
 
-        // Custom Toolbar (instead of standard actionbar)
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-
-        // Get a support ActionBar corresponding to this toolbar
-        ActionBar ab = getSupportActionBar();
-
-        // Enable the Up button
-        assert ab != null;
-        ab.setDisplayHomeAsUpEnabled(true);
 
         // Create a spinner item for the different stands
         Spinner spinner = findViewById(R.id.stand_recommended_spinner);
@@ -127,7 +109,7 @@ public class ConfirmActivity extends AppCompatActivity implements AdapterView.On
 
         // Initiate the spinner item adapter
         standListAdapter = new ArrayAdapter<>(this,
-                R.layout.stand_spinner_item, new ArrayList<String>());
+                R.layout.stand_spinner_item, new ArrayList<>());
         spinner.setAdapter(standListAdapter);
         if (!specificStand.equals("")) {
             standListAdapter.add(specificStand + " (Your stand)");
@@ -136,70 +118,63 @@ public class ConfirmActivity extends AppCompatActivity implements AdapterView.On
         }
 
         Button chooseRecommendButton = findViewById(R.id.button_confirm_stand);
-        chooseRecommendButton.setOnClickListener(new View.OnClickListener(){
-            @Override
-            public void onClick(View v) {
-                boolean noRecommend = true;
-                if (recommendations != null && orderReceived != null) {
-                    // An order could be received to the server
-                    if (recommendations.size() > 0 && (
-                            (specificRecommendation != null || chosenRecommend != -1)
-                                    || specificStand.equals("")) ) {
-                        noRecommend = false;
+        chooseRecommendButton.setOnClickListener(v -> {
+            boolean noRecommend = true;
+            if (recommendations != null && orderReceived != null) {
+                // An order could be received to the server
+                if (recommendations.size() > 0 && (
+                        (specificRecommendation != null || chosenRecommend != -1)
+                                || specificStand.equals("")) ) {
+                    noRecommend = false;
 
-                        // Continue to order overview with recommended stand
+                    // Continue to order overview with recommended stand
+                    Intent intent = new Intent(ConfirmActivity.this, OrderActivity.class);
+                    intent.putExtra("order", orderReceived);
+                    intent.putExtra("stand", recommendations.get(chosenRecommend).getStandName());
+                    intent.putExtra("brand", recommendations.get(chosenRecommend).getBrandName());
+                    startActivity(intent);
+                } else if (recommendations.size() > 0) {
+                    // specificRecommendation is not part of the returned recommendations
+                    noRecommend = false;
+
+                    // Alert user if he not better like the recommended stand
+                    AlertDialog.Builder builder = new AlertDialog.Builder(ConfirmActivity.this);
+
+                    builder.setPositiveButton("Continue", (dialog, id) -> {
+                        // User clicked Continue button
+                        dialog.cancel();
+
+                        // TODO: update expected timings when
+                        //  order from specific stand without recommendation is made !! important
+                        //  (need timing for the order from server)
+                        // Continue to order overview with chosen stand
                         Intent intent = new Intent(ConfirmActivity.this, OrderActivity.class);
                         intent.putExtra("order", orderReceived);
-                        intent.putExtra("stand", recommendations.get(chosenRecommend).getStandName());
-                        intent.putExtra("brand", recommendations.get(chosenRecommend).getBrandName());
+                        intent.putExtra("stand", specificStand);
+                        intent.putExtra("brand", specificBrand);
                         startActivity(intent);
-                    } else if (recommendations.size() > 0) {
-                        // specificRecommendation is not part of the returned recommendations
-                        noRecommend = false;
 
-                        // Alert user if he not better like the recommended stand
-                        AlertDialog.Builder builder = new AlertDialog.Builder(ConfirmActivity.this);
+                    });
+                    builder.setNegativeButton("Cancel", (dialog, id) -> {
+                        // User cancelled the dialog
+                        dialog.cancel();
+                    });
 
-                        builder.setPositiveButton("Continue", new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int id) {
-                                // User clicked Continue button
-                                dialog.cancel();
+                    builder.setMessage("You have a recommendation available." +
+                            "\nAre you sure you want to choose your own stand?")
+                            .setTitle("Continue with chosen stand");
+                    AlertDialog dialog = builder.create();
+                    dialog.show();
 
-                                // TODO: update expected timings when
-                                //  order from specific stand without recommendation is made !! important
-                                //  (need timing for the order from server)
-                                // Continue to order overview with chosen stand
-                                Intent intent = new Intent(ConfirmActivity.this, OrderActivity.class);
-                                intent.putExtra("order", orderReceived);
-                                intent.putExtra("stand", specificStand);
-                                intent.putExtra("brand", specificBrand);
-                                startActivity(intent);
-
-                            }
-                        });
-                        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int id) {
-                                // User cancelled the dialog
-                                dialog.cancel();
-                            }
-                        });
-
-                        builder.setMessage("You have a recommendation available." +
-                                "\nAre you sure you want to choose your own stand?")
-                                .setTitle("Continue with chosen stand");
-                        AlertDialog dialog = builder.create();
-                        dialog.show();
-
-                    }
                 }
-                if (noRecommend) {
-                    String text = "No stands available";
-                    if (!specificStand.equals(""))
-                        text = "Your order could not be received, you cannot continue";
-                    if (mToast != null) mToast.cancel();
-                    mToast = Toast.makeText(ConfirmActivity.this, text, Toast.LENGTH_SHORT);
-                    mToast.show();
-                }
+            }
+            if (noRecommend) {
+                String text = "No stands available";
+                if (!specificStand.equals(""))
+                    text = "Your order could not be received, you cannot continue";
+                if (mToast != null) mToast.cancel();
+                mToast = Toast.makeText(ConfirmActivity.this, text, Toast.LENGTH_SHORT);
+                mToast.show();
             }
         });
 
@@ -257,55 +232,49 @@ public class ConfirmActivity extends AppCompatActivity implements AdapterView.On
 
         // Request recommendation from server for sent order (both in JSON)
         JsonObjectRequest jsonRequest = new JsonObjectRequest(Request.Method.POST, url, jsonOrder,
-                new Response.Listener<JSONObject>() {
-                    @Override
-                    public void onResponse(JSONObject response) {
-                        ObjectMapper mapper = new ObjectMapper();
-                        //mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-                        try {
-                            recommendations = mapper.readValue(response.get("recommendations").toString(),
-                                    new TypeReference<List<Recommendation>>() {});
-                            //orderReceived= mapper.readValue(response.get("order").toString(), CommonOrder.class);
-                            orderReceived = mapper.readerFor(CommonOrder.class).readValue(response.get("order").toString());
-                            orderReceived.setTotalPrice(totalPrice);
-                            orderReceived.setPrices(ordered);
-                            orderReceived.setTotalCount(cartCount);
-                            // TODO: add ALL menuItem information to the orderItems!
+                response -> {
+                    ObjectMapper mapper = new ObjectMapper();
+                    //mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+                    try {
+                        recommendations = mapper.readValue(response.get("recommendations").toString(),
+                                new TypeReference<List<Recommendation>>() {});
+                        //orderReceived= mapper.readValue(response.get("order").toString(), CommonOrder.class);
+                        orderReceived = mapper.readerFor(CommonOrder.class).readValue(response.get("order").toString());
+                        orderReceived.setTotalPrice(totalPrice);
+                        orderReceived.setPrices(ordered);
+                        orderReceived.setTotalCount(cartCount);
+                        // TODO: add ALL menuItem information to the orderItems!
 
-                            // Add recommendation stands to the spinner
-                            if (recommendations.size() > 0) standListAdapter.remove("No stands available");
-                            for (Recommendation i : recommendations) {
-                                // If specific stand is part of recommendation, link recommendation with specific stand
-                                if (specificStand.equals(i.getStandName()) && specificBrand.equals(i.getBrandName())) {
-                                    specificRecommendation = i;
-                                } else {
-                                    standListAdapter.add(i.getStandName());
-                                }
+                        // Add recommendation stands to the spinner
+                        if (recommendations.size() > 0) standListAdapter.remove("No stands available");
+                        for (Recommendation i : recommendations) {
+                            // If specific stand is part of recommendation, link recommendation with specific stand
+                            if (specificStand.equals(i.getStandName()) && specificBrand.equals(i.getBrandName())) {
+                                specificRecommendation = i;
+                            } else {
+                                standListAdapter.add(i.getStandName());
                             }
-                            // If no specific stand was chosen, update the view
-                            if (specificStand.equals("")) {
-                                chosenRecommend = 0;
-                                showRecommendation(0);
-                            }
-                            // If specific stand is part of recommendations, updates its view
-                            else if (specificRecommendation != null) {
-                                chosenRecommend = recommendations.indexOf(specificRecommendation);
-                                showSpecificStand();
-                            }
-
-                        } catch (JsonProcessingException | JSONException e) {
-                            Log.v("JSON exception", "JSON exception in confirmActivity");
                         }
+                        // If no specific stand was chosen, update the view
+                        if (specificStand.equals("")) {
+                            chosenRecommend = 0;
+                            showRecommendation(0);
+                        }
+                        // If specific stand is part of recommendations, updates its view
+                        else if (specificRecommendation != null) {
+                            chosenRecommend = recommendations.indexOf(specificRecommendation);
+                            showSpecificStand();
+                        }
+
+                    } catch (JsonProcessingException | JSONException e) {
+                        Log.v("JSON exception", "JSON exception in confirmActivity");
                     }
-                }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                if (mToast != null) mToast.cancel();
-                mToast = Toast.makeText(ConfirmActivity.this, "Recommendation could not be fetched.",
-                        Toast.LENGTH_SHORT);
-                mToast.show();
-            }
-        }) { // Add JSON headers
+                }, error -> {
+                    if (mToast != null) mToast.cancel();
+                    mToast = Toast.makeText(ConfirmActivity.this, "Recommendation could not be fetched.",
+                            Toast.LENGTH_SHORT);
+                    mToast.show();
+                }) { // Add JSON headers
             @Override
             public @NonNull
             Map<String, String> getHeaders() {
@@ -386,45 +355,6 @@ public class ConfirmActivity extends AppCompatActivity implements AdapterView.On
         // Set the recommendation text to specific stand chosen text
         TextView recommend = findViewById(R.id.stand_recommend);
         recommend.setText(R.string.specific_stand_chosen);
-    }
-
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.main_menu, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(@NonNull android.view.MenuItem item) {
-        switch (item.getItemId()) {
-            case android.R.id.home:
-                // This takes the user 'back', as if they pressed the left-facing triangle icon
-                // on the main android toolbar.
-                onBackPressed();
-                return true;
-            case R.id.orders_action:
-                // User chooses the "My Orders" item
-                Intent intent = new Intent(ConfirmActivity.this, OrderActivity.class);
-                startActivity(intent);
-                return true;
-            case R.id.account_action:
-                // User chooses the "Account" item
-                // TODO make account activity
-                return true;
-            case R.id.settings_action:
-                // User chooses the "Settings" item
-                // TODO make settings activity
-                return true;
-            case R.id.map_action:
-                //User chooses the "Map" item
-                Intent mapIntent = new Intent(ConfirmActivity.this, MapsActivity.class);
-                startActivity(mapIntent);
-                return true;
-            default:
-                return super.onOptionsItemSelected(item);
-        }
     }
 
     @Override

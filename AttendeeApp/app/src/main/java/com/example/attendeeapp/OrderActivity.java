@@ -6,30 +6,23 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
-import android.view.Menu;
-import android.view.MenuInflater;
 import android.widget.ExpandableListView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+import com.example.attendeeapp.appDatabase.OrderDatabaseService;
 import com.example.attendeeapp.data.LoginDataSource;
 import com.example.attendeeapp.data.LoginRepository;
 import com.example.attendeeapp.data.model.LoggedInUser;
 import com.example.attendeeapp.json.CommonOrder;
 import com.example.attendeeapp.json.CommonOrderStatusUpdate;
 import com.example.attendeeapp.polling.PollingService;
-import com.example.attendeeapp.appDatabase.OrderDatabaseService;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -39,7 +32,7 @@ import java.util.Map;
  * Activity to handle the show order overview
  * Loads previous orders from the internal database stored on the divide
  */
-public class OrderActivity extends AppCompatActivity {
+public class OrderActivity extends ToolbarActivity {
 
     private int subscribeId = -1;
     private ArrayList<CommonOrder> orders;
@@ -81,16 +74,9 @@ public class OrderActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_order);
 
-        // Custom Toolbar (instead of standard actionbar)
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-
-        // Get a support ActionBar corresponding to this toolbar
-        ActionBar ab = getSupportActionBar();
-
-        // Enable the Up button
-        assert ab != null;
-        ab.setDisplayHomeAsUpEnabled(true);
+        // Initialize the toolbar
+        initToolbar();
+        upButtonToolbar();
 
         final CommonOrder newOrder = (CommonOrder) getIntent().getSerializableExtra("order");
 
@@ -156,9 +142,9 @@ public class OrderActivity extends AppCompatActivity {
 
     /**
      * Confirm the chosen stand and brand when a new order is made
-     * @param newOrder
-     * @param chosenStand
-     * @param chosenBrand
+     * @param newOrder new order
+     * @param chosenStand stand chosen
+     * @param chosenBrand brand chosen
      */
     public void confirmNewOrderStand(final CommonOrder newOrder, String chosenStand, String chosenBrand) {
         // Instantiate the RequestQueue
@@ -172,31 +158,25 @@ public class OrderActivity extends AppCompatActivity {
         url = url.replace(' ' , '+');
 
         // Request a string response from the provided URL
-        StringRequest stringRequest = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
-            @Override
-            public void onResponse(String response) {
+        StringRequest stringRequest = new StringRequest(Request.Method.GET, url, response -> {
 
-                // Only add the order if successful
-                orders.add(newOrder);
-                orderDatabaseService.insertOrder(newOrder);
-                adapter.notifyDataSetChanged();
+            // Only add the order if successful
+            orders.add(newOrder);
+            orderDatabaseService.insertOrder(newOrder);
+            adapter.notifyDataSetChanged();
 
-                Toast mToast = null;
-                if (mToast != null) mToast.cancel();
-                mToast = Toast.makeText(OrderActivity.this, "Your order was successful",
-                        Toast.LENGTH_SHORT);
-                mToast.show();
-            }
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                Toast mToast = null;
-                if (mToast != null) mToast.cancel();
-                mToast = Toast.makeText(OrderActivity.this, "Your final order could not be received",
-                        Toast.LENGTH_SHORT);
-                mToast.show();
+            Toast mToast = null;
+            if (mToast != null) mToast.cancel();
+            mToast = Toast.makeText(OrderActivity.this, "Your order was successful",
+                    Toast.LENGTH_SHORT);
+            mToast.show();
+        }, error -> {
+            Toast mToast = null;
+            if (mToast != null) mToast.cancel();
+            mToast = Toast.makeText(OrderActivity.this, "Your final order could not be received",
+                    Toast.LENGTH_SHORT);
+            mToast.show();
 
-            }
         }) {
             // Add JSON headers
             @Override
@@ -227,25 +207,19 @@ public class OrderActivity extends AppCompatActivity {
         }
 
         // Request a string response from the provided URL
-        StringRequest stringRequest = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
-            @Override
-            public void onResponse(String response) {
-                subscribeId = Integer.parseInt(response);
-                // Start the polling service
-                Intent intent = new Intent(getApplicationContext(), PollingService.class);
-                intent.putExtra("subscribeId", subscribeId);
-                startService(intent);
-            }
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                Toast mToast = null;
-                if (mToast != null) mToast.cancel();
-                mToast = Toast.makeText(OrderActivity.this, "Could not subscribe to order updates",
-                        Toast.LENGTH_SHORT);
-                mToast.show();
+        StringRequest stringRequest = new StringRequest(Request.Method.GET, url, response -> {
+            subscribeId = Integer.parseInt(response);
+            // Start the polling service
+            Intent intent = new Intent(getApplicationContext(), PollingService.class);
+            intent.putExtra("subscribeId", subscribeId);
+            startService(intent);
+        }, error -> {
+            Toast mToast = null;
+            if (mToast != null) mToast.cancel();
+            mToast = Toast.makeText(OrderActivity.this, "Could not subscribe to order updates",
+                    Toast.LENGTH_SHORT);
+            mToast.show();
 
-            }
         }) {
             // Add JSON headers
             @Override
@@ -267,39 +241,11 @@ public class OrderActivity extends AppCompatActivity {
     }
 
     @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.main_menu, menu);
-        return true;
-    }
-
-    @Override
     public boolean onOptionsItemSelected(@NonNull android.view.MenuItem item) {
-        switch (item.getItemId()) {
-            case android.R.id.home:
-                // This takes the user 'back', as if they pressed the left-facing triangle icon
-                // on the main android toolbar.
-                onBackPressed();
-                return true;
-            case R.id.orders_action:
-                // User chooses the "My Orders" item
-                return true;
-            case R.id.account_action:
-                // User chooses the "Account" item
-                Intent intent2 = new Intent(OrderActivity.this, AccountActivity.class);
-                startActivity(intent2);
-                return true;
-            case R.id.settings_action:
-                // User chooses the "Settings" item
-                // TODO make settings activity
-                return true;
-            case R.id.map_action:
-                //User chooses the "Map" item
-                Intent mapIntent = new Intent(OrderActivity.this, MapsActivity.class);
-                startActivity(mapIntent);
-                return true;
-            default:
-                return super.onOptionsItemSelected(item);
+        if (item.getItemId() == R.id.orders_action) {
+            // User chooses the "My Orders" item
+            return true;
         }
+        return super.onOptionsItemSelected(item);
     }
 }

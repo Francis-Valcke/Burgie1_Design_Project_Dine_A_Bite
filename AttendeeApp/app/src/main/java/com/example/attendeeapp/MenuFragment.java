@@ -10,8 +10,6 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import com.android.volley.NoConnectionError;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.Volley;
 import com.example.attendeeapp.data.LoginDataSource;
@@ -20,8 +18,6 @@ import com.example.attendeeapp.data.model.LoggedInUser;
 import com.example.attendeeapp.json.CommonFood;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
-import org.json.JSONArray;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -40,14 +36,14 @@ abstract class MenuFragment extends Fragment {
     SwipeRefreshLayout pullToRefresh;
     Toast mToast;
 
-    private LoggedInUser user = LoginRepository.getInstance(new LoginDataSource()).getLoggedInUser();
+    protected LoggedInUser user = LoginRepository.getInstance(new LoginDataSource()).getLoggedInUser();
 
     /**
      * Updates the current global/stand menu with the updated version returned from the server
      * Error are handled in the fetchMenu function
-     * @param response: the JSON response from the server
+     * @param response: List of food items from the server
      */
-    private void updateMenu(List<CommonFood> response) {
+    protected void updateMenu(List<CommonFood> response) {
         // Renew the list
         menuItems.clear();
 
@@ -87,58 +83,55 @@ abstract class MenuFragment extends Fragment {
         // Request the global/stand menu in JSON from the order manager
         // Handle no network connection or server not reachable
         JsonArrayRequest jsonRequest = new JsonArrayRequest(req, url, null,
-                                                            new Response.Listener<JSONArray>() {
-            @Override
-            public void onResponse(JSONArray response) {
+                response -> {
+                    try {
+                        ObjectMapper om = new ObjectMapper();
+                        List<CommonFood> foodList=om.readValue(response.toString(), new TypeReference<List<CommonFood>>() {});
 
-                try {
-                    ObjectMapper om = new ObjectMapper();
-                    List<CommonFood> foodList=om.readValue(response.toString(), new TypeReference<List<CommonFood>>() {});
-
-                    // For global menu, set stand names to ""
-                    if (standName.equals("")) {
-                        for (CommonFood food : foodList) {
-                            food.setStandName("");
+                        // For global menu, set stand names to ""
+                        if (standName.equals("")) {
+                            for (CommonFood food : foodList) {
+                                food.setStandName("");
+                            }
                         }
+
+                        // Let fragments handle the response
+                        updateMenu(foodList);
+                    } catch (Exception e) { // Catch all exceptions TODO: only specific ones
+                        Log.v("Exception fetchMenu", e.toString());
+                        if (mToast != null) mToast.cancel();
+                        mToast = Toast.makeText(getActivity(), "A parsing error occurred when fetching the menu!",
+                                Toast.LENGTH_LONG);
+                        mToast.show();
                     }
+                    // Refreshing is done
+                    pullToRefresh.setRefreshing(false);
+                }, error -> {
 
-                    // Let fragments handle the response
-                    updateMenu(foodList);
-                } catch (Exception e) { // Catch all exceptions TODO: only specific ones
-                    Log.v("Exception fetchMenu", e.toString());
+                    // Hardcoded test menuItem to add when server is unavailable
+                    /*MenuItem item = new MenuItem("foodName", new BigDecimal(5.5), "brandName");
+                    menuItems.add(item);
+                    MenuItem item2 = new MenuItem("foody", new BigDecimal(6.11), "brand2");
+                    menuItems.add(item2);
+                    menuAdapter.putList(menuItems);
+                    menuAdapter.notifyDataSetChanged();*/
+
+                    // NoConnectionError = no network connection
+                    // other = server not reachable
                     if (mToast != null) mToast.cancel();
-                    mToast = Toast.makeText(getActivity(), "A parsing error occurred when fetching the menu!",
-                            Toast.LENGTH_LONG);
-                    mToast.show();
-                }
-            }
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
+                    if (error instanceof NoConnectionError) {
+                        mToast = Toast.makeText(getActivity(), "No network connection",
+                                                Toast.LENGTH_LONG);
+                        mToast.show();
 
-                // Hardcoded test menuItem to add when server is unavailable
-                /*MenuItem item = new MenuItem("foodName", new BigDecimal(5.5), "brandName");
-                menuItems.add(item);
-                MenuItem item2 = new MenuItem("foody", new BigDecimal(6.11), "brand2");
-                menuItems.add(item2);
-                menuAdapter.putList(menuItems);
-                menuAdapter.notifyDataSetChanged();*/
-
-                // NoConnectionError = no network connection
-                // other = server not reachable
-                if (mToast != null) mToast.cancel();
-                if (error instanceof NoConnectionError) {
-                    mToast = Toast.makeText(getActivity(), "No network connection",
-                                            Toast.LENGTH_LONG);
-                    mToast.show();
-
-                } else {
-                    mToast = Toast.makeText(getActivity(), "Server cannot be reached. No menu available.",
-                                            Toast.LENGTH_LONG);
-                    mToast.show();
-                }
-            }
-        }) { // Add JSON headers
+                    } else {
+                        mToast = Toast.makeText(getActivity(), "Server cannot be reached. No menu available.",
+                                                Toast.LENGTH_LONG);
+                        mToast.show();
+                    }
+                    // Refreshing is done
+                    pullToRefresh.setRefreshing(false);
+                }) { // Add JSON headers
             @Override
             public @NonNull
             Map<String, String> getHeaders() {

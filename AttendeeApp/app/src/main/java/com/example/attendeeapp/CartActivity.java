@@ -6,26 +6,17 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.View;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import com.example.attendeeapp.json.CommonFood;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -39,7 +30,7 @@ import java.util.Objects;
 /**
  * Activity to handle the view cart page
  */
-public class CartActivity extends AppCompatActivity {
+public class CartActivity extends ToolbarActivity {
 
     private FusedLocationProviderClient fusedLocationClient;
     private Location lastLocation;
@@ -53,16 +44,9 @@ public class CartActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_cart);
 
-        // Custom Toolbar (instead of standard actionbar)
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-
-        // Get a support ActionBar corresponding to this toolbar
-        ActionBar ab = getSupportActionBar();
-
-        // Enable the Up button
-        assert ab != null;
-        ab.setDisplayHomeAsUpEnabled(true);
+        // Initialize the toolbar
+        initToolbar();
+        upButtonToolbar();
 
         // Get the ordered items from the cart in the menu view (ignore warning)
         final ArrayList<CommonFood> ordered = (ArrayList<CommonFood>) getIntent().getSerializableExtra("cartList");
@@ -92,33 +76,29 @@ public class CartActivity extends AppCompatActivity {
         // Handle button to confirm order
         // Only if there are items in the cart, the order can continue
         Button confirmButton = findViewById(R.id.button_confirm_order);
-        confirmButton.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-                // confirm order -> go to order view
-                // Send order with JSON + location
-                if (cartAdapter.getCartList().size() > 0) {
-                    checkLocationPermission();
-                    //if(cartAdapter.getCartList().get(0).getStandName().equals("")) {
-                    Intent intent = new Intent(CartActivity.this, ConfirmActivity.class);
-                    intent.putExtra("order", ordered);
-                    intent.putExtra("location", lastLocation);
-                    intent.putExtra("totalPrice", totalPrice);
+        confirmButton.setOnClickListener(v -> {
+            // confirm order -> go to order view
+            // Send order with JSON + location
+            if (cartAdapter.getCartList().size() > 0) {
+                checkLocationPermission();
+                //if(cartAdapter.getCartList().get(0).getStandName().equals("")) {
+                Intent intent = new Intent(CartActivity.this, ConfirmActivity.class);
+                intent.putExtra("order", ordered);
+                intent.putExtra("location", lastLocation);
+                intent.putExtra("totalPrice", totalPrice);
+                intent.putExtra("cartCount", cartAdapter.getCartCount());
+                startActivity(intent);
+                /*} else {
+                    Intent intent = new Intent(CartActivity.this, OrderActivity.class);
+                    intent.putExtra("order_list", ordered);
                     intent.putExtra("cartCount", cartAdapter.getCartCount());
                     startActivity(intent);
-                    /*} else {
-                        Intent intent = new Intent(CartActivity.this, OrderActivity.class);
-                        intent.putExtra("order_list", ordered);
-                        intent.putExtra("cartCount", cartAdapter.getCartCount());
-                        startActivity(intent);
-                    }*/
-                } else {
-                    if (mToast != null) mToast.cancel();
-                    mToast = Toast.makeText(CartActivity.this, "No items in your cart!",
-                            Toast.LENGTH_SHORT);
-                    mToast.show();
-                }
+                }*/
+            } else {
+                if (mToast != null) mToast.cancel();
+                mToast = Toast.makeText(CartActivity.this, "No items in your cart!",
+                        Toast.LENGTH_SHORT);
+                mToast.show();
             }
         });
 
@@ -159,12 +139,9 @@ public class CartActivity extends AppCompatActivity {
             // Request the latest user location
             fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
             fusedLocationClient.getLastLocation()
-                    .addOnCompleteListener(new OnCompleteListener<Location>() {
-                        @Override
-                        public void onComplete(@NotNull Task<Location> task ) {
-                            if(task.isSuccessful() && task.getResult() != null){
-                                lastLocation = task.getResult();
-                            }
+                    .addOnCompleteListener(task -> {
+                        if(task.isSuccessful() && task.getResult() != null){
+                            lastLocation = task.getResult();
                         }
                     });
         }
@@ -189,12 +166,9 @@ public class CartActivity extends AppCompatActivity {
                     // Create location request to fetch latest user location
                     fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
                     fusedLocationClient.getLastLocation()
-                            .addOnCompleteListener(new OnCompleteListener<Location>() {
-                                @Override
-                                public void onComplete(@NotNull Task<Location> task ) {
-                                    if(task.isSuccessful() && task.getResult() != null){
-                                        lastLocation = task.getResult();
-                                    }
+                            .addOnCompleteListener(task -> {
+                                if(task.isSuccessful() && task.getResult() != null){
+                                    lastLocation = task.getResult();
                                 }
                             });
                 } else {
@@ -222,42 +196,4 @@ public class CartActivity extends AppCompatActivity {
         total.setText(symbol + totalPrice);
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.main_menu, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(@NonNull android.view.MenuItem item) {
-        switch (item.getItemId()) {
-            case android.R.id.home:
-                // This takes the user 'back', as if they pressed the left-facing triangle icon
-                // on the main android toolbar.
-                onBackPressed();
-                return true;
-            case R.id.orders_action:
-                // User chooses the "My Orders" item
-                Intent intent = new Intent(CartActivity.this, OrderActivity.class);
-                startActivity(intent);
-                return true;
-            case R.id.account_action:
-                // User chooses the "Account" item
-                Intent intent2 = new Intent(CartActivity.this, AccountActivity.class);
-                startActivity(intent2);
-                return true;
-            case R.id.settings_action:
-                // User chooses the "Settings" item
-                // TODO make settings activity
-                return true;
-            case R.id.map_action:
-                //User chooses the "Map" item
-                Intent mapIntent = new Intent(CartActivity.this, MapsActivity.class);
-                startActivity(mapIntent);
-                return true;
-            default:
-                return super.onOptionsItemSelected(item);
-        }
-    }
 }

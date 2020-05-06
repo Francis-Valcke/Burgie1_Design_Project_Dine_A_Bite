@@ -8,7 +8,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @SpringBootApplication
 public class StandManager {
 
-    public static final String authToken= "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJPcmRlck1hbmFnZXIiLCJyb2xlcyI6WyJST0xFX0FQUExJQ0FUSU9OIl0sImlhdCI6MTU4NDkxMTY3MSwiZXhwIjoxNzQyNTkxNjcxfQ.VmujsURhZaXRp5FQJXzmQMB-e6QSNF-OyPLeMEMOVvI";
+    public static final String authToken= "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJTdGFuZE1hbmFnZXIiLCJyb2xlcyI6WyJBUFBMSUNBVElPTiJdLCJpYXQiOjE1ODg1NDE2NTMsImV4cCI6MTc0NjIyMTY1M30.RtY_OYCR-2K3APztc-Up8UUWNQJ7_YteY09f4e7phfM";
 
     public static final boolean localTest = false;
 

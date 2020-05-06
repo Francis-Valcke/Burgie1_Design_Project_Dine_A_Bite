@@ -3,16 +3,10 @@ package com.example.attendeeapp;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.View;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
 import androidx.viewpager2.widget.ViewPager2;
 
 import com.example.attendeeapp.json.CommonFood;
@@ -24,7 +18,7 @@ import java.util.ArrayList;
 /**
  * Activity for handling the global/stand menu view page
  */
-public class MenuActivity extends AppCompatActivity implements OnCartChangeListener {
+public class MenuActivity extends ToolbarActivity implements OnCartChangeListener {
 
     private static final int MAX_CART_ITEM = 25;
     private ArrayList<CommonFood> cartList = new ArrayList<>();
@@ -42,6 +36,9 @@ public class MenuActivity extends AppCompatActivity implements OnCartChangeListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_menu);
 
+        // Initialize the toolbar
+        initToolbar();
+
         // Create a viewpager to slide between the global and stand menu
         ViewPager2 viewPager = findViewById(R.id.menu_view_pager);
         viewPager.setAdapter(new MenuFragmentAdapter(this));
@@ -49,35 +46,30 @@ public class MenuActivity extends AppCompatActivity implements OnCartChangeListe
         // Set up different tabs for the viewpager slider
         TabLayout tabLayout = findViewById(R.id.menu_tab_layout);
         new TabLayoutMediator(tabLayout, viewPager,
-                new TabLayoutMediator.TabConfigurationStrategy() {
-                    @Override public void onConfigureTab(@NonNull TabLayout.Tab tab, int position) {
-                        switch (position) {
-                            case 0:
-                                tab.setText(R.string.tab_global);
-                                break;
-                            case 1:
-                                tab.setText(R.string.tab_stand);
-                        }
+                (tab, position) -> {
+                    switch (position) {
+                        case 0:
+                            tab.setText(R.string.tab_global);
+                            break;
+                        case 1:
+                            tab.setText(R.string.tab_stand);
+                            break;
+                        case 2:
+                            tab.setText(R.string.tab_category);
+                            break;
                     }
                 }).attach();
-
-        // Custom Toolbar (instead of standard actionbar)
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
 
         // Initializes cart button layout at bottom of menu item list
         TextView totalCount = findViewById(R.id.cart_count);
         totalCount.setText("0");
 
         RelativeLayout relLay = findViewById(R.id.cart_layout);
-        relLay.setOnClickListener(new View.OnClickListener(){
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(MenuActivity.this, CartActivity.class);
-                intent.putExtra("cartList", cartList);
-                intent.putExtra("cartCount", cartCount);
-                startActivityForResult(intent, 1);
-            }
+        relLay.setOnClickListener(v -> {
+            Intent intent = new Intent(MenuActivity.this, CartActivity.class);
+            intent.putExtra("cartList", cartList);
+            intent.putExtra("cartCount", cartCount);
+            startActivityForResult(intent, 1);
         });
     }
 
@@ -193,41 +185,5 @@ public class MenuActivity extends AppCompatActivity implements OnCartChangeListe
         return cartCount;
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.main_menu, menu);
-        return true;
-    }
-
-    // TODO:
-    //  -make toolbar generalized for all activities
-    //  -make Toast messages cancalable for all activities
-    @Override
-    public boolean onOptionsItemSelected(@NonNull android.view.MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.orders_action:
-                // User chooses the "My Orders" item
-                Intent intent = new Intent(MenuActivity.this, OrderActivity.class);
-                startActivity(intent);
-                return true;
-            case R.id.account_action:
-                // User chooses the "Account" item
-                Intent intent2 = new Intent(MenuActivity.this, AccountActivity.class);
-                startActivity(intent2);
-                return true;
-            case R.id.settings_action:
-                // User chooses the "Settings" item
-                // TODO make settings activity
-                return true;
-            case R.id.map_action:
-                //User chooses the "Map" item
-                Intent mapIntent = new Intent(MenuActivity.this, MapsActivity.class);
-                startActivity(mapIntent);
-                return true;
-            default:
-                return super.onOptionsItemSelected(item);
-        }
-    }
 }
 

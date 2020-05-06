@@ -14,5 +14,4 @@ public class ConfigurationBean {
 
     private boolean unitTest;
 
-
 }
