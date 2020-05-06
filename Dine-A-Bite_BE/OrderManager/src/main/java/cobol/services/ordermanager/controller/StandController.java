@@ -1,5 +1,6 @@
 package cobol.services.ordermanager.controller;
 
+import cobol.commons.BetterResponseModel;
 import cobol.commons.CommonStand;
 import cobol.commons.ResponseModel;
 import cobol.commons.exception.CommunicationException;
@@ -10,10 +11,7 @@ import cobol.services.ordermanager.domain.entity.Order;
 import cobol.services.ordermanager.domain.entity.Stand;
 import cobol.services.ordermanager.domain.entity.User;
 import cobol.services.ordermanager.domain.repository.StandRepository;
-import cobol.commons.exception.DoesNotExistException;
-import cobol.commons.exception.DuplicateStandException;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -75,22 +73,20 @@ public class StandController {
      *
      * @param stand The stand that needs to be created
      * @return Success message or exception
-     * @throws JsonProcessingException Json processing error
-     * @throws ParseException          Json parsing error
-     * @throws DuplicateStandException Such a stand already exists
      */
     @PostMapping(path = "/addStand")
     @ResponseBody
-    public ResponseEntity<HashMap<Object,Object>> addStand(@RequestBody CommonStand stand, @AuthenticationPrincipal CommonUser user) throws JsonProcessingException, ParseException, DuplicateStandException, CommunicationException {
+    public ResponseEntity<BetterResponseModel<?>> addStand(@RequestBody CommonStand stand, @AuthenticationPrincipal CommonUser user) {
 
-        menuHandler.addStand(stand, user);
+        try {
+            menuHandler.addStand(stand, user);
+        } catch (Throwable throwable) {
+            return ResponseEntity.ok(BetterResponseModel.error("Error while adding a stand", throwable));
+        }
 
-        return ResponseEntity.ok(
-                ResponseModel.builder()
-                        .status(OK.toString())
-                        .details("The stand was added.")
-                        .build().generateResponse()
-        );
+        return ResponseEntity.ok(BetterResponseModel.ok("Stand successfully added", null));
+
+
     }
 
 
@@ -104,14 +100,15 @@ public class StandController {
      */
     @PostMapping(path = "/updateStand")
     @ResponseBody
-    public ResponseEntity<HashMap<Object,Object>> updateStand(@RequestBody CommonStand stand) throws DoesNotExistException, JsonProcessingException {
-        menuHandler.updateStand(stand);
-        return ResponseEntity.ok(
-                ResponseModel.builder()
-                        .status(OK.toString())
-                        .details("The stand was updated.")
-                        .build().generateResponse()
-        );
+    public ResponseEntity<BetterResponseModel<?>> updateStand(@RequestBody CommonStand stand)  {
+        try {
+            menuHandler.updateStand(stand);
+        } catch (Throwable throwable) {
+            return ResponseEntity.ok(BetterResponseModel.error("Error while updating a stand", throwable));
+        }
+
+
+        return ResponseEntity.ok(BetterResponseModel.ok("The stand was updated", null));
     }
 
 
@@ -129,14 +126,15 @@ public class StandController {
      */
     @DeleteMapping(value = "/deleteStand")
     @ResponseBody
-    public ResponseEntity<HashMap<Object,Object>> deleteStand(@RequestParam String standName, @RequestParam String brandName) throws JsonProcessingException, DoesNotExistException {
-        menuHandler.deleteStandById(standName, brandName);
-        return ResponseEntity.ok(
-                ResponseModel.builder()
-                        .status(OK.toString())
-                        .details("The stand was removed.")
-                        .build().generateResponse()
-        );
+    public ResponseEntity<BetterResponseModel<?>> deleteStand(@RequestParam String standName, @RequestParam String brandName) {
+        try {
+            menuHandler.deleteStandById(standName, brandName);
+        } catch (Throwable throwable) {
+            return ResponseEntity.ok(BetterResponseModel.error("Error while deleting stand", throwable));
+        }
+
+        return ResponseEntity.ok(BetterResponseModel.ok("Successfully deleted stand", null));
+
     }
 
 

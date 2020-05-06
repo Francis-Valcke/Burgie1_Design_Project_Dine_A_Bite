@@ -99,7 +99,7 @@ public class DBController {
             menuHandler.updateStandManager();
             List<Stand> stands = standRepository.findAll();
             standNames = stands.stream().map(Stand::getName).collect(Collectors.toList());
-        } catch (Exception e) {
+        } catch (Throwable e) {
             return ResponseEntity.ok(BetterResponseModel.error("Error thrown while updating Stand Manager", e));
         }
         return ResponseEntity.ok(BetterResponseModel.ok("Successfully updated stand manager schedulers", standNames));
@@ -114,7 +114,7 @@ public class DBController {
     public ResponseEntity<BetterResponseModel<?>> delete() {
         try {
             menuHandler.deleteAll();
-        } catch (Exception e) {
+        } catch (Throwable e) {
             return ResponseEntity.ok(BetterResponseModel.error("Error thrown while updating Stand Manager", e));
         }
         return ResponseEntity.ok(BetterResponseModel.ok("Database from OrderManager and StandManager cleared.", null));

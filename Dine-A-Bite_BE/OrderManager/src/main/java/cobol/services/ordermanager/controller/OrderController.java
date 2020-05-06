@@ -88,7 +88,12 @@ public class OrderController {
      * @throws JsonProcessingException Json processing error
      */
     @PostMapping(value = "/placeOrder", consumes = "application/json", produces = "application/json")
-    public ResponseEntity<JSONObject> placeOrder(@AuthenticationPrincipal CommonUser userDetails, @RequestBody CommonOrder orderObject) throws Throwable {
+    public ResponseEntity<BetterResponseModel<JSONObject>> placeOrder(@AuthenticationPrincipal CommonUser userDetails, @RequestBody CommonOrder orderObject) {
+        JSONObject completeResponse = new JSONObject();
+        try{
+            // First calculate the total price of the order
+            Brand brand = brandRepository.findById(orderObject.getBrandName())
+                    .orElseThrow(() -> new DoesNotExistException("The brand of the given order does not exist in the database, this should not be possible."));
 
         /* -- Money Transaction for this order -- */
 
@@ -134,8 +139,11 @@ public class OrderController {
         completeResponse.put("recommendations", recommendations);
 
 
-        return ResponseEntity.ok(completeResponse);
-
+        }
+        catch(Throwable e){
+            return ResponseEntity.ok(BetterResponseModel.error("Error while placing order", e));
+        }
+        return ResponseEntity.ok(BetterResponseModel.ok("Successfully placed order", completeResponse));
     }
 
 
@@ -190,48 +198,49 @@ public class OrderController {
      * @return JSONArray each element containing a field "recommendations" and a field "order" similar to return of placeOrder
      */
     @PostMapping(value="/placeSuperOrder", consumes = "application/json", produces = "application/json")
-    public ResponseEntity<JSONArray> placeSuperOrder(@AuthenticationPrincipal CommonUser userDetails, @RequestBody SuperOrder superOrder) throws Throwable {
+    public ResponseEntity<BetterResponseModel<JSONArray>> placeSuperOrder(@RequestBody SuperOrder superOrder) {
 
         // Make complete response, values will be added later on
         JSONArray completeResponse= new JSONArray();
 
-        // ask StandManger to split these orderItems in Orders and give a recommendation
-        JSONArray ordersRecommendations= communicationHandler.getSuperRecommendationFromSM(superOrder);
+        try {
+            // ask StandManger to split these orderItems in Orders and give A recommendation
+            JSONArray ordersRecommendations = communicationHandler.getSuperRecommendationFromSM(superOrder);
 
-        // parse orders and recommendations
-        ObjectMapper mapper= new ObjectMapper();
-        for (Object ordersRecommendation : ordersRecommendations) {
-            JSONObject orderRec = (JSONObject) ordersRecommendation;
-            JSONObject orderJSON = (JSONObject) orderRec.get("order");
-            CommonOrder commonOrder = mapper.readValue(orderJSON.toJSONString(), CommonOrder.class);
-            JSONArray recJSONs= (JSONArray) orderRec.get("recommendations");
+            // parse orders and recommendations
+            ObjectMapper mapper = new ObjectMapper();
+            for (Object ordersRecommendation : ordersRecommendations) {
+                JSONObject orderRec = (JSONObject) ordersRecommendation;
 
-            orderTransaction(commonOrder, userDetails);
+                JSONObject orderJSON = (JSONObject) orderRec.get("order");
+                CommonOrder commonOrder = mapper.readValue(orderJSON.toJSONString(), CommonOrder.class);
+                Order order = new Order(commonOrder);
+                JSONArray recJSONs = (JSONArray) orderRec.get("recommendations");
+                List<Recommendation> recommendations = mapper.readValue(recJSONs.toJSONString(), new TypeReference<List<Recommendation>>() {});
 
-            // add all seperate orders to orderprocessor, this will give them an orderId and initial values
-            Order order= new Order(commonOrder);
-            // Set user for this order
+                // add all seperate orders to orderprocessor, this will give them an orderId and initial values
+
             User user = userRepository.findById(userDetails.getUsername()).orElse(userRepository.save(new User(userDetails)));
             order.setUser(user);
             orderProcessor.addNewOrder(order);
-
-            // parse the response, add the recommendations to the hashmap of recommendations with the new orderIds
-            List<Recommendation> recommendations= mapper.readValue(recJSONs.toJSONString(), new TypeReference<List<Recommendation>>() {});
-            orderProcessor.addRecommendations(order.getId(), recommendations);
+                // parse the response, add the recommendations to the hashmap of recommendations with the new orderIds
+                orderProcessor.addRecommendations(order.getId(), recommendations);
 
 
-            // make response for every seperate order
-            JSONObject orderResponse= new JSONObject();
-            orderResponse.put("order", order.asCommonOrder());
-            orderResponse.put("recommendations", recommendations);
+                JSONObject orderResponse = new JSONObject();
+                orderResponse.put("order", order.asCommonOrder());
+                orderResponse.put("recommendations", recommendations);
 
-            // Place all orders with their recommendations in the complete array response
-            completeResponse.add(orderResponse);
+                completeResponse.add(orderResponse);
+            }
+        }
+        catch(Throwable e){
+            return ResponseEntity.ok(BetterResponseModel.error("Error while placing a superorder", e));
         }
 
 
         // return all the updated orders in a JSONArray with the recommendations
-        return ResponseEntity.ok(completeResponse);
+        return ResponseEntity.ok(BetterResponseModel.ok("Successfully placed a superorder",completeResponse));
     }
 
 
@@ -244,9 +253,11 @@ public class OrderController {
      * @throws JsonProcessingException jsonexception
      */
     @GetMapping("/confirmStand")
-    public ResponseEntity<String> confirmStand(@RequestParam(name = "orderId") int orderId, @RequestParam(name = "standName") String standName, @RequestParam(name = "brandName") String brandName, @AuthenticationPrincipal CommonUser userDetails) throws Throwable {
-        // Update order, confirm stand
-        Order updatedOrder = orderProcessor.confirmStand(orderId, standName, brandName);
+    public ResponseEntity<BetterResponseModel<String>> confirmStand(@RequestParam(name = "orderId") int orderId, @RequestParam(name = "standName") String standName, @RequestParam(name = "brandName") String brandName, @AuthenticationPrincipal CommonUser userDetails) {
+        String response="";
+        try{
+            // Update order, confirm stand
+            Order updatedOrder = orderProcessor.confirmStand(orderId, standName, brandName);
 
         // Publish event to standmanager
         // TODO: WHY DOES THIS HAVE TO BE DONE, YOU ALREADY SEND REST-CALL TO SM???  SHOULDN'T OM JUST SUBSCRIBE THE ORDER ON THAT STAND, SO SM CAN THEN PUBLISH EVENTS ABOUT THAT ORDER?
@@ -270,8 +281,12 @@ public class OrderController {
             // There was an error creating the transaction. Throw this.
             throw asResponse.getException();
         }
+        catch(Throwable e){
+            return ResponseEntity.ok(BetterResponseModel.error("Error while confirming stand for this order", e));
+        }
 
-        return ResponseEntity.ok(response);
+
+        return ResponseEntity.ok(BetterResponseModel.ok("Successfully confirmed stand for this order",response));
     }
 
 

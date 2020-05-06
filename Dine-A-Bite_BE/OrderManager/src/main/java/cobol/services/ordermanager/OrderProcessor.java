@@ -98,7 +98,7 @@ public class OrderProcessor {
         return newOrder;
     }
 
-    public Order confirmStand(int orderId, String standName, String brandName) throws DoesNotExistException, JsonProcessingException {
+    public Order confirmStand(int orderId, String standName, String brandName) throws Throwable {
         Optional<Order> orderOptional = this.getOrder(orderId);
         Stand stand = standRepository.findStandById(standName, brandName).orElseThrow(() -> new DoesNotExistException("Stand does not exist"));
 

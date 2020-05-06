@@ -25,12 +25,15 @@ import com.android.volley.toolbox.Volley;
 import com.example.attendeeapp.data.LoginDataSource;
 import com.example.attendeeapp.data.LoginRepository;
 import com.example.attendeeapp.data.model.LoggedInUser;
+import com.example.attendeeapp.json.BetterResponseModel;
 import com.example.attendeeapp.json.CommonFood;
 import com.example.attendeeapp.json.CommonOrder;
 import com.example.attendeeapp.json.CommonOrderItem;
 import com.example.attendeeapp.json.Recommendation;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.android.gms.common.internal.service.Common;
 import com.google.common.collect.ArrayListMultimap;
@@ -211,12 +214,12 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
                 }
             }
             if (noRecommend) {
-                String text = "No stands available";
-                if (!specificStand.equals(""))
-                    text = "Your order could not be received, you cannot continue";
-                if (mToast != null) mToast.cancel();
-                mToast = Toast.makeText(ConfirmActivity.this, text, Toast.LENGTH_SHORT);
-                mToast.show();
+                if (!specificStand.equals("")){
+                    showToast("You cannot continue, if there are recommendations, check your balance");
+                }
+                else{
+                    showToast("No stand available");
+                }
             }
         });
     }
@@ -422,6 +425,23 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
         // Request recommendation from server for sent order (both in JSON)
         JsonObjectRequest jsonRequest = new JsonObjectRequest(Request.Method.POST, url, jsonOrder,
                 response -> {
+                    ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+                    BetterResponseModel<JsonNode> responseModel=null;
+                    try {
+                        responseModel= mapper.readValue(response.toString(), new TypeReference<BetterResponseModel<JsonNode>>() {});
+                    } catch (JsonProcessingException e) {
+                        showToast("Exception parsing response from server");
+                        return;
+                    }
+                    assert responseModel != null;
+
+                    // Exception from server
+                    if(!responseModel.isOk()){
+                        showToast(responseModel.getException().getMessage());
+                        return;
+                    }
+
+                    // Response is ok, no exception on server
                     try {
                         handleReceivedRecommendation(response);
                     } catch (JsonProcessingException | JSONException e) {
@@ -511,7 +531,7 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
                             handleReceivedRecommendation(splitOrderRecommendations.getJSONObject(0));
                         }
 
-                    } catch (JsonProcessingException | JSONException e) {
+                    } catch (JsonProcessingException e) {
                         Log.v("JSON exception", "JSON exception in confirmActivity");
                     }
                     // If no specific stand was chosen, update the view
@@ -525,10 +545,7 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
                         showSpecificStand();
                     }
                 }, error -> {
-                    if (mToast != null) mToast.cancel();
-                    mToast = Toast.makeText(ConfirmActivity.this, "Recommendation could not be fetched.",
-                            Toast.LENGTH_SHORT);
-                    mToast.show();
+                    showToast("Recommendation could not be fetched.");
                 }) { // Add JSON headers
             @Override
             public @NonNull
@@ -706,6 +723,14 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
         TextView recommend = findViewById(R.id.stand_recommend);
         recommend.setText(R.string.specific_stand_chosen);
     }
+
+    public void showToast(String message){
+        if (mToast != null) mToast.cancel();
+        mToast = Toast.makeText(ConfirmActivity.this, message,
+                Toast.LENGTH_SHORT);
+        mToast.show();
+    }
+
 
     @Override
     public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {

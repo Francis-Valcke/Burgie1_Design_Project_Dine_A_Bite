@@ -1,5 +1,6 @@
 package cobol.services.ordermanager;
 
+import cobol.commons.BetterResponseModel;
 import cobol.commons.CommonFood;
 import cobol.commons.Event;
 import cobol.commons.order.CommonOrder;
@@ -59,12 +60,14 @@ public class CommunicationHandler {
      * @param jsonObject JSONObject or JSONArray format
      * @return response as String
      */
-    public String sendRestCallToStandManager(String path, String jsonObject, Map<String, String> params) throws JsonProcessingException {
+    public String sendRestCallToStandManager(String path, String jsonObject, Map<String, String> params) throws Throwable {
         if (configurationBean.isUnitTest()) {
             if (path.equals("/newStand")) return "{\"added\": true}";
             if(path.equals("/deleteScheduler")) return "{\"del\": true}";
             else return "";
         }
+
+
         RestTemplate template = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -84,7 +87,22 @@ public class CommunicationHandler {
             }
         }
 
-        return template.postForObject(builder.toUriString(), request, String.class);
+        String response= template.postForObject(builder.toUriString(), request, String.class);
+        BetterResponseModel<String> responseModel=null;
+        if(response!=null){
+            ObjectMapper om = new ObjectMapper();
+            responseModel= om.readValue(response, new TypeReference<BetterResponseModel<String>>() {});
+            if(responseModel.getStatus().equals(BetterResponseModel.Status.OK)){
+                return responseModel.getPayload();
+            }
+            else{
+                throw responseModel.getException();
+            }
+        }
+        else{
+            return "";
+        }
+
     }
 
     /**
