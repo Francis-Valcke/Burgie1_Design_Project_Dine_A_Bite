@@ -26,6 +26,9 @@ public class SchedulerHandler {
     @Autowired
     CommunicationHandler communicationHandler;
 
+    @Autowired
+    PriorityQueues priorityQueues;
+
     /**
      * The schedulerhandler has a list of all schedulers.
      * More information on schedulers in class Scheduler
@@ -127,9 +130,10 @@ public class SchedulerHandler {
             Scheduler curScheduler = goodSchedulers.get(i);
             SchedulerComparatorDistance sc = new SchedulerComparatorDistance(curScheduler.getLat(), curScheduler.getLon());
             SchedulerComparatorTime st = new SchedulerComparatorTime(new ArrayList<>(order.getOrderItems()));
-            recommendations.add(new Recommendation(curScheduler.getStandName(), curScheduler.getBrand(), sc.getDistance(order.getLatitude(), order.getLongitude()), st.getTimesum(curScheduler), i+1));
+            recommendations.add(new Recommendation(curScheduler.getStandName(), curScheduler.getBrand(), sc.getDistance(order.getLatitude(), order.getLongitude()), st.getTimesum(curScheduler), i+1, curScheduler.getSubscriberId(), st.getLongestFoodPrepTime(curScheduler)));
         }
 
+        priorityQueues.computeExtraTime(recommendations, order.getId());
         return recommendations;
     }
 

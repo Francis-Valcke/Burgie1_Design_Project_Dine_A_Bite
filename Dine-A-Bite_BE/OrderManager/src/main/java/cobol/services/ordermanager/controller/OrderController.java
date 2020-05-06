@@ -161,6 +161,7 @@ public class OrderController {
         Order updatedOrder = orderProcessor.confirmStand(orderId, standName, brandName);
 
         // Publish event to standmanager
+        // TODO: WHY DOES THIS HAVE TO BE DONE, YOU ALREADY SEND REST-CALL TO SM???  SHOULDN'T OM JUST SUBSCRIBE THE ORDER ON THAT STAND, SO SM CAN THEN PUBLISH EVENTS ABOUT THAT ORDER?
         String response= communicationHandler.publishConfirmedStand(updatedOrder.asCommonOrder(), standName, brandName);
 
         return ResponseEntity.ok(response);
