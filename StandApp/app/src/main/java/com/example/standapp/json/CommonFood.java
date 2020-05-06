@@ -114,6 +114,10 @@ public class CommonFood implements Serializable {
         return category.remove(cat);
     }
 
+    public void replaceCategoryList(ArrayList<String> cats) {
+        this.category = cats;
+    }
+
     public String getDescription() {
         return description;
     }
