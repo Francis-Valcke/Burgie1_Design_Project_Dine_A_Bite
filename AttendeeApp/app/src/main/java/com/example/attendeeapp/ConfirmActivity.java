@@ -9,6 +9,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -67,8 +68,6 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
 
     private ArrayAdapter<String> standListAdapter;
     private ArrayList<CommonFood> ordered; // current ordered items
-    private int cartCount; // current cartCount
-    private BigDecimal totalPrice; // current totalPrice
     private List<Recommendation> recommendations = null; // current stand recommendations
     private CommonOrder orderReceived = null; // current stand order
     // index in the recommendation list of the currently chosen recommendation in the spinner
@@ -317,6 +316,11 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
 
         resetRecommendationFields();
 
+        // Reset initial fields
+        recommendations = null;
+        orderReceived = null;
+        chosenRecommend = -1;
+        specificRecommendation = null;
         try {
             handleReceivedRecommendation(splitOrderRecommendations.getJSONObject(confirmSplitOrderNumber));
         } catch (JSONException | JsonProcessingException e) {
@@ -331,6 +335,41 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
         confirmBrandNumberTxt.setVisibility(View.VISIBLE);
         confirmBrandNumberTxt.setText("(" + confirmSplitOrderNumber + "/" + splitOrderRecommendations.length() + ")");
 
+        showOrderDetails();
+
+    }
+
+    private void showOrderDetails() {
+
+        LinearLayout listView = findViewById(R.id.confirm_list);
+
+        ArrayList<String> items = new ArrayList<>();
+        for (CommonOrderItem i : orderReceived.getOrderItems()){
+            items.add(i.getFoodName());
+            TextView text = new TextView(this);
+            text.setText(i.getFoodName());
+            listView.addView(text);
+        }
+
+        // Alert user that the server has split up his order
+        /*AlertDialog.Builder builder = new AlertDialog.Builder(ConfirmActivity.this);
+
+        builder.setPositiveButton("Ok", (dialog, id) -> {
+            // User clicked Ok button
+            dialog.cancel();
+        });
+
+        StringBuilder message = new StringBuilder("Your order of brand \"" + orderReceived.getBrandName()
+                + "\" has been split up." +
+                "\nThe order you are about to confirm contains the following items:");
+        for (CommonOrderItem i : orderReceived.getOrderItems()) {
+            message.append("\n-").append(i.getFoodName());
+        }
+        builder.setMessage(message.toString())
+                .setTitle("Order has been split up");
+        if (mDialog != null) mDialog.cancel();
+        mDialog = builder.create();
+        mDialog.show();*/
     }
 
     /**
@@ -530,8 +569,8 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
         orderReceived.setPrices(ordered);
         // Recalculate the totalPrice and total cartCount of the order
         // if order was split up, recalculation is definitely required
-        cartCount = 0;
-        totalPrice = new BigDecimal(0);
+        int cartCount = 0;
+        BigDecimal totalPrice = new BigDecimal(0);
         for (CommonOrderItem i : orderReceived.getOrderItems()) {
             cartCount += i.getAmount();
             totalPrice = totalPrice.add(i.getPrice());
