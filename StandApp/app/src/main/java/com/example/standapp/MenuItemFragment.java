@@ -128,7 +128,7 @@ public class MenuItemFragment extends DialogFragment {
                         chipGroup.addView(chip);
                     }
                     for (String category : item.getCategory()) {
-                        if (!categories.contains(category)) {
+                        if (!categories.contains(category) && !category.equals("PRICE PROMOTION")) {
                             @SuppressLint("InflateParams")
                             final Chip addedChip = (Chip) getLayoutInflater()
                                     .inflate(R.layout.chip_category, null);
