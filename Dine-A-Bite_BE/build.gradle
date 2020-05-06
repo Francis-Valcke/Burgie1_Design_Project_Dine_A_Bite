@@ -242,7 +242,7 @@ project(':SystemTester'){
     dependencies {
         //-----INTERNAL-----
         implementation project(':Commons')
-
+        implementation group: 'com.google.guava', name: 'guava', version: '23.5-jre'
         //-----PRODUCTION-----
 
         implementation group: 'org.springframework.boot', name: 'spring-boot-starter-security', version: '2.2.5.RELEASE'
