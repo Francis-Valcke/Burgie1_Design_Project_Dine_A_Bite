@@ -29,6 +29,8 @@ import com.example.standapp.data.LoginDataSource;
 import com.example.standapp.data.LoginRepository;
 import com.example.standapp.data.model.LoggedInUser;
 import com.example.standapp.json.CommonFood;
+import com.example.standapp.json.StandVerifyRequestData;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
@@ -182,14 +184,22 @@ public class ProfileFragment extends Fragment {
                     if (bundle != null) bundle.putString("brandName", null);
                     if (bundle != null) bundle.putString("subscriberId", null);
 
-                    // POST request to /verify
+                    // POST request to /verify in OM
                     RequestQueue queue = Volley.newRequestQueue(Objects.requireNonNull(getContext()));
-                    String url = ServerConfig.OM_ADDRESS + "/verify?brandName=" + brandName
-                            + "&standName=" + standName;
-                    url = url.replace(' ', '+');
+                    String url = ServerConfig.OM_ADDRESS + "/verify";
+
+                    StandVerifyRequestData standVerifyRequestData =
+                            new StandVerifyRequestData(standName, brandName);
+                    ObjectMapper mapper = new ObjectMapper();
+                    JSONObject jsonObject = null;
+                    try {
+                        jsonObject = new JSONObject(mapper.writeValueAsString(standVerifyRequestData));
+                    } catch (JSONException | JsonProcessingException e) {
+                        e.printStackTrace();
+                    }
 
                     JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, url,
-                            null, new Response.Listener<JSONObject>() {
+                            jsonObject, new Response.Listener<JSONObject>() {
                         @Override
                         public void onResponse(JSONObject response) {
                             System.out.println(response.toString());
