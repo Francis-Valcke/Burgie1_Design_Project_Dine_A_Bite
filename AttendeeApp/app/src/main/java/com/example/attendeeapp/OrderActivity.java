@@ -210,7 +210,7 @@ public class OrderActivity extends ToolbarActivity {
                         Toast.LENGTH_SHORT);
                 mToast.show();
 
-        }) {
+        }}) {
             // Add JSON headers
             @Override
             public @NonNull Map<String, String> getHeaders()  {
