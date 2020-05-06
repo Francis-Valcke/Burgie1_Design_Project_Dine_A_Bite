@@ -64,18 +64,18 @@ public class OrderController {
      *
      * @param orderId Id of the order
      * @return CommonOrder object
-     * @throws JsonProcessingException Json processing error
-     * @throws DoesNotExistException   Order does not exist
      */
     @GetMapping("/getOrderInfo")
-    public ResponseEntity<CommonOrder> getOrderInfo(@RequestParam(name = "orderId") int orderId) throws JsonProcessingException, DoesNotExistException {
+    public ResponseEntity<BetterResponseModel<CommonOrder>> getOrderInfo(@RequestParam(name = "orderId") int orderId) {
         // retrieve order
         Optional<Order> orderOptional = orderProcessor.getOrder(orderId);
 
         if (orderOptional.isPresent()) {
-            return ResponseEntity.ok(orderOptional.get().asCommonOrder());
+            return ResponseEntity.ok(BetterResponseModel.ok("Successfully retrieved order info", orderOptional.get().asCommonOrder()));
         } else {
-            throw new DoesNotExistException("Order with id " + orderId + " does not exist, please create an order first");
+            DoesNotExistException e= new DoesNotExistException("Order with id " + orderId + " does not exist, please create an order first");
+            System.out.println("ERROR: "+e.getMessage());
+            return ResponseEntity.ok(BetterResponseModel.error("Error thrown while retrieving order info", e));
         }
     }
 
@@ -85,7 +85,6 @@ public class OrderController {
      *
      * @param orderObject the order recieved from the attendee app
      * @return JSONObject including CommonOrder "order" and JSONArray "Recommendation"
-     * @throws JsonProcessingException Json processing error
      */
     @PostMapping(value = "/placeOrder", consumes = "application/json", produces = "application/json")
     public ResponseEntity<BetterResponseModel<JSONObject>> placeOrder(@AuthenticationPrincipal CommonUser userDetails, @RequestBody CommonOrder orderObject) {
@@ -141,6 +140,7 @@ public class OrderController {
 
         }
         catch(Throwable e){
+            e.printStackTrace();
             return ResponseEntity.ok(BetterResponseModel.error("Error while placing order", e));
         }
         return ResponseEntity.ok(BetterResponseModel.ok("Successfully placed order", completeResponse));
@@ -235,6 +235,7 @@ public class OrderController {
             }
         }
         catch(Throwable e){
+            e.printStackTrace();
             return ResponseEntity.ok(BetterResponseModel.error("Error while placing a superorder", e));
         }
 
@@ -282,6 +283,7 @@ public class OrderController {
             throw asResponse.getException();
         }
         catch(Throwable e){
+            e.printStackTrace();
             return ResponseEntity.ok(BetterResponseModel.error("Error while confirming stand for this order", e));
         }
 

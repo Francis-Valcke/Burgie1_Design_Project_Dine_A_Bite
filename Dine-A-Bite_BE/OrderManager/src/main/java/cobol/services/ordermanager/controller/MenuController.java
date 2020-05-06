@@ -32,6 +32,7 @@ public class MenuController {
         try {
             globalMenu = menuHandler.getGlobalMenu();
         } catch (DoesNotExistException e) {
+            e.printStackTrace();
             return ResponseEntity.ok(BetterResponseModel.error("Error thrown while fetching global menu", e));
         }
         return ResponseEntity.ok(BetterResponseModel.ok("Successfully retrieved global menu", globalMenu));
@@ -55,6 +56,7 @@ public class MenuController {
                     .map(Food::asCommonFood)
                     .collect(Collectors.toList());
         } catch (DoesNotExistException e) {
+            e.printStackTrace();
             return ResponseEntity.ok(BetterResponseModel.error("Error thrown while fetching stand menu", e));
         }
 

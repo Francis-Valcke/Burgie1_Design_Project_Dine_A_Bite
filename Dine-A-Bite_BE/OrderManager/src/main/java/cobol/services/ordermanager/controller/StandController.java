@@ -11,7 +11,6 @@ import cobol.services.ordermanager.domain.entity.Order;
 import cobol.services.ordermanager.domain.entity.Stand;
 import cobol.services.ordermanager.domain.entity.User;
 import cobol.services.ordermanager.domain.repository.StandRepository;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -24,9 +23,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static cobol.commons.ResponseModel.status.ERROR;
-import static cobol.commons.ResponseModel.status.OK;
-
 @RestController
 public class StandController {
 
@@ -37,32 +33,17 @@ public class StandController {
     private StandRepository standRepository;
 
     @GetMapping(path = "/verify")
-    public ResponseEntity<HashMap<Object,Object>> verify(@RequestParam String standName, @RequestParam String brandName, @AuthenticationPrincipal CommonUser authenticatedUser){
+    public ResponseEntity<BetterResponseModel<?>> verify(@RequestParam String standName, @RequestParam String brandName, @AuthenticationPrincipal CommonUser authenticatedUser){
 
         Stand stand = standRepository.findStandById(standName, brandName).orElse(null);
         User user = new User(authenticatedUser); //Convert to real User object to be able to compare
 
         if (stand == null) {
-            return ResponseEntity.ok(
-                    ResponseModel.builder()
-                            .status(OK.toString())
-                            .details("The stand does not exist and is free to be created.")
-                            .build().generateResponse()
-            );
+            return ResponseEntity.ok(BetterResponseModel.ok("The stand does not exist and is free to be created", null));
         } else if (stand.getOwners().contains(user)) {
-            return ResponseEntity.ok(
-                    ResponseModel.builder()
-                            .status(OK.toString())
-                            .details("The currently authenticated user is a verified owner of this stand.")
-                            .build().generateResponse()
-            );
+            return ResponseEntity.ok(BetterResponseModel.ok("The currently authenticated user is a verified owner of this stand.", null));
         } else {
-            return ResponseEntity.ok(
-                    ResponseModel.builder()
-                            .status(ERROR.toString())
-                            .details("This currently authenticated user is not a owner of this stand.")
-                            .build().generateResponse()
-            );
+            return ResponseEntity.ok(BetterResponseModel.error("This currently authenticated user is not an owner of this stand", null));
         }
     }
 
@@ -81,6 +62,7 @@ public class StandController {
         try {
             menuHandler.addStand(stand, user);
         } catch (Throwable throwable) {
+            throwable.printStackTrace();
             return ResponseEntity.ok(BetterResponseModel.error("Error while adding a stand", throwable));
         }
 
@@ -104,6 +86,7 @@ public class StandController {
         try {
             menuHandler.updateStand(stand);
         } catch (Throwable throwable) {
+            throwable.printStackTrace();
             return ResponseEntity.ok(BetterResponseModel.error("Error while updating a stand", throwable));
         }
 
@@ -122,7 +105,6 @@ public class StandController {
      * @param standName standName
      * @param brandName brandName
      * @return Success message or exception
-     * @throws JsonProcessingException Json processing error
      */
     @DeleteMapping(value = "/deleteStand")
     @ResponseBody
@@ -130,6 +112,7 @@ public class StandController {
         try {
             menuHandler.deleteStandById(standName, brandName);
         } catch (Throwable throwable) {
+            throwable.printStackTrace();
             return ResponseEntity.ok(BetterResponseModel.error("Error while deleting stand", throwable));
         }
 
@@ -144,15 +127,34 @@ public class StandController {
      * @return HashMap of "standName":"brandName"
      */
     @GetMapping(value = "/stands")
-    public ResponseEntity<Map<String, String>> requestStandNames() {
-        return ResponseEntity.ok(standRepository.findAll()
-                .stream().collect(Collectors.toMap(Stand::getName, stand -> stand.getBrand().getName())));
+    public ResponseEntity<BetterResponseModel<Map<String, String>>> requestStandNames() {
+        Map<String, String> stands= standRepository.findAll()
+                .stream().collect(Collectors.toMap(Stand::getName, stand -> stand.getBrand().getName()));
+        if(stands.isEmpty()){
+            System.out.println("ERROR: no stands found");
+            return ResponseEntity.ok(BetterResponseModel.error("No stands found", null));
+        }
+        else{
+            return ResponseEntity.ok(BetterResponseModel.ok("Successfully retrieved the stands",stands));
+        }
+
     }
 
     @GetMapping(value = "/standLocations")
-    public ResponseEntity<Map<String, Map<String, Double>>> requestStandLocations() {
-        return ResponseEntity.ok(standRepository.findAll()
-                .stream().collect(Collectors.toMap(Stand::getName, Stand::getLocation)));
+    public ResponseEntity<BetterResponseModel<Map<String, Map<String, Double>>>> requestStandLocations() {
+
+        Map<String, Map<String, Double>> locations= standRepository.findAll()
+                .stream().collect(Collectors.toMap(Stand::getName, Stand::getLocation));
+
+        if(locations.isEmpty()){
+            System.out.println("ERROR: no locations found");
+            return ResponseEntity.ok(BetterResponseModel.error("No locations found", null));
+        }
+        else{
+            return ResponseEntity.ok(BetterResponseModel.ok("Successfully retrieved locations", locations));
+        }
+
+
     }
 
     @GetMapping(value = "/revenue")

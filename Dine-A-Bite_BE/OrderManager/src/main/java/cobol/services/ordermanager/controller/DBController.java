@@ -46,6 +46,7 @@ public class DBController {
             data.forEach(brand -> brandRepository.save(brand));
         }
         catch (Exception e){
+            e.printStackTrace();
             return ResponseEntity.ok(BetterResponseModel.error("Exception thrown while importing data to database", e));
         }
         return ResponseEntity.ok(BetterResponseModel.ok("Data is successfully imported", null));
@@ -63,6 +64,7 @@ public class DBController {
             brandRepository.deleteAll();
         }
         catch(Exception e){
+            e.printStackTrace();
             return ResponseEntity.ok(BetterResponseModel.error("Exception thrown while clearing database", e));
         }
         return ResponseEntity.ok(BetterResponseModel.ok("Brands, stands and fooditems are successfully removed from the database", null));
@@ -79,6 +81,7 @@ public class DBController {
         try {
             data = brandRepository.findAll();
         } catch (Exception e) {
+            e.printStackTrace();
            return ResponseEntity.ok(BetterResponseModel.error("Exception thrown while retrieving all data from database", e));
         }
         return ResponseEntity.ok(BetterResponseModel.ok("Retrieved data from database", data));
@@ -100,6 +103,7 @@ public class DBController {
             List<Stand> stands = standRepository.findAll();
             standNames = stands.stream().map(Stand::getName).collect(Collectors.toList());
         } catch (Throwable e) {
+            e.printStackTrace();
             return ResponseEntity.ok(BetterResponseModel.error("Error thrown while updating Stand Manager", e));
         }
         return ResponseEntity.ok(BetterResponseModel.ok("Successfully updated stand manager schedulers", standNames));
@@ -115,6 +119,7 @@ public class DBController {
         try {
             menuHandler.deleteAll();
         } catch (Throwable e) {
+            e.printStackTrace();
             return ResponseEntity.ok(BetterResponseModel.error("Error thrown while updating Stand Manager", e));
         }
         return ResponseEntity.ok(BetterResponseModel.ok("Database from OrderManager and StandManager cleared.", null));
