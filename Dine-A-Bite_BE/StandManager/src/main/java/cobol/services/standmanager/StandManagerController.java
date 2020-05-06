@@ -2,8 +2,6 @@ package cobol.services.standmanager;
 
 import cobol.commons.BetterResponseModel;
 import cobol.commons.CommonStand;
-import cobol.commons.ResponseModel;
-import cobol.commons.exception.CommunicationException;
 import cobol.commons.exception.DoesNotExistException;
 import cobol.commons.order.CommonOrder;
 import cobol.commons.order.CommonOrderItem;
@@ -22,8 +20,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 
-import static cobol.commons.ResponseModel.status.OK;
-
 @RestController
 public class StandManagerController {
     @Autowired
@@ -35,13 +31,8 @@ public class StandManagerController {
      * @return "StandManager is alive!"
      */
     @GetMapping("/pingSM")
-    public ResponseEntity ping() {
-        return ResponseEntity.ok(
-                ResponseModel.builder()
-                        .status(OK.toString())
-                        .details("StandManager is alive!")
-                        .build().generateResponse()
-        );
+    public ResponseEntity<BetterResponseModel<String>> ping() {
+        return ResponseEntity.ok(BetterResponseModel.ok("StandManager is alive", null));
     }
 
     /**
@@ -56,24 +47,27 @@ public class StandManagerController {
             for (CommonStand stand : stands) {
                 schedulerHandler.updateSchedulers(stand);
             }
-        }
-        catch (Throwable e){
+        } catch (Throwable e) {
+            e.printStackTrace();
             return ResponseEntity.ok(BetterResponseModel.error("Error while updating schedulers", e));
         }
 
         return ResponseEntity.ok(BetterResponseModel.ok("Successfully updated schedulers", "success"));
 
-
     }
 
     @PostMapping("/deleteScheduler")
-    public void deleteScheduler(@RequestParam String standName, @RequestParam String brandName) {
-
+    public ResponseEntity<BetterResponseModel<String>> deleteScheduler(@RequestParam String standName, @RequestParam String brandName) {
 
         Optional<Scheduler> schedulerOptional = schedulerHandler.getSchedulers().stream()
                 .filter(s -> s.getStandName().equals(standName) &&
                         s.getBrand().equals(brandName)).findAny();
-        schedulerOptional.ifPresent(scheduler -> schedulerHandler.removeScheduler(scheduler));
+        if (schedulerOptional.isPresent()) {
+            schedulerOptional.ifPresent(scheduler -> schedulerHandler.removeScheduler(scheduler));
+            return ResponseEntity.ok(BetterResponseModel.ok("Successfully deleted scheduler", null));
+        } else {
+            return ResponseEntity.ok(BetterResponseModel.error("Error while deleting scheduler", new DoesNotExistException("Stand does not exist")));
+        }
     }
 
 
@@ -83,8 +77,14 @@ public class StandManagerController {
      * @return true (if no errors)
      */
     @RequestMapping(value = "/newStand", consumes = "application/json")
-    public JSONObject addNewStand(@RequestBody() CommonStand stand) throws CommunicationException {
-        return schedulerHandler.updateSchedulers(stand);
+    public ResponseEntity<BetterResponseModel<String>> addNewStand(@RequestBody() CommonStand stand) {
+        JSONObject object = null;
+        try {
+            object = schedulerHandler.updateSchedulers(stand);
+            return ResponseEntity.ok(BetterResponseModel.ok("Successfully added stand", object.toJSONString()));
+        } catch (Throwable e) {
+            return ResponseEntity.ok(BetterResponseModel.error("Error while updating stand", e));
+        }
     }
 
 
@@ -93,10 +93,16 @@ public class StandManagerController {
      *              TODO: really implement this
      */
     @RequestMapping(value = "/placeOrder", consumes = "application/json")
-    public void placeOrder(@RequestBody() CommonOrder order) {
-        schedulerHandler.addOrderToScheduler(order);
-    }
+    public ResponseEntity<BetterResponseModel<String>> placeOrder(@RequestBody() CommonOrder order) {
 
+        try {
+            schedulerHandler.addOrderToScheduler(order);
+        } catch (Throwable e) {
+            return ResponseEntity.ok(BetterResponseModel.error("Error while placing order in standmanager", e));
+        }
+
+        return ResponseEntity.ok(BetterResponseModel.ok("Successfully placed order in standmanager", "success"));
+    }
 
 
     /**
@@ -107,18 +113,18 @@ public class StandManagerController {
      * recommendation field will be a JSONArray of Recommendation object
      */
     @PostMapping(value = "/getSuperRecommendation", consumes = "application/json", produces = "application/json")
-    public ResponseEntity<BetterResponseModel<JSONArray>> getSuperRecommendation(@RequestBody SuperOrder superOrder)  {
+    public ResponseEntity<BetterResponseModel<JSONArray>> getSuperRecommendation(@RequestBody SuperOrder superOrder) {
 
         // initialize response
-        JSONArray completeResponse= new JSONArray();
-        try{
+        JSONArray completeResponse = new JSONArray();
+        try {
             /* -- Split superorder in smaller orders -- */
-            List<HashSet<CommonOrderItem>> itemSplit= schedulerHandler.splitSuperOrder(superOrder);
+            List<HashSet<CommonOrderItem>> itemSplit = schedulerHandler.splitSuperOrder(superOrder);
 
 
             /* -- Get recommendations for seperate orders -- */
             for (HashSet<CommonOrderItem> commonOrderItems : itemSplit) {
-                JSONObject orderResponse= new JSONObject();
+                JSONObject orderResponse = new JSONObject();
 
                 // -- Construct a virtual order -- //
                 CommonOrder order = new CommonOrder();
@@ -131,7 +137,7 @@ public class StandManagerController {
                 order.setLongitude(superOrder.getLongitude());
 
                 // -- Ask recommendation for newly created order -- //
-                List<Recommendation> recommendations= schedulerHandler.recommend(order);
+                List<Recommendation> recommendations = schedulerHandler.recommend(order);
 
                 // -- Add to response of this super order recommendation -- //
                 orderResponse.put("order", order);
@@ -139,8 +145,8 @@ public class StandManagerController {
 
                 completeResponse.add(orderResponse);
             }
-        }
-        catch(Throwable e){
+        } catch (Throwable e) {
+            e.printStackTrace();
             return ResponseEntity.ok(BetterResponseModel.error("Error while retrieving superorder recommendations", e));
         }
 
@@ -155,21 +161,22 @@ public class StandManagerController {
      */
     @RequestMapping(value = "/getRecommendation", consumes = "application/json")
     @ResponseBody
-    public ResponseEntity<BetterResponseModel<String>> postCommonOrder(@RequestBody() CommonOrder order){
+    public ResponseEntity<BetterResponseModel<String>> postCommonOrder(@RequestBody() CommonOrder order) {
         System.out.println("User requested recommended stand for " + order.getId());
-        List<Recommendation> recommendations= schedulerHandler.recommend(order);
-        ObjectMapper mapper= new ObjectMapper();
-        String response="";
+        List<Recommendation> recommendations = schedulerHandler.recommend(order);
+        ObjectMapper mapper = new ObjectMapper();
+        String response = "";
         try {
-            response= mapper.writeValueAsString(recommendations);
+            response = mapper.writeValueAsString(recommendations);
         } catch (JsonProcessingException e) {
+            e.printStackTrace();
             return ResponseEntity.ok(BetterResponseModel.error("Error parsing recommendations on server", e));
         }
 
-        if(recommendations.isEmpty()){
-           return ResponseEntity.ok(BetterResponseModel.error("Error fetching recommendations", new DoesNotExistException("No recommendations available")));
-        }
-        else{
+        if (recommendations.isEmpty()) {
+            System.out.println("Error: No recommendations available on server");
+            return ResponseEntity.ok(BetterResponseModel.error("Error fetching recommendations", new DoesNotExistException("No recommendations available on server")));
+        } else {
             return ResponseEntity.ok(BetterResponseModel.ok("Successfully retrieved recommendations", response));
         }
 
