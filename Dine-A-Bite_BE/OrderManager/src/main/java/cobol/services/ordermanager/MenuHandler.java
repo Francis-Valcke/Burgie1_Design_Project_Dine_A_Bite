@@ -104,16 +104,17 @@ public class MenuHandler {
      * Refresh the global menu cache based on the database contents.
      *
      */
-    public List<CommonFood> getGlobalMenu() {
+    public List<CommonFood> getGlobalMenu() throws DoesNotExistException {
 
-        List<CommonFood> food = standRepository.findAll().stream()
+        List<CommonFood> globalMenu= standRepository.findAll().stream()
                 .map(Stand::getFoodList)
                 .flatMap(Collection::stream)
                 .map(Food::asCommonFood)
                 .distinct()
                 .collect(Collectors.toList());
 
-        return food;
+        if(globalMenu.isEmpty()) throw new DoesNotExistException("Global menu does not contain any food items");
+        else return globalMenu;
     }
 
 
