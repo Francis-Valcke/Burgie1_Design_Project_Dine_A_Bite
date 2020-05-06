@@ -37,15 +37,15 @@ public class MenuItemFragment extends DialogFragment {
     private OnMenuItemChangedListener mOnMenuItemChangedListener;
 
     private ArrayList<String> categories = new ArrayList<>(Arrays.asList(
-            "American",
-            "Italian",
-            "Japanese",
-            "Asian",
-            "Mexican",
-            "Belgian",
-            "Burger",
-            "Fries",
-            "Pizza"
+            "AMERICAN",
+            "ITALIAN",
+            "JAPANESE",
+            "ASIAN",
+            "MEXICAN",
+            "BELGIAN",
+            "BURGER",
+            "FRIES",
+            "PIZZA"
     ));
 
     @Override
@@ -115,7 +115,7 @@ public class MenuItemFragment extends DialogFragment {
                 descriptionInput.setText(item.getDescription());
                 prepTimeInput.setText("" + item.getPreparationTime());
 
-                if (!item.getCategory().isEmpty()) {
+                if (!item.getCategory().isEmpty() && !item.getCategory().contains("")) {
                     for (String category : categories) {
                         @SuppressLint("InflateParams")
                         Chip chip = (Chip) getLayoutInflater().inflate(R.layout.chip_category, null);
@@ -183,7 +183,7 @@ public class MenuItemFragment extends DialogFragment {
                                 final Chip addedChip = (Chip) getLayoutInflater()
                                         .inflate(R.layout.chip_category, null);
                                 addedChip.setText(Objects.requireNonNull(editTextCategory.getText())
-                                        .toString());
+                                        .toString().toUpperCase());
                                 addedChip.setChecked(true);
                                 addedChip.setCloseIconVisible(true);
                                 addedChip.setOnCloseIconClickListener(new View.OnClickListener() {
