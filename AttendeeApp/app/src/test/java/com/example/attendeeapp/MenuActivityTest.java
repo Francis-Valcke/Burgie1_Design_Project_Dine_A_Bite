@@ -121,7 +121,8 @@ public class MenuActivityTest {
     @Test
     public void LaunchingNextActivity() {
         ArrayList<CommonFood> cartList = new ArrayList<CommonFood>();
-        CommonFood i = new CommonFood("food", new BigDecimal(0), "");
+        CommonFood i = new CommonFood("food", new BigDecimal(0), 1,
+                1, "", "", "", new ArrayList<>());
         cartList.add(i);
         menuActivity.onCartChangedAdd(i);
 
@@ -167,7 +168,7 @@ public class MenuActivityTest {
         int testCount = 0;
         for (int i = 0; i < 30; i++) {
             CommonFood m = new CommonFood("food", new BigDecimal(5.51 * ((i/15) + 1)),
-                    "brand");
+                    1, 1, "", "brand", "", new ArrayList<>());
             if( i/15 == 0 ) m.setStandName("stand0");
             cartList.add(m);
 
@@ -189,7 +190,7 @@ public class MenuActivityTest {
 
         for (int i = 0; i < food.length*brand.length; i++) {
             CommonFood m = new CommonFood(food[i%food.length], new BigDecimal(Math.random()*100),
-                    brand[i/(food.length*brand.length)]);
+                    1, 1, "", brand[i/(food.length*brand.length)], "", new ArrayList<>());
             m.setStandName(stand[i%stand.length]);
 
             cartCount = menuActivity.onCartChangedRemove(m);
@@ -231,7 +232,7 @@ public class MenuActivityTest {
         // Adding the items, same food, different brand, different price, same stand
         for (int i = 0; i < 30; i++) {
             CommonFood m = new CommonFood("food", new BigDecimal(5.51 * (i%3 + 1)),
-                    "brand" + i%3);
+                    1, 1, "", "brand" + i%3, "", new ArrayList<>());
             m.setStandName("stand");
             cartList.add(m);
 
@@ -272,7 +273,7 @@ public class MenuActivityTest {
         // Adding the items, different food, same brand, same price, same stand (global="")
         for (int i = 0; i < 30; i++) {
             CommonFood m = new CommonFood("food" + i%3, new BigDecimal(5.51),
-                    "brand");
+                    1, 1, "", "brand", "", new ArrayList<>());
             cartList.add(m);
 
             cartCount = menuActivity.onCartChangedAdd(cartList.get(i));
