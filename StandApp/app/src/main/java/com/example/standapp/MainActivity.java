@@ -76,10 +76,19 @@ public class MainActivity extends AppCompatActivity
             );
             String username = sharedPreferences.getString("username", null);
             String userId = sharedPreferences.getString("user_id", null); // token
-            System.out.println("Username: " + username);
+            String standName = sharedPreferences.getString("stand_name", null);
+            String brandName = sharedPreferences.getString("brand_name", null);
+            String subscriberId = sharedPreferences.getString("subscriber_id", null);
+            System.out.println("Username: " + username); // DEBUG
             if (username != null && userId != null) {
                 user = new LoggedInUser(userId, username);
                 loginRepository.setLoggedInUser(user);
+                if (standName != null && brandName != null && subscriberId != null) {
+                    bundle.putString("standName", standName);
+                    bundle.putString("brandName", brandName);
+                    bundle.putString("subscriberId", subscriberId);
+                    profile.fetchMenu(standName, brandName, bundle, mContext);
+                }
             }
         } catch (GeneralSecurityException | IOException e) {
             e.printStackTrace();

@@ -21,7 +21,7 @@ public class LoggedInUser {
         return displayName;
     }
 
-    public String getAutorizationToken() {
+    public String getAuthorizationToken() {
         return "Bearer " + getUserId();
     }
 }

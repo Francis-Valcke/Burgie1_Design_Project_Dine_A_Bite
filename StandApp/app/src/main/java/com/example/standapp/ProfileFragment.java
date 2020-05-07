@@ -3,6 +3,7 @@ package com.example.standapp;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -17,6 +18,8 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.security.crypto.EncryptedSharedPreferences;
+import androidx.security.crypto.MasterKeys;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -44,6 +47,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -58,11 +63,7 @@ public class ProfileFragment extends Fragment {
     private LoggedInUser user;
 
     // ID from the Event Channel
-    private String subscriberId;
-
-    // Used for subscriber ID, for when the user presses the verify button,
-    // it does not ask for another subscriber ID from the Event Channel
-    private String oldStand;
+    private volatile String subscriberId = null;
 
     private Context mContext;
 
@@ -121,10 +122,16 @@ public class ProfileFragment extends Fragment {
                         standNameTextView.setText(editTextStandName.getText());
                         standName = Objects.requireNonNull(editTextStandName.getText()).toString();
                         editTextStandName.setText("");
+
                         ViewGroup parent = (ViewGroup) inputStandNameLayout.getParent();
                         parent.removeView(inputStandNameLayout);
 
-                        if (!standName.isEmpty() && !brandName.isEmpty()){
+                        // Keep verify button disabled when inputting same stand name
+                        // else enable verify button
+                        if (bundle != null
+                                && Objects.equals(bundle.getString("standName"), standName)) {
+                            verifyButton.setEnabled(false);
+                        } else if (!standName.isEmpty() && !brandName.isEmpty()) {
                             verifyButton.setEnabled(true);
                         }
                     }
@@ -163,7 +170,12 @@ public class ProfileFragment extends Fragment {
                         ViewGroup parent = (ViewGroup) inputBrandNameLayout.getParent();
                         parent.removeView(inputBrandNameLayout);
 
-                        if (!standName.isEmpty() && !brandName.isEmpty()){
+                        // Keep verify button disabled when inputting same stand name
+                        // else enable verify button
+                        if (bundle != null
+                                && Objects.equals(bundle.getString("standName"), standName)) {
+                            verifyButton.setEnabled(false);
+                        } else if (!standName.isEmpty() && !brandName.isEmpty()) {
                             verifyButton.setEnabled(true);
                         }
                     }
@@ -216,6 +228,9 @@ public class ProfileFragment extends Fragment {
                                         response.get("details").toString(),
                                         Toast.LENGTH_LONG).show();
                                 if (response.get("status").equals("OK")) {
+                                    // The stand-brand has been verified by the server
+                                    // - The user is the owner
+                                    // - The stand-brand is new and the user can become the owner
                                     handleVerify(standName, brandName, bundle);
                                 } else {
                                     standName = null;
@@ -239,7 +254,7 @@ public class ProfileFragment extends Fragment {
                         public Map<String, String> getHeaders() {
                             HashMap<String, String> headers = new HashMap<>();
                             headers.put("Content-Type", "application/json");
-                            headers.put("Authorization", user.getAutorizationToken());
+                            headers.put("Authorization", user.getAuthorizationToken());
                             return headers;
                         }
                     };
@@ -295,8 +310,26 @@ public class ProfileFragment extends Fragment {
 
             @Override
             public void onClick(View v) {
-                // Delete data when data is persistent (in database)
-                // TODO
+                // Clear Shared Preference file, this will reset the logged in user
+                // - erase username
+                // - erase user ID / token
+                // - erase subscriber ID
+                try {
+                    String masterKeyAlias = MasterKeys.getOrCreate(MasterKeys.AES256_GCM_SPEC);
+                    SharedPreferences sharedPreferences = EncryptedSharedPreferences.create(
+                            getString(R.string.shared_pref_file_key),
+                            masterKeyAlias,
+                            mContext,
+                            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+                    );
+                    SharedPreferences.Editor editor = sharedPreferences.edit();
+                    editor.clear();
+                    // Ignore warning: needs to be commit to be synchronous
+                    editor.commit();
+                } catch (GeneralSecurityException | IOException e) {
+                    e.printStackTrace();
+                }
 
                 LoginRepository.getInstance(new LoginDataSource()).logout();
 
@@ -319,88 +352,66 @@ public class ProfileFragment extends Fragment {
     /**
      * Handle situation after the stand name and brand given by the user is owned by the user
      * or is a new stand
-     * This method will fetch the previously saved/submitted menu from the server (if it exists)
-     * This method will subscribe the stand to the Event Channel for incoming orders
+     * This method will call method to fetch the previously saved/submitted menu from the server
+     * (if it exists)
+     * This method will call method to subscribe the stand to the Event Channel for incoming orders
+     *
      * @param standName name of the stand given by user
      * @param brandName name of the brand given by user
      * @param bundle Bundle to be shared between the fragments
      */
-    private void handleVerify(String standName, String brandName, final Bundle bundle) {
+    private void handleVerify(final String standName, final String brandName, final Bundle bundle) {
         if (bundle != null) bundle.putString("standName", standName);
         if (bundle != null) bundle.putString("brandName", brandName);
 
         // Getting the stand menu from the server after logging in
         // when the stand has a menu saved on the server
-        final ArrayList<CommonFood> items = new ArrayList<>();
-        RequestQueue queue = Volley.newRequestQueue(Objects.requireNonNull(getContext()));
-        String url = ServerConfig.OM_ADDRESS + "/standMenu?brandName=" + brandName
-                + "&standName=" + standName;
-        url = url.replace(' ', '+');
+        fetchMenu(standName, brandName, bundle, getContext());
 
-        if (bundle != null) bundle.putBoolean("newStand", false);
+        // Subscribe to EC and retrieve subscriber ID
+        subscribeEC(standName, brandName, bundle, new VolleyCallback() {
 
-        // Request menu from order manager on server
-        JsonArrayRequest jsonRequest = new JsonArrayRequest(Request.Method.GET, url,
-                null, new Response.Listener<JSONArray>() {
             @Override
-            public void onResponse(JSONArray response) {
+            public void onSuccess(String result) {
+                Log.d("ProfileFrag", "VolleyCallback on Success");
+
+                // Store stand- and brand name persistently
+                // Store received subscriber ID persistently
+                // (wait for when response from server via callback)
                 try {
-                    RevenueViewModel model = new ViewModelProvider(requireActivity()).get(RevenueViewModel.class);
-                    System.out.println(response.toString());
-                    ObjectMapper mapper = new ObjectMapper();
-                    mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-                    CommonFood[] parsedItems = mapper.readValue(response.toString(), CommonFood[].class);
-                    Collections.addAll(items, parsedItems);
-                    if (bundle != null) bundle.putSerializable("items", items);
-                    for (CommonFood item : items) {
-                        model.addPrice(item.getName(), item.getPrice());
-                    }
-                } catch (Exception e) {
-                    Log.v("Exception fetch menu:", e.toString());
-                    Toast.makeText(getContext(), "Could not get menu from server!",
-                            Toast.LENGTH_LONG).show();
+                    String masterKeyAlias = MasterKeys.getOrCreate(MasterKeys.AES256_GCM_SPEC);
+                    SharedPreferences sharedPreferences = EncryptedSharedPreferences.create(
+                            getString(R.string.shared_pref_file_key),
+                            masterKeyAlias,
+                            mContext,
+                            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+                    );
+                    SharedPreferences.Editor editor = sharedPreferences.edit();
+                    editor.putString("stand_name", standName);
+                    editor.putString("brand_name", brandName);
+                    editor.putString("subscriber_id", result);
+                    editor.apply();
+                } catch (GeneralSecurityException | IOException e) {
+                    e.printStackTrace();
                 }
             }
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                error.printStackTrace();
-                if (error instanceof ServerError) {
-                    // TODO server should handle this exception and send a response
-                    Toast.makeText(getContext(), "Server could not find menu of stand",
-                            Toast.LENGTH_LONG).show();
-                    if (bundle != null) bundle.putBoolean("newStand", true);
-                } else {
-                    Toast.makeText(getContext(), error.toString(), Toast.LENGTH_LONG).show();
-                }
-            }
-        }) {
-            @Override
-            public Map<String, String> getHeaders() {
-                HashMap<String, String> headers = new HashMap<>();
-                headers.put("Content-Type", "application/json");
-                headers.put("Authorization", user.getAutorizationToken());
-                return headers;
-            }
-        };
 
-        queue.add(jsonRequest);
-
-        // Subscribe to EC
-        if (subscriberId == null || subscriberId.equals("") || !oldStand.equals(standName)) {
-            subscribeEC(standName, brandName, bundle);
-            oldStand = standName;
-        }
+        });
 
     }
 
     /**
-     * This function will subscribe the stand to the Event Channel
+     * This method will subscribe the stand to the Event Channel
      * and set the subscriberId attribute
+     *
      * @param standName name of the stand given by user
      * @param brandName name of the brand given by user
+     * @param bundle bundle to store the retrieved subscriber ID
+     * @param callback callback that handles response of volley request
      */
-    private void subscribeEC(final String standName, final String brandName, final Bundle bundle) {
+    private void subscribeEC(final String standName, final String brandName, final Bundle bundle,
+                             final VolleyCallback callback) {
 
         // Step 1: Get subscriber ID
         // Instantiate the RequestQueue
@@ -414,10 +425,11 @@ public class ProfileFragment extends Fragment {
                 Toast.makeText(getContext(), "SubscriberId: " + response, Toast.LENGTH_SHORT)
                         .show();
                 subscriberId = response;
+                callback.onSuccess(response);
                 if (bundle != null) bundle.putString("subscriberId", subscriberId);
+                System.out.println("SubscriberID = " + subscriberId); // DEBUG
 
                 // Step 2: Subscribe to stand and subscriberID channels
-                System.out.println("SubscriberID = " + subscriberId);
                 String url2 = ServerConfig.EC_ADDRESS + "/registerSubscriber/toChannel?type=s_"
                         + standName + "_" + brandName + "&id=" + subscriberId;
                 url2 = url2.replace(' ', '+');
@@ -441,7 +453,7 @@ public class ProfileFragment extends Fragment {
                     public Map<String, String> getHeaders() {
                         HashMap<String, String> headers = new HashMap<>();
                         headers.put("Content-Type", "application/json");
-                        headers.put("Authorization", user.getAutorizationToken());
+                        headers.put("Authorization", user.getAuthorizationToken());
                         return headers;
                     }
                 };
@@ -459,11 +471,78 @@ public class ProfileFragment extends Fragment {
             public Map<String, String> getHeaders() {
                 HashMap<String, String> headers = new HashMap<>();
                 headers.put("Content-Type", "application/json");
-                headers.put("Authorization", user.getAutorizationToken());
+                headers.put("Authorization", user.getAuthorizationToken());
                 return headers;
             }
         };
 
         queue.add(request);
+    }
+
+    /**
+     * This method will fetch the previously saved/submitted menu from the server
+     * (if it exists) and save it to the bundle given
+     *
+     * @param standName name of the stand
+     * @param brandName name of the brand
+     * @param bundle bundle to store the fetched menu
+     */
+    void fetchMenu(String standName, String brandName, final Bundle bundle, Context context) {
+
+        final LoggedInUser loggedInUser = LoginRepository.getInstance(new LoginDataSource())
+                .getLoggedInUser();
+
+        final ArrayList<CommonFood> items = new ArrayList<>();
+        RequestQueue queue = Volley.newRequestQueue(context);
+        String url = ServerConfig.OM_ADDRESS + "/standMenu?brandName=" + brandName
+                + "&standName=" + standName;
+        url = url.replace(' ', '+');
+
+        if (bundle != null) bundle.putBoolean("newStand", false);
+
+        // Request menu from order manager on server
+        JsonArrayRequest jsonRequest = new JsonArrayRequest(Request.Method.GET, url,
+                null, new Response.Listener<JSONArray>() {
+            @Override
+            public void onResponse(JSONArray response) {
+                try {
+                    System.out.println(response.toString());
+                    ObjectMapper mapper = new ObjectMapper();
+                    mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+                    CommonFood[] parsedItems = mapper.readValue(response.toString(), CommonFood[].class);
+                    Collections.addAll(items, parsedItems);
+                    if (bundle != null) bundle.putSerializable("items", items);
+                } catch (Exception e) {
+                    Log.v("Exception fetch menu:", e.toString());
+                    Toast.makeText(getContext(), "Could not get menu from server!",
+                            Toast.LENGTH_LONG).show();
+                }
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                error.printStackTrace();
+                if (error instanceof ServerError) {
+                    // TODO server should handle this exception and send a response
+                    Toast.makeText(getContext(), "Server could not find menu of stand",
+                            Toast.LENGTH_LONG).show();
+
+                    // The given stand and brand names do not exist in the server database
+                    if (bundle != null) bundle.putBoolean("newStand", true);
+                } else {
+                    Toast.makeText(getContext(), error.toString(), Toast.LENGTH_LONG).show();
+                }
+            }
+        }) {
+            @Override
+            public Map<String, String> getHeaders() {
+                HashMap<String, String> headers = new HashMap<>();
+                headers.put("Content-Type", "application/json");
+                headers.put("Authorization", loggedInUser.getAuthorizationToken());
+                return headers;
+            }
+        };
+
+        queue.add(jsonRequest);
     }
 }

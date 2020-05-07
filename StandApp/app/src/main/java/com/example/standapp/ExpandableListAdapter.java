@@ -236,7 +236,7 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
             public Map<String, String> getHeaders() {
                 HashMap<String, String> headers = new HashMap<>();
                 headers.put("Content-Type", "application/json");
-                headers.put("Authorization", user.getAutorizationToken());
+                headers.put("Authorization", user.getAuthorizationToken());
                 return headers;
             }
         };
