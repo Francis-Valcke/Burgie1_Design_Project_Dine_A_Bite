@@ -7,14 +7,24 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.security.crypto.EncryptedSharedPreferences;
+import androidx.security.crypto.MasterKeys;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.view.MenuItem;
 
 import android.os.Bundle;
 
+import com.example.standapp.data.LoginDataSource;
+import com.example.standapp.data.LoginRepository;
+import com.example.standapp.data.model.LoggedInUser;
 import com.example.standapp.ui.login.LoginActivity;
 import com.google.android.material.navigation.NavigationView;
+
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
@@ -28,6 +38,7 @@ public class MainActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        final Context mContext = this;
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -51,9 +62,39 @@ public class MainActivity extends AppCompatActivity
         dashboard.setArguments(bundle);
         order.setArguments(bundle);
 
-        // Start logging in activity
-        Intent intent = new Intent(this, LoginActivity.class);
-        startActivityForResult(intent, 1);
+        // Fetch user credentials if stored
+        LoginRepository loginRepository = LoginRepository.getInstance(new LoginDataSource());
+        LoggedInUser user;
+        try {
+            String masterKeyAlias = MasterKeys.getOrCreate(MasterKeys.AES256_GCM_SPEC);
+            SharedPreferences sharedPreferences = EncryptedSharedPreferences.create(
+                    getString(R.string.shared_pref_file_key),
+                    masterKeyAlias,
+                    mContext,
+                    EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                    EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+            );
+            String username = sharedPreferences.getString("username", null);
+            String userId = sharedPreferences.getString("user_id", null); // token
+            System.out.println("Username: " + username);
+            if (username != null && userId != null) {
+                user = new LoggedInUser(userId, username);
+                loginRepository.setLoggedInUser(user);
+            }
+        } catch (GeneralSecurityException | IOException e) {
+            e.printStackTrace();
+        }
+
+        if (!loginRepository.isLoggedIn()) {
+            // Start logging in activity when not user credentials stored (not logged in)
+            Intent intent = new Intent(this, LoginActivity.class);
+            startActivityForResult(intent, 1);
+        } else {
+            // Start profile fragment after successfully retrieving user credentials (is logged in)
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.fragment_container, profile)
+                    .commit();
+        }
 
         if (savedInstanceState == null) {
             navigationView.setCheckedItem(R.id.nav_profile);
@@ -105,6 +146,8 @@ public class MainActivity extends AppCompatActivity
         super.onActivityResult(requestCode, resultCode, data);
 
         // Start profile fragment after successfully logging in
-        getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, profile).commit();
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.fragment_container, profile)
+                .commit();
     }
 }
