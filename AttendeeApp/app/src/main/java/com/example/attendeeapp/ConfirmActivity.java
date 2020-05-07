@@ -172,7 +172,6 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
                         //  (need timing for the order from server)
                         // Add order with confirmed stand to confirmedOrderList
                         orderReceived.setStandName(specificStand);
-                        orderReceived.setBrandName(specificBrand);
                         confirmedOrders.add(orderReceived);
 
                         if (confirmNumber - 1 == brandItemMap.keySet().size() &&
@@ -253,12 +252,12 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
             }
         }
 
-        resetRecommendationFields();
+        resetFields();
 
         // Reset initial values as if ConfirmActivity was restarted
         TextView recommendText = findViewById(R.id.stand_recommend_text);
         recommendText.setText(R.string.no_recommendation);
-        recommendText.setTypeface(null, Typeface.NORMAL);
+        recommendText.setTypeface(null, Typeface.ITALIC);
 
         recommendations = null;
         orderReceived = null;
@@ -281,8 +280,9 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
     /**
      * Make distance and time of recommendation invisible until recommendation comes available
      * Initializes a new spinner for the current stand recommendations
+     * Reset the current order items to be confirmed
      */
-    private void resetRecommendationFields() {
+    private void resetFields() {
         // Make distance and time of recommendation invisible until recommendation comes available
         TextView distanceText = findViewById(R.id.recommend_distance_text);
         distanceText.setVisibility(View.GONE);
@@ -306,6 +306,12 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
         } else {
             standListAdapter.add("No stands available");
         }
+
+        // Reset order items to confirm view
+        TextView confirmItemsText = findViewById(R.id.confirm_order_items_text);
+        confirmItemsText.setVisibility(View.VISIBLE);
+        LinearLayout listView = findViewById(R.id.confirm_list);
+        listView.removeAllViews();
     }
 
     /**
@@ -314,7 +320,7 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
      */
     private void confirmNextSplitStand() {
 
-        resetRecommendationFields();
+        resetFields();
 
         // Reset initial fields
         recommendations = null;
@@ -335,41 +341,27 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
         confirmBrandNumberTxt.setVisibility(View.VISIBLE);
         confirmBrandNumberTxt.setText("(" + confirmSplitOrderNumber + "/" + splitOrderRecommendations.length() + ")");
 
-        showOrderDetails();
+        showSplitOrderAlert();
 
     }
 
-    private void showOrderDetails() {
-
-        LinearLayout listView = findViewById(R.id.confirm_list);
-
-        ArrayList<String> items = new ArrayList<>();
-        for (CommonOrderItem i : orderReceived.getOrderItems()){
-            items.add(i.getFoodName());
-            TextView text = new TextView(this);
-            text.setText(i.getFoodName());
-            listView.addView(text);
-        }
-
+    private void showSplitOrderAlert() {
         // Alert user that the server has split up his order
-        /*AlertDialog.Builder builder = new AlertDialog.Builder(ConfirmActivity.this);
+        AlertDialog.Builder builder = new AlertDialog.Builder(ConfirmActivity.this);
 
         builder.setPositiveButton("Ok", (dialog, id) -> {
             // User clicked Ok button
             dialog.cancel();
         });
 
-        StringBuilder message = new StringBuilder("Your order of brand \"" + orderReceived.getBrandName()
+        String message = "Your order of brand \"" + orderReceived.getBrandName()
                 + "\" has been split up." +
-                "\nThe order you are about to confirm contains the following items:");
-        for (CommonOrderItem i : orderReceived.getOrderItems()) {
-            message.append("\n-").append(i.getFoodName());
-        }
-        builder.setMessage(message.toString())
-                .setTitle("Order has been split up");
+                "\nThe items you are about to confirm for this brand are show below.";
+        builder.setMessage(message)
+                .setTitle("Order has been split up!");
         if (mDialog != null) mDialog.cancel();
         mDialog = builder.create();
-        mDialog.show();*/
+        mDialog.show();
     }
 
     /**
@@ -573,10 +565,12 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
         BigDecimal totalPrice = new BigDecimal(0);
         for (CommonOrderItem i : orderReceived.getOrderItems()) {
             cartCount += i.getAmount();
-            totalPrice = totalPrice.add(i.getPrice());
+
+            totalPrice = totalPrice.add(i.getPrice().multiply(new BigDecimal(i.getAmount())));
         }
         orderReceived.setTotalPrice(totalPrice);
         orderReceived.setTotalCount(cartCount);
+        orderReceived.setBrandName(specificBrand);
         // TODO: add ALL menuItem information to the orderItems!
 
         // Add recommendation stands to the spinner
@@ -598,6 +592,30 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
         else if (specificRecommendation != null) {
             chosenRecommend = recommendations.indexOf(specificRecommendation);
             showSpecificStand();
+        }
+
+        showOrderDetails();
+    }
+
+    /**
+     * Display the current items of the order being confirmed
+     */
+    private void showOrderDetails() {
+
+        TextView confirmItemsText = findViewById(R.id.confirm_order_items_text);
+        confirmItemsText.setVisibility(View.GONE);
+
+        LinearLayout listView = findViewById(R.id.confirm_list);
+
+        for (CommonOrderItem i : orderReceived.getOrderItems()){
+            View view = getLayoutInflater().inflate(R.layout.confirm_item_material, null);
+            TextView textName = view.findViewById(R.id.confirm_item_name);
+            TextView textCount = view.findViewById(R.id.confirm_item_count);
+            TextView textPrice = view.findViewById(R.id.confirm_item_price);
+            textName.setText(i.getFoodName());
+            textCount.setText(i.getAmount() + "");
+            textPrice.setText(i.getPriceEuro());
+            listView.addView(view);
         }
     }
 
@@ -669,7 +687,6 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
         TextView recommend = findViewById(R.id.stand_recommend);
         recommend.setText(R.string.specific_stand_chosen);
     }
-
 
     @Override
     public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
