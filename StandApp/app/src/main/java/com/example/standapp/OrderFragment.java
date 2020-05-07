@@ -85,9 +85,8 @@ public class OrderFragment extends Fragment {
 
         // Getting the log in information from profile fragment
         final Bundle bundle = getArguments();
-        String standName; // DEBUG
         if (bundle != null && Utils.isLoggedIn(mContext, bundle)) {
-            standName = bundle.getString("standName"); // DEBUG
+            String standName = bundle.getString("standName"); // DEBUG
             Log.d("Order fragment", "Logged in stand: " + standName); // DEBUG
             //Toast.makeText(mContext, standName, Toast.LENGTH_SHORT).show(); // DEBUG
 
@@ -117,7 +116,7 @@ public class OrderFragment extends Fragment {
             public void onClick(View v) {
 
                 /*
-                 * This will soon be deleted from the app
+                 * This will not frequently be used
                  * because there is now polling of events
                  * It is still here for fall back reasons
                  */
@@ -222,7 +221,9 @@ public class OrderFragment extends Fragment {
             // Unregister the listener
             LocalBroadcastManager.getInstance(Objects.requireNonNull(mContext))
                     .unregisterReceiver(mMessageReceiver);
-            mContext.stopService(intent); // calls the onDestroy() function of PollingService
+
+            // Call the onDestroy() function of PollingService
+            mContext.stopService(intent);
         }
     }
 

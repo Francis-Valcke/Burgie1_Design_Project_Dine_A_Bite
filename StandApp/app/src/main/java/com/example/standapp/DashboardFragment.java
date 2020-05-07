@@ -89,7 +89,8 @@ public class DashboardFragment extends Fragment
         final Bundle bundle = getArguments();
         String standName = "";
         String brandName = "";
-        if (bundle != null && Utils.isLoggedIn(getContext(), bundle)) {
+        if (bundle != null && Utils.isLoggedIn(getContext(), bundle)
+                && Utils.isConnected(mContext)) {
             standName = bundle.getString("standName");
             brandName = bundle.getString("brandName");
             Toast.makeText(mContext, standName, Toast.LENGTH_SHORT).show();
@@ -234,7 +235,7 @@ public class DashboardFragment extends Fragment
 
                     // Add the request to the RequestQueue
                     queue.add(jsonRequest);
-                    System.out.println(jsonString);
+                    System.out.println("Submitted menu: " + jsonString); // DEBUG
 
                     // Revert stock change
                     for (CommonFood item : items) {
@@ -244,8 +245,6 @@ public class DashboardFragment extends Fragment
                 }
             }
         });
-
-        Utils.isConnected(mContext);
 
         return view;
     }
