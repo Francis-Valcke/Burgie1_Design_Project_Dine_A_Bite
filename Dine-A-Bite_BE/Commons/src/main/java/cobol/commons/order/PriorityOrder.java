@@ -11,11 +11,11 @@ public class PriorityOrder {
     private int orderId;
 
     //map with keys scheduler ID's this order got as recommendation, and values the added time (including priority factor) that this had on that scheduler priorityQueue
-    private Map<Integer, Integer> schedulerId;
+    private Map<Integer, Integer> recommendMap;
 
     public PriorityOrder(int orderId){
         this.orderId = orderId;
-        schedulerId = new HashMap<Integer, Integer>();
+        recommendMap = new HashMap<Integer, Integer>();
     }
 
     /**
@@ -24,10 +24,10 @@ public class PriorityOrder {
      * @param addedTime
      */
     public void addRecommend(int Id, int addedTime){
-        schedulerId.put(Id, addedTime);
+        recommendMap.put(Id, addedTime);
     }
 
-    public Map<Integer, Integer> getSchedulerId() {
-        return schedulerId;
+    public Map<Integer, Integer> getrecommendMap() {
+        return recommendMap;
     }
 }

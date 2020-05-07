@@ -83,5 +83,25 @@ public class PriorityQueues {
         return extraTime;
     }
 
+    /**
+     * remove the added times this order had on the priority queues, and then remove the priority order object from the list
+     * this is done when order is confirmed or when time-out for non confirmed order occurs
+     * TODO: time-out for non confirmed order
+     * @param orderId the id of the order (which is the key to get the priority order object)
+     */
+    public void removeOrder(int orderId){
+        PriorityOrder order = priorityOrders.get(orderId);
+        for (int key : order.getrecommendMap().keySet()){
+            int currentTime = queueTimes.get(key);
+            int newTime = currentTime - order.getrecommendMap().get(key);
+            if (newTime > 0){
+                queueTimes.replace(key, newTime);
+            }
+            else {
+                queueTimes.replace(key, 0);
+            }
+        }
+        priorityOrders.remove(orderId);
+    }
 
 }

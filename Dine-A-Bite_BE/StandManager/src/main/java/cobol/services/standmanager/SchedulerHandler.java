@@ -146,6 +146,9 @@ public class SchedulerHandler {
                 break;
             }
         }
+
+        //remove this order from priority queues
+        this.priorityQueues.removeOrder(order.getId());
         return obj;
     }
 
