@@ -63,7 +63,7 @@ public class ProfileFragment extends Fragment {
     private LoggedInUser user;
 
     // ID from the Event Channel
-    private volatile String subscriberId = null;
+    private String subscriberId = null;
 
     private Context mContext;
 
@@ -310,6 +310,11 @@ public class ProfileFragment extends Fragment {
 
             @Override
             public void onClick(View v) {
+                // Unsubscribe to channels of Event Channel
+                if (subscriberId != null) {
+                    Utils.unsubscribeEC(subscriberId, standName, brandName, user);
+                }
+
                 // Clear Shared Preference file, this will reset the logged in user
                 // - erase username
                 // - erase user ID / token
