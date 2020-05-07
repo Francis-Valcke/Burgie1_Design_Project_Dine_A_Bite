@@ -66,15 +66,12 @@ public class MenuItemAdapter extends BaseAdapter {
 
         // Add expandable bottomSheet for every item
         RelativeLayout reLay = view.findViewById(R.id.menu_item_layout);
-        reLay.setOnClickListener(new View.OnClickListener(){
-            @Override
-            public void onClick(View v) {
-                if(bottomSheet != null) bottomSheet.dismiss();
-                bottomSheet = new MenuBottomSheetDialog(list.get(position));
-                bottomSheet.setCartChangeListener(cartListener);
-                bottomSheet.show(((AppCompatActivity) context).getSupportFragmentManager(),
-                        "bottomSheet");
-            }
+        reLay.setOnClickListener(v -> {
+            if(bottomSheet != null) bottomSheet.dismiss();
+            bottomSheet = new MenuBottomSheetDialog(list.get(position));
+            bottomSheet.setCartChangeListener(cartListener);
+            bottomSheet.show(((AppCompatActivity) context).getSupportFragmentManager(),
+                    "bottomSheet");
         });
 
         // Handle TextView to display one menu item name
@@ -87,12 +84,9 @@ public class MenuItemAdapter extends BaseAdapter {
 
         // Handle Button and add onClickListeners for one menu item
         Button plusBtn = view.findViewById(R.id.plus);
-        plusBtn.setOnClickListener(new View.OnClickListener(){
-            @Override
-            public void onClick(View v) {
-                // Pass menu item to the cart to (try) to be added
-                cartListener.onCartChangedAdd(list.get(position));
-            }
+        plusBtn.setOnClickListener(v -> {
+            // Pass menu item to the cart to (try) to be added
+            cartListener.onCartChangedAdd(list.get(position));
         });
 
         return view;

@@ -9,6 +9,7 @@ import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 
 /**
  * Model for one menu item
@@ -113,6 +114,10 @@ public class CommonFood implements Serializable {
         return category.remove(cat);
     }
 
+    public void replaceCategoryList(ArrayList<String> cats) {
+        this.category = cats;
+    }
+
     public String getDescription() {
         return description;
     }
@@ -138,7 +143,7 @@ public class CommonFood implements Serializable {
     public String getPriceEuro() {
         NumberFormat euro = NumberFormat.getCurrencyInstance(Locale.FRANCE);
         euro.setMinimumFractionDigits(2);
-        String symbol = euro.getCurrency().getSymbol();
+        String symbol = Objects.requireNonNull(euro.getCurrency()).getSymbol();
         return symbol + price.toString();
     }
 

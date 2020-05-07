@@ -13,17 +13,12 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.android.volley.NoConnectionError;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
-
-import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -57,7 +52,7 @@ public class MenuFragmentStand extends MenuFragment implements AdapterView.OnIte
 
         // Initiate the spinner item adapter
         standListAdapter = new ArrayAdapter<>(Objects.requireNonNull(getActivity()),
-                R.layout.stand_spinner_item, new ArrayList<String>());
+                R.layout.stand_spinner_item, new ArrayList<>());
         standListAdapter.add("No stands available");
         spinner.setAdapter(standListAdapter);
 
@@ -72,12 +67,9 @@ public class MenuFragmentStand extends MenuFragment implements AdapterView.OnIte
         // This will re-fetch the stand names from the server,
         // the spinner will call fetchMenu for the first stand item
         pullToRefresh = view.findViewById(R.id.swiperefresh);
-        pullToRefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-            @Override
-            public void onRefresh() {
-                fetchStandNames();
-                pullToRefresh.setRefreshing(true);
-            }
+        pullToRefresh.setOnRefreshListener(() -> {
+            fetchStandNames();
+            pullToRefresh.setRefreshing(true);
         });
 
         // Fetch stand names from the server
@@ -109,56 +101,50 @@ public class MenuFragmentStand extends MenuFragment implements AdapterView.OnIte
         // Request the stand names in JSON from the order manager
         // Handle no network connection or server not reachable
         JsonObjectRequest jsonRequest = new JsonObjectRequest(Request.Method.GET, url, null,
-                new Response.Listener<JSONObject>() {
-                    @Override
-                    public void onResponse(JSONObject response) {
+                response -> {
 
-                        try {
-                            standListAdapter.clear();
-                            brandList.clear();
-                            standListAdapter.add("No stands available");
+                    try {
+                        standListAdapter.clear();
+                        brandList.clear();
+                        standListAdapter.add("No stands available");
 
-                            for (Iterator<String> iter = response.keys(); iter.hasNext(); ) {
-                                String standName = iter.next();
-                                String brandName = response.getString(standName);
-                                brandList.add(brandName);
+                        for (Iterator<String> iter = response.keys(); iter.hasNext(); ) {
+                            String standName = iter.next();
+                            String brandName = response.getString(standName);
+                            brandList.add(brandName);
 
-                                // Add stand to the spinner list
-                                standListAdapter.add(standName);
-                            }
-
-                            if (standListAdapter.getCount() != 1) standListAdapter.remove("No stands available");
-
-                            // Refresh spinner
-                            spinner.setAdapter(standListAdapter);
-
-                        } catch (Exception e) { // Catch all exceptions TODO: only specific ones
-                            Log.v("Exception fetchMenu", e.toString());
-                            if (mToast != null) mToast.cancel();
-                            mToast = Toast.makeText(getActivity(), "A parsing error occurred when fetching the stands!",
-                                    Toast.LENGTH_LONG);
-                            mToast.show();
+                            // Add stand to the spinner list
+                            standListAdapter.add(standName);
                         }
+
+                        if (standListAdapter.getCount() != 1) standListAdapter.remove("No stands available");
+
+                        // Refresh spinner
+                        spinner.setAdapter(standListAdapter);
+
+                    } catch (Exception e) { // Catch all exceptions TODO: only specific ones
+                        Log.v("Exception fetchMenu", e.toString());
+                        if (mToast != null) mToast.cancel();
+                        mToast = Toast.makeText(getActivity(), "A parsing error occurred when fetching the stands!",
+                                Toast.LENGTH_LONG);
+                        mToast.show();
                     }
-                }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                // NoConnectionError = no network connection0
-                // other = server not reachable
-                if (mToast != null) mToast.cancel();
-                if (error instanceof NoConnectionError) {
-                    mToast = Toast.makeText(getActivity(), "No network connection",
-                            Toast.LENGTH_LONG);
-                    mToast.show();
-                } else {
-                    mToast = Toast.makeText(getActivity(), "Server cannot be reached. No stands available.",
-                            Toast.LENGTH_LONG);
-                    mToast.show();
-                }
-                // Refreshing is done
-                pullToRefresh.setRefreshing(false);
-            }
-        }) { // Add JSON headers
+                }, error -> {
+                    // NoConnectionError = no network connection0
+                    // other = server not reachable
+                    if (mToast != null) mToast.cancel();
+                    if (error instanceof NoConnectionError) {
+                        mToast = Toast.makeText(getActivity(), "No network connection",
+                                Toast.LENGTH_LONG);
+                        mToast.show();
+                    } else {
+                        mToast = Toast.makeText(getActivity(), "Server cannot be reached. No stands available.",
+                                Toast.LENGTH_LONG);
+                        mToast.show();
+                    }
+                    // Refreshing is done
+                    pullToRefresh.setRefreshing(false);
+                }) { // Add JSON headers
             @Override
             public @NonNull
             Map<String, String> getHeaders()  {

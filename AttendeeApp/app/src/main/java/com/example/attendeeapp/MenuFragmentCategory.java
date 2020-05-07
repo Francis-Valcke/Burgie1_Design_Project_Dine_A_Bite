@@ -11,7 +11,6 @@ import android.widget.Spinner;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.example.attendeeapp.json.CommonFood;
 
@@ -46,7 +45,7 @@ public class MenuFragmentCategory extends MenuFragment implements AdapterView.On
 
         // Initiate the spinner item adapter
         categoryListAdapter = new ArrayAdapter<>(Objects.requireNonNull(getActivity()),
-                R.layout.stand_spinner_item, new ArrayList<String>());
+                R.layout.stand_spinner_item, new ArrayList<>());
         categoryListAdapter.add("No categories available");
         spinner.setAdapter(categoryListAdapter);
 
@@ -62,12 +61,9 @@ public class MenuFragmentCategory extends MenuFragment implements AdapterView.On
         // This will re-fetch all the menu items from the server
         // the spinner will initialize the first selected spinner category its menu items
         pullToRefresh = view.findViewById(R.id.swiperefresh);
-        pullToRefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-            @Override
-            public void onRefresh() {
-                fetchMenu("", "");
-                pullToRefresh.setRefreshing(true);
-            }
+        pullToRefresh.setOnRefreshListener(() -> {
+            fetchMenu("", "");
+            pullToRefresh.setRefreshing(true);
         });
 
         // Fetch all menu items from the server (contain the categories)
@@ -82,7 +78,7 @@ public class MenuFragmentCategory extends MenuFragment implements AdapterView.On
         if (!category.equals("No categories available")) {
             menuAdapter.putList(categoryItemMap.get(category));
         } else {
-            menuAdapter.putList(new ArrayList<CommonFood>());
+            menuAdapter.putList(new ArrayList<>());
         }
         menuAdapter.notifyDataSetChanged();
     }

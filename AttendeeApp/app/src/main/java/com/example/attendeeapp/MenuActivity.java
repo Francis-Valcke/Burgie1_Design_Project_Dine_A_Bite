@@ -3,16 +3,10 @@ package com.example.attendeeapp;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.View;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
 import androidx.viewpager2.widget.ViewPager2;
 
 import com.example.attendeeapp.json.CommonFood;
@@ -52,19 +46,17 @@ public class MenuActivity extends ToolbarActivity implements OnCartChangeListene
         // Set up different tabs for the viewpager slider
         TabLayout tabLayout = findViewById(R.id.menu_tab_layout);
         new TabLayoutMediator(tabLayout, viewPager,
-                new TabLayoutMediator.TabConfigurationStrategy() {
-                    @Override public void onConfigureTab(@NonNull TabLayout.Tab tab, int position) {
-                        switch (position) {
-                            case 0:
-                                tab.setText(R.string.tab_global);
-                                break;
-                            case 1:
-                                tab.setText(R.string.tab_stand);
-                                break;
-                            case 2:
-                                tab.setText(R.string.tab_category);
-                                break;
-                        }
+                (tab, position) -> {
+                    switch (position) {
+                        case 0:
+                            tab.setText(R.string.tab_global);
+                            break;
+                        case 1:
+                            tab.setText(R.string.tab_stand);
+                            break;
+                        case 2:
+                            tab.setText(R.string.tab_category);
+                            break;
                     }
                 }).attach();
 
@@ -73,14 +65,11 @@ public class MenuActivity extends ToolbarActivity implements OnCartChangeListene
         totalCount.setText("0");
 
         RelativeLayout relLay = findViewById(R.id.cart_layout);
-        relLay.setOnClickListener(new View.OnClickListener(){
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(MenuActivity.this, CartActivity.class);
-                intent.putExtra("cartList", cartList);
-                intent.putExtra("cartCount", cartCount);
-                startActivityForResult(intent, 1);
-            }
+        relLay.setOnClickListener(v -> {
+            Intent intent = new Intent(MenuActivity.this, CartActivity.class);
+            intent.putExtra("cartList", cartList);
+            intent.putExtra("cartCount", cartCount);
+            startActivityForResult(intent, 1);
         });
     }
 

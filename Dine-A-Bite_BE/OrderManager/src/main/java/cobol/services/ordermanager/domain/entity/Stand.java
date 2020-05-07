@@ -36,7 +36,7 @@ public class Stand implements Serializable {
     List<Food> foodList = new ArrayList<>();
 
     @JsonIgnore
-    @OneToMany(mappedBy = "stand")
+    @OneToMany(mappedBy = "stand", cascade = CascadeType.ALL)
     List<Order> orderList = new ArrayList<>();
 
     @ManyToMany

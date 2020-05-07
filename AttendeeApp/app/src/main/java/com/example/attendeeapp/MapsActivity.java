@@ -9,8 +9,6 @@ import androidx.fragment.app.FragmentActivity;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.example.attendeeapp.data.LoginDataSource;
@@ -66,27 +64,21 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private void requestStandLocations() {
         RequestQueue queue = Volley.newRequestQueue(this);
         String uri = ServerConfig.OM_ADDRESS + "/standLocations";
-        StringRequest request = new StringRequest(Request.Method.GET, uri, new Response.Listener<String>() {
-            @Override
-            public void onResponse(String response) {
-                ObjectMapper mapper = new ObjectMapper();
-                try {
-                    standLocations = mapper.readValue(response, new TypeReference<Map<String, Map<String, Double>>>() {});
-                    SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-                            .findFragmentById(R.id.map);
-                    mapFragment.getMapAsync(MapsActivity.this);
-                } catch (JsonProcessingException e) {
-                    Log.e("MapsActivity", Objects.requireNonNull(e.getMessage()));
-                    Toast toast = Toast.makeText(MapsActivity.this, "Error parsing stand locations!", Toast.LENGTH_SHORT);
-                    toast.show();
-                }
-            }
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                Toast toast = Toast.makeText(MapsActivity.this, "Error getting stand locations", Toast.LENGTH_SHORT);
+        StringRequest request = new StringRequest(Request.Method.GET, uri, response -> {
+            ObjectMapper mapper = new ObjectMapper();
+            try {
+                standLocations = mapper.readValue(response, new TypeReference<Map<String, Map<String, Double>>>() {});
+                SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+                        .findFragmentById(R.id.map);
+                mapFragment.getMapAsync(MapsActivity.this);
+            } catch (JsonProcessingException e) {
+                Log.e("MapsActivity", Objects.requireNonNull(e.getMessage()));
+                Toast toast = Toast.makeText(MapsActivity.this, "Error parsing stand locations!", Toast.LENGTH_SHORT);
                 toast.show();
             }
+        }, error -> {
+            Toast toast = Toast.makeText(MapsActivity.this, "Error getting stand locations", Toast.LENGTH_SHORT);
+            toast.show();
         }) {
             // Add JSON headers
             @Override
