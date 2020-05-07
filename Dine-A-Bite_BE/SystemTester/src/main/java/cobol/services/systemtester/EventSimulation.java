@@ -37,13 +37,14 @@ public class EventSimulation {
         int j = 0;
         //create stages and spread stands around stages
         for (int i=0;i<stageCount;i++){
-            Stage s = new Stage(0, 0, 1, 1, size/stageCount);
+            Stage s = new Stage(0, 0, 1, 1, size/stageCount, log);
             if (j<stands.size())s.addStand(stands.get(j));
             j++;
             if (j<stands.size())s.addStand(stands.get(j));
             stages.add(s);
             for (Attendee a : s.getAttendees()){
                 a.setOrdertime(ran.nextGaussian()*30+60);
+                a.setup(log);
             }
 
         }
@@ -59,18 +60,16 @@ public class EventSimulation {
 
     public void start(){
         for (Stand s:stands){
-            s.run();
+            s.start();
         }
         for (Stage s:stages){
-            for (Attendee a:s.getAttendees()){
-                a.run();//running 10k attendee threads?
-            }
+            s.start();
         }
     }
     public void end(){
         for (Stand s:stands){
             s.delete().subscribe(
-                    o -> log.info("Stand " + s.getName() + " deleted"),
+                    o -> log.info("Stand " + s.getStandName() + " deleted"),
                     throwable -> log.error(throwable.getMessage())
             );
         }

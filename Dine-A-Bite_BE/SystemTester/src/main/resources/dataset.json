@@ -57,7 +57,7 @@
         "name": "Tasty Salad"
       }
     ],
-    "name": "Balls & Glory 1_test"
+    "standName": "Balls & Glory 1_test"
   },
   {
     "brandName": "Balls & Glory_test",
@@ -117,7 +117,7 @@
         "name": "Tasty Salad"
       }
     ],
-    "name": "Balls & Glory 2_test"
+    "standName": "Balls & Glory 2_test"
   },
   {
     "brandName": "Balls & Glory_test",
@@ -177,7 +177,7 @@
         "name": "Tasty Salad"
       }
     ],
-    "name": "Balls & Glory 3_test"
+    "standName": "Balls & Glory 3_test"
   },
   {
     "brandName": "BurgerKing_test",
@@ -259,7 +259,7 @@
         "name": "Ultimate Chicken Bacon King"
       }
     ],
-    "name": "BurgerKing 1_test"
+    "standName": "BurgerKing 1_test"
   },
   {
     "brandName": "BurgerKing_test",
@@ -341,7 +341,7 @@
         "name": "Ultimate Chicken Bacon King"
       }
     ],
-    "name": "BurgerKing 2_test"
+    "standName": "BurgerKing 2_test"
   },
   {
     "brandName": "BurgerKing_test",
@@ -423,7 +423,7 @@
         "name": "Ultimate Chicken Bacon King"
       }
     ],
-    "name": "BurgerKing 3_test"
+    "standName": "BurgerKing 3_test"
   },
   {
     "brandName": "BurgerKing_test",
@@ -505,7 +505,7 @@
         "name": "Ultimate Chicken Bacon King"
       }
     ],
-    "name": "BurgerKing 4_test"
+    "standName": "BurgerKing 4_test"
   },
   {
     "brandName": "McDonalds_test",
@@ -587,7 +587,7 @@
         "name": "Small fries"
       }
     ],
-    "name": "McDonalds 1_test"
+    "standName": "McDonalds 1_test"
   },
   {
     "brandName": "McDonalds_test",
@@ -669,7 +669,7 @@
         "name": "Small fries"
       }
     ],
-    "name": "McDonalds 2_test"
+    "standName": "McDonalds 2_test"
   },
   {
     "brandName": "McDonalds_test",
@@ -751,7 +751,7 @@
         "name": "Small fries"
       }
     ],
-    "name": "McDonalds 3_test"
+    "standName": "McDonalds 3_test"
   },
   {
     "brandName": "McDonalds_test",
@@ -833,7 +833,7 @@
         "name": "Small fries"
       }
     ],
-    "name": "McDonalds 4_test"
+    "standName": "McDonalds 4_test"
   },
   {
     "brandName": "PizzaHut_test",
@@ -912,7 +912,7 @@
         "name": "Pepper"
       }
     ],
-    "name": "PizzaHut 1_test"
+    "standName": "PizzaHut 1_test"
   },
   {
     "brandName": "PizzaHut_test",
@@ -991,6 +991,6 @@
         "name": "Pepper"
       }
     ],
-    "name": "PizzaHut 2_test"
+    "standName": "PizzaHut 2_test"
   }
 ]

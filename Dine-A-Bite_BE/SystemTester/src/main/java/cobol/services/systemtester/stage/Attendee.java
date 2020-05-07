@@ -14,6 +14,7 @@ import io.reactivex.schedulers.Schedulers;
 import io.reactivex.subjects.SingleSubject;
 import lombok.Data;
 import lombok.extern.log4j.Log4j2;
+import org.apache.logging.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -31,7 +32,7 @@ import java.util.stream.Collectors;
  */
 @Log4j2
 @Data
-public class  Attendee {
+public class  Attendee{
 
     private static int idCounter = 0;
     private int id;
@@ -39,6 +40,7 @@ public class  Attendee {
     private double latitude;
     private double longitude;
     private double orderTime;
+    private Logger log;
 
 
     public Attendee(double latitude,double longitude ) {
@@ -54,14 +56,14 @@ public class  Attendee {
 
         //Prepare body
         JSONObject requestBody = new JSONObject();
-        requestBody.put("username", id);
+        requestBody.put("username", "a"+id);
         requestBody.put("password", id);
 
         //Create single from request
         return Single.create((SingleOnSubscribe<JSONObject>) emitter -> {
 
             try {
-                JSONObject responseBody = Unirest.post(ServerConfig.ACURL + "/create")
+                JSONObject responseBody = Unirest.post(ServerConfig.ACURL + "/createUser")
                         .header("Content-Type", "application/json")
                         .body(requestBody)
                         .asJson()
@@ -83,7 +85,7 @@ public class  Attendee {
 
         //Prepare body
         JSONObject requestBody = new JSONObject();
-        requestBody.put("username", id);
+        requestBody.put("username", "a"+id);
         requestBody.put("password", id);
 
         //Create single from request
@@ -96,7 +98,6 @@ public class  Attendee {
                         .asJson()
                         .getBody()
                         .getObject();
-
                 token = responseBody.getJSONObject("details").getString("token");
 
                 emitter.onSuccess(responseBody);
@@ -158,7 +159,6 @@ public class  Attendee {
 
 
     public Single<JSONObject> placeRandomOrder(JSONArray items, int itemCount) {
-
         //Prepare order
         Random random = new Random();
         JSONObject order = new JSONObject();
@@ -166,22 +166,24 @@ public class  Attendee {
 
         //Random brandname to choose items from
         String brandName = items.getJSONObject(random.nextInt(items.length())).getString("brandName");
+        while(!brandName.contains("_test"))brandName = items.getJSONObject(random.nextInt(items.length())).getString("brandName");
         List<JSONObject> itemsList = new ArrayList<>();
         items.forEach(o -> itemsList.add((JSONObject) o));
-        List<JSONObject> filteredItemsList = itemsList.stream().filter(o -> o.getString("brandName").equals(brandName)).collect(Collectors.toList());
+        String finalBrandName = brandName;
+        List<JSONObject> filteredItemsList = itemsList.stream().filter(o -> o.getString("brandName").equals(finalBrandName)).collect(Collectors.toList());
 
         //Choose items at random from the chose brand
         for (int i = 0; i < itemCount; i++) {
             JSONObject selectedItem = items.getJSONObject(random.nextInt(filteredItemsList.size()));
             JSONObject orderItem = new JSONObject();
-            orderItem.put("foodname", selectedItem.getString("foodName"));
+            orderItem.put("foodName", selectedItem.getString("name"));
             orderItem.put("amount", itemCount);
             orderItems.put(orderItem);
         }
 
         //Complete the order
-        order.put("latitude", ServerConfig.getRandomLatitude());
-        order.put("longitude", ServerConfig.getRandomLongitude());
+        order.put("latitude", this.latitude);
+        order.put("longitude", this.longitude);
         order.put("orderStatus", "SEND");
         order.put("brandName", brandName);
         order.put("orderItems", orderItems);
@@ -198,7 +200,7 @@ public class  Attendee {
                         .asJson()
                         .getBody()
                         .getObject();
-
+                System.out.println(responseBody.toString());
                 emitter.onSuccess(responseBody);
 
             } catch (UnirestException | JSONException e) {
@@ -208,15 +210,27 @@ public class  Attendee {
         }).observeOn(Schedulers.io());
 
     }
-    public void run(){
-        //if orderTime: placeOrder, confirmOrder --> get order
+
+    public void setup(Logger log){
+        this.log = log;
+        create().subscribe(
+                o -> log.info("User " + getId() + " created!"),
+                throwable -> log.error(throwable.getMessage())
+        );
+        authenticate().subscribe(
+                o -> log.info("User " + getId() + " authenticated with token: " + o.getJSONObject("details").getString("token")),
+                throwable -> log.error(throwable.getMessage())
+        );
+
     }
     public void setOrdertime(double time){
         if (time<1)time=1;
         this.orderTime=time;
     }
 
-
+    public double getOrderTime(){
+        return this.orderTime;
+    }
     public int getId() {
         return this.id;
     }
