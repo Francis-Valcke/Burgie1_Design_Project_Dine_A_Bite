@@ -129,6 +129,10 @@ public class DashboardFragment extends Fragment
                         item.setBrandName(finalBrandName);
                         item.setStandName(finalStandName);
 
+                        if (item.getCategory().isEmpty()) {
+                            item.addCategory("");
+                        }
+
                         // Temporarily set stock to added stock,
                         // because that is what the backend expects,
                         // change back after sending to backend
