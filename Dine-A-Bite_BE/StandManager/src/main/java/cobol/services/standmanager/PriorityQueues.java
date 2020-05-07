@@ -6,25 +6,25 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 /**
  * this class will serve ass extra estimation for queue times (by calculating times for NOT confirmed orders)
- * TODO: should this be as thread or not? (or instead a priorityQueue extra class for value in the hashmap and synchronizing on this?)
  */
 
 @Component
 @Scope(value = "singleton")
 public class PriorityQueues {
-    //this Map will use as key the ID of the scheduler (which is subscriberID in the scheduler object) and the waiting time for that scheduler (for only non confirmed orders)
-    private Map<Integer, Integer> queueTimes ;
+    //this Map will use as key the ID of the scheduler (which is subscriberID in the scheduler object) and the priority orders in that scheduler
+    private Map<Integer, ArrayList<PriorityOrder>> queues; ;
     //Map with al non confirmed orders, used to delete them easily from priority queues (and in future also to easily "change" them if the order gets changed or new recommendation for same order is asked)
     private Map<Integer, PriorityOrder> priorityOrders;
 
     public PriorityQueues(){
-        this.queueTimes = new HashMap<Integer,Integer>();
+        this.queues = new HashMap<Integer,ArrayList<PriorityOrder>>();
         this.priorityOrders = new HashMap<Integer, PriorityOrder>();
     }
 
@@ -39,22 +39,23 @@ public class PriorityQueues {
 
             int currentRecomTime = rec .getTimeEstimate();
             int currentSchedulerId = rec.getSchedulerId();
-            int currentExtraTime = 0;
             int orderPrepTime = rec.getOrderPrepTime();
 
-            //check if already a priority queue in the hashmap to get time from, otherwise create one and set time to 0
-            if (!queueTimes.containsKey(currentSchedulerId)){
-                queueTimes.put(currentSchedulerId, currentExtraTime);
+
+            //check if already a priority queue in the hashmap to get time from, otherwise create one and create the list for priorityOrders
+            if (!queues.containsKey(currentSchedulerId)){
+                queues.put(currentSchedulerId, new ArrayList<PriorityOrder>());
             }
-            else{
-                currentExtraTime = queueTimes.get(currentSchedulerId);
-            }
+
+            //calculate the queue time of this specific priorityQueue
+            int extraTime = checkQueueTime(queues.get(currentSchedulerId), currentSchedulerId);
+
 
             //add extra time to this recommendations' original time estimate
-            rec.setTimeEstimate(currentExtraTime + currentRecomTime);
+            rec.setTimeEstimate(extraTime + currentRecomTime);
 
             //add (factored) extra time to the specific priority queue and save priorityOrder in extra list (used for quick lookup and management)
-            int addedTime = changePriorityTime(currentSchedulerId,orderPrepTime,rec.getRank());
+            int addedTime = calculatePriorityTime(orderPrepTime,rec.getRank());
             priorityOrder.addRecommend(currentSchedulerId, addedTime);
 
             System.out.println("ADDED: " + addedTime + "TO SCHEDULER: " + currentSchedulerId);
@@ -65,11 +66,10 @@ public class PriorityQueues {
 
     /**
      *
-     * @param schedulerId ID of the scheduler (and also priority queue ID for that scheduler)
      * @param prepTime preparation time of the order for the specific scheduler (this could be different for a different stand possibly at this point)
      * @param priority of the recommendation (so basically just the rank of that recommendation)
      */
-    public int changePriorityTime(int schedulerId, int prepTime, int priority){
+    public int calculatePriorityTime(int prepTime, int priority){
         //for now a set factor for each priority (given that only 3 recommends are given atm so this can be hard coded to check first implementation)
         double [] factors = new double[]{0.6, 0.3, 0.1};
 
@@ -77,8 +77,6 @@ public class PriorityQueues {
         double factor = factors[priority-1];
         //calculate extra time
         int extraTime = (int) (prepTime*factor);
-        //set new priorityQueue time
-        queueTimes.replace(schedulerId,queueTimes.get(schedulerId) + extraTime);
 
         return extraTime;
     }
@@ -86,22 +84,39 @@ public class PriorityQueues {
     /**
      * remove the added times this order had on the priority queues, and then remove the priority order object from the list
      * this is done when order is confirmed or when time-out for non confirmed order occurs
-     * TODO: time-out for non confirmed order
      * @param orderId the id of the order (which is the key to get the priority order object)
      */
     public void removeOrder(int orderId){
         PriorityOrder order = priorityOrders.get(orderId);
         for (int key : order.getrecommendMap().keySet()){
-            int currentTime = queueTimes.get(key);
-            int newTime = currentTime - order.getrecommendMap().get(key);
-            if (newTime > 0){
-                queueTimes.replace(key, newTime);
-            }
-            else {
-                queueTimes.replace(key, 0);
-            }
+            queues.get(key).remove(order);
         }
         priorityOrders.remove(orderId);
+    }
+
+    /**
+     * calculate current queue time of priority queue and delete orders which are past their time window
+     * @param prioQueue the current priority queue
+     * @param iD the scheduler id of this priorityqueue
+     * @return returns the current extra time off this priority queue
+     */
+    public int checkQueueTime(ArrayList<PriorityOrder> prioQueue, int iD){
+        //TimeWindow, currently hard coded to be 120 seconds but can be easily changed/used dynamically
+        int timeWindow = 120;
+
+        int extraTime = 0;
+        //check if order in prio queue is expired, and if so delete it
+        //if not, we can add the weighted time of this order to the total time
+        for (PriorityOrder o : prioQueue){
+            //if true, expired, if false, calculate time
+            if (o.checkExpirationWindow(120)){
+                removeOrder(o.getOrderId());
+            }
+            else{
+                extraTime += o.getrecommendMap().get(iD);
+            }
+        }
+        return extraTime;
     }
 
 }

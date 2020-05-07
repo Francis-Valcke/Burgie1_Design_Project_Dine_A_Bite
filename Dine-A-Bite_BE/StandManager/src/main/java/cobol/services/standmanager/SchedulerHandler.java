@@ -16,7 +16,9 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 @Scope(value = "singleton")
@@ -133,8 +135,16 @@ public class SchedulerHandler {
             recommendations.add(new Recommendation(curScheduler.getStandName(), curScheduler.getBrand(), sc.getDistance(order.getLatitude(), order.getLongitude()), st.getTimesum(curScheduler), i+1, curScheduler.getSubscriberId(), st.getLongestFoodPrepTime(curScheduler)));
         }
 
+        //add the queue times of the priority queues
         priorityQueues.computeExtraTime(recommendations, order.getId());
-        return recommendations;
+
+        //sort the recommendation list again based on added times
+        List<Recommendation> sortedRecommends = recommendations.stream()
+                .sorted(Comparator.comparing(Recommendation::getTimeEstimate))
+                .collect(Collectors.toList());
+
+        //TODO:re-set the ranks of the recommendations!!!
+        return sortedRecommends;
     }
 
     public JSONObject addOrderToScheduler(CommonOrder order) {
@@ -149,6 +159,7 @@ public class SchedulerHandler {
 
         //remove this order from priority queues
         this.priorityQueues.removeOrder(order.getId());
+
         return obj;
     }
 

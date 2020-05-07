@@ -2,6 +2,7 @@ package cobol.services.standmanager;
 
 
 import cobol.commons.order.CommonOrderItem;
+import cobol.commons.order.Recommendation;
 
 import java.util.ArrayList;
 import java.util.Comparator;
