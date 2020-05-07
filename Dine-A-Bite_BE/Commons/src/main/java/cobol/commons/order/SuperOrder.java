@@ -2,6 +2,9 @@ package cobol.commons.order;
 
 import java.util.List;
 
+/**
+ * SuperOrder which belongs to only one brand, but can handle items from multiple stands
+ */
 public class SuperOrder {
 
     String brandName;

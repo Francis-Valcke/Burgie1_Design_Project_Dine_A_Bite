@@ -17,10 +17,6 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
@@ -28,8 +24,6 @@ import com.example.attendeeapp.json.CommonFood;
 import com.example.attendeeapp.json.CommonOrder;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -98,34 +92,30 @@ public class CartActivity extends ToolbarActivity implements AdapterView.OnItemS
         // Handle button to confirm order
         // Only if there are items in the cart, the order can continue
         Button confirmButton = findViewById(R.id.button_confirm_order);
-        confirmButton.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-                // confirm order -> go to order view
-                // Send order with JSON + location
-                if (cartAdapter.getCartList().size() > 0) {
-                    checkLocationPermission();
-                    //if(cartAdapter.getCartList().get(0).getStandName().equals("")) {
-                    Intent intent = new Intent(CartActivity.this, ConfirmActivity.class);
-                    intent.putExtra("order", ordered);
-                    intent.putExtra("location", lastLocation);
-                    intent.putExtra("totalPrice", totalPrice);
+        confirmButton.setOnClickListener(v -> {
+            // confirm order -> go to order view
+            // Send order with JSON + location
+            if (cartAdapter.getCartList().size() > 0) {
+                checkLocationPermission();
+                //if(cartAdapter.getCartList().get(0).getStandName().equals("")) {
+                Intent intent = new Intent(CartActivity.this, ConfirmActivity.class);
+                intent.putExtra("order", ordered);
+                intent.putExtra("location", lastLocation);
+                intent.putExtra("totalPrice", totalPrice);
+                intent.putExtra("cartCount", cartAdapter.getCartCount());
+                startActivity(intent);
+                /*} else {
+                    Intent intent = new Intent(CartActivity.this, OrderActivity.class);
+                    intent.putExtra("order_list", ordered);
                     intent.putExtra("cartCount", cartAdapter.getCartCount());
                     intent.putExtra("recType", recommendType);
                     startActivity(intent);
-                    /*} else {
-                        Intent intent = new Intent(CartActivity.this, OrderActivity.class);
-                        intent.putExtra("order_list", ordered);
-                        intent.putExtra("cartCount", cartAdapter.getCartCount());
-                        startActivity(intent);
-                    }*/
-                } else {
-                    if (mToast != null) mToast.cancel();
-                    mToast = Toast.makeText(CartActivity.this, "No items in your cart!",
-                            Toast.LENGTH_SHORT);
-                    mToast.show();
-                }
+                }*/
+            } else {
+                if (mToast != null) mToast.cancel();
+                mToast = Toast.makeText(CartActivity.this, "No items in your cart!",
+                        Toast.LENGTH_SHORT);
+                mToast.show();
             }
         });
 
@@ -166,12 +156,9 @@ public class CartActivity extends ToolbarActivity implements AdapterView.OnItemS
             // Request the latest user location
             fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
             fusedLocationClient.getLastLocation()
-                    .addOnCompleteListener(new OnCompleteListener<Location>() {
-                        @Override
-                        public void onComplete(@NotNull Task<Location> task ) {
-                            if(task.isSuccessful() && task.getResult() != null){
-                                lastLocation = task.getResult();
-                            }
+                    .addOnCompleteListener(task -> {
+                        if(task.isSuccessful() && task.getResult() != null){
+                            lastLocation = task.getResult();
                         }
                     });
         }
@@ -196,12 +183,9 @@ public class CartActivity extends ToolbarActivity implements AdapterView.OnItemS
                     // Create location request to fetch latest user location
                     fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
                     fusedLocationClient.getLastLocation()
-                            .addOnCompleteListener(new OnCompleteListener<Location>() {
-                                @Override
-                                public void onComplete(@NotNull Task<Location> task ) {
-                                    if(task.isSuccessful() && task.getResult() != null){
-                                        lastLocation = task.getResult();
-                                    }
+                            .addOnCompleteListener(task -> {
+                                if(task.isSuccessful() && task.getResult() != null){
+                                    lastLocation = task.getResult();
                                 }
                             });
                 } else {

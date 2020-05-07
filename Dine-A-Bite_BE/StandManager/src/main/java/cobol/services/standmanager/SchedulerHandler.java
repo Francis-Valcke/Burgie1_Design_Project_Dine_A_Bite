@@ -3,11 +3,12 @@ package cobol.services.standmanager;
 import cobol.commons.CommonFood;
 import cobol.commons.CommonStand;
 import cobol.commons.exception.CommunicationException;
+import cobol.commons.exception.OrderException;
 import cobol.commons.order.CommonOrder;
 import cobol.commons.order.CommonOrderItem;
 import cobol.commons.order.Recommendation;
+import cobol.commons.order.SuperOrder;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -16,7 +17,9 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 @Scope(value = "singleton")
@@ -84,6 +87,53 @@ public class SchedulerHandler {
         return goodSchedulers;
     }
 
+
+    public List<HashSet<CommonOrderItem>> splitSuperOrder(SuperOrder superOrder) throws OrderException {
+
+        // Extract and copy complete list of CommonOrderItems from superOrder
+        List<CommonOrderItem> items = new ArrayList<>(superOrder.getOrderItems());
+
+        // search items that can be executed together
+        List<HashSet<CommonOrderItem>> itemSplit = new ArrayList<>();
+
+        // Get schedulers from this brand
+        List<Scheduler> brandSchedulers = getSchedulers()
+                .stream().filter(s -> s.getBrand().equals(superOrder.getBrandName()))
+                .collect(Collectors.toList());
+
+        // Check if there is a scheduler that can make all items together
+        List<Scheduler> everythingSchedulers = brandSchedulers
+                .stream().filter(bs -> bs.getMenu().stream().map(CommonFood::getName).collect(Collectors.toList())
+                        .containsAll(items.stream().map(CommonOrderItem::getFoodName).collect(Collectors.toList())))
+                .collect(Collectors.toList());
+
+
+        if (!everythingSchedulers.isEmpty()) {
+            itemSplit.add(new HashSet<>(items));
+        } else {
+            // Split order items in sets which can be executed together
+            for (Scheduler scheduler : brandSchedulers) {
+                // As long items list is not empty, search stand which can do it
+                if (!items.isEmpty()) {
+                    List<String> stringMenu = scheduler.getMenu().stream().map(CommonFood::getName).collect(Collectors.toList());
+                    List<CommonOrderItem> canExecuteTogether = items.stream().filter(item -> stringMenu.contains(item.getFoodName())).collect(Collectors.toList());
+
+                    if(!canExecuteTogether.isEmpty()){
+                        itemSplit.add(new HashSet<>(canExecuteTogether));
+                        items.removeAll(canExecuteTogether);
+                    }
+                } else {
+                    break;
+                }
+            }
+
+            if(!items.isEmpty()){
+                throw new OrderException("Super order contains items from other brands");
+            }
+        }
+
+        return itemSplit;
+    }
 
     /**
      * @param order is the order for which the recommended stands are required
