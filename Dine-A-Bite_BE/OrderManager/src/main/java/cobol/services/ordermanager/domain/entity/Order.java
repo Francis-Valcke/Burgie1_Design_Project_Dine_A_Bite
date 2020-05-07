@@ -59,6 +59,7 @@ public class Order implements Serializable {
     @OneToMany(
             targetEntity = OrderItem.class,
             mappedBy = "order",
+            fetch = FetchType.LAZY,
             cascade = CascadeType.ALL,
             orphanRemoval = true
     )

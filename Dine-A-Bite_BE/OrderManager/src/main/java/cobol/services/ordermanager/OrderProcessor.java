@@ -155,7 +155,9 @@ public class OrderProcessor {
         int updatedAverage = (int) (((1-this.learningRate) * largestPreptime) + (learningRate * actualPrepTime));
         if(foodToUpdate!=null){
             foodToUpdate.setPreparationTime(updatedAverage);
+            foodRepository.updatePreparationTime(foodToUpdate.getFoodId().getName(), order.getStand().getName(), brandName, updatedAverage);
         }
+
     }
 
     public void addRecommendations(int id, List<Recommendation> recommendations) {
@@ -190,22 +192,23 @@ public class OrderProcessor {
                 String newStatusString = (String) eventData.get("newStatus");
                 CommonOrder.State newStatus = CommonOrder.State.valueOf(newStatusString);
                 int orderId = (int) eventData.get("orderId");
-                Order localOrder = orderRepository.findById(orderId).orElse(null);
-                if(localOrder!=null){
+                Optional<Order> localOrderOptional = orderRepository.findFullOrderById(orderId);
+                if(localOrderOptional.isPresent()){
 
                     // update to new state
+                    Order localOrder= localOrderOptional.get();
                     localOrder.setState(newStatus);
                     if (newStatus.equals(CommonOrder.State.DECLINED) || newStatus.equals(CommonOrder.State.READY)) {
                         if (newStatus.equals(CommonOrder.State.READY)) {
                             updatePreparationEstimate(localOrder);
                         }
 
-                        orderRepository.delete(localOrder);
 
                         // deregister from order
                         communicationHandler.deregisterFromOrder(subscriberId, orderId);
-
                     }
+
+                    orderRepository.updateState(localOrder.getId(), localOrder.getOrderState());
                 }
             }
         }
