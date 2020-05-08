@@ -50,7 +50,7 @@
                 android:id="@+id/runningOrderText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Only Running Orders" />
+                android:text="@string/running_order_switch" />
 
     </LinearLayout>
 
