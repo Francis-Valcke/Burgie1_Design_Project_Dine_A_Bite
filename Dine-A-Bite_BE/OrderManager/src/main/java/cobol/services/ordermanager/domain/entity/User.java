@@ -50,6 +50,10 @@ public class User {
     @ManyToMany(mappedBy = "owners")
     private Set<Stand> stands = new HashSet<>();
 
+    @JsonIgnore
+    @OneToMany(mappedBy = "user")
+    private Set<Order> orders = new HashSet<>();
+
     public User(CommonUser user){
         this.username = user.getUsername();
         this.password = user.getPassword();

@@ -46,7 +46,13 @@ public class CommonOrderItem implements Serializable {
         NumberFormat euro = NumberFormat.getCurrencyInstance(Locale.FRANCE);
         euro.setMinimumFractionDigits(2);
         String symbol = euro.getCurrency().getSymbol();
-        return symbol + " " + price.toString();
+
+        if(price!=null){
+            return symbol + " " + price.toString();
+        }
+        else{
+            return symbol + " NA";
+        }
     }
 
 

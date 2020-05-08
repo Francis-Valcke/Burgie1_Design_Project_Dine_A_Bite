@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
 import android.widget.ExpandableListView;
+import android.widget.Switch;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -14,6 +15,7 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
+import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.example.attendeeapp.appDatabase.OrderDatabaseService;
@@ -23,9 +25,14 @@ import com.example.attendeeapp.data.model.LoggedInUser;
 import com.example.attendeeapp.json.CommonOrder;
 import com.example.attendeeapp.json.CommonOrderStatusUpdate;
 import com.example.attendeeapp.polling.PollingService;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -35,6 +42,7 @@ import java.util.Map;
 public class OrderActivity extends ToolbarActivity {
 
     private int subscribeId = -1;
+    private Switch runningOrderSwitch;
     private ArrayList<CommonOrder> orders;
     private OrderDatabaseService orderDatabaseService;
     private OrderItemExpandableAdapter adapter;
@@ -69,40 +77,52 @@ public class OrderActivity extends ToolbarActivity {
         return false;
     }
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // -- init UI -- //
         setContentView(R.layout.activity_order);
-
-        // Initialize the toolbar
         initToolbar();
         upButtonToolbar();
 
-        ArrayList<CommonOrder> newOrderList = (ArrayList<CommonOrder>) getIntent().getSerializableExtra("orderList");
+        runningOrderSwitch = findViewById(R.id.running_order_switch);
+        // add event listener to switch
+        runningOrderSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> updateUserOrdersFromDB());
 
-        // Database initialization and loading of the stored data
+
+        // order passed by confirm order activity
+        final CommonOrder newOrder = (CommonOrder) getIntent().getSerializableExtra("order");
+
+        // -- data init -- //
         orderDatabaseService = new OrderDatabaseService(getApplicationContext());
-        orders = (ArrayList<CommonOrder>) orderDatabaseService.getAll();
 
-        if (orders == null || (orders.size() == 0 && newOrderList == null)) {
-            // No (new) orders
-            return;
-
-        } else if (newOrderList != null) {
-            // Send all orders of the list to the server and confirm the chosen stand
-            for (CommonOrder i : newOrderList) {
-                confirmNewOrderStand(i);
-            }
-        }
-
-        // Initiate the expandable order ListView
-        ExpandableListView expandList = findViewById(R.id.order_expand_list);
+        // initialize orders to present
+        orders = new ArrayList<>();
         adapter = new OrderItemExpandableAdapter(this, orders, orderDatabaseService);
 
+        // Couple data to UI
+        ExpandableListView expandList = findViewById(R.id.order_expand_list);
         expandList.setAdapter(adapter);
+        updateUserOrdersFromDB();
+
+
+        // If there are no orders, nothing to poll
+        if (orders == null || (orders.size() == 0 && newOrder == null)) {
+            // No (new) orders
+            return;
+        } else if (newOrder != null) {
+            // Send the order and chosen stand and brandName to the server and confirm the chosen stand
+            String chosenStand = getIntent().getStringExtra("stand");
+            String chosenBrand = getIntent().getStringExtra("brand");
+            newOrder.setStandName(chosenStand);
+            newOrder.setBrandName(chosenBrand);
+            confirmNewOrderStand(newOrder, chosenStand, chosenBrand);
+        }
+
 
         // Register as subscriber to the orderId event channel
-        if (!isPollingServiceRunning(PollingService.class)){
+        if (!isPollingServiceRunning(PollingService.class)) {
             ArrayList<Integer> orderIds = new ArrayList<>();
             for (CommonOrder order : orders) {
                 orderIds.add(order.getId());
@@ -115,6 +135,8 @@ public class OrderActivity extends ToolbarActivity {
             // orderId's will not be empty, else this code is not reachable
             getSubscriberId(orderIds);
         }
+
+
     }
 
     @Override
@@ -144,7 +166,10 @@ public class OrderActivity extends ToolbarActivity {
 
     /**
      * Confirm the chosen stand and brand when a new order is made
-     * @param newOrder new order
+     *
+     * @param newOrder    new order
+     * @param chosenStand stand chosen
+     * @param chosenBrand brand chosen
      */
     public void confirmNewOrderStand(final CommonOrder newOrder) {
         // Instantiate the RequestQueue
@@ -155,34 +180,23 @@ public class OrderActivity extends ToolbarActivity {
         url = String.format("%1$s/confirmStand?orderId=%2$s&standName=%3$s&brandName=%4$s",
                 url,
                 newOrder.getId(),
-                chosenStand.replace("&","%26"),
-                chosenBrand.replace("&","%26"));
-        url = url.replace(' ' , '+');
+                chosenStand.replace("&", "%26"),
+                chosenBrand.replace("&", "%26"));
+        url = url.replace(' ', '+');
 
         // Request a string response from the provided URL
-        StringRequest stringRequest = new StringRequest(Request.Method.GET, url, response -> {
-
-            // Only add the order if successful
-            orders.add(newOrder);
-            orderDatabaseService.insertOrder(newOrder);
-            adapter.notifyDataSetChanged();
-
-            Toast mToast = null;
-            if (mToast != null) mToast.cancel();
-            mToast = Toast.makeText(OrderActivity.this, "Your order was successful",
-                    Toast.LENGTH_SHORT);
-            mToast.show();
-        }, error -> {
-            Toast mToast = null;
-            if (mToast != null) mToast.cancel();
-            mToast = Toast.makeText(OrderActivity.this, "Your final order could not be received",
-                    Toast.LENGTH_SHORT);
-            mToast.show();
-
-        }) {
+        StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
+                response -> {
+                    updateUserOrdersFromDB();
+                    showToast("Your order was successfull");
+                },
+                error -> {
+                    showToast("Your final order could not be received");
+                }) {
             // Add JSON headers
             @Override
-            public @NonNull Map<String, String> getHeaders()  {
+            public @NonNull
+            Map<String, String> getHeaders() {
                 Map<String, String> headers = new HashMap<>();
                 headers.put("Authorization", user.getAuthorizationToken());
                 return headers;
@@ -194,11 +208,74 @@ public class OrderActivity extends ToolbarActivity {
     }
 
     /**
+     * This method will request orders from the database and update the according dataset for the
+     * adapter in the UI
+     */
+    public void updateUserOrdersFromDB() {
+        RequestQueue queue = Volley.newRequestQueue(this);
+        String url = ServerConfig.OM_ADDRESS;
+        url = String.format("%1$s/getUserOrders", url);
+
+        JsonArrayRequest request = new JsonArrayRequest(Request.Method.GET, url, null,
+                response -> {
+                    ObjectMapper mapper = new ObjectMapper();
+                    try {
+                        List<CommonOrder> allUserOrders = mapper.readValue(response.toString(),
+                                new TypeReference<List<CommonOrder>>() {
+                                });
+
+                        // TODO: Update local database better way @Nathan
+                        orderDatabaseService.deleteAllOrders();
+                        for (CommonOrder order : allUserOrders) {
+                            orderDatabaseService.insertOrder(order);
+                        }
+
+                        orders.clear();
+                        orders.addAll(allUserOrders);
+
+                        ArrayList<CommonOrder> readyOrders = new ArrayList<CommonOrder>();
+                        if (runningOrderSwitch.isChecked()) {
+                            for (CommonOrder order : orders) {
+                                if (order.getOrderState() == CommonOrder.State.READY) {
+                                    readyOrders.add(order);
+                                }
+                            }
+                            orders.removeAll(readyOrders);
+                        }
+
+
+                        Collections.sort(orders, (o1, o2) -> o1.getId() - o2.getId());
+                        adapter.notifyDataSetChanged();
+
+                        showToast("Order updated");
+                    } catch (JsonProcessingException e) {
+                        e.printStackTrace();
+                    }
+                },
+                error -> {
+                    showToast("Your orders could not be retrieved from the server");
+                }) {
+            // Add JSON headers
+            @Override
+            public @NonNull
+            Map<String, String> getHeaders() {
+                Map<String, String> headers = new HashMap<>();
+                headers.put("Authorization", user.getAuthorizationToken());
+                return headers;
+            }
+        };
+
+        queue.add(request);
+    }
+
+
+    /**
      * Subscribes to the server eventChannel for the given order
      * and launch the polling service to poll for events (order updates) from the server
+     *
      * @param orderId : list of order id's that must be subscribed to
      *                TODO: unregister subscriber
-     *                      save subscriberId instead of asking new one every time
+     *                save subscriberId instead of asking new one every time
      */
     public void getSubscriberId(ArrayList<Integer> orderId) {
         // Instantiate the RequestQueue
@@ -216,16 +293,12 @@ public class OrderActivity extends ToolbarActivity {
             intent.putExtra("subscribeId", subscribeId);
             startService(intent);
         }, error -> {
-            Toast mToast = null;
-            if (mToast != null) mToast.cancel();
-            mToast = Toast.makeText(OrderActivity.this, "Could not subscribe to order updates",
-                    Toast.LENGTH_SHORT);
-            mToast.show();
-
+            showToast("Could not subscribe to order updates");
         }) {
             // Add JSON headers
             @Override
-            public @NonNull Map<String, String> getHeaders() {
+            public @NonNull
+            Map<String, String> getHeaders() {
                 Map<String, String> headers = new HashMap<>();
                 headers.put("Authorization", user.getAuthorizationToken());
                 return headers;
@@ -235,6 +308,12 @@ public class OrderActivity extends ToolbarActivity {
         // Add the request to the RequestQueue
         queue.add(stringRequest);
     }
+
+    private void showToast(String message) {
+        Toast.makeText(OrderActivity.this, message,
+                Toast.LENGTH_SHORT).show();
+    }
+
 
     @Override
     public void onBackPressed() {

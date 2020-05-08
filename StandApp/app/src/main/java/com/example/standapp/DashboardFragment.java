@@ -35,6 +35,7 @@ import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -79,6 +80,7 @@ public class DashboardFragment extends Fragment
         Button submitButton = view.findViewById(R.id.submit_menu_button);
         Button addButton = view.findViewById(R.id.add_menu_item_button);
         ListView menuList = view.findViewById(R.id.menu_list);
+        FloatingActionButton floatingActionButton = view.findViewById(R.id.fab);
 
         final LoggedInUser user = LoginRepository.getInstance(new LoginDataSource()).getLoggedInUser();
 
@@ -113,6 +115,16 @@ public class DashboardFragment extends Fragment
             }
         });
 
+        floatingActionButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Open dialog to fill in information for adding new menu item
+                MenuItemFragment menuItemFragment = new MenuItemFragment();
+                menuItemFragment.show(getChildFragmentManager().beginTransaction(),
+                        "menu_item_dialog");
+            }
+        });
+
         // Submit and send the new or changed menu list to the backend
         final String finalBrandName = brandName;
         final String finalStandName = standName;
@@ -128,6 +140,10 @@ public class DashboardFragment extends Fragment
                     for (CommonFood item : items) {
                         item.setBrandName(finalBrandName);
                         item.setStandName(finalStandName);
+
+                        if (item.getCategory().isEmpty()) {
+                            item.addCategory("");
+                        }
 
                         // Temporarily set stock to added stock,
                         // because that is what the backend expects,

@@ -6,6 +6,8 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -18,22 +20,42 @@ import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
 
 import com.example.standapp.json.CommonFood;
+import com.google.android.material.chip.Chip;
+import com.google.android.material.chip.ChipGroup;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.google.android.material.textfield.TextInputEditText;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
 public class MenuItemFragment extends DialogFragment {
 
+    private Context mContext;
     private Toolbar toolbar;
+    private ChipGroup chipGroup;
     private OnMenuItemChangedListener mOnMenuItemChangedListener;
+
+    private ArrayList<String> categories = new ArrayList<>(Arrays.asList(
+            "AMERICAN",
+            "ITALIAN",
+            "JAPANESE",
+            "ASIAN",
+            "MEXICAN",
+            "BELGIAN",
+            "BURGER",
+            "FRIES",
+            "PIZZA"
+    ));
 
     @Override
     public void onAttach(@NonNull Context context) {
         // Called when a fragment is first attached to its context.
         super.onAttach(context);
+        mContext = context;
     }
 
     @Override
@@ -62,6 +84,7 @@ public class MenuItemFragment extends DialogFragment {
 
         View view = inflater.inflate(R.layout.menu_item_dialog, container, false);
         toolbar = view.findViewById(R.id.toolbar);
+        chipGroup = view.findViewById(R.id.chip_group_category);
 
         return view;
     }
@@ -76,6 +99,7 @@ public class MenuItemFragment extends DialogFragment {
         final TextInputEditText stockInput = view.findViewById(R.id.menu_item_stock);
         final TextInputEditText descriptionInput = view.findViewById(R.id.menu_item_description);
         final TextInputEditText prepTimeInput = view.findViewById(R.id.menu_item_prep_time);
+        final SwitchMaterial pricePromotionSwitch = view.findViewById(R.id.switch_price_promotion);
 
         final View finalView = view;
 
@@ -95,15 +119,126 @@ public class MenuItemFragment extends DialogFragment {
                 descriptionInput.setText(item.getDescription());
                 prepTimeInput.setText("" + item.getPreparationTime());
 
+                if (!item.getCategory().isEmpty() && !item.getCategory().contains("")) {
+                    for (String category : categories) {
+                        @SuppressLint("InflateParams")
+                        Chip chip = (Chip) getLayoutInflater().inflate(R.layout.chip_category, null);
+                        chip.setText(category);
+                        if (item.getCategory().contains(category)) chip.setChecked(true);
+                        chipGroup.addView(chip);
+                    }
+                    for (String category : item.getCategory()) {
+                        if (!categories.contains(category) && !category.equals("PRICE PROMOTION")) {
+                            @SuppressLint("InflateParams")
+                            final Chip addedChip = (Chip) getLayoutInflater()
+                                    .inflate(R.layout.chip_category, null);
+                            addedChip.setText(category);
+                            addedChip.setChecked(true);
+                            addedChip.setCloseIconVisible(true);
+                            addedChip.setOnCloseIconClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    chipGroup.removeView(addedChip);
+                                }
+                            });
+                            chipGroup.addView(addedChip);
+                        }
+                    }
+                } else {
+                    for (String category : categories) {
+                        @SuppressLint("InflateParams")
+                        Chip chip = (Chip) getLayoutInflater().inflate(R.layout.chip_category, null);
+                        chip.setText(category);
+                        chipGroup.addView(chip);
+                    }
+                }
+
                 // Editing preparation time is disabled,
                 // because the backend will re-calculate this time
                 prepTimeInput.setEnabled(false);
+
+                if (item.getCategory().contains("PRICE PROMOTION")) {
+                    pricePromotionSwitch.setEnabled(true);
+                    pricePromotionSwitch.setChecked(true);
+                }
+            }
+        } else {
+            for (String category : categories) {
+                @SuppressLint("InflateParams")
+                Chip chip = (Chip) getLayoutInflater().inflate(R.layout.chip_category, null);
+                chip.setText(category);
+                chipGroup.addView(chip);
             }
         }
+
+        // Adding categories
+        Chip addChip = view.findViewById(R.id.add_chip);
+        addChip.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Ask for name of new category
+                @SuppressLint("InflateParams")
+                final View inputCategoryLayout = getLayoutInflater()
+                        .inflate(R.layout.edit_name_dialog, null);
+                final TextInputEditText editTextCategory
+                        = inputCategoryLayout.findViewById(R.id.edit_text_name);
+                MaterialAlertDialogBuilder dialog = new MaterialAlertDialogBuilder(mContext)
+                        .setView(inputCategoryLayout)
+                        .setPositiveButton("Add", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                // Create and add new category ass chip to chip group
+                                @SuppressLint("InflateParams")
+                                final Chip addedChip = (Chip) getLayoutInflater()
+                                        .inflate(R.layout.chip_category, null);
+                                addedChip.setText(Objects.requireNonNull(editTextCategory.getText())
+                                        .toString().toUpperCase());
+                                addedChip.setChecked(true);
+                                addedChip.setCloseIconVisible(true);
+                                addedChip.setOnCloseIconClickListener(new View.OnClickListener() {
+                                    @Override
+                                    public void onClick(View v) {
+                                        chipGroup.removeView(addedChip);
+                                    }
+                                });
+                                chipGroup.addView(addedChip);
+                            }
+                        }).setTitle("Add new food category");
+                dialog.show();
+            }
+        });
 
         final CommonFood finalItem = item;
         final int finalPosition = position;
         final boolean finalIsEditing = isEditing;
+
+        priceInput.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                // Do nothing
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                // Do nothing
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                // Can only set "PRICE PROMOTION" when editing the menu item (not adding)
+                // and only when the price is lower than before
+                if (Objects.requireNonNull(priceInput.getText()).toString().length() == 0) return;
+                if (finalIsEditing) {
+                    BigDecimal newPrice = new BigDecimal(Objects.requireNonNull(priceInput.getText()).toString());
+                    BigDecimal oldPrice = finalItem.getPrice();
+                    if (newPrice.compareTo(oldPrice) < 0) pricePromotionSwitch.setEnabled(true);
+                    else {
+                        pricePromotionSwitch.setEnabled(false);
+                        pricePromotionSwitch.setChecked(false);
+                    }
+                }
+            }
+        });
 
         toolbar.setTitle("New menu item");
         toolbar.inflateMenu(R.menu.dialog_menu);
@@ -132,6 +267,13 @@ public class MenuItemFragment extends DialogFragment {
                             int stock = Integer.parseInt(Objects.requireNonNull(stockInput.getText()).toString());
                             String description = Objects.requireNonNull(descriptionInput.getText()).toString();
 
+                            // Get categories that are checked
+                            ArrayList<String> categories = new ArrayList<>();
+                            for (int id : chipGroup.getCheckedChipIds()) {
+                                Chip chip = chipGroup.findViewById(id);
+                                categories.add(chip.getText().toString());
+                            }
+
                             CommonFood menuItem;
                             if (finalIsEditing) {
                                 toolbar.setTitle("Edit menu item");
@@ -142,6 +284,12 @@ public class MenuItemFragment extends DialogFragment {
                                 menuItem.setPrice(price);
                                 menuItem.increaseStock(stock); // addedStock
                                 menuItem.setDescription(description);
+                                menuItem.replaceCategoryList(categories);
+                                if (pricePromotionSwitch.isChecked()) {
+                                    menuItem.addCategory("PRICE PROMOTION");
+                                } else {
+                                    menuItem.removeCategory("PRICE PROMOTION");
+                                }
 
                                 // Send to container (parent) fragment
                                 if (mOnMenuItemChangedListener != null) {

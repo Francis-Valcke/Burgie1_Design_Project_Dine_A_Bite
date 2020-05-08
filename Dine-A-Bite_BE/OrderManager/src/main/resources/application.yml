@@ -6,7 +6,7 @@ spring:
   datasource:
 
 #    local testing
-#    url: jdbc:mysql://localhost:3306/auth?useLegacyDatetimeCode=false&serverTimezone=UTC
+#    url: jdbc:mysql://localhost:3306/menu?useLegacyDatetimeCode=false&serverTimezone=UTC
 #    username: root
 #    password: root
 

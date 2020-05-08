@@ -25,13 +25,17 @@
 
     </com.google.android.material.appbar.AppBarLayout>
 
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
     <LinearLayout
         android:id="@+id/linear_layout_form"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:scrollbars="vertical"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+        android:scrollbars="vertical">
 
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
@@ -116,13 +120,67 @@
 
         </com.google.android.material.textfield.TextInputLayout>
 
+        <com.google.android.material.textview.MaterialTextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/categories"
+            style="@style/TextAppearance.MaterialComponents.Body1"
+            android:paddingTop="22dp"
+            android:paddingStart="22dp"
+            android:paddingEnd="22dp"
+            android:paddingBottom="10dp" />
+
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/chip_group_category"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingStart="22dp"
+            android:paddingEnd="22dp"
+            app:chipSpacing="1dp">
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/add_chip"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:chipIcon="@drawable/ic_add_black_24dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:text="@string/add_small"/>
+
+        </com.google.android.material.chip.ChipGroup>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/promotion"
+            style="@style/TextAppearance.MaterialComponents.Body1"
+            android:layout_marginStart="22dp"
+            android:layout_marginTop="5dp"
+            android:paddingTop="10dp"
+            android:paddingBottom="10dp" />
+
+        <com.google.android.material.switchmaterial.SwitchMaterial
+            android:id="@+id/switch_price_promotion"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/price_promotion"
+            android:layout_marginStart="22dp"
+            android:layout_marginEnd="22dp"
+            android:paddingBottom="15dp"
+            android:paddingTop="15dp"
+            android:layout_marginBottom="10dp"
+            android:enabled="false"/>
+
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginStart="30dp"
-            android:layout_marginTop="10dp"
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="60dp"
             android:text="@string/indicates_required_field"/>
 
     </LinearLayout>
+
+    </ScrollView>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
