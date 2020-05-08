@@ -11,11 +11,10 @@ import cobol.commons.security.CommonUser;
 import cobol.services.ordermanager.ASCommunicationHandler;
 import cobol.services.ordermanager.CommunicationHandler;
 import cobol.services.ordermanager.OrderProcessor;
-import cobol.services.ordermanager.domain.entity.Brand;
-import cobol.services.ordermanager.domain.entity.Food;
-import cobol.services.ordermanager.domain.entity.Order;
+import cobol.services.ordermanager.domain.entity.*;
 import cobol.services.ordermanager.domain.repository.BrandRepository;
 import cobol.services.ordermanager.domain.repository.FoodRepository;
+import cobol.services.ordermanager.domain.repository.StandRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -52,6 +51,8 @@ public class OrderController {
     private FoodRepository foodRepository;
     @Autowired
     private BrandRepository brandRepository;
+    @Autowired
+    private StandRepository standRepository;
 
     /**
      * This method will retrieve information about a given order identified by the orderId.
@@ -204,6 +205,16 @@ public class OrderController {
 
         // Publish event to standmanager
         String response= communicationHandler.publishConfirmedStand(updatedOrder.asCommonOrder(), standName, brandName);
+
+        //Update stand revenue
+        Optional<Stand> stand = standRepository.findStandById(standName, brandName);
+        BigDecimal price = BigDecimal.ZERO;
+        if (stand.isPresent()) {
+            for (OrderItem item : updatedOrder.getOrderItems()) {
+                price = price.add(foodRepository.findFoodById(item.getFoodName(),standName, brandName).get().getPrice());
+            }
+            stand.get().addToRevenue(price);
+        }
 
         // Also complete the payment
         BetterResponseModel<GetBalanceResponse> asResponse = aSCommunicationHandler.callConfirmTransaction(userDetails.getUsername());

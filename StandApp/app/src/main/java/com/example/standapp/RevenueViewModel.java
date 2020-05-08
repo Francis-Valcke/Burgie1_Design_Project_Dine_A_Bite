@@ -33,6 +33,10 @@ public class RevenueViewModel extends ViewModel {
         return revenue;
     }
 
+    public void setRevenue(BigDecimal revenue) {
+        this.revenue.setValue(revenue);
+    }
+
     public void addPrice(String foodName, BigDecimal price) {
         Map<String, BigDecimal> map;
         if (prices == null) {

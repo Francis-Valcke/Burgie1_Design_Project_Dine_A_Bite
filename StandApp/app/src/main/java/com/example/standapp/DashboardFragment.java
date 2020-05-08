@@ -156,8 +156,9 @@ public class DashboardFragment extends Fragment
                     }
 
                     // create JSON string containing the information of the menu and the stand
+                    RevenueViewModel model = new ViewModelProvider(requireActivity()).get(RevenueViewModel.class);
                     CommonStand commonStand = new CommonStand(finalStandName, finalBrandName,
-                            latitude, longitude, items);
+                            latitude, longitude, items, model.getRevenue().getValue());
                     ObjectMapper mapper = new ObjectMapper();
                     String jsonString = "";
                     try {

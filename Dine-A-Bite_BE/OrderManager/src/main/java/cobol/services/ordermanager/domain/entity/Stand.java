@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Configurable;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -30,6 +31,8 @@ public class Stand implements Serializable {
     private double longitude;
 
     private double latitude;
+
+    private BigDecimal revenue;
 
     @OneToMany(mappedBy = "foodId.stand", cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
     @JsonProperty("menu")
@@ -60,6 +63,7 @@ public class Stand implements Serializable {
         BrandRepository brandRepository = SpringContext.getBean(BrandRepository.class);
         Brand brand = brandRepository.findById(brandName).orElse(new Brand(brandName));
         this.standId = new StandId(name, brand);
+        this.revenue = BigDecimal.ZERO;
     }
 
     public Stand(CommonStand cs){
@@ -67,6 +71,7 @@ public class Stand implements Serializable {
         //Update general fields
         this.longitude = cs.getLongitude();
         this.latitude = cs.getLatitude();
+        this.revenue = cs.getRevenue();
 
         //Set the brand in the standId
         BrandRepository brandRepository = SpringContext.getBean(BrandRepository.class);
@@ -91,6 +96,7 @@ public class Stand implements Serializable {
         //Update general fields
         this.longitude = cs.getLongitude() < 0 ? this.longitude : cs.getLongitude();
         this.latitude = cs.getLatitude() < 0 ? this.latitude : cs.getLatitude();
+        this.revenue = cs.getRevenue();
 
         // A map that allows search by hashcode
         Map<Food, Food> originalMenu = foodList.stream().collect(Collectors.toMap(f -> f, f -> f));
@@ -132,6 +138,7 @@ public class Stand implements Serializable {
         this.standId = new StandId(commonStand.getName(), brand);
         this.latitude = commonStand.getLatitude();
         this.longitude = commonStand.getLongitude();
+        this.revenue = commonStand.getRevenue();
         commonStand.getMenu().forEach(cf -> {
             Food food = new Food(cf, this);
             foodList.add(food); //Map bidirectional relationship
@@ -152,7 +159,8 @@ public class Stand implements Serializable {
                 this.getBrandName(),
                 this.latitude,
                 this.longitude,
-                this.getFoodList().stream().map(Food::asCommonFood).collect(Collectors.toList())
+                this.getFoodList().stream().map(Food::asCommonFood).collect(Collectors.toList()),
+                this.revenue
         );
     }
 
@@ -222,6 +230,12 @@ public class Stand implements Serializable {
     public void setLatitude(double latitude) {
         this.latitude = latitude;
     }
+
+    public BigDecimal getRevenue() { return revenue; }
+
+    public void addToRevenue(BigDecimal addedRevenue) { this.revenue.add(addedRevenue); }
+
+    public void setRevenue(BigDecimal newRevenue) { this.revenue = newRevenue; }
 
     public List<Food> getFoodList() {
         return foodList;
