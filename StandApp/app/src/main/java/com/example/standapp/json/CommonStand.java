@@ -1,5 +1,7 @@
 package com.example.standapp.json;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -15,6 +17,7 @@ public class CommonStand implements Serializable {
     private String brandName;
     private double latitude;
     private double longitude;
+    @JsonSerialize(using = BigDecimalSerializer.class)
     private BigDecimal revenue;
 
     public CommonStand(){}

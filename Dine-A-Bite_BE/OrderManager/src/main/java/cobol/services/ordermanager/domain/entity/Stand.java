@@ -6,12 +6,9 @@ import cobol.services.ordermanager.domain.repository.*;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.hibernate.annotations.Cascade;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Configurable;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -32,7 +29,7 @@ public class Stand implements Serializable {
 
     private double latitude;
 
-    private BigDecimal revenue;
+    private BigDecimal revenue = BigDecimal.ZERO;
 
     @OneToMany(mappedBy = "foodId.stand", cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
     @JsonProperty("menu")
@@ -96,7 +93,6 @@ public class Stand implements Serializable {
         //Update general fields
         this.longitude = cs.getLongitude() < 0 ? this.longitude : cs.getLongitude();
         this.latitude = cs.getLatitude() < 0 ? this.latitude : cs.getLatitude();
-        this.revenue = cs.getRevenue();
 
         // A map that allows search by hashcode
         Map<Food, Food> originalMenu = foodList.stream().collect(Collectors.toMap(f -> f, f -> f));
@@ -233,7 +229,7 @@ public class Stand implements Serializable {
 
     public BigDecimal getRevenue() { return revenue; }
 
-    public void addToRevenue(BigDecimal addedRevenue) { this.revenue.add(addedRevenue); }
+    public void addToRevenue(BigDecimal addedRevenue) { this.revenue = this.revenue.add(addedRevenue); }
 
     public void setRevenue(BigDecimal newRevenue) { this.revenue = newRevenue; }
 

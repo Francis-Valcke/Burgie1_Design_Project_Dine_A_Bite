@@ -207,13 +207,15 @@ public class OrderController {
         String response= communicationHandler.publishConfirmedStand(updatedOrder.asCommonOrder(), standName, brandName);
 
         //Update stand revenue
-        Optional<Stand> stand = standRepository.findStandById(standName, brandName);
+        Optional<Stand> optStand = standRepository.findStandById(standName, brandName);
         BigDecimal price = BigDecimal.ZERO;
-        if (stand.isPresent()) {
+        if (optStand.isPresent()) {
             for (OrderItem item : updatedOrder.getOrderItems()) {
-                price = price.add(foodRepository.findFoodById(item.getFoodName(),standName, brandName).get().getPrice());
+                price = price.add(foodRepository.findFoodById(item.getFoodName(),standName, brandName).get().getPrice().multiply(BigDecimal.valueOf(item.getAmount())));
             }
-            stand.get().addToRevenue(price);
+            Stand stand = optStand.get();
+            stand.addToRevenue(price);
+            standRepository.save(stand);
         }
 
         // Also complete the payment
