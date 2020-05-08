@@ -31,8 +31,12 @@ import com.example.standapp.data.LoginDataSource;
 import com.example.standapp.data.LoginRepository;
 import com.example.standapp.data.model.LoggedInUser;
 import com.example.standapp.json.CommonFood;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.type.ReferenceType;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textfield.TextInputEditText;
 
@@ -247,10 +251,15 @@ public class ProfileFragment extends Fragment {
                             + brandName;
                     newUrl = newUrl.replace(' ', '+');
                     JsonObjectRequest revenueRequest = new JsonObjectRequest(Request.Method.GET, newUrl
-                            ,null, new Response.Listener<Integer>() {
+                            ,null, new Response.Listener<JSONObject>() {
                         @Override
-                        public void onResponse(Integer response) {
-                            BigDecimal revenue = BigDecimal.valueOf((response));
+                        public void onResponse(JSONObject response) {
+                            BigDecimal revenue = null;
+                            try {
+                                revenue = BigDecimal.valueOf(response.getDouble("details"));
+                            } catch (JSONException e) {
+                                Log.v("Json Error:", Objects.requireNonNull(e.getMessage()));
+                            }
                             model.setRevenue(revenue);
                         }
                     }, new Response.ErrorListener() {

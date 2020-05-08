@@ -158,7 +158,7 @@ public class StandController {
 
     @GetMapping(value = "/revenue")
     @ResponseBody
-    public ResponseEntity<BigDecimal> requestRevenue(@RequestParam String standName, @RequestParam String brandName) throws DoesNotExistException {
+    public ResponseEntity<HashMap<Object, Object>> requestRevenue(@RequestParam String standName, @RequestParam String brandName) throws DoesNotExistException {
         Optional<Stand> stand = standRepository.findStandById(standName, brandName);
         BigDecimal revenue;
         if (stand.isPresent() && stand.get().getRevenue() != null) {
@@ -166,7 +166,12 @@ public class StandController {
         } else {
             revenue = BigDecimal.ZERO; // new stands have 0 revenue
         }
-        return ResponseEntity.ok(revenue);
+        return ResponseEntity.ok(
+                ResponseModel.builder()
+                    .status(OK.toString())
+                    .details(revenue)
+                    .build().generateResponse()
+        );
     }
 }
 
