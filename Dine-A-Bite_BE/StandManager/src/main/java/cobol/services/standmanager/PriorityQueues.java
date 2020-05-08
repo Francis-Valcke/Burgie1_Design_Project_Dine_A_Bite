@@ -6,10 +6,8 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * this class will serve ass extra estimation for queue times (by calculating times for NOT confirmed orders)
@@ -58,7 +56,7 @@ public class PriorityQueues {
             int addedTime = calculatePriorityTime(orderPrepTime,rec.getRank(), recommends.size());
             priorityOrder.addRecommend(currentSchedulerId, addedTime);
 
-            System.out.println("ADDED: " + addedTime + "TO SCHEDULER: " + currentSchedulerId);
+           System.out.println("ADDED: " + addedTime + "TO SCHEDULER: " + currentSchedulerId);
         }
 
         //add priorityOrder to the corresponding queues and add it to the priorityOrder list itself
@@ -145,5 +143,19 @@ public class PriorityQueues {
             factors[amount-1] = (constant/3);
         }
         return factors;
+    }
+
+    public List<Recommendation> sortAndRerank(List<Recommendation> recommendations){
+        List<Recommendation> sortedRecommends = recommendations.stream()
+                .sorted(Comparator.comparing(Recommendation::getTimeEstimate))
+                .collect(Collectors.toList());
+
+        //also reset the ranks according to this new ordering
+        for (int i = 0; i < sortedRecommends.size();i++){
+            Recommendation curRec = sortedRecommends.get(i);
+            curRec.setRank(i+1);
+        }
+
+        return sortedRecommends;
     }
 }
