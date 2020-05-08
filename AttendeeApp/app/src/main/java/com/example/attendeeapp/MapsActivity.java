@@ -1,5 +1,6 @@
 package com.example.attendeeapp;
 
+import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Toast;
@@ -28,7 +29,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-
+/**
+ * Activity that show a map of all the stand locations
+ */
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
     protected Map<String, Map<String, Double>> standLocations = new HashMap<>();
@@ -48,14 +51,19 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             Map<String, Double> coordinates = standLocations.get(standName);
             double lat = coordinates.get("latitude");
             double lon = coordinates.get("longitude");
-            LatLng newStand = new LatLng(lat, lon);
-            googleMap.addMarker(new MarkerOptions().position(newStand).title(standName));
-            googleMap.moveCamera(CameraUpdateFactory.newLatLng(newStand));
+            if (lat != 360 && lon != 360) {
+                LatLng newStand = new LatLng(lat, lon);
+                googleMap.addMarker(new MarkerOptions().position(newStand).title(standName));
+                googleMap.moveCamera(CameraUpdateFactory.newLatLng(newStand));
+            }
+        }
+        googleMap.getUiSettings().setZoomControlsEnabled(true);
+        Location lastLocation = (Location) getIntent().getParcelableExtra("locationClient");
+        if (lastLocation != null) {
+            googleMap.setMyLocationEnabled(true);
+            googleMap.getUiSettings().setMyLocationButtonEnabled(true);
         }
 
-        googleMap.setMyLocationEnabled(true);
-        googleMap.getUiSettings().setZoomControlsEnabled(true);
-        googleMap.getUiSettings().setMyLocationButtonEnabled(true);
     }
 
     /**
