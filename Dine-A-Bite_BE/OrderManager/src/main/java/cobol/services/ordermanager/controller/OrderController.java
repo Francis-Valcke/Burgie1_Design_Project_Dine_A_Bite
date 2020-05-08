@@ -1,8 +1,10 @@
 package cobol.services.ordermanager.controller;
 
 import cobol.commons.BetterResponseModel;
-import cobol.commons.BetterResponseModel.*;
+import cobol.commons.BetterResponseModel.GetBalanceResponse;
+import cobol.commons.BetterResponseModel.Status;
 import cobol.commons.exception.DoesNotExistException;
+import cobol.commons.exception.OrderException;
 import cobol.commons.order.CommonOrder;
 import cobol.commons.order.CommonOrderItem;
 import cobol.commons.order.Recommendation;
@@ -14,8 +16,10 @@ import cobol.services.ordermanager.OrderProcessor;
 import cobol.services.ordermanager.domain.entity.Brand;
 import cobol.services.ordermanager.domain.entity.Food;
 import cobol.services.ordermanager.domain.entity.Order;
+import cobol.services.ordermanager.domain.entity.User;
 import cobol.services.ordermanager.domain.repository.BrandRepository;
 import cobol.services.ordermanager.domain.repository.FoodRepository;
+import cobol.services.ordermanager.domain.repository.UserRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -26,12 +30,10 @@ import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -39,6 +41,12 @@ import java.util.stream.Collectors;
 @RestController
 public class OrderController {
 
+    @Autowired
+    private UserRepository userRepository;
+    @Autowired
+    private FoodRepository foodRepository;
+    @Autowired
+    private BrandRepository brandRepository;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -48,10 +56,6 @@ public class OrderController {
     private ASCommunicationHandler aSCommunicationHandler;
     @Autowired
     private CommunicationHandler communicationHandler;
-    @Autowired
-    private FoodRepository foodRepository;
-    @Autowired
-    private BrandRepository brandRepository;
 
     /**
      * This method will retrieve information about a given order identified by the orderId.
@@ -80,10 +84,11 @@ public class OrderController {
      * @param orderObject the order recieved from the attendee app
      * @return JSONObject including CommonOrder "order" and JSONArray "Recommendation"
      * @throws JsonProcessingException Json processing error
-     * @throws ParseException Json parsing error
      */
     @PostMapping(value = "/placeOrder", consumes = "application/json", produces = "application/json")
     public ResponseEntity<JSONObject> placeOrder(@AuthenticationPrincipal CommonUser userDetails, @RequestBody CommonOrder orderObject) throws Throwable {
+
+        /* -- Money Transaction for this order -- */
 
         // First calculate the total price of the order
         Brand brand = brandRepository.findById(orderObject.getBrandName())
@@ -111,9 +116,32 @@ public class OrderController {
             throw response.getException();
         }
 
-        // Add order to the processor
+        /* -- Update incoming CommonOrder object -- */
+
+        // Update prices of the moment the order is placed
+        for (CommonOrderItem commonOrderItem : orderObject.getOrderItems()) {
+            Optional<Food> optionalFood= foodRepository.findFoodByBrand(orderObject.getBrandName()).stream().filter(food -> food.getFoodId().getName().equals(commonOrderItem.getFoodName())).findFirst();
+            if(optionalFood.isPresent()){
+                commonOrderItem.setPrice(optionalFood.get().getPrice());
+            }
+            else{
+                throw new OrderException("Could not find price of an orderItem: "+ commonOrderItem.getFoodName() + " for brand: " + orderObject.getBrandName());
+            }
+        }
+
+
+        /* -- Convert CommonOrder to normal Order object -- */
+
         Order newOrder = new Order(orderObject);
+        // Set user for this order
+        User user = userRepository.findById(userDetails.getUsername()).orElse(userRepository.save(new User(userDetails)));
+        newOrder.setUser(user);
+
+        // Add order to the processor
         newOrder = orderProcessor.addNewOrder(newOrder);
+
+
+        /* -- Prepare and send updated order to standmanager --*/
 
         // Put order in json to send to standmanager (as commonOrder object)
         CommonOrder mappedOrder = newOrder.asCommonOrder();
@@ -125,8 +153,12 @@ public class OrderController {
 
         // Ask standmanager for recommendation
         String responseString = communicationHandler.sendRestCallToStandManager("/getRecommendation", jsonString, null);
+        // Parse recommendations
         List<Recommendation> recommendations = mapper.readValue(responseString, new TypeReference<List<Recommendation>>() {});
         orderProcessor.addRecommendations(newOrder.getId(), recommendations);
+
+
+        /* -- Prepare and send response back to application -- */
 
         // send updated order and recommendation
         JSONObject completeResponse = new JSONObject();
@@ -135,7 +167,6 @@ public class OrderController {
         completeResponse.put("order", newOrder.asCommonOrder());
         completeResponse.put("recommendations", recommendations);
 
-        CommonOrder test_order = newOrder.asCommonOrder();
 
         return ResponseEntity.ok(completeResponse);
 
@@ -150,11 +181,10 @@ public class OrderController {
     @PostMapping(value="/placeSuperOrder", consumes = "application/json", produces = "application/json")
     public ResponseEntity<JSONArray> placeSuperOrder(@RequestBody SuperOrder superOrder) throws JsonProcessingException, ParseException {
 
-        // Make complete response, values will be added
+        // Make complete response, values will be added later on
         JSONArray completeResponse= new JSONArray();
 
-
-        // ask StandManger to split these orderItems in Orders and give A recommendation
+        // ask StandManger to split these orderItems in Orders and give a recommendation
         JSONArray ordersRecommendations= communicationHandler.getSuperRecommendationFromSM(superOrder);
 
         // parse orders and recommendations
@@ -175,10 +205,12 @@ public class OrderController {
             orderProcessor.addRecommendations(order.getId(), recommendations);
 
 
+            // make response for every seperate order
             JSONObject orderResponse= new JSONObject();
             orderResponse.put("order", order.asCommonOrder());
             orderResponse.put("recommendations", recommendations);
 
+            // Place all orders with their recommendations in the complete array response
             completeResponse.add(orderResponse);
         }
 
@@ -198,7 +230,6 @@ public class OrderController {
      */
     @GetMapping("/confirmStand")
     public ResponseEntity<String> confirmStand(@RequestParam(name = "orderId") int orderId, @RequestParam(name = "standName") String standName, @RequestParam(name = "brandName") String brandName, @AuthenticationPrincipal CommonUser userDetails) throws Throwable {
-        Optional<Order> test = orderProcessor.getOrder(orderId);
         // Update order, confirm stand
         Order updatedOrder = orderProcessor.confirmStand(orderId, standName, brandName);
 
@@ -214,4 +245,12 @@ public class OrderController {
 
         return ResponseEntity.ok(response);
     }
+
+
+    @GetMapping(value= "/getUserOrders", produces = "application/json")
+    public ResponseEntity<List<CommonOrder>> getUserOrders(@AuthenticationPrincipal CommonUser userDetails){
+        User user = userRepository.findById(userDetails.getUsername()).orElseThrow(() -> new UsernameNotFoundException("Can't find user to fetch orders from"));
+        return ResponseEntity.ok(user.getOrders().stream().map(Order::asCommonOrder).collect(Collectors.toList()));
+    }
+
 }
