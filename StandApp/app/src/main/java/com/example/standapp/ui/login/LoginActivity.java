@@ -18,6 +18,7 @@ import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
@@ -25,6 +26,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.standapp.R;
+import com.google.android.material.snackbar.Snackbar;
 
 
 public class LoginActivity extends AppCompatActivity {
@@ -139,9 +141,8 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void showLoginFailed(@StringRes Integer errorString) {
-        Toast toast = Toast.makeText(getApplicationContext(), errorString, Toast.LENGTH_LONG);
-        toast.setGravity(Gravity.TOP, 0, 0);
-        toast.show();
+        Snackbar.make(findViewById(R.id.login), errorString, Snackbar.LENGTH_SHORT)
+                .show();
     }
 
     @Override

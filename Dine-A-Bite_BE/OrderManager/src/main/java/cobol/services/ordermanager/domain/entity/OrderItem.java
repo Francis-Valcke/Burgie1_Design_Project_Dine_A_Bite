@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.math.BigDecimal;
 
 @Entity
 @Table(name="orderitem")
@@ -24,6 +25,8 @@ public class OrderItem implements Serializable {
     private String foodName;
     @Column
     private int amount;
+    @Column
+    private BigDecimal price;
 
 
     // ---- Constructors ---- //
@@ -34,6 +37,7 @@ public class OrderItem implements Serializable {
 
     public OrderItem(CommonOrderItem orderItem, Order order) {
         this.amount= orderItem.getAmount();
+        this.price= orderItem.getPrice();
         this.foodName= orderItem.getFoodName();
         this.order= order;
     }
@@ -44,7 +48,8 @@ public class OrderItem implements Serializable {
 
         return new CommonOrderItem(
                 this.foodName,
-                this.amount
+                this.amount,
+                this.price
         );
     }
 
@@ -58,6 +63,14 @@ public class OrderItem implements Serializable {
         return itemId;
     }
 
+    public int getAmount() {
+        return amount;
+    }
+
+    public BigDecimal getPrice() {
+        return price;
+    }
+
     public String getFoodName() {
         return foodName;
     }
@@ -68,6 +81,7 @@ public class OrderItem implements Serializable {
         return "OrderItem{" +
                 "foodName='" + foodName + '\'' +
                 ", amount=" + amount +
+                ", price=" + price +
                 '}';
     }
 

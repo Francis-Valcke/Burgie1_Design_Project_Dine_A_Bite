@@ -71,4 +71,5 @@
         <item>Time</item>
         <item>Time and distance</item>
     </string-array>
+    <string name="running_order_switch">Only Running Orders</string>
 </resources>
