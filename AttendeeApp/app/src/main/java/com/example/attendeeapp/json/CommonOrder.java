@@ -8,16 +8,16 @@ import com.example.attendeeapp.appDatabase.Converters;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
+import org.threeten.bp.Duration;
+import org.threeten.bp.ZoneId;
+import org.threeten.bp.ZonedDateTime;
+
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-
-import org.threeten.bp.Duration;
-import org.threeten.bp.ZoneId;
-import org.threeten.bp.ZonedDateTime;
 
 @Entity
 public class CommonOrder implements Serializable {
@@ -47,11 +47,9 @@ public class CommonOrder implements Serializable {
     private double latitude;
     private double longitude;
 
-    @JsonIgnore
     @TypeConverters(Converters.class)
     private BigDecimal totalPrice;
 
-    @JsonIgnore
     private int totalCount;
     @JsonIgnore
     private boolean updateSeen = true;
@@ -203,7 +201,12 @@ public class CommonOrder implements Serializable {
         NumberFormat euro = NumberFormat.getCurrencyInstance(Locale.FRANCE);
         euro.setMinimumFractionDigits(2);
         String symbol = euro.getCurrency().getSymbol();
-        return symbol + " " + totalPrice.toString();
+        if(totalPrice!=null){
+            return symbol + " " + totalPrice.toString();
+        }
+        else{
+            return symbol + " NA";
+        }
     }
 
     /**

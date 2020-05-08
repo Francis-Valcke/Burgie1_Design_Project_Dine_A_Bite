@@ -64,4 +64,5 @@
     <string name="button_select_payment_method">Payment Method</string>
     <string name="euro_sign">€</string>
     <string name="string_amount">Amount</string>
+    <string name="running_order_switch">Only Running Orders</string>
 </resources>
