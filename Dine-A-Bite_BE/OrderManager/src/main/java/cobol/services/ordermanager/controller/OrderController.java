@@ -35,6 +35,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -86,7 +87,7 @@ public class OrderController {
      * @throws JsonProcessingException Json processing error
      */
     @PostMapping(value = "/placeOrder", consumes = "application/json", produces = "application/json")
-    public ResponseEntity<JSONObject> placeOrder(@AuthenticationPrincipal CommonUser userDetails, @RequestBody CommonOrder orderObject) throws Throwable {
+    public ResponseEntity<?> placeOrder(@RequestParam(required = false) String standName, @AuthenticationPrincipal CommonUser userDetails, @RequestBody CommonOrder orderObject) throws Throwable {
 
         /* -- Money Transaction for this order -- */
 
@@ -99,14 +100,19 @@ public class OrderController {
         // Each ordered item should be in this list, search this list to find the price.
         BigDecimal total = BigDecimal.ZERO;
         for (CommonOrderItem orderItem : orderObject.getOrderItems()) {
-            total = total.subtract(
-                    brandFood.stream()
+
+            BigDecimal price = brandFood.stream()
                     .filter(f -> f.getName().equals(orderItem.getFoodName()) && f.getBrandName().equals(orderObject.getBrandName()))
                     .findAny()
                     .orElseThrow(() -> new DoesNotExistException("OrderItem " +orderItem.getFoodName() + " does not exist in the backend, this should not be possible"))
-                    .getPrice()
-                    .multiply(new BigDecimal(orderItem.getAmount()))
-            );
+                    .getPrice();
+
+            // Update the price value in the order object
+            orderItem.setPrice(price);
+
+            // Update the total price for the order
+            total = total.subtract(price.multiply(new BigDecimal(orderItem.getAmount())));
+
         }
 
         // With this price we try to create a transaction
@@ -115,20 +121,6 @@ public class OrderController {
             // There was an error creating the transaction. Throw this.
             throw response.getException();
         }
-
-        /* -- Update incoming CommonOrder object -- */
-
-        // Update prices of the moment the order is placed
-        for (CommonOrderItem commonOrderItem : orderObject.getOrderItems()) {
-            Optional<Food> optionalFood= foodRepository.findFoodByBrand(orderObject.getBrandName()).stream().filter(food -> food.getFoodId().getName().equals(commonOrderItem.getFoodName())).findFirst();
-            if(optionalFood.isPresent()){
-                commonOrderItem.setPrice(optionalFood.get().getPrice());
-            }
-            else{
-                throw new OrderException("Could not find price of an orderItem: "+ commonOrderItem.getFoodName() + " for brand: " + orderObject.getBrandName());
-            }
-        }
-
 
         /* -- Convert CommonOrder to normal Order object -- */
 
@@ -141,35 +133,48 @@ public class OrderController {
         newOrder = orderProcessor.addNewOrder(newOrder);
 
 
-        /* -- Prepare and send updated order to standmanager --*/
 
-        // Put order in json to send to standmanager (as commonOrder object)
-        CommonOrder mappedOrder = newOrder.asCommonOrder();
-        mappedOrder.setBrandName(orderObject.getBrandName());
-        mappedOrder.setStandName(orderObject.getStandName());
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.registerModule(new JavaTimeModule());
-        String jsonString = mapper.writeValueAsString(mappedOrder);
+        /* -- Check if the order is already given a specific stand or not -- */
 
-        // Ask standmanager for recommendation
-        String responseString = communicationHandler.sendRestCallToStandManager("/getRecommendation", jsonString, null);
-        // Parse recommendations
-        List<Recommendation> recommendations = mapper.readValue(responseString, new TypeReference<List<Recommendation>>() {});
-        orderProcessor.addRecommendations(newOrder.getId(), recommendations);
+        if (standName != null && !standName.equals("")){
 
+            // Fetch recommendation
+            /* -- Prepare and send updated order to standmanager --*/
 
-        /* -- Prepare and send response back to application -- */
+            // Put order in json to send to standmanager (as commonOrder object)
+            CommonOrder mappedOrder = newOrder.asCommonOrder();
+            mappedOrder.setBrandName(orderObject.getBrandName());
+            mappedOrder.setStandName(orderObject.getStandName());
+            ObjectMapper mapper = new ObjectMapper();
+            mapper.registerModule(new JavaTimeModule());
+            String jsonString = mapper.writeValueAsString(mappedOrder);
 
-        // send updated order and recommendation
-        JSONObject completeResponse = new JSONObject();
-
-        // Construct response
-        completeResponse.put("order", newOrder.asCommonOrder());
-        completeResponse.put("recommendations", recommendations);
+            // Ask standmanager for recommendation
+            String responseString = communicationHandler.sendRestCallToStandManager("/getRecommendation", jsonString, null);
+            // Parse recommendations
+            List<Recommendation> recommendations = mapper.readValue(responseString, new TypeReference<List<Recommendation>>() {});
+            orderProcessor.addRecommendations(newOrder.getId(), recommendations);
 
 
-        return ResponseEntity.ok(completeResponse);
+            /* -- Prepare and send response back to application -- */
 
+            // send updated order and recommendation
+            JSONObject completeResponse = new JSONObject();
+
+            // Construct response
+            completeResponse.put("order", newOrder.asCommonOrder());
+            completeResponse.put("recommendations", recommendations);
+
+
+            return ResponseEntity.ok(completeResponse);
+
+
+        } else {
+
+            // Confirm order immediately with the provided stand bypassing the stand manager
+
+            return ResponseEntity.ok(Objects.requireNonNull(confirmStand(newOrder.getId(), standName, brand.getName(), userDetails).getBody()));
+        }
     }
 
     /**
