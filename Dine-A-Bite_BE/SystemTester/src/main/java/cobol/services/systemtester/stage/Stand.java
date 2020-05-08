@@ -4,12 +4,14 @@ import cobol.commons.CommonFood;
 import cobol.commons.order.CommonOrder;
 import cobol.services.systemtester.EventSimulation;
 import cobol.services.systemtester.ServerConfig;
+import com.mashape.unirest.http.JsonNode;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
 import io.reactivex.Single;
 import io.reactivex.SingleOnSubscribe;
 import io.reactivex.schedulers.Schedulers;
 import org.apache.logging.log4j.LogManager;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -211,7 +213,9 @@ public class Stand extends Thread{
             try {
                 Unirest.get(url2)
                         .header("Content-Type", "application/json")
-                        .header("Authorization", "Bearer " + token);
+                        .header("Authorization", "Bearer " + token)
+                        .asJson()
+                        .getBody();
                 emitter.onSuccess("subscribed");
             } catch (JSONException e) {
                 emitter.onError(e);
@@ -290,18 +294,17 @@ public class Stand extends Thread{
 
 
     }
-    public Single<JSONObject> pollEvents(){
-        return Single.create((SingleOnSubscribe<JSONObject>) emitter -> {
+    public Single<JSONArray> pollEvents(){
+        return Single.create((SingleOnSubscribe<JSONArray>) emitter -> {
 
             try {
-                JSONObject responseBody = Unirest.get(ServerConfig.ECURL + "/events?id=" + subscriberId)
+                JsonNode responseBody = Unirest.get(ServerConfig.ECURL + "/events?id=" + subscriberId)
                         .header("Content-Type", "application/json")
                         .header("Authorization", "Bearer " + token)
                         .asJson()
-                        .getBody()
-                        .getObject();
-                System.out.println(responseBody.toString());
-                emitter.onSuccess(responseBody);
+                        .getBody();
+                if (responseBody.getArray().length()==0)emitter.onSuccess(new JSONArray().put("no orders"));
+                else emitter.onSuccess(responseBody.getArray());
 
 
             } catch (UnirestException | JSONException e) {
@@ -326,7 +329,7 @@ public class Stand extends Thread{
         //prepare orders
     }
     public Single<JSONObject> delete(){
-        String url = ServerConfig.OMURL + "/delete?brandName=" + brandName
+        String url = ServerConfig.OMURL + "/deleteStand?brandName=" + brandName
                 + "&standName=" + standName;
         url = url.replace(' ', '+');
         //Create single from request

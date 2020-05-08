@@ -41,13 +41,14 @@ public class Stage extends Thread{
             }
             time++;
             for (Attendee a : attendees){
-                if (a.getOrderTime()<time){
+                if (a.getOrderTime()<time&&a.getOrderid()==0){
                     a.getGlobalMenu().subscribe(
                             items -> a.placeRandomOrder(items, 1).subscribe(
-                                    o -> log.info(o.toString()),
+                                    recommendations -> a.confirmNearestStand().subscribe(),
                                     throwable -> log.error(throwable.getMessage())
                             )
                     );
+
                 }
             }
         }

@@ -1,13 +1,13 @@
 [
   {
-    "brandName": "Balls & Glory_test",
+    "brandName": "Balls and Glory_test",
     "longitude": 0.0,
     "latitude": 0.0,
     "menu": [
       {
         "stock": 25,
         "description": "A ball of delicious pork",
-        "price": 3.33,
+        "price": 0.00,
         "preparationTime": 300,
         "category": [
           "SNACK"
@@ -17,7 +17,7 @@
       {
         "stock": 25,
         "description": "Veggie ball",
-        "price": 3.33,
+        "price": 0.00,
         "preparationTime": 300,
         "category": [
           "SNACK",
@@ -28,7 +28,7 @@
       {
         "stock": 25,
         "description": "Stoemp like grandma used to make",
-        "price": 3.33,
+        "price": 0.00,
         "preparationTime": 1200,
         "category": [
           "SNACK",
@@ -39,7 +39,7 @@
       {
         "stock": 25,
         "description": "Delicious cake",
-        "price": 4.99,
+        "price": 0.00,
         "preparationTime": 300,
         "category": [
           "SNACK"
@@ -49,7 +49,7 @@
       {
         "stock": 25,
         "description": "Healthy green salad",
-        "price": 5.98,
+        "price": 0.00,
         "preparationTime": 600,
         "category": [
           "SNACK"
@@ -57,17 +57,17 @@
         "name": "Tasty Salad"
       }
     ],
-    "standName": "Balls & Glory 1_test"
+    "standName": "Balls and Glory 1_test"
   },
   {
-    "brandName": "Balls & Glory_test",
+    "brandName": "Balls and Glory_test",
     "longitude": 0.0,
     "latitude": 0.0,
     "menu": [
       {
         "stock": 25,
         "description": "A ball of delicious pork",
-        "price": 3.33,
+        "price": 0.00,
         "preparationTime": 300,
         "category": [
           "SNACK"
@@ -77,7 +77,7 @@
       {
         "stock": 25,
         "description": "Veggie ball",
-        "price": 3.33,
+        "price": 0.00,
         "preparationTime": 300,
         "category": [
           "SNACK",
@@ -88,7 +88,7 @@
       {
         "stock": 25,
         "description": "Stoemp like grandma used to make",
-        "price": 3.33,
+        "price": 0.00,
         "preparationTime": 1200,
         "category": [
           "SNACK",
@@ -99,7 +99,7 @@
       {
         "stock": 25,
         "description": "Delicious cake",
-        "price": 4.99,
+        "price": 0.00,
         "preparationTime": 300,
         "category": [
           "SNACK"
@@ -109,7 +109,7 @@
       {
         "stock": 25,
         "description": "Healthy green salad",
-        "price": 5.98,
+        "price": 0.00,
         "preparationTime": 600,
         "category": [
           "SNACK"
@@ -117,17 +117,17 @@
         "name": "Tasty Salad"
       }
     ],
-    "standName": "Balls & Glory 2_test"
+    "standName": "Balls and Glory 2_test"
   },
   {
-    "brandName": "Balls & Glory_test",
+    "brandName": "Balls and Glory_test",
     "longitude": 0.0,
     "latitude": 0.0,
     "menu": [
       {
         "stock": 25,
         "description": "A ball of delicious pork",
-        "price": 3.33,
+        "price": 0.00,
         "preparationTime": 300,
         "category": [
           "SNACK"
@@ -137,7 +137,7 @@
       {
         "stock": 25,
         "description": "Veggie ball",
-        "price": 3.33,
+        "price": 0.00,
         "preparationTime": 300,
         "category": [
           "SNACK",
@@ -148,7 +148,7 @@
       {
         "stock": 25,
         "description": "Stoemp like grandma used to make",
-        "price": 3.33,
+        "price": 0.00,
         "preparationTime": 1200,
         "category": [
           "SNACK",
@@ -159,7 +159,7 @@
       {
         "stock": 25,
         "description": "Delicious cake",
-        "price": 4.99,
+        "price": 0.00,
         "preparationTime": 300,
         "category": [
           "SNACK"
@@ -169,7 +169,7 @@
       {
         "stock": 25,
         "description": "Healthy green salad",
-        "price": 5.98,
+        "price": 0.00,
         "preparationTime": 600,
         "category": [
           "SNACK"
@@ -177,7 +177,7 @@
         "name": "Tasty Salad"
       }
     ],
-    "standName": "Balls & Glory 3_test"
+    "standName": "Balls and Glory 3_test"
   },
   {
     "brandName": "BurgerKing_test",
@@ -187,7 +187,7 @@
       {
         "stock": 25,
         "description": "Pepper king with chicken",
-        "price": 7.3,
+        "price": 0.00,
         "preparationTime": 500,
         "category": [
           "SNACK",
@@ -198,7 +198,7 @@
       {
         "stock": 25,
         "description": "Large fries",
-        "price": 4.3,
+        "price": 0.00,
         "preparationTime": 300,
         "category": [
           "FRIES"
@@ -208,7 +208,7 @@
       {
         "stock": 25,
         "description": "Medium fries",
-        "price": 3.2,
+        "price": 0.00,
         "preparationTime": 300,
         "category": [
           "FRIES"
@@ -218,7 +218,7 @@
       {
         "stock": 25,
         "description": "Delicious patty with peppered cheese",
-        "price": 6.7,
+        "price": 0.00,
         "preparationTime": 400,
         "category": [
           "SNACK",
@@ -229,7 +229,7 @@
       {
         "stock": 25,
         "description": "Veggie burger",
-        "price": 6.7,
+        "price": 0.00,
         "preparationTime": 400,
         "category": [
           "SNACK",
@@ -240,7 +240,7 @@
       {
         "stock": 25,
         "description": "Small fries",
-        "price": 2.1,
+        "price": 0.00,
         "preparationTime": 300,
         "category": [
           "FRIES"
@@ -250,7 +250,7 @@
       {
         "stock": 25,
         "description": "The final evolution of the the Chicken Pepper King burger!",
-        "price": 9.99,
+        "price": 0.00,
         "preparationTime": 700,
         "category": [
           "SNACK",
@@ -269,7 +269,7 @@
       {
         "stock": 25,
         "description": "Pepper king with chicken",
-        "price": 7.3,
+        "price": 0.00,
         "preparationTime": 500,
         "category": [
           "SNACK",
@@ -280,7 +280,7 @@
       {
         "stock": 25,
         "description": "Large fries",
-        "price": 4.3,
+        "price": 0.00,
         "preparationTime": 300,
         "category": [
           "FRIES"
@@ -290,7 +290,7 @@
       {
         "stock": 25,
         "description": "Medium fries",
-        "price": 3.2,
+        "price": 0.00,
         "preparationTime": 300,
         "category": [
           "FRIES"
@@ -300,7 +300,7 @@
       {
         "stock": 25,
         "description": "Delicious patty with peppered cheese",
-        "price": 6.7,
+        "price": 0.00,
         "preparationTime": 400,
         "category": [
           "SNACK",
@@ -311,7 +311,7 @@
       {
         "stock": 25,
         "description": "Veggie burger",
-        "price": 6.7,
+        "price": 0.00,
         "preparationTime": 400,
         "category": [
           "SNACK",
@@ -322,7 +322,7 @@
       {
         "stock": 25,
         "description": "Small fries",
-        "price": 2.1,
+        "price": 0.00,
         "preparationTime": 300,
         "category": [
           "FRIES"
@@ -332,7 +332,7 @@
       {
         "stock": 25,
         "description": "The final evolution of the the Chicken Pepper King burger!",
-        "price": 9.99,
+        "price": 0.00,
         "preparationTime": 700,
         "category": [
           "SNACK",
@@ -351,7 +351,7 @@
       {
         "stock": 25,
         "description": "Pepper king with chicken",
-        "price": 7.3,
+        "price": 0.00,
         "preparationTime": 500,
         "category": [
           "SNACK",
@@ -362,7 +362,7 @@
       {
         "stock": 25,
         "description": "Large fries",
-        "price": 4.3,
+        "price": 0.00,
         "preparationTime": 300,
         "category": [
           "FRIES"
@@ -372,7 +372,7 @@
       {
         "stock": 25,
         "description": "Medium fries",
-        "price": 3.2,
+        "price": 0.00,
         "preparationTime": 300,
         "category": [
           "FRIES"
@@ -382,7 +382,7 @@
       {
         "stock": 25,
         "description": "Delicious patty with peppered cheese",
-        "price": 6.7,
+        "price": 0.00,
         "preparationTime": 400,
         "category": [
           "SNACK",
@@ -393,7 +393,7 @@
       {
         "stock": 25,
         "description": "Veggie burger",
-        "price": 6.7,
+        "price": 0.00,
         "preparationTime": 400,
         "category": [
           "SNACK",
@@ -404,7 +404,7 @@
       {
         "stock": 25,
         "description": "Small fries",
-        "price": 2.1,
+        "price": 0.00,
         "preparationTime": 300,
         "category": [
           "FRIES"
@@ -414,7 +414,7 @@
       {
         "stock": 25,
         "description": "The final evolution of the the Chicken Pepper King burger!",
-        "price": 9.99,
+        "price": 0.00,
         "preparationTime": 700,
         "category": [
           "SNACK",
@@ -433,7 +433,7 @@
       {
         "stock": 25,
         "description": "Pepper king with chicken",
-        "price": 7.3,
+        "price": 0.00,
         "preparationTime": 500,
         "category": [
           "SNACK",
@@ -444,7 +444,7 @@
       {
         "stock": 25,
         "description": "Large fries",
-        "price": 4.3,
+        "price": 0.00,
         "preparationTime": 300,
         "category": [
           "FRIES"
@@ -454,7 +454,7 @@
       {
         "stock": 25,
         "description": "Medium fries",
-        "price": 3.2,
+        "price": 0.00,
         "preparationTime": 300,
         "category": [
           "FRIES"
@@ -464,7 +464,7 @@
       {
         "stock": 25,
         "description": "Delicious patty with peppered cheese",
-        "price": 6.7,
+        "price": 0.00,
         "preparationTime": 400,
         "category": [
           "SNACK",
@@ -475,7 +475,7 @@
       {
         "stock": 25,
         "description": "Veggie burger",
-        "price": 6.7,
+        "price": 0.00,
         "preparationTime": 400,
         "category": [
           "SNACK",
@@ -486,7 +486,7 @@
       {
         "stock": 25,
         "description": "Small fries",
-        "price": 2.1,
+        "price": 0.00,
         "preparationTime": 300,
         "category": [
           "FRIES"
@@ -496,7 +496,7 @@
       {
         "stock": 25,
         "description": "The final evolution of the the Chicken Pepper King burger!",
-        "price": 9.99,
+        "price": 0.00,
         "preparationTime": 700,
         "category": [
           "SNACK",
@@ -515,7 +515,7 @@
       {
         "stock": 25,
         "description": "The classic big mac!",
-        "price": 5.5,
+        "price": 0.00,
         "preparationTime": 600,
         "category": [
           "SNACK",
@@ -526,7 +526,7 @@
       {
         "stock": 25,
         "description": "Chicken bacon onion",
-        "price": 5.5,
+        "price": 0.00,
         "preparationTime": 600,
         "category": [
           "SNACK",
@@ -537,7 +537,7 @@
       {
         "stock": 25,
         "description": "A delicious cheeseburger.",
-        "price": 5.5,
+        "price": 0.00,
         "preparationTime": 600,
         "category": [
           "SNACK",
@@ -548,7 +548,7 @@
       {
         "stock": 25,
         "description": "Large fries",
-        "price": 3.33,
+        "price": 0.00,
         "preparationTime": 300,
         "category": [
           "FRIES"
@@ -558,7 +558,7 @@
       {
         "stock": 25,
         "description": "Big burger with 3 patties.",
-        "price": 5.5,
+        "price": 0.00,
         "preparationTime": 600,
         "category": [
           "SNACK",
@@ -569,7 +569,7 @@
       {
         "stock": 25,
         "description": "Medium fries",
-        "price": 2.6,
+        "price": 0.00,
         "preparationTime": 300,
         "category": [
           "FRIES"
@@ -579,7 +579,7 @@
       {
         "stock": 25,
         "description": "Small fries",
-        "price": 2.1,
+        "price": 0.00,
         "preparationTime": 300,
         "category": [
           "FRIES"
@@ -597,7 +597,7 @@
       {
         "stock": 25,
         "description": "The classic big mac!",
-        "price": 5.5,
+        "price": 0.00,
         "preparationTime": 600,
         "category": [
           "SNACK",
@@ -608,7 +608,7 @@
       {
         "stock": 25,
         "description": "Chicken bacon onion",
-        "price": 5.5,
+        "price": 0.00,
         "preparationTime": 600,
         "category": [
           "SNACK",
@@ -619,7 +619,7 @@
       {
         "stock": 25,
         "description": "A delicious cheeseburger.",
-        "price": 5.5,
+        "price": 0.00,
         "preparationTime": 600,
         "category": [
           "SNACK",
@@ -630,7 +630,7 @@
       {
         "stock": 25,
         "description": "Large fries",
-        "price": 3.33,
+        "price": 0.00,
         "preparationTime": 300,
         "category": [
           "FRIES"
@@ -640,7 +640,7 @@
       {
         "stock": 25,
         "description": "Big burger with 3 patties.",
-        "price": 5.5,
+        "price": 0.00,
         "preparationTime": 600,
         "category": [
           "SNACK",
@@ -651,7 +651,7 @@
       {
         "stock": 25,
         "description": "Medium fries",
-        "price": 2.6,
+        "price": 0.00,
         "preparationTime": 300,
         "category": [
           "FRIES"
@@ -661,7 +661,7 @@
       {
         "stock": 25,
         "description": "Small fries",
-        "price": 2.1,
+        "price": 0.00,
         "preparationTime": 300,
         "category": [
           "FRIES"
@@ -679,7 +679,7 @@
       {
         "stock": 25,
         "description": "The classic big mac!",
-        "price": 5.5,
+        "price": 0.00,
         "preparationTime": 600,
         "category": [
           "SNACK",
@@ -690,7 +690,7 @@
       {
         "stock": 25,
         "description": "Chicken bacon onion",
-        "price": 5.5,
+        "price": 0.00,
         "preparationTime": 600,
         "category": [
           "SNACK",
@@ -701,7 +701,7 @@
       {
         "stock": 25,
         "description": "A delicious cheeseburger.",
-        "price": 5.5,
+        "price": 0.00,
         "preparationTime": 600,
         "category": [
           "SNACK",
@@ -712,7 +712,7 @@
       {
         "stock": 25,
         "description": "Large fries",
-        "price": 3.33,
+        "price": 0.00,
         "preparationTime": 300,
         "category": [
           "FRIES"
@@ -722,7 +722,7 @@
       {
         "stock": 25,
         "description": "Big burger with 3 patties.",
-        "price": 5.5,
+        "price": 0.00,
         "preparationTime": 600,
         "category": [
           "SNACK",
@@ -733,7 +733,7 @@
       {
         "stock": 25,
         "description": "Medium fries",
-        "price": 2.6,
+        "price": 0.00,
         "preparationTime": 300,
         "category": [
           "FRIES"
@@ -743,7 +743,7 @@
       {
         "stock": 25,
         "description": "Small fries",
-        "price": 2.1,
+        "price": 0.00,
         "preparationTime": 300,
         "category": [
           "FRIES"
@@ -761,7 +761,7 @@
       {
         "stock": 25,
         "description": "The classic big mac!",
-        "price": 5.5,
+        "price": 0.00,
         "preparationTime": 600,
         "category": [
           "SNACK",
@@ -772,7 +772,7 @@
       {
         "stock": 25,
         "description": "Chicken bacon onion",
-        "price": 5.5,
+        "price": 0.00,
         "preparationTime": 600,
         "category": [
           "SNACK",
@@ -783,7 +783,7 @@
       {
         "stock": 25,
         "description": "A delicious cheeseburger.",
-        "price": 5.5,
+        "price": 0.00,
         "preparationTime": 600,
         "category": [
           "SNACK",
@@ -794,7 +794,7 @@
       {
         "stock": 25,
         "description": "Large fries",
-        "price": 3.33,
+        "price": 0.00,
         "preparationTime": 300,
         "category": [
           "FRIES"
@@ -804,7 +804,7 @@
       {
         "stock": 25,
         "description": "Big burger with 3 patties.",
-        "price": 5.5,
+        "price": 0.00,
         "preparationTime": 600,
         "category": [
           "SNACK",
@@ -815,7 +815,7 @@
       {
         "stock": 25,
         "description": "Medium fries",
-        "price": 2.6,
+        "price": 0.00,
         "preparationTime": 300,
         "category": [
           "FRIES"
@@ -825,7 +825,7 @@
       {
         "stock": 25,
         "description": "Small fries",
-        "price": 2.1,
+        "price": 0.00,
         "preparationTime": 300,
         "category": [
           "FRIES"
@@ -843,7 +843,7 @@
       {
         "stock": 25,
         "description": "Smoked bacon cubes, red onion, mushrooms, mild garlic sauce, tomato sauce and mozzarella",
-        "price": 10.5,
+        "price": 0.00,
         "preparationTime": 1200,
         "category": [
           "PIZZA"
@@ -853,7 +853,7 @@
       {
         "stock": 25,
         "description": "Pieces of grilled chicken, mushrooms, red onion, green pepper, mozzarella and barbecue sauce",
-        "price": 10.5,
+        "price": 0.00,
         "preparationTime": 1200,
         "category": [
           "PIZZA"
@@ -863,7 +863,7 @@
       {
         "stock": 25,
         "description": "With extra mozzarella, thin strips of ham and tomato sauce",
-        "price": 10.5,
+        "price": 0.00,
         "preparationTime": 1200,
         "category": [
           "PIZZA"
@@ -873,7 +873,7 @@
       {
         "stock": 25,
         "description": "Strips of ham, mushrooms, tomato cubes, tomato sauce and mozzarella",
-        "price": 10.5,
+        "price": 0.00,
         "preparationTime": 1200,
         "category": [
           "PIZZA",
@@ -884,7 +884,7 @@
       {
         "stock": 25,
         "description": "Spicy beef, chili peppers, red onion, diced tomatoes, tomato sauce and mozzarella",
-        "price": 10.5,
+        "price": 0.00,
         "preparationTime": 1200,
         "category": [
           "PIZZA"
@@ -894,7 +894,7 @@
       {
         "stock": 25,
         "description": "The original, oven-fresh basic pizza with tomato sauce and mozzarella.",
-        "price": 10.5,
+        "price": 0.00,
         "preparationTime": 1200,
         "category": [
           "PIZZA"
@@ -904,7 +904,7 @@
       {
         "stock": 25,
         "description": "Double portion of beef, diced tomatoes, red onion, pepper sauce, tomato sauce and mozzarella",
-        "price": 10.5,
+        "price": 0.00,
         "preparationTime": 1200,
         "category": [
           "PIZZA"
@@ -922,7 +922,7 @@
       {
         "stock": 25,
         "description": "Smoked bacon cubes, red onion, mushrooms, mild garlic sauce, tomato sauce and mozzarella",
-        "price": 10.5,
+        "price": 0.00,
         "preparationTime": 1200,
         "category": [
           "PIZZA"
@@ -932,7 +932,7 @@
       {
         "stock": 25,
         "description": "Pieces of grilled chicken, mushrooms, red onion, green pepper, mozzarella and barbecue sauce",
-        "price": 10.5,
+        "price": 0.00,
         "preparationTime": 1200,
         "category": [
           "PIZZA"
@@ -942,7 +942,7 @@
       {
         "stock": 25,
         "description": "With extra mozzarella, thin strips of ham and tomato sauce",
-        "price": 10.5,
+        "price": 0.00,
         "preparationTime": 1200,
         "category": [
           "PIZZA"
@@ -952,7 +952,7 @@
       {
         "stock": 25,
         "description": "Strips of ham, mushrooms, tomato cubes, tomato sauce and mozzarella",
-        "price": 10.5,
+        "price": 0.00,
         "preparationTime": 1200,
         "category": [
           "PIZZA",
@@ -963,7 +963,7 @@
       {
         "stock": 25,
         "description": "Spicy beef, chili peppers, red onion, diced tomatoes, tomato sauce and mozzarella",
-        "price": 10.5,
+        "price": 0.00,
         "preparationTime": 1200,
         "category": [
           "PIZZA"
@@ -973,7 +973,7 @@
       {
         "stock": 25,
         "description": "The original, oven-fresh basic pizza with tomato sauce and mozzarella.",
-        "price": 10.5,
+        "price": 0.00,
         "preparationTime": 1200,
         "category": [
           "PIZZA"
@@ -983,7 +983,7 @@
       {
         "stock": 25,
         "description": "Double portion of beef, diced tomatoes, red onion, pepper sauce, tomato sauce and mozzarella",
-        "price": 10.5,
+        "price": 0.00,
         "preparationTime": 1200,
         "category": [
           "PIZZA"

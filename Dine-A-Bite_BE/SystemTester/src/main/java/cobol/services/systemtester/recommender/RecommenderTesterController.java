@@ -26,7 +26,7 @@ public class RecommenderTesterController {
     @GetMapping("/setup")
     public void setup() throws IOException {
         es=new EventSimulation();
-        es.setup(100);
+        es.setup(10);
     }
     @GetMapping("/test")
     public void testStands(){
