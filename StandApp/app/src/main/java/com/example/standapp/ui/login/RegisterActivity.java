@@ -21,6 +21,7 @@ import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.standapp.R;
+import com.google.android.material.snackbar.Snackbar;
 
 public class RegisterActivity extends AppCompatActivity {
 
@@ -133,8 +134,7 @@ public class RegisterActivity extends AppCompatActivity {
     }
 
     private void showLoginFailed(@StringRes Integer errorString) {
-        Toast toast = Toast.makeText(getApplicationContext(), errorString, Toast.LENGTH_LONG);
-        toast.setGravity(Gravity.TOP, 0, 0);
-        toast.show();
+        Snackbar.make(findViewById(R.id.register), errorString, Snackbar.LENGTH_SHORT)
+                .show();
     }
 }
