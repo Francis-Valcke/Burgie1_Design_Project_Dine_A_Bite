@@ -558,6 +558,7 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
         //orderReceived= mapper.readValue(response.get("order").toString(), CommonOrder.class);
         orderReceived = mapper.readerFor(CommonOrder.class).readValue(response.get("order").toString());
 
+        //TODO: remove when checked that setting prices/cartCount/totalPrice is redundant
         orderReceived.setPrices(ordered);
         // Recalculate the totalPrice and total cartCount of the order
         // if order was split up, recalculation is definitely required
