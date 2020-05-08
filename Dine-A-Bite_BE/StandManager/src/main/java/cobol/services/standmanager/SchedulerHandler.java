@@ -138,13 +138,23 @@ public class SchedulerHandler {
         //add the queue times of the priority queues
         priorityQueues.computeExtraTime(recommendations, order.getId());
 
-        //sort the recommendation list again based on added times
-        List<Recommendation> sortedRecommends = recommendations.stream()
-                .sorted(Comparator.comparing(Recommendation::getTimeEstimate))
-                .collect(Collectors.toList());
+        //sort the recommendation list again based on added times (ONLY WHEN recommendation type is NOT distance)
+        if (!order.getRecType().equals(CommonOrder.recommendType.DISTANCE)) {
+            List<Recommendation> sortedRecommends = recommendations.stream()
+                    .sorted(Comparator.comparing(Recommendation::getTimeEstimate))
+                    .collect(Collectors.toList());
 
-        //TODO:re-set the ranks of the recommendations!!!
-        return sortedRecommends;
+            //also reset the ranks according to this new ordering
+            for (int i = 0; i < sortedRecommends.size();i++){
+                Recommendation curRec = sortedRecommends.get(i);
+                curRec.setRank(i+1);
+            }
+
+            return sortedRecommends;
+        }
+        else {
+            return recommendations;
+        }
     }
 
     public JSONObject addOrderToScheduler(CommonOrder order) {

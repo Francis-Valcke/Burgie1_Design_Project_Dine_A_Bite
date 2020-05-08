@@ -55,7 +55,7 @@ public class PriorityQueues {
             rec.setTimeEstimate(extraTime + currentRecomTime);
 
             //add (factored) extra time to the specific priority queue and save priorityOrder in extra list (used for quick lookup and management)
-            int addedTime = calculatePriorityTime(orderPrepTime,rec.getRank());
+            int addedTime = calculatePriorityTime(orderPrepTime,rec.getRank(), recommends.size());
             priorityOrder.addRecommend(currentSchedulerId, addedTime);
 
             System.out.println("ADDED: " + addedTime + "TO SCHEDULER: " + currentSchedulerId);
@@ -69,9 +69,9 @@ public class PriorityQueues {
      * @param prepTime preparation time of the order for the specific scheduler (this could be different for a different stand possibly at this point)
      * @param priority of the recommendation (so basically just the rank of that recommendation)
      */
-    public int calculatePriorityTime(int prepTime, int priority){
+    public int calculatePriorityTime(int prepTime, int priority, int amount){
         //for now a set factor for each priority (given that only 3 recommends are given atm so this can be hard coded to check first implementation)
-        double [] factors = new double[]{0.6, 0.3, 0.1};
+        double [] factors = getDescendingUnit(amount);
 
         //-1 because ranks start at 1, not at 0 like indices
         double factor = factors[priority-1];
@@ -119,4 +119,27 @@ public class PriorityQueues {
         return extraTime;
     }
 
+    /**
+     * functions for dynamic factoring, where each element of higher priority is double of the next one with lower priority (except for relation between 2nd to last and 3rd to last)
+     * this type of function for computing factors could be change if you use a different (statistical) model
+     * @param amount the amount of factors we need (which is the length of recommend list, or the amount of priorities)
+     * @return the factor array for weighted extra times in priority queues
+     */
+    public double[] getDescendingUnit(int amount){
+        double [] factors = new double[amount];
+
+        if (amount == 1){
+            factors[0] = 1;
+        }
+        else{
+            double constant = 1;
+            for (int i = 0; i < amount - 2; i++){
+                constant = constant/2;
+                factors[i] = constant;
+            }
+            factors[amount-2] = ((2*constant)/3);
+            factors[amount-1] = (constant/3);
+        }
+        return factors;
+    }
 }

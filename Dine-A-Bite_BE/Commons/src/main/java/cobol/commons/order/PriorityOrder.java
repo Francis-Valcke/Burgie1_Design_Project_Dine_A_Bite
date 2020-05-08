@@ -26,9 +26,9 @@ public class PriorityOrder {
     }
 
     /**
-     *
-     * @param Id
-     * @param addedTime
+     * save recommend id and the time added (to later easily substract it again)
+     * @param Id of scheduler
+     * @param addedTime is time added to that specific priority queue
      */
     public void addRecommend(int Id, int addedTime){
         recommendMap.put(Id, addedTime);
