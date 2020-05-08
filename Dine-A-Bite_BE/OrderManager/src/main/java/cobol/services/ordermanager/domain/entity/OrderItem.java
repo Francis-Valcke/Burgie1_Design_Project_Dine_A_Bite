@@ -75,8 +75,6 @@ public class OrderItem implements Serializable {
         return foodName;
     }
 
-    public int getAmount() { return amount; }
-
     // ---- Extra ---- //
     @Override
     public String toString() {
