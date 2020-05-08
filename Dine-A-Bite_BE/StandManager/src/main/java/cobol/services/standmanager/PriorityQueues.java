@@ -34,11 +34,8 @@ public class PriorityQueues {
     public void computeExtraTime(List<Recommendation> recommends, int orderId){
         PriorityOrder priorityOrder = new PriorityOrder(orderId);
         for (Recommendation rec : recommends){
-
             int currentRecomTime = rec .getTimeEstimate();
             int currentSchedulerId = rec.getSchedulerId();
-            int orderPrepTime = rec.getOrderPrepTime();
-
 
             //check if already a priority queue in the hashmap to get time from, otherwise create one and create the list for priorityOrders
             if (!queues.containsKey(currentSchedulerId)){
@@ -48,15 +45,22 @@ public class PriorityQueues {
             //calculate the queue time of this specific priorityQueue
             int extraTime = checkQueueTime(queues.get(currentSchedulerId), currentSchedulerId);
 
-
             //add extra time to this recommendations' original time estimate
             rec.setTimeEstimate(extraTime + currentRecomTime);
 
-            //add (factored) extra time to the specific priority queue and save priorityOrder in extra list (used for quick lookup and management)
-            int addedTime = calculatePriorityTime(orderPrepTime,rec.getRank(), recommends.size());
+        }
+        //sort and rerank the recommendations now before adding weighted times to prio queues
+        List<Recommendation> newOrderedRecommends = sortAndRerank(recommends);
+
+        //add (factored) extra time to the specific priority queue and save priorityOrder in extra list (used for quick lookup and management)
+        for (Recommendation rec: newOrderedRecommends){
+            int orderPrepTime = rec.getOrderPrepTime();
+            int currentSchedulerId = rec.getSchedulerId();
+
+            int addedTime = calculatePriorityTime(orderPrepTime,rec.getRank(), newOrderedRecommends.size());
             priorityOrder.addRecommend(currentSchedulerId, addedTime);
 
-           System.out.println("ADDED: " + addedTime + "TO SCHEDULER: " + currentSchedulerId);
+            System.out.println("ADDED: " + addedTime + "TO SCHEDULER: " + currentSchedulerId);
         }
 
         //add priorityOrder to the corresponding queues and add it to the priorityOrder list itself
