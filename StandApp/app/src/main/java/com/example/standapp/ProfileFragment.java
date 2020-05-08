@@ -90,7 +90,7 @@ public class ProfileFragment extends Fragment {
         final Bundle bundle = getArguments();
         if (bundle != null) standNameTextView.setText(bundle.getString("standName"));
         if (bundle != null) brandNameTextView.setText(bundle.getString("brandName"));
-        RevenueViewModel model = new ViewModelProvider(requireActivity()).get(RevenueViewModel.class);
+        final RevenueViewModel model = new ViewModelProvider(requireActivity()).get(RevenueViewModel.class);
         final Observer<BigDecimal> revenueObserver = new Observer<BigDecimal>() {
             @Override
             public void onChanged(@Nullable final BigDecimal bigDecimal) {
@@ -241,6 +241,38 @@ public class ProfileFragment extends Fragment {
                     };
 
                     queue.add(request);
+
+                    // Get revenue from server
+                    String newUrl = ServerConfig.OM_ADDRESS + "/revenue?standName=" + standName + "&brandName="
+                            + brandName;
+                    newUrl = newUrl.replace(' ', '+');
+                    JsonObjectRequest revenueRequest = new JsonObjectRequest(Request.Method.GET, newUrl
+                            ,null, new Response.Listener<Integer>() {
+                        @Override
+                        public void onResponse(Integer response) {
+                            BigDecimal revenue = BigDecimal.valueOf((response));
+                            model.setRevenue(revenue);
+                        }
+                    }, new Response.ErrorListener() {
+
+                        @Override
+                        public void onErrorResponse(VolleyError error) {
+                            error.printStackTrace();
+                            Toast.makeText(getContext(), "Revenue: " + error.toString(),
+                                    Toast.LENGTH_LONG).show();
+                        }
+                    }) {
+                        @Override
+                        public Map<String, String> getHeaders() {
+                            HashMap<String, String> headers = new HashMap<>();
+                            headers.put("Content-Type", "application/json");
+                            headers.put("Authorization", user.getAutorizationToken());
+                            return headers;
+                        }
+                    };
+
+                    queue.add(revenueRequest);
+
 
                 } else {
                     Toast.makeText(getContext(), "Input fields cannot be empty",

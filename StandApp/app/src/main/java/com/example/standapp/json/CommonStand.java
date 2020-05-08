@@ -1,6 +1,7 @@
 package com.example.standapp.json;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,16 +15,18 @@ public class CommonStand implements Serializable {
     private String brandName;
     private double latitude;
     private double longitude;
+    private BigDecimal revenue;
 
     public CommonStand(){}
 
     public CommonStand(String name, String brandName, double latitude, double longitude,
-                       List<CommonFood> menu){
+                       List<CommonFood> menu, BigDecimal revenue){
         this.name = name;
         this.brandName = brandName;
         this.latitude = latitude;
         this.longitude = longitude;
         this.menu = menu;
+        this.revenue = revenue;
     }
 
     public CommonStand(String name, String brandName, double latitude, double longitude) {
@@ -31,6 +34,7 @@ public class CommonStand implements Serializable {
         this.brandName = brandName;
         this.latitude = latitude;
         this.longitude = longitude;
+        this.revenue = BigDecimal.ZERO;
     }
 
     public void addMenuItem(CommonFood mi){
@@ -56,4 +60,6 @@ public class CommonStand implements Serializable {
     public double getLatitude(){
         return this.latitude;
     }
+
+    
 }
