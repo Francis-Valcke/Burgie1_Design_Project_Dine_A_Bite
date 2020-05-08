@@ -6,8 +6,6 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
-import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -45,7 +43,7 @@ public class CartActivity extends ToolbarActivity implements AdapterView.OnItemS
     private Toast mToast;
     private Intent returnIntent;
     private BigDecimal totalPrice = new BigDecimal(0);
-    private CommonOrder.recommendType recommendType;
+    private CommonOrder.RecommendType recommendType;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,7 +74,6 @@ public class CartActivity extends ToolbarActivity implements AdapterView.OnItemS
         returnIntent = new Intent();
         returnIntent.putExtra("cartList", cartAdapter.getCartList());
         returnIntent.putExtra("cartCount", cartAdapter.getCartCount());
-        returnIntent.putExtra("recType", CommonOrder.recommendType.DISTANCE_AND_TIME);
         setResult(RESULT_OK, returnIntent);
 
 
@@ -103,6 +100,7 @@ public class CartActivity extends ToolbarActivity implements AdapterView.OnItemS
                 intent.putExtra("location", lastLocation);
                 intent.putExtra("totalPrice", totalPrice);
                 intent.putExtra("cartCount", cartAdapter.getCartCount());
+                intent.putExtra("recType", recommendType);
                 startActivity(intent);
                 /*} else {
                     Intent intent = new Intent(CartActivity.this, OrderActivity.class);
@@ -222,13 +220,11 @@ public class CartActivity extends ToolbarActivity implements AdapterView.OnItemS
         } else {
             requestedRecType = requestedRecType.toUpperCase();
         }
-        recommendType = CommonOrder.recommendType.valueOf(requestedRecType);
-        returnIntent.putExtra("recType", recommendType);
+        recommendType = CommonOrder.RecommendType.valueOf(requestedRecType);
     }
 
     @Override
     public void onNothingSelected(AdapterView<?> parent) {
-        recommendType = CommonOrder.recommendType.DISTANCE_AND_TIME;
-        returnIntent.putExtra("recType", recommendType);
+        recommendType = CommonOrder.RecommendType.DISTANCE_AND_TIME;
     }
 }

@@ -64,7 +64,7 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
     private String specificBrand;
     private Recommendation specificRecommendation = null;
     private Toast mToast = null;
-    private CommonOrder.recommendType recommendType = null;
+    private CommonOrder.RecommendType recommendType = null;
 
     private LoggedInUser user = LoginRepository.getInstance(new LoginDataSource()).getLoggedInUser();
 
@@ -82,7 +82,7 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
         cartCount = getIntent().getIntExtra("cartCount", 0);
         totalPrice = (BigDecimal) getIntent().getSerializableExtra("totalPrice");
         lastLocation = getIntent().getParcelableExtra("location");
-        recommendType = (CommonOrder.recommendType) getIntent().getSerializableExtra("recType");
+        recommendType = (CommonOrder.RecommendType) getIntent().getSerializableExtra("recType");
         requestOrderRecommend();
 
         // Check if the user wants to order from a specific stand (all ordered items are from the same stand/brand)

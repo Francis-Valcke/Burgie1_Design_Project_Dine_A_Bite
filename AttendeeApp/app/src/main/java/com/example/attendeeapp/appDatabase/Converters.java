@@ -57,13 +57,13 @@ public class Converters {
     }
 
     @TypeConverter
-    public static Integer getRecommendTypeInt(CommonOrder.recommendType type) {
+    public static Integer getRecommendTypeInt(CommonOrder.RecommendType type) {
         return type.ordinal();
     }
 
     @TypeConverter
-    public static CommonOrder.recommendType getRecommendType(Integer type) {
-        return CommonOrder.recommendType.values()[type];
+    public static CommonOrder.RecommendType getRecommendType(Integer type) {
+        return CommonOrder.RecommendType.values()[type];
     }
 
     @TypeConverter
