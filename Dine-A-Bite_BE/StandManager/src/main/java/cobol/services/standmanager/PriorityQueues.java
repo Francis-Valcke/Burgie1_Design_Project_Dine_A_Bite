@@ -61,6 +61,10 @@ public class PriorityQueues {
             System.out.println("ADDED: " + addedTime + "TO SCHEDULER: " + currentSchedulerId);
         }
 
+        //add priorityOrder to the corresponding queues and add it to the priorityOrder list itself
+        for (int key: priorityOrder.getrecommendMap().keySet()){
+            queues.get(key).add(priorityOrder);
+        }
         priorityOrders.put(orderId, priorityOrder);
     }
 
@@ -77,7 +81,7 @@ public class PriorityQueues {
         double factor = factors[priority-1];
         //calculate extra time
         int extraTime = (int) (prepTime*factor);
-
+        
         return extraTime;
     }
 
