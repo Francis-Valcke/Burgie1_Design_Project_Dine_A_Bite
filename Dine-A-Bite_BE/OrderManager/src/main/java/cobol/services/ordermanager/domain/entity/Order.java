@@ -2,10 +2,6 @@ package cobol.services.ordermanager.domain.entity;
 
 import cobol.commons.order.CommonOrder;
 import cobol.commons.order.CommonOrderItem;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.json.simple.JSONObject;
-import org.springframework.data.jpa.repository.Modifying;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -60,7 +56,7 @@ public class Order implements Serializable {
             orphanRemoval = true
     )
     private List<OrderItem> orderItems;
-    private CommonOrder.recommendType recType;
+    private CommonOrder.RecommendType recType;
 
 
     // ---- Constructor / Transformers ---- //
