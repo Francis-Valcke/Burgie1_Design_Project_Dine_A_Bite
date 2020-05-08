@@ -86,13 +86,14 @@ public class OrderActivity extends ToolbarActivity {
         initToolbar();
         upButtonToolbar();
 
+        // orders passed by confirm order activity
+        ArrayList<CommonOrder> newOrderList= (ArrayList<CommonOrder>) getIntent().getSerializableExtra("orderList");
+
         runningOrderSwitch = findViewById(R.id.running_order_switch);
         // add event listener to switch
         runningOrderSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> updateUserOrdersFromDB());
 
 
-        // order passed by confirm order activity
-        final CommonOrder newOrder = (CommonOrder) getIntent().getSerializableExtra("order");
 
         // -- data init -- //
         orderDatabaseService = new OrderDatabaseService(getApplicationContext());
@@ -108,16 +109,14 @@ public class OrderActivity extends ToolbarActivity {
 
 
         // If there are no orders, nothing to poll
-        if (orders == null || (orders.size() == 0 && newOrder == null)) {
+        if (newOrderList == null || (newOrderList.size() == 0 && newOrderList == null)) {
             // No (new) orders
             return;
-        } else if (newOrder != null) {
+        } else {
             // Send the order and chosen stand and brandName to the server and confirm the chosen stand
-            String chosenStand = getIntent().getStringExtra("stand");
-            String chosenBrand = getIntent().getStringExtra("brand");
-            newOrder.setStandName(chosenStand);
-            newOrder.setBrandName(chosenBrand);
-            confirmNewOrderStand(newOrder, chosenStand, chosenBrand);
+            for (CommonOrder commonOrder : newOrderList) {
+                confirmNewOrderStand(commonOrder);
+            }
         }
 
 
@@ -127,10 +126,8 @@ public class OrderActivity extends ToolbarActivity {
             for (CommonOrder order : orders) {
                 orderIds.add(order.getId());
             }
-            if (newOrderList != null) {
-                for (CommonOrder i : newOrderList) {
-                    orderIds.add(i.getId());
-                }
+            for (CommonOrder i : newOrderList) {
+                orderIds.add(i.getId());
             }
             // orderId's will not be empty, else this code is not reachable
             getSubscriberId(orderIds);
@@ -168,8 +165,6 @@ public class OrderActivity extends ToolbarActivity {
      * Confirm the chosen stand and brand when a new order is made
      *
      * @param newOrder    new order
-     * @param chosenStand stand chosen
-     * @param chosenBrand brand chosen
      */
     public void confirmNewOrderStand(final CommonOrder newOrder) {
         // Instantiate the RequestQueue
