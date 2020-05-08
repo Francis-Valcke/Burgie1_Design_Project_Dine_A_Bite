@@ -86,13 +86,13 @@ public class OrderActivity extends ToolbarActivity {
         initToolbar();
         upButtonToolbar();
 
+        // order(s) passed by confirm order activity
+        ArrayList<CommonOrder> newOrderList= (ArrayList<CommonOrder>) getIntent().getSerializableExtra("orderList");
+
         runningOrderSwitch = findViewById(R.id.running_order_switch);
         // add event listener to switch
         runningOrderSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> updateUserOrdersFromDB());
 
-
-        // order passed by confirm order activity
-        final CommonOrder newOrder = (CommonOrder) getIntent().getSerializableExtra("order");
 
         // -- data init -- //
         orderDatabaseService = new OrderDatabaseService(getApplicationContext());
@@ -108,28 +108,14 @@ public class OrderActivity extends ToolbarActivity {
 
 
         // If there are no orders, nothing to poll
-        if (orders == null || (orders.size() == 0 && newOrder == null)) {
+        if (orders == null || (orders.size() == 0 && newOrderList == null)) {
             // No (new) orders
             return;
-        } else if (newOrder != null) {
-            // Send the order and chosen stand and brandName to the server and confirm the chosen stand
-            String chosenStand = getIntent().getStringExtra("stand");
-            String chosenBrand = getIntent().getStringExtra("brand");
-            newOrder.setStandName(chosenStand);
-            newOrder.setBrandName(chosenBrand);
-            confirmNewOrderStand(newOrder, chosenStand, chosenBrand);
-        }
-
-
-        // Register as subscriber to the orderId event channel
-        if (!isPollingServiceRunning(PollingService.class)) {
-            ArrayList<Integer> orderIds = new ArrayList<>();
-            for (CommonOrder order : orders) {
-                orderIds.add(order.getId());
+        } else if (newOrderList != null) {
+            // Send all orders of the list to the server and confirm the chosen stands
+            for (CommonOrder commonOrder : newOrderList) {
+                confirmNewOrderStand(commonOrder);
             }
-            if (newOrder != null) orderIds.add(newOrder.getId());
-            // orderId's will not be empty, else this code is not reachable
-            getSubscriberId(orderIds);
         }
 
 
@@ -159,16 +145,38 @@ public class OrderActivity extends ToolbarActivity {
         LocalBroadcastManager.getInstance(this).unregisterReceiver(mMessageReceiver);
     }
 
+    /**
+     *  Check if polling service is running and if not request a new subscriberId for the current orders
+     */
+    private void subscribeToOrderUpdates() {
+        // TODO: register to channel of new order non-confirmed orders are no longer present
+        //  (pollingservice is running already when new order confirmation is received)
+        // Register as subscriber to the orderId event channel
+        if (!isPollingServiceRunning(PollingService.class)) {
+            ArrayList<Integer> orderIds = new ArrayList<>();
+            for (CommonOrder order : orders) {
+                orderIds.add(order.getId());
+            }
+            /*if (newOrderList != null) {
+                for (CommonOrder i : newOrderList) {
+                    orderIds.add(i.getId());
+                }
+            }*/
+
+            // orderId list can not be empty, else no orders to subscribe to
+            if (orderIds.size() != 0) getSubscriberId(orderIds);
+        }
+    }
 
     /**
      * Confirm the chosen stand and brand when a new order is made
      *
-     * @param newOrder    new order
-     * @param chosenStand stand chosen
-     * @param chosenBrand brand chosen
+     * @param newOrder new order
      */
-    public void confirmNewOrderStand(final CommonOrder newOrder, String chosenStand, String chosenBrand) {
+    public void confirmNewOrderStand(CommonOrder newOrder) {
         // Instantiate the RequestQueue
+        String chosenStand = newOrder.getStandName();
+        String chosenBrand = newOrder.getBrandName();
         RequestQueue queue = Volley.newRequestQueue(this);
         String url = ServerConfig.OM_ADDRESS;
         url = String.format("%1$s/confirmStand?orderId=%2$s&standName=%3$s&brandName=%4$s",
@@ -241,6 +249,8 @@ public class OrderActivity extends ToolbarActivity {
                         Collections.sort(orders, (o1, o2) -> o1.getId() - o2.getId());
                         adapter.notifyDataSetChanged();
 
+                        subscribeToOrderUpdates();
+
                         showToast("Order updated");
                     } catch (JsonProcessingException e) {
                         e.printStackTrace();
@@ -269,7 +279,7 @@ public class OrderActivity extends ToolbarActivity {
      *
      * @param orderId : list of order id's that must be subscribed to
      *                TODO: unregister subscriber
-     *                save subscriberId instead of asking new one every time
+     *                 save subscriberId instead of asking new one every time
      */
     public void getSubscriberId(ArrayList<Integer> orderId) {
         // Instantiate the RequestQueue
