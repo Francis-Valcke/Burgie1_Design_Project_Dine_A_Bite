@@ -1,5 +1,6 @@
 package cobol.services.standmanager;
 
+import cobol.commons.order.CommonOrder;
 import cobol.commons.order.PriorityOrder;
 import cobol.commons.order.Recommendation;
 import org.springframework.context.annotation.Scope;
@@ -31,7 +32,7 @@ public class PriorityQueues {
      * it will add some extra time to the recommendations, based on the non confirmed orders in the priorityqueues
      * @param recommends = the initial recommendation calculation list
      */
-    public void computeExtraTime(List<Recommendation> recommends, int orderId){
+    public void computeExtraTime(List<Recommendation> recommends, int orderId, CommonOrder.RecommendType recType){
         PriorityOrder priorityOrder = new PriorityOrder(orderId);
         for (Recommendation rec : recommends){
             int currentRecomTime = rec .getTimeEstimate();
@@ -50,7 +51,10 @@ public class PriorityQueues {
 
         }
         //sort and rerank the recommendations now before adding weighted times to prio queues
-        List<Recommendation> newOrderedRecommends = sortAndRerank(recommends);
+        List<Recommendation> newOrderedRecommends = recommends;
+        if (recType != CommonOrder.RecommendType.DISTANCE) {
+            newOrderedRecommends = sortAndRerank(recommends);
+        }
 
         //add (factored) extra time to the specific priority queue and save priorityOrder in extra list (used for quick lookup and management)
         for (Recommendation rec: newOrderedRecommends){
@@ -60,11 +64,11 @@ public class PriorityQueues {
             int addedTime = calculatePriorityTime(orderPrepTime,rec.getRank(), newOrderedRecommends.size());
             priorityOrder.addRecommend(currentSchedulerId, addedTime);
 
-            System.out.println("ADDED: " + addedTime + "TO SCHEDULER: " + currentSchedulerId);
+            System.out.println("ADDED: " + addedTime + " TO SCHEDULER: " + currentSchedulerId);
         }
 
         //add priorityOrder to the corresponding queues and add it to the priorityOrder list itself
-        for (int key: priorityOrder.getrecommendMap().keySet()){
+        for (int key: priorityOrder.getRecommendMap().keySet()){
             queues.get(key).add(priorityOrder);
         }
         priorityOrders.put(orderId, priorityOrder);
@@ -93,11 +97,14 @@ public class PriorityQueues {
      * @param orderId the id of the order (which is the key to get the priority order object)
      */
     public void removeOrder(int orderId){
-        PriorityOrder order = priorityOrders.get(orderId);
-        for (int key : order.getrecommendMap().keySet()){
-            queues.get(key).remove(order);
+        //remove from queues (only if not previously removed, this could be the case if timewindow expires, but still confirm later on (until no time window is available in frontend)
+        if (priorityOrders.containsKey(orderId)) {
+            PriorityOrder order = priorityOrders.get(orderId);
+            for (int key : order.getRecommendMap().keySet()) {
+                queues.get(key).remove(order);
+            }
+            priorityOrders.remove(orderId);
         }
-        priorityOrders.remove(orderId);
     }
 
     /**
@@ -109,19 +116,30 @@ public class PriorityQueues {
     public int checkQueueTime(ArrayList<PriorityOrder> prioQueue, int iD){
         //TimeWindow, currently hard coded to be 120 seconds but can be easily changed/used dynamically
         int timeWindow = 120;
-
+        //Extra time to be added to a recommendation (based on the priority queue waiting time with this scheduler id)
         int extraTime = 0;
+
+        ArrayList<Integer> ordersToRemove = new ArrayList<>();
         //check if order in prio queue is expired, and if so delete it
         //if not, we can add the weighted time of this order to the total time
         for (PriorityOrder o : prioQueue){
             //if true, expired, if false, calculate time
-            if (o.checkExpirationWindow(120)){
-                removeOrder(o.getOrderId());
+            if (o.checkExpirationWindow(timeWindow)){
+                System.out.println("Window passed, removing order nr " + o.getOrderId() + " from priority queues");
+                ordersToRemove.add(o.getOrderId());
             }
+
             else{
-                extraTime += o.getrecommendMap().get(iD);
+                extraTime += o.getRecommendMap().get(iD);
             }
+
         }
+
+        //remove orders from priority queues as well as from the list of priority orders
+        for (int id : ordersToRemove){
+            removeOrder(id);
+        }
+
         return extraTime;
     }
 
@@ -149,6 +167,11 @@ public class PriorityQueues {
         return factors;
     }
 
+    /**
+     * recommendation times are changed, so we need to reorder the list, but also change the ranks of these recommends based on the new ordering
+     * @param recommendations the recommendation list that needs to be resorted
+     * @return resorted and reranked recommendation list
+     */
     public List<Recommendation> sortAndRerank(List<Recommendation> recommendations){
         List<Recommendation> sortedRecommends = recommendations.stream()
                 .sorted(Comparator.comparing(Recommendation::getTimeEstimate))

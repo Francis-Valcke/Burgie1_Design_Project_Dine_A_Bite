@@ -48,7 +48,7 @@ public class PriorityOrder {
         }
     }
 
-    public Map<Integer, Integer> getrecommendMap() {
+    public Map<Integer, Integer> getRecommendMap() {
         return recommendMap;
     }
 

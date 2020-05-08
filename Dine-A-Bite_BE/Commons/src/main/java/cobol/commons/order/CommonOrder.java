@@ -19,7 +19,7 @@ public class CommonOrder {
     private State orderState;
     private String brandName;
     private String standName;
-    private recommendType recType;
+    private RecommendType recType;
 
     private List<CommonOrderItem> orderItems;
 
@@ -30,7 +30,7 @@ public class CommonOrder {
 
     public CommonOrder(){}
 
-    public CommonOrder(int id, ZonedDateTime startTime, ZonedDateTime expectedTime, State orderState, String brandName, String standName, List<CommonOrderItem> orderItems, double latitude, double longitude, recommendType recType) {
+    public CommonOrder(int id, ZonedDateTime startTime, ZonedDateTime expectedTime, State orderState, String brandName, String standName, List<CommonOrderItem> orderItems, double latitude, double longitude, RecommendType recType) {
         TimeZone.setDefault(TimeZone.getTimeZone("Europe/Brussels"));
         this.id = id;
         this.startTime = startTime;
@@ -52,7 +52,7 @@ public class CommonOrder {
         READY
     }
     //type of recommendation wanted
-    public enum recommendType{
+    public enum RecommendType {
         DISTANCE,
         TIME,
         DISTANCE_AND_TIME

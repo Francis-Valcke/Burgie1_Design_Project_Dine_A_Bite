@@ -7,7 +7,6 @@ import cobol.commons.order.CommonOrder;
 import cobol.commons.order.CommonOrderItem;
 import cobol.commons.order.Recommendation;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -16,9 +15,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Component
 @Scope(value = "singleton")
@@ -95,9 +92,6 @@ public class SchedulerHandler {
      * @return JSON with a certain amount of recommended stands (currently based on lowest queue time only)
      */
     public List<Recommendation> recommend(CommonOrder order) throws JsonProcessingException {
-        //choose how many recommends you want
-        int amountOfRecommends = 3;
-
         // find stands (schedulers) which offer correct food for the order
         ArrayList<Scheduler> goodSchedulers = findCorrespondStands(order);
 
@@ -105,23 +99,22 @@ public class SchedulerHandler {
         double weight = 5;
 
         //now look which type of recommendation we want and order the scheduler based on that
-        if (order.getRecType().equals(CommonOrder.recommendType.TIME)) {
+        if (order.getRecType().equals(CommonOrder.RecommendType.TIME)) {
             //sort the stands (schedulers) based on remaining time
             Collections.sort(goodSchedulers, new SchedulerComparatorTime(new ArrayList<>(order.getOrderItems())));
-        } else if (order.getRecType().equals(CommonOrder.recommendType.DISTANCE)) {
+        } else if (order.getRecType().equals(CommonOrder.RecommendType.DISTANCE)) {
             //sort the stands (schedulers) based on distance
             Collections.sort(goodSchedulers, new SchedulerComparatorDistance(order.getLatitude(), order.getLongitude()));
-        } else if (order.getRecType().equals(CommonOrder.recommendType.DISTANCE_AND_TIME)) {
+        } else if (order.getRecType().equals(CommonOrder.RecommendType.DISTANCE_AND_TIME)) {
             //sort the stands (schedulers) based on mix between distance and time
             Collections.sort(goodSchedulers, new SchedulerComparator(order.getLatitude(), order.getLongitude(), weight, new ArrayList<>(order.getOrderItems())));
         } else {
             System.out.println("THE CHOSEN RECOMMENDATION TYPE IS NOT VALID");
         }
 
-        // check if you have enough stands (for amount of recommendations you want)
-        if (goodSchedulers.size() < amountOfRecommends) {
-            amountOfRecommends = goodSchedulers.size();
-        }
+        //choose how many recommends you want
+        int amountOfRecommends = goodSchedulers.size();
+
         // put everything into a JSON file to give as return value
         List<Recommendation> recommendations = new ArrayList<>();
 
@@ -133,10 +126,10 @@ public class SchedulerHandler {
         }
 
         //add the queue times of the priority queues
-        priorityQueues.computeExtraTime(recommendations, order.getId());
+        priorityQueues.computeExtraTime(recommendations, order.getId(), order.getRecType());
 
         //sort the recommendation list again based on added times (ONLY WHEN recommendation type is NOT distance)
-        if (!order.getRecType().equals(CommonOrder.recommendType.DISTANCE)) {
+        if (!order.getRecType().equals(CommonOrder.RecommendType.DISTANCE)) {
             List<Recommendation> sortedRecommends = priorityQueues.sortAndRerank(recommendations);
             return sortedRecommends;
         } else {
