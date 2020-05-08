@@ -93,7 +93,7 @@ public class OrderActivity extends ToolbarActivity {
         // add event listener to switch
         runningOrderSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> updateUserOrdersFromDB());
 
-        
+
         // -- data init -- //
         orderDatabaseService = new OrderDatabaseService(getApplicationContext());
 
@@ -116,23 +116,6 @@ public class OrderActivity extends ToolbarActivity {
             for (CommonOrder commonOrder : newOrderList) {
                 confirmNewOrderStand(commonOrder);
             }
-        }
-
-
-        // Register as subscriber to the orderId event channel
-        if (!isPollingServiceRunning(PollingService.class)) {
-            ArrayList<Integer> orderIds = new ArrayList<>();
-            for (CommonOrder order : orders) {
-                orderIds.add(order.getId());
-            }
-            /*if (newOrderList != null) {
-                for (CommonOrder i : newOrderList) {
-                    orderIds.add(i.getId());
-                }
-            }*/
-            // TODO: Comment not valid anymore!
-            // orderId's will not be empty, else this code is not reachable
-            getSubscriberId(orderIds);
         }
 
 
@@ -166,7 +149,7 @@ public class OrderActivity extends ToolbarActivity {
      *  Check if polling service is running and if not request a new subscriberId for the current orders
      */
     private void subscribeToOrderUpdates() {
-        // TODO: register to channel of new order!!
+        // TODO: register to channel of new order non-confirmed orders are no longer present
         //  (pollingservice is running already when new order confirmation is received)
         // Register as subscriber to the orderId event channel
         if (!isPollingServiceRunning(PollingService.class)) {
@@ -179,8 +162,9 @@ public class OrderActivity extends ToolbarActivity {
                     orderIds.add(i.getId());
                 }
             }*/
-            // orderId's will not be empty, else this code is not reachable
-            getSubscriberId(orderIds);
+
+            // orderId list can not be empty, else no orders to subscribe to
+            if (orderIds.size() != 0) getSubscriberId(orderIds);
         }
     }
 
