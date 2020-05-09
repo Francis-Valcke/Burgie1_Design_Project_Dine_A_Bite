@@ -48,7 +48,7 @@ public class RecommenderTesterController {
     @PostConstruct
     public void run() throws IOException, InterruptedException {
         es=new EventSimulation();
-        es.setup(5);
+        es.setup(100);
         es.start();
         es.checkOrderIds();
         es.getTotalWaitingTime();
