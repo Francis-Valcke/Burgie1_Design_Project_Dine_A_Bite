@@ -3,8 +3,10 @@ package cobol.services.ordermanager.controller;
 import cobol.commons.CommonStand;
 import cobol.commons.ResponseModel;
 import cobol.commons.exception.CommunicationException;
+import cobol.commons.order.CommonOrder;
 import cobol.commons.security.CommonUser;
 import cobol.services.ordermanager.MenuHandler;
+import cobol.services.ordermanager.domain.entity.Order;
 import cobol.services.ordermanager.domain.entity.Stand;
 import cobol.services.ordermanager.domain.entity.User;
 import cobol.services.ordermanager.domain.repository.StandRepository;
@@ -15,12 +17,11 @@ import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.parameters.P;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -172,6 +173,16 @@ public class StandController {
                     .details(revenue)
                     .build().generateResponse()
         );
+    }
+
+    @GetMapping(value= "/getStandOrders", produces = "application/json")
+    public ResponseEntity<List<CommonOrder>> getUserOrders(@RequestParam(name = "standName") String standName,
+                                                           @RequestParam(name = "brandName") String brandName)
+                                                            throws DoesNotExistException {
+        Stand stand = standRepository.findStandById(standName, brandName).orElse(null);
+        if (stand != null) {
+            return ResponseEntity.ok(stand.getOrderList().stream().map(Order::asCommonOrder).collect(Collectors.toList()));
+        } else throw new DoesNotExistException("Stand " + standName + " does not exist, or does not have a menu saved.");
     }
 }
 

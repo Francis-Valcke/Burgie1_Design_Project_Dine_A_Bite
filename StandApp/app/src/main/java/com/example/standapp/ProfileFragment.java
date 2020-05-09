@@ -319,21 +319,11 @@ public class ProfileFragment extends Fragment {
                 // - erase username
                 // - erase user ID / token
                 // - erase subscriber ID
-                try {
-                    String masterKeyAlias = MasterKeys.getOrCreate(MasterKeys.AES256_GCM_SPEC);
-                    SharedPreferences sharedPreferences = EncryptedSharedPreferences.create(
-                            getString(R.string.shared_pref_file_key),
-                            masterKeyAlias,
-                            mContext,
-                            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-                            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
-                    );
-                    SharedPreferences.Editor editor = sharedPreferences.edit();
-                    editor.clear();
-                    // Ignore warning: needs to be commit to be synchronous
-                    editor.commit();
-                } catch (GeneralSecurityException | IOException e) {
-                    e.printStackTrace();
+                MainActivity parentActivity = (MainActivity) getActivity();
+                if (parentActivity != null) {
+                    parentActivity.clearCredentials(mContext);
+                } else {
+                    Log.d("LOG OUT ERROR", "Could not clear credentials!");
                 }
 
                 LoginRepository.getInstance(new LoginDataSource()).logout();

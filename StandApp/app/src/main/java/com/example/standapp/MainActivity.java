@@ -64,35 +64,7 @@ public class MainActivity extends AppCompatActivity
 
         // Fetch user credentials if stored
         LoginRepository loginRepository = LoginRepository.getInstance(new LoginDataSource());
-        LoggedInUser user;
-        try {
-            String masterKeyAlias = MasterKeys.getOrCreate(MasterKeys.AES256_GCM_SPEC);
-            SharedPreferences sharedPreferences = EncryptedSharedPreferences.create(
-                    getString(R.string.shared_pref_file_key),
-                    masterKeyAlias,
-                    mContext,
-                    EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-                    EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
-            );
-            String username = sharedPreferences.getString("username", null);
-            String userId = sharedPreferences.getString("user_id", null); // token
-            String standName = sharedPreferences.getString("stand_name", null);
-            String brandName = sharedPreferences.getString("brand_name", null);
-            String subscriberId = sharedPreferences.getString("subscriber_id", null);
-            System.out.println("Username: " + username); // DEBUG
-            if (username != null && userId != null) {
-                user = new LoggedInUser(userId, username);
-                loginRepository.setLoggedInUser(user);
-                if (standName != null && brandName != null && subscriberId != null) {
-                    bundle.putString("standName", standName);
-                    bundle.putString("brandName", brandName);
-                    bundle.putString("subscriberId", subscriberId);
-                    profile.fetchMenu(standName, brandName, bundle, mContext);
-                }
-            }
-        } catch (GeneralSecurityException | IOException e) {
-            e.printStackTrace();
-        }
+        fetchCredentials(mContext, bundle, loginRepository);
 
         if (!loginRepository.isLoggedIn()) {
             // Start logging in activity when not user credentials stored (not logged in)
@@ -154,9 +126,80 @@ public class MainActivity extends AppCompatActivity
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        // Start profile fragment after successfully logging in
+        // Start profile fragment after successfully logging in or registering
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.fragment_container, profile)
                 .commit();
+    }
+
+    /**
+     * Fetch the credentials stored on the Android device
+     * - username
+     * - user ID (Authorization token)
+     * - stand name
+     * - brand name
+     * - subscriber ID for the Event Channel
+     *
+     * @param context context from which this method is called
+     * @param bundle bundle to store the retrieved credentials in
+     * @param loginRepository stores the logged in user
+     */
+    private void fetchCredentials(Context context, Bundle bundle, LoginRepository loginRepository) {
+        LoggedInUser user;
+        try {
+            String masterKeyAlias = MasterKeys.getOrCreate(MasterKeys.AES256_GCM_SPEC);
+            SharedPreferences sharedPreferences = EncryptedSharedPreferences.create(
+                    getString(R.string.shared_pref_file_key),
+                    masterKeyAlias,
+                    context,
+                    EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                    EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+            );
+            String username = sharedPreferences.getString("username", null);
+            String userId = sharedPreferences.getString("user_id", null); // token
+            String standName = sharedPreferences.getString("stand_name", null);
+            String brandName = sharedPreferences.getString("brand_name", null);
+            String subscriberId = sharedPreferences.getString("subscriber_id", null);
+            System.out.println("Username: " + username); // DEBUG
+            if (username != null && userId != null) {
+                user = new LoggedInUser(userId, username);
+                loginRepository.setLoggedInUser(user);
+                if (standName != null && brandName != null && subscriberId != null) {
+                    bundle.putString("standName", standName);
+                    bundle.putString("brandName", brandName);
+                    bundle.putString("subscriberId", subscriberId);
+                    profile.fetchMenu(standName, brandName, bundle, context);
+                }
+            }
+        } catch (GeneralSecurityException | IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Clear Shared Preference file, this will reset the logged in user
+     * - erase username
+     * - erase user ID / token
+     * - erase subscriber ID
+     *
+     * @param context context from which the method is called
+     */
+    public void clearCredentials(Context context) {
+        try {
+            String masterKeyAlias = MasterKeys.getOrCreate(MasterKeys.AES256_GCM_SPEC);
+            SharedPreferences sharedPreferences = EncryptedSharedPreferences.create(
+                    getString(R.string.shared_pref_file_key),
+                    masterKeyAlias,
+                    context,
+                    EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                    EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+            );
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.clear();
+            // Ignore warning: needs to be commit to be synchronous
+            editor.commit();
+        } catch (GeneralSecurityException | IOException e) {
+            e.printStackTrace();
+        }
     }
 }

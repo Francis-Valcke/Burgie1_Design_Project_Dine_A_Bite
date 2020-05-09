@@ -35,6 +35,7 @@ import com.example.standapp.order.CommonOrderStatusUpdate;
 import com.example.standapp.order.Event;
 import com.example.standapp.polling.PollingService;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -105,6 +106,11 @@ public class OrderFragment extends Fragment {
             subscriberId = bundle.getString("subscriberId");
         }
 
+        // Get already existing orders from server when opening fragment for first time
+        if (listDataHeader.isEmpty()) {
+            // TODO
+        }
+
         ExpandableListView listView = view.findViewById(R.id.expandable_list_view);
         if (listAdapter == null) listAdapter =
                 new ExpandableListAdapter(listDataHeader, listHash, listEvents, listOrders, listStatus);
@@ -114,80 +120,7 @@ public class OrderFragment extends Fragment {
         refreshButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
-                /*
-                 * This will not frequently be used
-                 * because there is now polling of events
-                 * It is still here for fall back reasons
-                 */
-
-                // Instantiate the RequestQueue
-                RequestQueue queue = Volley.newRequestQueue(mContext);
-                String url = ServerConfig.EC_ADDRESS + "/events?id=" + subscriberId;
-                System.out.println("Getting orders, URL: " + url);
-
-                // GET request to server
-                final JsonArrayRequest jsonRequest = new JsonArrayRequest(Request.Method.GET, url,
-                        null, new Response.Listener<JSONArray>() {
-
-                    @Override
-                    public void onResponse(JSONArray response) {
-                        System.out.println(response.toString());
-                        ObjectMapper mapper = new ObjectMapper();
-                        ArrayList<CommonOrder> orders = new ArrayList<>();
-
-                        for (int i = 0; i < response.length(); i++) {
-                            try {
-                                JSONObject eventJSON = (JSONObject) response.get(i);
-                                Event event = mapper.readValue(eventJSON.toString(), Event.class);
-                                if (!event.getDataType().equals("Order")) return;
-                                //listEvents.add(0, event);
-                                listEvents.add(event);
-
-                                JSONObject eventData = (JSONObject) eventJSON.get("eventData");
-                                JSONObject order = (JSONObject) eventData.get("order");
-                                orders.add(mapper.readValue(order.toString(), CommonOrder.class));
-                                //listOrders.add(0, mapper.readValue(order.toString(), CommonOrder.class));
-                                listOrders.add(mapper.readValue(order.toString(), CommonOrder.class));
-                            } catch (JSONException | JsonProcessingException e) {
-                                e.printStackTrace();
-                            }
-                        }
-
-                        for (CommonOrder order : orders) {
-                            String orderName = "#" + order.getId();
-                            //listDataHeader.add(0, orderName);
-                            listDataHeader.add(orderName);
-                            listStatus.put(orderName, CommonOrderStatusUpdate.status.PENDING);
-                            List<String> orderItems = new ArrayList<>();
-                            for (CommonOrderItem item : order.getOrderItems()) {
-                                orderItems.add(item.getAmount() + " : " + item.getFoodName());
-                            }
-                            // Orders should have different order numbers (orderName)
-                            listHash.put(orderName, orderItems);
-
-                            // Decrease current stock based on incoming order
-                            decreaseStock(order.getOrderItems());
-                        }
-                        listAdapter.notifyDataSetChanged();
-                    }
-                }, new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        error.printStackTrace();
-                        Toast.makeText(mContext, error.toString(), Toast.LENGTH_SHORT).show();
-                    }
-                }) {
-                    @Override
-                    public Map<String, String> getHeaders() {
-                        HashMap<String, String> headers = new HashMap<>();
-                        headers.put("Content-Type", "application/json");
-                        headers.put("Authorization", user.getAuthorizationToken());
-                    return headers;
-                    }
-                };
-
-                queue.add(jsonRequest);
+                getOrderEvents(mContext, user);
             }
         });
 
@@ -302,6 +235,137 @@ public class OrderFragment extends Fragment {
                 }
             }
         }
+    }
+
+    private void getStandOrders(final Context context, final LoggedInUser user) {
+        RequestQueue queue = Volley.newRequestQueue(context);
+        String url = ServerConfig.OM_ADDRESS + "/getStandOrders";
+
+        JsonArrayRequest request = new JsonArrayRequest(Request.Method.GET, url, null, new Response.Listener<JSONArray>() {
+            @Override
+            public void onResponse(JSONArray response) {
+                System.out.println("Received orders from OM: " + response.toString()); // DEBUG
+                ObjectMapper mapper = new ObjectMapper();
+                try {
+                    ArrayList<CommonOrder> allStandOrders = mapper.readValue(response.toString(),
+                            new TypeReference<ArrayList<CommonOrder>>() {});
+                    for (CommonOrder order : allStandOrders) {
+                        listOrders.add(order);
+                        String orderName = "#" + order.getId();
+                        listDataHeader.add(orderName);
+                        listStatus.put(orderName, CommonOrderStatusUpdate.convertStatus(order.getOrderState()));
+                        List<String> orderItems = new ArrayList<>();
+                        for (CommonOrderItem item : order.getOrderItems()) {
+                            orderItems.add(item.getAmount() + " : " + item.getFoodName());
+                        }
+                        // Orders should have different order numbers (orderName)
+                        listHash.put(orderName, orderItems);
+                    }
+                    listAdapter.notifyDataSetChanged();
+                } catch (JsonProcessingException e) {
+                    e.printStackTrace();
+                    Toast.makeText(context, e.toString(), Toast.LENGTH_SHORT).show(); // DEBUG
+                }
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                error.printStackTrace();
+                Toast.makeText(context, error.toString(), Toast.LENGTH_SHORT).show(); // DEBUG
+            }
+        }) {
+            @Override
+            public Map<String, String> getHeaders() {
+                HashMap<String, String> headers = new HashMap<>();
+                headers.put("Content-Type", "application/json");
+                headers.put("Authorization", user.getAuthorizationToken());
+                return headers;
+            }
+        };
+
+        queue.add(request);
+    }
+
+    /**
+     * Get orders from Event Channel
+     *
+     * @param context context from which method is called
+     * @param user logged in user
+     */
+    private void getOrderEvents(final Context context, final LoggedInUser user) {
+
+        // Class variables used:
+        // - subscriber ID
+        // - list adapter
+        // - all the order lists
+
+        // Instantiate the RequestQueue
+        RequestQueue queue = Volley.newRequestQueue(context);
+        String url = ServerConfig.EC_ADDRESS + "/events?id=" + subscriberId;
+        System.out.println("Getting orders, URL: " + url);
+
+        // GET request to server
+        JsonArrayRequest jsonRequest = new JsonArrayRequest(Request.Method.GET, url,
+                null, new Response.Listener<JSONArray>() {
+
+            @Override
+            public void onResponse(JSONArray response) {
+                System.out.println(response.toString());
+                ObjectMapper mapper = new ObjectMapper();
+                ArrayList<CommonOrder> orders = new ArrayList<>();
+
+                for (int i = 0; i < response.length(); i++) {
+                    try {
+                        JSONObject eventJSON = (JSONObject) response.get(i);
+                        Event event = mapper.readValue(eventJSON.toString(), Event.class);
+                        if (!event.getDataType().equals("Order")) return;
+                        //listEvents.add(0, event);
+                        listEvents.add(event);
+
+                        JSONObject eventData = (JSONObject) eventJSON.get("eventData");
+                        JSONObject order = (JSONObject) eventData.get("order");
+                        orders.add(mapper.readValue(order.toString(), CommonOrder.class));
+                        //listOrders.add(0, mapper.readValue(order.toString(), CommonOrder.class));
+                        listOrders.add(mapper.readValue(order.toString(), CommonOrder.class));
+                    } catch (JSONException | JsonProcessingException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                for (CommonOrder order : orders) {
+                    String orderName = "#" + order.getId();
+                    //listDataHeader.add(0, orderName);
+                    listDataHeader.add(orderName);
+                    listStatus.put(orderName, CommonOrderStatusUpdate.status.PENDING);
+                    List<String> orderItems = new ArrayList<>();
+                    for (CommonOrderItem item : order.getOrderItems()) {
+                        orderItems.add(item.getAmount() + " : " + item.getFoodName());
+                    }
+                    // Orders should have different order numbers (orderName)
+                    listHash.put(orderName, orderItems);
+
+                    // Decrease current stock based on incoming order
+                    decreaseStock(order.getOrderItems());
+                }
+                listAdapter.notifyDataSetChanged();
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                error.printStackTrace();
+                Toast.makeText(context, error.toString(), Toast.LENGTH_SHORT).show();
+            }
+        }) {
+            @Override
+            public Map<String, String> getHeaders() {
+                HashMap<String, String> headers = new HashMap<>();
+                headers.put("Content-Type", "application/json");
+                headers.put("Authorization", user.getAuthorizationToken());
+                return headers;
+            }
+        };
+
+        queue.add(jsonRequest);
     }
 
 }

@@ -31,4 +31,21 @@ public class CommonOrderStatusUpdate {
     public status getNewStatus() {
         return newStatus;
     }
+
+    public static status convertStatus(CommonOrder.status status) {
+        switch (status) {
+            case SEND:
+                return CommonOrderStatusUpdate.status.SEND;
+            case PENDING:
+                return CommonOrderStatusUpdate.status.PENDING;
+            case DECLINED:
+                return CommonOrderStatusUpdate.status.DECLINED;
+            case CONFIRMED:
+                return CommonOrderStatusUpdate.status.CONFIRMED;
+            case READY:
+                return CommonOrderStatusUpdate.status.READY;
+            default:
+                return CommonOrderStatusUpdate.status.PICKED_UP;
+        }
+    }
 }

@@ -78,12 +78,10 @@ public class DashboardFragment extends Fragment
 
         View view = inflater.inflate(R.layout.fragment_dashboard, container,
                 false);
-        Button submitButton = view.findViewById(R.id.submit_menu_button);
+        final Button submitButton = view.findViewById(R.id.submit_menu_button);
         Button addButton = view.findViewById(R.id.add_menu_item_button);
         ListView menuList = view.findViewById(R.id.menu_list);
         FloatingActionButton floatingActionButton = view.findViewById(R.id.fab);
-
-        final LoggedInUser user = LoginRepository.getInstance(new LoginDataSource()).getLoggedInUser();
 
         // Getting the log in information from profile fragment
         final Bundle bundle = getArguments();
@@ -111,9 +109,7 @@ public class DashboardFragment extends Fragment
             @Override
             public void onClick(View v) {
                 // Open dialog to fill in information for adding new menu item
-                MenuItemFragment menuItemFragment = new MenuItemFragment();
-                menuItemFragment.show(getChildFragmentManager().beginTransaction(),
-                        "menu_item_dialog");
+                showMenuItemFragment();
             }
         });
 
@@ -121,9 +117,7 @@ public class DashboardFragment extends Fragment
             @Override
             public void onClick(View v) {
                 // Open dialog to fill in information for adding new menu item
-                MenuItemFragment menuItemFragment = new MenuItemFragment();
-                menuItemFragment.show(getChildFragmentManager().beginTransaction(),
-                        "menu_item_dialog");
+                showMenuItemFragment();
             }
         });
 
@@ -134,115 +128,7 @@ public class DashboardFragment extends Fragment
 
             @Override
             public void onClick(View v) {
-                if (bundle != null && Utils.isLoggedIn(mContext, bundle)
-                        && Utils.isConnected(mContext)) {
-
-                    HashMap<String, Integer> stock = new HashMap<>();
-
-                    for (CommonFood item : items) {
-                        item.setBrandName(finalBrandName);
-                        item.setStandName(finalStandName);
-
-                        if (item.getCategory().isEmpty()) {
-                            item.addCategory("");
-                        }
-
-                        // Temporarily set stock to added stock,
-                        // because that is what the backend expects,
-                        // change back after sending to backend
-                        // (ask Julien Van den Avenne)
-                        stock.put(item.getName(), item.getStock());
-                        if (addedStockMap.containsKey(item.getName())) {
-                            item.setStock(Objects.requireNonNull(addedStockMap.get(item.getName())));
-                        } else {
-                            item.setStock(0);
-                        }
-                    }
-
-                    // Set location data
-                    checkLocationPermission();
-                    double latitude = 360;
-                    double longitude = 360;
-                    if (lastLocation != null) {
-                        latitude = lastLocation.getLatitude();
-                        longitude = lastLocation.getLongitude();
-                    }
-
-                    // create JSON string containing the information of the menu and the stand
-                    RevenueViewModel model = new ViewModelProvider(requireActivity()).get(RevenueViewModel.class);
-                    CommonStand commonStand = new CommonStand(finalStandName, finalBrandName,
-                            latitude, longitude, items, model.getRevenue().getValue());
-                    ObjectMapper mapper = new ObjectMapper();
-                    String jsonString = "";
-                    try {
-                        jsonString = mapper.writeValueAsString(commonStand);
-                    } catch (JsonProcessingException e) {
-                        e.printStackTrace();
-                    }
-
-                    // Instantiate the RequestQueue
-                    RequestQueue queue = Volley.newRequestQueue(mContext);
-                    String url;
-                    // Check if stand is new or not
-                    if (items.isEmpty() || isNewStand) {
-                        url = ServerConfig.OM_ADDRESS + "/addStand";
-                        isNewStand = false;
-                    } else {
-                        url = ServerConfig.OM_ADDRESS + "/updateStand";
-                    }
-
-                    // POST to server
-                    final String finalJsonString = jsonString;
-                    StringRequest jsonRequest = new StringRequest(Request.Method.POST, url,
-                            new Response.Listener<String>() {
-                        @Override
-                        public void onResponse(String response) {
-                            try {
-                                JSONObject jsonObject = new JSONObject(response);
-                                Toast.makeText(getContext(), jsonObject.get("details").toString(),
-                                        Toast.LENGTH_LONG).show();
-                            } catch (JSONException e) {
-                                e.printStackTrace();
-                                Toast.makeText(mContext, "Error with JSON parsing: "
-                                        + e.toString(), Toast.LENGTH_SHORT).show();
-                            }
-                        }
-                    }, new Response.ErrorListener() {
-                        @Override
-                        public void onErrorResponse(VolleyError error) {
-                            error.printStackTrace();
-                            Toast.makeText(mContext, error.toString(), Toast.LENGTH_LONG).show();
-                        }
-                    }) {
-                        @Override
-                        public byte[] getBody() {
-                            return finalJsonString.getBytes();
-                        }
-
-                        @Override
-                        public String getBodyContentType() {
-                            return "application/json";
-                        }
-
-                        @Override
-                        public Map<String, String> getHeaders() {
-                            HashMap<String, String> headers = new HashMap<>();
-                            headers.put("Content-Type", "application/json");
-                            headers.put("Authorization", user.getAuthorizationToken());
-                            return headers;
-                        }
-                    };
-
-                    // Add the request to the RequestQueue
-                    queue.add(jsonRequest);
-                    System.out.println("Submitted menu: " + jsonString); // DEBUG
-
-                    // Revert stock change
-                    for (CommonFood item : items) {
-                        item.setStock(Objects.requireNonNull(stock.get(item.getName())));
-                    }
-                    addedStockMap.clear();
-                }
+                submitMenu(mContext, bundle, finalStandName, finalBrandName);
             }
         });
 
@@ -282,6 +168,7 @@ public class DashboardFragment extends Fragment
     /**
      * Handle the requested permissions,
      * here only the location permission is handled
+     *
      * @param requestCode: 1 = location permission was requested
      * @param permissions: the requested permission(s) names
      * @param grantResults: if the permission is granted or not
@@ -320,6 +207,8 @@ public class DashboardFragment extends Fragment
         }
     }
 
+    // Overrided methods of OnMenuItemChangedListener Interface //
+
     @Override
     public void onMenuItemAdded(CommonFood item) {
         items.add(item);
@@ -342,5 +231,154 @@ public class DashboardFragment extends Fragment
     public void onMenuItemDeleted(int position) {
         items.remove(position);
         adapter.notifyDataSetChanged();
+    }
+
+    /**
+     * Open MenuItemFragment to add/edit menu item
+     */
+    private void showMenuItemFragment() {
+        MenuItemFragment menuItemFragment = new MenuItemFragment();
+        menuItemFragment.show(getChildFragmentManager().beginTransaction(),
+                "menu_item_dialog");
+    }
+
+    /**
+     * Submit menu to server using VolleyRequest
+     * to OM /addStand or /updateStand
+     *
+     * @param context context from which method is called
+     * @param bundle bundle containing info
+     * @param standName stand name
+     * @param brandName brand name
+     */
+    private void submitMenu(final Context context, Bundle bundle, String standName,
+                            String brandName) {
+
+        // Global variables are:
+        // - ArrayList<CommonFood> items: contains the menu items of the stand
+        // - HashMap<String, Integer> addedStockMap: stores the added stock per menu item
+
+        if (bundle != null && Utils.isLoggedIn(context, bundle)
+                && Utils.isConnected(context)) {
+
+            final LoggedInUser user = LoginRepository.getInstance(new LoginDataSource())
+                    .getLoggedInUser();
+
+            HashMap<String, Integer> stock = new HashMap<>();
+
+            for (CommonFood item : items) {
+                item.setBrandName(standName);
+                item.setStandName(brandName);
+
+                if (item.getCategory().isEmpty()) {
+                    item.addCategory("");
+                }
+
+                // Temporarily set stock to added stock,
+                // because that is what the backend expects,
+                // change back after sending to backend
+                // (ask Julien Van den Avenne)
+                stock.put(item.getName(), item.getStock());
+                if (addedStockMap.containsKey(item.getName())) {
+                    item.setStock(Objects.requireNonNull(addedStockMap.get(item.getName())));
+                } else {
+                    item.setStock(0);
+                }
+            }
+
+            // Set location data
+            checkLocationPermission();
+            double latitude = 360;
+            double longitude = 360;
+            if (lastLocation != null) {
+                latitude = lastLocation.getLatitude();
+                longitude = lastLocation.getLongitude();
+            }
+
+            // create JSON string containing the information of the menu and the stand
+            CommonStand commonStand = new CommonStand(standName, brandName, latitude, longitude,
+                    items);
+            ObjectMapper mapper = new ObjectMapper();
+            String jsonString = "";
+            try {
+                jsonString = mapper.writeValueAsString(commonStand);
+            } catch (JsonProcessingException e) {
+                e.printStackTrace();
+            }
+                    // create JSON string containing the information of the menu and the stand
+                    RevenueViewModel model = new ViewModelProvider(requireActivity()).get(RevenueViewModel.class);
+                    CommonStand commonStand = new CommonStand(finalStandName, finalBrandName,
+                            latitude, longitude, items, model.getRevenue().getValue());
+                    ObjectMapper mapper = new ObjectMapper();
+                    String jsonString = "";
+                    try {
+                        jsonString = mapper.writeValueAsString(commonStand);
+                    } catch (JsonProcessingException e) {
+                        e.printStackTrace();
+                    }
+
+            // Instantiate the RequestQueue
+            RequestQueue queue = Volley.newRequestQueue(context);
+            String url;
+            // Check if stand is new or not
+            if (items.isEmpty() || isNewStand) {
+                url = ServerConfig.OM_ADDRESS + "/addStand";
+                isNewStand = false;
+            } else {
+                url = ServerConfig.OM_ADDRESS + "/updateStand";
+            }
+
+            // POST to server
+            final String finalJsonString = jsonString;
+            StringRequest jsonRequest = new StringRequest(Request.Method.POST, url,
+                    new Response.Listener<String>() {
+                        @Override
+                        public void onResponse(String response) {
+                            try {
+                                JSONObject jsonObject = new JSONObject(response);
+                                Toast.makeText(getContext(), jsonObject.get("details").toString(),
+                                        Toast.LENGTH_LONG).show();
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                                Toast.makeText(context, "Error with JSON parsing: "
+                                        + e.toString(), Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                    }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    error.printStackTrace();
+                    Toast.makeText(context, error.toString(), Toast.LENGTH_LONG).show();
+                }
+            }) {
+                @Override
+                public byte[] getBody() {
+                    return finalJsonString.getBytes();
+                }
+
+                @Override
+                public String getBodyContentType() {
+                    return "application/json";
+                }
+
+                @Override
+                public Map<String, String> getHeaders() {
+                    HashMap<String, String> headers = new HashMap<>();
+                    headers.put("Content-Type", "application/json");
+                    headers.put("Authorization", user.getAuthorizationToken());
+                    return headers;
+                }
+            };
+
+            // Add the request to the RequestQueue
+            queue.add(jsonRequest);
+            System.out.println("Submitted menu: " + jsonString); // DEBUG
+
+            // Revert stock change
+            for (CommonFood item : items) {
+                item.setStock(Objects.requireNonNull(stock.get(item.getName())));
+            }
+            addedStockMap.clear();
+        }
     }
 }
