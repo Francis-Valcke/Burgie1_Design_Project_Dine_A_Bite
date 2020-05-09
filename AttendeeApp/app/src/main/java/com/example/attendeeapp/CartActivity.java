@@ -51,6 +51,10 @@ public class CartActivity extends ToolbarActivity implements AdapterView.OnItemS
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this, R.array.recommender_types_list, R.layout.stand_spinner_item);
         adapter.setDropDownViewResource(R.layout.stand_spinner_item);
         spinner.setAdapter(adapter);
+        // Set default spinner value to time and distance
+        String defaultValue = "Time and distance";
+        int defaultPosition = adapter.getPosition(defaultValue);
+        spinner.setSelection(defaultPosition);
         spinner.setOnItemSelectedListener(this);
 
         // Get the ordered items from the cart in the menu view (ignore warning)
