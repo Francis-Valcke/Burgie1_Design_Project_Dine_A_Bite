@@ -30,7 +30,7 @@ public abstract class ServiceStub {
     @Autowired
     protected GlobalConfigurationBean globalConfigurationBean;
 
-    protected String authorizationToken;
+    protected static String authorizationToken;
 
     protected ObjectMapper objectMapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
@@ -95,7 +95,7 @@ public abstract class ServiceStub {
     public abstract String getAddress();
 
     public void setAuthorizationToken(String authorizationToken) {
-        this.authorizationToken = "Bearer " + authorizationToken;
+        ServiceStub.authorizationToken = "Bearer " + authorizationToken;
     }
 
 }
