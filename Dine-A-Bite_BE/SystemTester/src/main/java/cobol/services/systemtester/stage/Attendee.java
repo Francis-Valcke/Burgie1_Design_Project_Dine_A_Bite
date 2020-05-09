@@ -28,11 +28,14 @@ import java.util.stream.Collectors;
 public class  Attendee{
 
     private static int idCounter = 0;
+    private static double walkingSpeed = 40; //meters in a minute
     private int id;
     private String token;
     private double latitude;
     private double longitude;
     private double orderTime;
+    private double orderReadyTime;
+    private double walkingStartTime;
     private JSONArray recommendations;
     private int orderid;
     private Logger log;
@@ -206,16 +209,24 @@ public class  Attendee{
 
     }
     public String getNearestStand(){
-
-        String brand = (String)((JSONObject) recommendations.get(0)).get("brandName");
-        String stand = (String)((JSONObject) recommendations.get(0)).get("standName");
+        //look for closest recommendation
         double distance = (double) ((JSONObject) recommendations.get(0)).get("distance");
+        int index=0;
         for (int i=1;i<recommendations.length();i++){
             if ((double)((JSONObject) recommendations.get(i)).get("distance")<distance){
-                brand=(String)((JSONObject) recommendations.get(i)).get("brandName");
-                stand=(String)((JSONObject) recommendations.get(i)).get("standName");
+                index=i;
+                distance=(double)((JSONObject) recommendations.get(i)).get("distance");
+
             };
         }
+        //calculate time to start walking to order (time in minutes after ordering)
+        orderReadyTime = ((double)((Integer) ((JSONObject) recommendations.get(index)).get("timeEstimate")))/60;
+        double orderDistance = (double) ((JSONObject) recommendations.get(index)).get("distance");
+        walkingStartTime =  orderReadyTime-orderDistance/walkingSpeed;
+        if (walkingStartTime<0)walkingStartTime=0;
+        //return parameterstring
+        String brand=(String)((JSONObject) recommendations.get(index)).get("brandName");
+        String stand=(String)((JSONObject) recommendations.get(index)).get("standName");
         return stand.concat("&brandName=").concat(brand);
     }
     public Single<JSONObject> confirmNearestStand(){
@@ -224,14 +235,13 @@ public class  Attendee{
         return Single.create((SingleOnSubscribe<JSONObject>) emitter -> {
             try {
                 //Send order
-
                 Unirest.get(finalUrl)
                         .header("Content-Type", "application/json")
                         .header("Authorization", "Bearer " + token)
                         .asJson()
                         .getBody()
                         .getObject();
-                log.info("confirm");
+                log.info("Confirm order: "+orderid);
                 JSONObject o = new JSONObject();
                 emitter.onSuccess(o.put("succes",1));
 
@@ -246,18 +256,25 @@ public class  Attendee{
         this.log = log;
         this.orderid=0;
         create().subscribe(
-                o -> log.info("User " + getId() + " created!"),
+                o -> authenticate().subscribe(
+                        auth -> log.info("User " + getId() + " created and authenticated with token: " + auth.getJSONObject("details").getString("token")),
+                        throwable -> log.error(throwable.getMessage())
+                ),
                 throwable -> log.error(throwable.getMessage())
         );
-        authenticate().subscribe(
-                o -> log.info("User " + getId() + " authenticated with token: " + o.getJSONObject("details").getString("token")),
-                throwable -> log.error(throwable.getMessage())
-        );
+
 
     }
     public void setOrdertime(double time){
         if (time<1)time=1;
+        else if (time>119)time=119;
         this.orderTime=time;
+    }
+    public double getWalkingTime(){
+        return orderReadyTime - walkingStartTime;
+    }
+    public double getWaitingTime(){
+        return walkingStartTime;
     }
     public int getOrderid(){
         return this.orderid;

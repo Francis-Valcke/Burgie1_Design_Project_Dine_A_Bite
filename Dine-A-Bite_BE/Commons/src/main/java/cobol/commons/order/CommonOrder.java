@@ -63,5 +63,7 @@ public class CommonOrder {
             return (int) remaining.getSeconds();
         }
     }
-
+    public int getId(){
+        return this.id;
+    }
 }

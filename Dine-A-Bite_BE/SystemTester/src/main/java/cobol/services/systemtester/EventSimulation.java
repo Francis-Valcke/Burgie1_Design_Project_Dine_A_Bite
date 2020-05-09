@@ -1,6 +1,7 @@
 package cobol.services.systemtester;
 
 import cobol.commons.CommonStand;
+import cobol.commons.order.CommonOrder;
 import cobol.services.systemtester.stage.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -37,7 +38,10 @@ public class EventSimulation {
         int j = 0;
         //create stages and spread stands around stages
         for (int i=0;i<stageCount;i++){
-            Stage s = new Stage(0, 0, 1, 1, size/stageCount, log);
+            // Each degree of latitude is approximately 111 kilometers apart
+            // At 40 degrees north or south, the distance between a degree of longitude is 85 kilometers
+            // distribute the stages around event with a mean of approximately 1 km
+            Stage s = new Stage(0, 0, 1.0/111, 1.0/85, size/stageCount, log);
             if (j<stands.size())s.addStand(stands.get(j));
             j++;
             if (j<stands.size())s.addStand(stands.get(j));
@@ -58,13 +62,61 @@ public class EventSimulation {
         }
     }
 
-    public void start(){
+    public void start() throws InterruptedException {
         for (Stand s:stands){
             s.start();
         }
         for (Stage s:stages){
             s.start();
         }
+        for (Stage s:stages){
+            s.join();
+        }
+        for (Stand s:stands){
+            s.join();
+        }
+    }
+
+    /**
+     * check if all orders made by attendees were received by stands
+     */
+    public void checkOrderIds(){
+        ArrayList<Integer> orders = new ArrayList<>();
+        for (Stage s:stages){
+            for (Attendee a : s.getAttendees()){
+                orders.add(a.getOrderid());
+            }
+        }
+        ArrayList<Integer> ordersDone = new ArrayList<>();
+        for (Stand st : stands){
+            for (CommonOrder o : st.getOrders()){
+                if (orders.contains(o.getId())){
+                    ordersDone.add(o.getId());
+                }
+            }
+        }
+        orders.removeAll(ordersDone);
+        log.info("Unresolved orders: "+orders.size());
+    }
+    public double getTotalWalkingTime(){
+        double walkingTime=0;
+        for (Stage s:stages){
+            for (Attendee a : s.getAttendees()){
+                walkingTime+=a.getWalkingTime();
+            }
+        }
+        log.info("Total time walked to stands: "+walkingTime);
+        return walkingTime;
+    }
+    public double getTotalWaitingTime(){
+        double waitingTime=0;
+        for (Stage s:stages){
+            for (Attendee a : s.getAttendees()){
+                waitingTime+=a.getWaitingTime();
+            }
+        }
+        log.info("Total time waited before getting order: "+waitingTime);
+        return waitingTime;
     }
     public void end(){
         for (Stand s:stands){

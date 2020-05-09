@@ -4,6 +4,9 @@ import cobol.commons.CommonFood;
 import cobol.commons.order.CommonOrder;
 import cobol.services.systemtester.EventSimulation;
 import cobol.services.systemtester.ServerConfig;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.mashape.unirest.http.JsonNode;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
@@ -69,37 +72,7 @@ public class Stand extends Thread{
         this.longitude = longitude;
     }
 
-    public void addMenuItem(CommonFood mi){
-        menu.add(mi);
-    }
 
-    public List<CommonFood> getMenu(){
-        return this.menu;
-    }
-
-    public String getStandName(){
-        return this.standName;
-    }
-
-    public String getBrandName(){
-        return this.brandName;
-    }
-
-    public double getLongitude(){
-        return this.longitude;
-    }
-
-    public double getLatitude(){
-        return this.latitude;
-    }
-
-    public void setLatitude(double latitude){
-        this.latitude=latitude;
-    }
-
-    public void setLongitude(double longitude) {
-        this.longitude = longitude;
-    }
     public Single<JSONObject> create() {
         //Prepare body
         JSONObject requestBody = new JSONObject();
@@ -234,7 +207,7 @@ public class Stand extends Thread{
             JSONObject o = new JSONObject();
             o.put("name", f.getName());
             o.put("price", f.getPrice());
-            o.put("preptime", f.getPreparationTime());
+            o.put("preparationTime", f.getPreparationTime());
             o.put("description", f.getDescription());
             o.put("category", f.getCategory());
             o.put("stock",f.getStock());
@@ -266,33 +239,24 @@ public class Stand extends Thread{
     public void setup(Logger log){
         this.log=log;
         create().subscribe(
-                o -> log.info("Stand " + this.getStandName() + " created!"),
+                o -> authenticate().subscribe(
+                        auth -> verify().subscribe(
+                                v -> subscribe().subscribe(
+                                        sub -> subscribeToChannel().subscribe(
+                                                subto -> addstand().subscribe(
+                                                        add -> log.info("Stand " + this.getStandName() + " added and authenticated with token: " + auth.getJSONObject("details").getString("token")),
+                                                        throwable -> log.error(throwable.getMessage())
+                                                ),
+                                                throwable -> log.error(throwable.getMessage())
+                                        ),
+                                        throwable -> log.error(throwable.getMessage())
+                                ),
+                                throwable -> log.error(throwable.getMessage())
+                        ),
+                        throwable -> log.error(throwable.getMessage())
+                ),
                 throwable -> log.error(throwable.getMessage())
         );
-
-
-        authenticate().subscribe(
-                o -> log.info("Stand " + this.getStandName() + " authenticated with token: " + o.getJSONObject("details").getString("token")),
-                throwable -> log.error(throwable.getMessage())
-        );
-        verify().subscribe(
-                o -> log.info("Stand " + this.getStandName() + " verified"),
-                throwable -> log.error(throwable.getMessage())
-        );
-        subscribe().subscribe(
-                o -> log.info("Stand " + this.getStandName() + " registered"),
-                throwable -> log.error(throwable.getMessage())
-        );
-        subscribeToChannel().subscribe(
-                o -> log.info("Stand " + this.getStandName() + " subscribed to channel "+subscriberId),
-                throwable -> log.error(throwable.getMessage())
-        );
-        addstand().subscribe(
-                o -> log.info("Stand " + this.getStandName() + " added"),
-                throwable -> log.error(throwable.getMessage())
-        );
-
-
     }
     public Single<JSONArray> pollEvents(){
         return Single.create((SingleOnSubscribe<JSONArray>) emitter -> {
@@ -304,7 +268,19 @@ public class Stand extends Thread{
                         .asJson()
                         .getBody();
                 if (responseBody.getArray().length()==0)emitter.onSuccess(new JSONArray().put("no orders"));
-                else emitter.onSuccess(responseBody.getArray());
+                else {
+                    for (int i=0;i<responseBody.getArray().length();i++){
+                        ObjectMapper om = new ObjectMapper();
+                        om.registerModule(new JavaTimeModule());
+                        JSONObject eventJSON = (JSONObject) responseBody.getArray().get(i);
+                        JSONObject eventData = (JSONObject) eventJSON.get("eventData");
+                        JSONObject orderJSON = (JSONObject) eventData.get("order");
+                        CommonOrder order = om.readValue(orderJSON.toString(), CommonOrder.class);
+                        orders.add(order);
+                    }
+
+                    emitter.onSuccess(responseBody.getArray());
+                }
 
 
             } catch (UnirestException | JSONException e) {
@@ -314,14 +290,16 @@ public class Stand extends Thread{
         }).observeOn(Schedulers.io());
     }
     public void run(){
-        while(true){
+        int time=0;
+        while(time<30){
+            time++;
             try {
                 Thread.sleep(10000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
             pollEvents().subscribe(
-                    o-> log.info(o.toString()),
+                    o-> log.info("Orders polled"),
                     throwable -> log.error(throwable.getMessage())
             );
         }
@@ -343,7 +321,6 @@ public class Stand extends Thread{
                         .asJson()
                         .getBody()
                         .getObject();
-                System.out.println(responseBody.toString());
                 emitter.onSuccess(responseBody);
 
             } catch (UnirestException | JSONException e) {
@@ -352,5 +329,37 @@ public class Stand extends Thread{
 
 
         }).observeOn(Schedulers.io());
+    }
+    public void addMenuItem(CommonFood mi){
+        menu.add(mi);
+    }
+
+    public List<CommonFood> getMenu(){
+        return this.menu;
+    }
+
+    public String getStandName(){
+        return this.standName;
+    }
+
+    public String getBrandName(){
+        return this.brandName;
+    }
+
+    public double getLongitude(){
+        return this.longitude;
+    }
+
+    public double getLatitude(){
+        return this.latitude;
+    }
+
+    public List<CommonOrder> getOrders(){ return orders; }
+    public void setLatitude(double latitude){
+        this.latitude=latitude;
+    }
+
+    public void setLongitude(double longitude) {
+        this.longitude = longitude;
     }
 }

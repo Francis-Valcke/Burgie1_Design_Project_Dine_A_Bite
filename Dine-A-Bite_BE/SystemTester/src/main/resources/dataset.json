@@ -12,7 +12,7 @@
         "category": [
           "SNACK"
         ],
-        "name": "Classic Pork"
+        "name": "test_Classic Pork"
       },
       {
         "stock": 25,
@@ -23,7 +23,7 @@
           "SNACK",
           "VEGGIE"
         ],
-        "name": "Delicious Veggie"
+        "name": "test_Delicious Veggie"
       },
       {
         "stock": 25,
@@ -34,7 +34,7 @@
           "SNACK",
           "PREPARATION"
         ],
-        "name": "Original Stoemp"
+        "name": "test_Original Stoemp"
       },
       {
         "stock": 25,
@@ -44,7 +44,7 @@
         "category": [
           "SNACK"
         ],
-        "name": "Sweet Cake"
+        "name": "test_Sweet Cake"
       },
       {
         "stock": 25,
@@ -54,7 +54,7 @@
         "category": [
           "SNACK"
         ],
-        "name": "Tasty Salad"
+        "name": "test_Tasty Salad"
       }
     ],
     "standName": "Balls and Glory 1_test"
@@ -72,7 +72,7 @@
         "category": [
           "SNACK"
         ],
-        "name": "Classic Pork"
+        "name": "test_Classic Pork"
       },
       {
         "stock": 25,
@@ -83,7 +83,7 @@
           "SNACK",
           "VEGGIE"
         ],
-        "name": "Delicious Veggie"
+        "name": "test_Delicious Veggie"
       },
       {
         "stock": 25,
@@ -94,7 +94,7 @@
           "SNACK",
           "PREPARATION"
         ],
-        "name": "Original Stoemp"
+        "name": "test_Original Stoemp"
       },
       {
         "stock": 25,
@@ -104,7 +104,7 @@
         "category": [
           "SNACK"
         ],
-        "name": "Sweet Cake"
+        "name": "test_Sweet Cake"
       },
       {
         "stock": 25,
@@ -114,7 +114,7 @@
         "category": [
           "SNACK"
         ],
-        "name": "Tasty Salad"
+        "name": "test_Tasty Salad"
       }
     ],
     "standName": "Balls and Glory 2_test"
@@ -132,7 +132,7 @@
         "category": [
           "SNACK"
         ],
-        "name": "Classic Pork"
+        "name": "test_Classic Pork"
       },
       {
         "stock": 25,
@@ -143,7 +143,7 @@
           "SNACK",
           "VEGGIE"
         ],
-        "name": "Delicious Veggie"
+        "name": "test_Delicious Veggie"
       },
       {
         "stock": 25,
@@ -154,7 +154,7 @@
           "SNACK",
           "PREPARATION"
         ],
-        "name": "Original Stoemp"
+        "name": "test_Original Stoemp"
       },
       {
         "stock": 25,
@@ -164,7 +164,7 @@
         "category": [
           "SNACK"
         ],
-        "name": "Sweet Cake"
+        "name": "test_Sweet Cake"
       },
       {
         "stock": 25,
@@ -174,7 +174,7 @@
         "category": [
           "SNACK"
         ],
-        "name": "Tasty Salad"
+        "name": "test_Tasty Salad"
       }
     ],
     "standName": "Balls and Glory 3_test"
@@ -193,7 +193,7 @@
           "SNACK",
           "BURGER"
         ],
-        "name": "Chicken Pepper King"
+        "name": "test_Chicken Pepper King"
       },
       {
         "stock": 25,
@@ -203,7 +203,7 @@
         "category": [
           "FRIES"
         ],
-        "name": "Large fries"
+        "name": "test_Large fries"
       },
       {
         "stock": 25,
@@ -213,7 +213,7 @@
         "category": [
           "FRIES"
         ],
-        "name": "Medium fries"
+        "name": "test_Medium fries"
       },
       {
         "stock": 25,
@@ -224,7 +224,7 @@
           "SNACK",
           "BURGER"
         ],
-        "name": "Pepper King"
+        "name": "test_Pepper King"
       },
       {
         "stock": 25,
@@ -235,7 +235,7 @@
           "SNACK",
           "BURGER"
         ],
-        "name": "Rebel Whopper"
+        "name": "test_Rebel Whopper"
       },
       {
         "stock": 25,
@@ -245,7 +245,7 @@
         "category": [
           "FRIES"
         ],
-        "name": "Small fries"
+        "name": "test_Small fries"
       },
       {
         "stock": 25,
@@ -256,7 +256,7 @@
           "SNACK",
           "BURGER"
         ],
-        "name": "Ultimate Chicken Bacon King"
+        "name": "test_Ultimate Chicken Bacon King"
       }
     ],
     "standName": "BurgerKing 1_test"
@@ -275,7 +275,7 @@
           "SNACK",
           "BURGER"
         ],
-        "name": "Chicken Pepper King"
+        "name": "test_Chicken Pepper King"
       },
       {
         "stock": 25,
@@ -285,7 +285,7 @@
         "category": [
           "FRIES"
         ],
-        "name": "Large fries"
+        "name": "test_Large fries"
       },
       {
         "stock": 25,
@@ -295,7 +295,7 @@
         "category": [
           "FRIES"
         ],
-        "name": "Medium fries"
+        "name": "test_Medium fries"
       },
       {
         "stock": 25,
@@ -306,7 +306,7 @@
           "SNACK",
           "BURGER"
         ],
-        "name": "Pepper King"
+        "name": "test_Pepper King"
       },
       {
         "stock": 25,
@@ -317,7 +317,7 @@
           "SNACK",
           "BURGER"
         ],
-        "name": "Rebel Whopper"
+        "name": "test_Rebel Whopper"
       },
       {
         "stock": 25,
@@ -327,7 +327,7 @@
         "category": [
           "FRIES"
         ],
-        "name": "Small fries"
+        "name": "test_Small fries"
       },
       {
         "stock": 25,
@@ -338,7 +338,7 @@
           "SNACK",
           "BURGER"
         ],
-        "name": "Ultimate Chicken Bacon King"
+        "name": "test_Ultimate Chicken Bacon King"
       }
     ],
     "standName": "BurgerKing 2_test"
@@ -357,7 +357,7 @@
           "SNACK",
           "BURGER"
         ],
-        "name": "Chicken Pepper King"
+        "name": "test_Chicken Pepper King"
       },
       {
         "stock": 25,
@@ -367,7 +367,7 @@
         "category": [
           "FRIES"
         ],
-        "name": "Large fries"
+        "name": "test_Large fries"
       },
       {
         "stock": 25,
@@ -377,7 +377,7 @@
         "category": [
           "FRIES"
         ],
-        "name": "Medium fries"
+        "name": "test_Medium fries"
       },
       {
         "stock": 25,
@@ -388,7 +388,7 @@
           "SNACK",
           "BURGER"
         ],
-        "name": "Pepper King"
+        "name": "test_Pepper King"
       },
       {
         "stock": 25,
@@ -399,7 +399,7 @@
           "SNACK",
           "BURGER"
         ],
-        "name": "Rebel Whopper"
+        "name": "test_Rebel Whopper"
       },
       {
         "stock": 25,
@@ -409,7 +409,7 @@
         "category": [
           "FRIES"
         ],
-        "name": "Small fries"
+        "name": "test_Small fries"
       },
       {
         "stock": 25,
@@ -420,7 +420,7 @@
           "SNACK",
           "BURGER"
         ],
-        "name": "Ultimate Chicken Bacon King"
+        "name": "test_Ultimate Chicken Bacon King"
       }
     ],
     "standName": "BurgerKing 3_test"
@@ -439,7 +439,7 @@
           "SNACK",
           "BURGER"
         ],
-        "name": "Chicken Pepper King"
+        "name": "test_Chicken Pepper King"
       },
       {
         "stock": 25,
@@ -449,7 +449,7 @@
         "category": [
           "FRIES"
         ],
-        "name": "Large fries"
+        "name": "test_Large fries"
       },
       {
         "stock": 25,
@@ -459,7 +459,7 @@
         "category": [
           "FRIES"
         ],
-        "name": "Medium fries"
+        "name": "test_Medium fries"
       },
       {
         "stock": 25,
@@ -470,7 +470,7 @@
           "SNACK",
           "BURGER"
         ],
-        "name": "Pepper King"
+        "name": "test_Pepper King"
       },
       {
         "stock": 25,
@@ -481,7 +481,7 @@
           "SNACK",
           "BURGER"
         ],
-        "name": "Rebel Whopper"
+        "name": "test_Rebel Whopper"
       },
       {
         "stock": 25,
@@ -491,7 +491,7 @@
         "category": [
           "FRIES"
         ],
-        "name": "Small fries"
+        "name": "test_Small fries"
       },
       {
         "stock": 25,
@@ -502,7 +502,7 @@
           "SNACK",
           "BURGER"
         ],
-        "name": "Ultimate Chicken Bacon King"
+        "name": "test_Ultimate Chicken Bacon King"
       }
     ],
     "standName": "BurgerKing 4_test"
@@ -521,7 +521,7 @@
           "SNACK",
           "BURGER"
         ],
-        "name": "Big Mac"
+        "name": "test_Big Mac"
       },
       {
         "stock": 25,
@@ -532,7 +532,7 @@
           "SNACK",
           "BURGER"
         ],
-        "name": "CBO burger"
+        "name": "test_CBO burger"
       },
       {
         "stock": 25,
@@ -543,7 +543,7 @@
           "SNACK",
           "BURGER"
         ],
-        "name": "Cheeseburger"
+        "name": "test_Cheeseburger"
       },
       {
         "stock": 25,
@@ -553,7 +553,7 @@
         "category": [
           "FRIES"
         ],
-        "name": "Large fries"
+        "name": "test_Large fries"
       },
       {
         "stock": 25,
@@ -564,7 +564,7 @@
           "SNACK",
           "BURGER"
         ],
-        "name": "Maestro Generous Jack"
+        "name": "test_Maestro Generous Jack"
       },
       {
         "stock": 25,
@@ -574,7 +574,7 @@
         "category": [
           "FRIES"
         ],
-        "name": "Medium fries"
+        "name": "test_Medium fries"
       },
       {
         "stock": 25,
@@ -584,7 +584,7 @@
         "category": [
           "FRIES"
         ],
-        "name": "Small fries"
+        "name": "test_Small fries"
       }
     ],
     "standName": "McDonalds 1_test"
@@ -603,7 +603,7 @@
           "SNACK",
           "BURGER"
         ],
-        "name": "Big Mac"
+        "name": "test_Big Mac"
       },
       {
         "stock": 25,
@@ -614,7 +614,7 @@
           "SNACK",
           "BURGER"
         ],
-        "name": "CBO burger"
+        "name": "test_CBO burger"
       },
       {
         "stock": 25,
@@ -625,7 +625,7 @@
           "SNACK",
           "BURGER"
         ],
-        "name": "Cheeseburger"
+        "name": "test_Cheeseburger"
       },
       {
         "stock": 25,
@@ -635,7 +635,7 @@
         "category": [
           "FRIES"
         ],
-        "name": "Large fries"
+        "name": "test_Large fries"
       },
       {
         "stock": 25,
@@ -646,7 +646,7 @@
           "SNACK",
           "BURGER"
         ],
-        "name": "Maestro Generous Jack"
+        "name": "test_Maestro Generous Jack"
       },
       {
         "stock": 25,
@@ -656,7 +656,7 @@
         "category": [
           "FRIES"
         ],
-        "name": "Medium fries"
+        "name": "test_Medium fries"
       },
       {
         "stock": 25,
@@ -666,7 +666,7 @@
         "category": [
           "FRIES"
         ],
-        "name": "Small fries"
+        "name": "test_Small fries"
       }
     ],
     "standName": "McDonalds 2_test"
@@ -685,7 +685,7 @@
           "SNACK",
           "BURGER"
         ],
-        "name": "Big Mac"
+        "name": "test_Big Mac"
       },
       {
         "stock": 25,
@@ -696,7 +696,7 @@
           "SNACK",
           "BURGER"
         ],
-        "name": "CBO burger"
+        "name": "test_CBO burger"
       },
       {
         "stock": 25,
@@ -707,7 +707,7 @@
           "SNACK",
           "BURGER"
         ],
-        "name": "Cheeseburger"
+        "name": "test_Cheeseburger"
       },
       {
         "stock": 25,
@@ -717,7 +717,7 @@
         "category": [
           "FRIES"
         ],
-        "name": "Large fries"
+        "name": "test_Large fries"
       },
       {
         "stock": 25,
@@ -728,7 +728,7 @@
           "SNACK",
           "BURGER"
         ],
-        "name": "Maestro Generous Jack"
+        "name": "test_Maestro Generous Jack"
       },
       {
         "stock": 25,
@@ -738,7 +738,7 @@
         "category": [
           "FRIES"
         ],
-        "name": "Medium fries"
+        "name": "test_Medium fries"
       },
       {
         "stock": 25,
@@ -748,7 +748,7 @@
         "category": [
           "FRIES"
         ],
-        "name": "Small fries"
+        "name": "test_Small fries"
       }
     ],
     "standName": "McDonalds 3_test"
@@ -767,7 +767,7 @@
           "SNACK",
           "BURGER"
         ],
-        "name": "Big Mac"
+        "name": "test_Big Mac"
       },
       {
         "stock": 25,
@@ -778,7 +778,7 @@
           "SNACK",
           "BURGER"
         ],
-        "name": "CBO burger"
+        "name": "test_CBO burger"
       },
       {
         "stock": 25,
@@ -789,7 +789,7 @@
           "SNACK",
           "BURGER"
         ],
-        "name": "Cheeseburger"
+        "name": "test_Cheeseburger"
       },
       {
         "stock": 25,
@@ -799,7 +799,7 @@
         "category": [
           "FRIES"
         ],
-        "name": "Large fries"
+        "name": "test_Large fries"
       },
       {
         "stock": 25,
@@ -810,7 +810,7 @@
           "SNACK",
           "BURGER"
         ],
-        "name": "Maestro Generous Jack"
+        "name": "test_Maestro Generous Jack"
       },
       {
         "stock": 25,
@@ -820,7 +820,7 @@
         "category": [
           "FRIES"
         ],
-        "name": "Medium fries"
+        "name": "test_Medium fries"
       },
       {
         "stock": 25,
@@ -830,7 +830,7 @@
         "category": [
           "FRIES"
         ],
-        "name": "Small fries"
+        "name": "test_Small fries"
       }
     ],
     "standName": "McDonalds 4_test"
@@ -848,7 +848,7 @@
         "category": [
           "PIZZA"
         ],
-        "name": "alcace"
+        "name": "test_alcace"
       },
       {
         "stock": 25,
@@ -858,7 +858,7 @@
         "category": [
           "PIZZA"
         ],
-        "name": "Barbecue chicken"
+        "name": "test_Barbecue chicken"
       },
       {
         "stock": 25,
@@ -868,7 +868,7 @@
         "category": [
           "PIZZA"
         ],
-        "name": "Cheesam"
+        "name": "test_Cheesam"
       },
       {
         "stock": 25,
@@ -879,7 +879,7 @@
           "PIZZA",
           "VEGGIE"
         ],
-        "name": "Forestiere"
+        "name": "test_Forestiere"
       },
       {
         "stock": 25,
@@ -889,7 +889,7 @@
         "category": [
           "PIZZA"
         ],
-        "name": "Hot n spicy"
+        "name": "test_Hot n spicy"
       },
       {
         "stock": 25,
@@ -899,7 +899,7 @@
         "category": [
           "PIZZA"
         ],
-        "name": "Margharita"
+        "name": "test_Margharita"
       },
       {
         "stock": 25,
@@ -909,7 +909,7 @@
         "category": [
           "PIZZA"
         ],
-        "name": "Pepper"
+        "name": "test_Pepper"
       }
     ],
     "standName": "PizzaHut 1_test"
@@ -927,7 +927,7 @@
         "category": [
           "PIZZA"
         ],
-        "name": "alcace"
+        "name": "test_alcace"
       },
       {
         "stock": 25,
@@ -937,7 +937,7 @@
         "category": [
           "PIZZA"
         ],
-        "name": "Barbecue chicken"
+        "name": "test_Barbecue chicken"
       },
       {
         "stock": 25,
@@ -947,7 +947,7 @@
         "category": [
           "PIZZA"
         ],
-        "name": "Cheesam"
+        "name": "test_Cheesam"
       },
       {
         "stock": 25,
@@ -958,7 +958,7 @@
           "PIZZA",
           "VEGGIE"
         ],
-        "name": "Forestiere"
+        "name": "test_Forestiere"
       },
       {
         "stock": 25,
@@ -968,7 +968,7 @@
         "category": [
           "PIZZA"
         ],
-        "name": "Hot n spicy"
+        "name": "test_Hot n spicy"
       },
       {
         "stock": 25,
@@ -978,7 +978,7 @@
         "category": [
           "PIZZA"
         ],
-        "name": "Margharita"
+        "name": "test_Margharita"
       },
       {
         "stock": 25,
@@ -988,7 +988,7 @@
         "category": [
           "PIZZA"
         ],
-        "name": "Pepper"
+        "name": "test_Pepper"
       }
     ],
     "standName": "PizzaHut 2_test"

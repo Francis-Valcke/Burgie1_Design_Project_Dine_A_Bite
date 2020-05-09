@@ -41,7 +41,7 @@ public class Stage extends Thread{
             }
             time++;
             for (Attendee a : attendees){
-                if (a.getOrderTime()<time&&a.getOrderid()==0){
+                if (Math.ceil(a.getOrderTime())==time){
                     a.getGlobalMenu().subscribe(
                             items -> a.placeRandomOrder(items, 1).subscribe(
                                     recommendations -> a.confirmNearestStand().subscribe(),
