@@ -19,8 +19,10 @@ import org.springframework.security.core.parameters.P;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static cobol.commons.ResponseModel.status.ERROR;
@@ -152,6 +154,24 @@ public class StandController {
     public ResponseEntity<Map<String, Map<String, Double>>> requestStandLocations() {
         return ResponseEntity.ok(standRepository.findAll()
                 .stream().collect(Collectors.toMap(Stand::getName, Stand::getLocation)));
+    }
+
+    @GetMapping(value = "/revenue")
+    @ResponseBody
+    public ResponseEntity<HashMap<Object, Object>> requestRevenue(@RequestParam String standName, @RequestParam String brandName) throws DoesNotExistException {
+        Optional<Stand> stand = standRepository.findStandById(standName, brandName);
+        BigDecimal revenue;
+        if (stand.isPresent() && stand.get().getRevenue() != null) {
+            revenue = stand.get().getRevenue();
+        } else {
+            revenue = BigDecimal.ZERO; // new stands have 0 revenue
+        }
+        return ResponseEntity.ok(
+                ResponseModel.builder()
+                    .status(OK.toString())
+                    .details(revenue)
+                    .build().generateResponse()
+        );
     }
 }
 

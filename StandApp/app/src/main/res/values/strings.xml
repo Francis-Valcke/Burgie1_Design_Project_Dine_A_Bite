@@ -74,6 +74,7 @@
     <string name="create_account">Create account</string>
     <string name="email">Email</string>
     <string name="categories">Categories</string>
+    <string name="revenue">Total revenue:</string>
     <string name="promotion">Promotion</string>
     <string name="price_promotion">Price promotion</string>
 </resources>
