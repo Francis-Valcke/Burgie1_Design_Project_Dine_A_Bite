@@ -579,16 +579,29 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
         orderReceived.setBrandName(specificBrand);
         // TODO: add ALL menuItem information to the orderItems!
 
-        // Add recommendation stands to the spinner
-        if (recommendations.size() > 0) standListAdapter.remove("No stands available");
+        // Check if recommendation contains the own chosen stand
+        // TODO: may become redundant when the complete list is returned
         for (Recommendation i : recommendations) {
             // If specific stand is part of recommendation, link recommendation with specific stand
             if (specificStand.equals(i.getStandName()) && specificBrand.equals(i.getBrandName())) {
                 specificRecommendation = i;
-            } else {
-                standListAdapter.add(i.getStandName());
+                break;
             }
         }
+
+        // Add specific recommendation if available
+        if (recommendations.size() > 0) standListAdapter.remove("No stands available");
+        if (specificRecommendation != null) {
+            standListAdapter.remove(specificStand + " (Your stand)");
+            standListAdapter.add(specificRecommendation.getRank() + ". " + specificStand + " (Your stand)");
+        }
+        // Add other recommendations to the spinner
+        for (Recommendation i : recommendations) {
+            if (!i.equals(specificRecommendation)) {
+                standListAdapter.add(i.getRank() + ". " + i.getStandName());
+            }
+        }
+
         // If no specific stand was chosen, update the view
         if (specificStand.equals("")) {
             chosenRecommend = 0;
