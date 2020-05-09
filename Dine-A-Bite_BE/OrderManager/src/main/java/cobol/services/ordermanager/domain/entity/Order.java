@@ -64,6 +64,7 @@ public class Order implements Serializable {
             orphanRemoval = true
     )
     private List<OrderItem> orderItems;
+    private CommonOrder.RecommendType recType;
 
 
     // ---- Constructor / Transformers ---- //
@@ -93,6 +94,8 @@ public class Order implements Serializable {
         this.orderState = orderObject.getOrderState();
         this.startTime = ZonedDateTime.now(ZoneId.of("Europe/Brussels"));
         this.expectedTime = ZonedDateTime.from(startTime);
+        this.recType = orderObject.getRecType();
+
     }
 
     /**
@@ -130,7 +133,8 @@ public class Order implements Serializable {
                 this.latitude,
                 this.longitude,
                 totalAmount,
-                totalPrice
+                totalPrice,
+                this.recType
         );
 
 

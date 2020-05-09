@@ -108,6 +108,7 @@ public class OrderController {
         CommonOrder mappedOrder = newOrder.asCommonOrder();
         mappedOrder.setBrandName(orderObject.getBrandName());
         mappedOrder.setStandName(orderObject.getStandName());
+        mappedOrder.setRecType(orderObject.getRecType());
         ObjectMapper mapper = new ObjectMapper();
         mapper.registerModule(new JavaTimeModule());
         String jsonString = mapper.writeValueAsString(mappedOrder);
@@ -244,6 +245,7 @@ public class OrderController {
         Order updatedOrder = orderProcessor.confirmStand(orderId, standName, brandName);
 
         // Publish event to standmanager
+        // TODO: WHY DOES THIS HAVE TO BE DONE, YOU ALREADY SEND REST-CALL TO SM???  SHOULDN'T OM JUST SUBSCRIBE THE ORDER ON THAT STAND, SO SM CAN THEN PUBLISH EVENTS ABOUT THAT ORDER?
         String response= communicationHandler.publishConfirmedStand(updatedOrder.asCommonOrder(), standName, brandName);
 
         // Also complete the payment
