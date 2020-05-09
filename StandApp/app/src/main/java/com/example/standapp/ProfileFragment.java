@@ -34,12 +34,8 @@ import com.example.standapp.data.LoginDataSource;
 import com.example.standapp.data.LoginRepository;
 import com.example.standapp.data.model.LoggedInUser;
 import com.example.standapp.json.CommonFood;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.type.ReferenceType;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textfield.TextInputEditText;
 
@@ -95,8 +91,9 @@ public class ProfileFragment extends Fragment {
         final Bundle bundle = getArguments();
         if (bundle != null) standNameTextView.setText(bundle.getString("standName"));
         if (bundle != null) brandNameTextView.setText(bundle.getString("brandName"));
-        final RevenueViewModel model = new ViewModelProvider(requireActivity()).get(RevenueViewModel.class);
-        final Observer<BigDecimal> revenueObserver = new Observer<BigDecimal>() {
+
+        RevenueViewModel model = new ViewModelProvider(requireActivity()).get(RevenueViewModel.class);
+        Observer<BigDecimal> revenueObserver = new Observer<BigDecimal>() {
             @Override
             public void onChanged(@Nullable final BigDecimal bigDecimal) {
                 assert bigDecimal != null;
@@ -207,10 +204,15 @@ public class ProfileFragment extends Fragment {
                     verifyButton.setEnabled(false);
 
                     // Delete data from previous logged in stand
-                    if (bundle != null) bundle.putSerializable("items", new ArrayList<CommonFood>());
                     if (bundle != null) bundle.putString("standName", null);
                     if (bundle != null) bundle.putString("brandName", null);
                     if (bundle != null) bundle.putString("subscriberId", null);
+
+                    RevenueViewModel revenueViewModel = new ViewModelProvider(requireActivity()).get(RevenueViewModel.class);
+                    revenueViewModel.setRevenue(new BigDecimal(0));
+
+                    MenuViewModel menuViewModel = new ViewModelProvider(requireActivity()).get(MenuViewModel.class);
+                    menuViewModel.setMenuList(new ArrayList<CommonFood>());
 
                     // POST request to /verify
                     RequestQueue queue = Volley.newRequestQueue(Objects.requireNonNull(getContext()));
@@ -229,7 +231,7 @@ public class ProfileFragment extends Fragment {
                                         Toast.LENGTH_LONG).show();
                                 if (response.get("status").equals("OK")) {
                                     // The stand-brand has been verified by the server
-                                    // - The user is the owner
+                                    // - The user is the owner, or
                                     // - The stand-brand is new and the user can become the owner
                                     handleVerify(standName, brandName, bundle);
                                 } else {
@@ -260,47 +262,6 @@ public class ProfileFragment extends Fragment {
                     };
 
                     queue.add(request);
-
-                    // Get revenue from server
-                    String newUrl = ServerConfig.OM_ADDRESS + "/revenue?standName=" + standName + "&brandName="
-                            + brandName;
-                    newUrl = newUrl.replace(' ', '+');
-                    JsonObjectRequest revenueRequest = new JsonObjectRequest(Request.Method.GET, newUrl
-                            ,null, new Response.Listener<JSONObject>() {
-                        @Override
-                        public void onResponse(JSONObject response) {
-                            BigDecimal revenue = null;
-                            try {
-                                revenue = BigDecimal.valueOf(response.getDouble("details"));
-                            } catch (JSONException e) {
-                                Log.v("Json Error:", Objects.requireNonNull(e.getMessage()));
-                            }
-                            model.setRevenue(revenue);
-                        }
-                    }, new Response.ErrorListener() {
-
-                        @Override
-                        public void onErrorResponse(VolleyError error) {
-                            error.printStackTrace();
-                            Toast.makeText(getContext(), "Revenue: " + error.toString(),
-                                    Toast.LENGTH_LONG).show();
-                        }
-                    }) {
-                        @Override
-                        public Map<String, String> getHeaders() {
-                            HashMap<String, String> headers = new HashMap<>();
-                            headers.put("Content-Type", "application/json");
-                            headers.put("Authorization", user.getAutorizationToken());
-                            return headers;
-                        }
-                    };
-
-                    queue.add(revenueRequest);
-
-
-                } else {
-                    Toast.makeText(getContext(), "Input fields cannot be empty",
-                            Toast.LENGTH_SHORT).show();
                 }
             }
 
@@ -361,7 +322,11 @@ public class ProfileFragment extends Fragment {
 
         // Getting the stand menu from the server after logging in
         // when the stand has a menu saved on the server
-        fetchMenu(standName, brandName, bundle, getContext());
+        fetchMenu(mContext, standName, brandName, bundle);
+
+        // Getting the revenue of the stand from the server after logging in
+        // when the stand has a revenue saved on the server
+        fetchRevenue(mContext, standName, brandName);
 
         // Subscribe to EC and retrieve subscriber ID
         subscribeEC(standName, brandName, bundle, new VolleyCallback() {
@@ -482,7 +447,7 @@ public class ProfileFragment extends Fragment {
      * @param brandName name of the brand
      * @param bundle bundle to store the fetched menu
      */
-    void fetchMenu(String standName, String brandName, final Bundle bundle, Context context) {
+    void fetchMenu(final Context context, String standName, String brandName, final Bundle bundle) {
 
         final LoggedInUser loggedInUser = LoginRepository.getInstance(new LoginDataSource())
                 .getLoggedInUser();
@@ -506,10 +471,19 @@ public class ProfileFragment extends Fragment {
                     mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
                     CommonFood[] parsedItems = mapper.readValue(response.toString(), CommonFood[].class);
                     Collections.addAll(items, parsedItems);
-                    if (bundle != null) bundle.putSerializable("items", items);
+
+                    MenuViewModel menuViewModel = new ViewModelProvider(requireActivity())
+                            .get(MenuViewModel.class);
+                    menuViewModel.setMenuList(items);
+
+                    RevenueViewModel revenueViewModel = new ViewModelProvider(requireActivity())
+                            .get(RevenueViewModel.class);
+                    for (CommonFood item : items) {
+                        revenueViewModel.addPrice(item.getName(), item.getPrice());
+                    }
                 } catch (Exception e) {
                     Log.v("Exception fetch menu:", e.toString());
-                    Toast.makeText(getContext(), "Could not get menu from server!",
+                    Toast.makeText(context, "Could not get menu from server!",
                             Toast.LENGTH_LONG).show();
                 }
             }
@@ -518,14 +492,13 @@ public class ProfileFragment extends Fragment {
             public void onErrorResponse(VolleyError error) {
                 error.printStackTrace();
                 if (error instanceof ServerError) {
-                    // TODO server should handle this exception and send a response
-                    Toast.makeText(getContext(), "Server could not find menu of stand",
+                    Toast.makeText(context, "Server could not find menu of stand",
                             Toast.LENGTH_LONG).show();
 
                     // The given stand and brand names do not exist in the server database
                     if (bundle != null) bundle.putBoolean("newStand", true);
                 } else {
-                    Toast.makeText(getContext(), error.toString(), Toast.LENGTH_LONG).show();
+                    Toast.makeText(context, error.toString(), Toast.LENGTH_LONG).show();
                 }
             }
         }) {
@@ -539,5 +512,49 @@ public class ProfileFragment extends Fragment {
         };
 
         queue.add(jsonRequest);
+    }
+
+    void fetchRevenue(Context context, String standName, String brandName) {
+
+        final LoggedInUser loggedInUser = LoginRepository.getInstance(new LoginDataSource())
+                .getLoggedInUser();
+
+        RequestQueue queue = Volley.newRequestQueue(context);
+        String url = ServerConfig.OM_ADDRESS + "/revenue?standName=" + standName +
+                "&brandName=" + brandName;
+        url = url.replace(' ', '+');
+
+        JsonObjectRequest revenueRequest = new JsonObjectRequest(Request.Method.GET, url,
+                null, new Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject response) {
+                BigDecimal revenue = null;
+                try {
+                    revenue = BigDecimal.valueOf(response.getDouble("details"));
+                } catch (JSONException e) {
+                    Log.v("Json Error:", Objects.requireNonNull(e.getMessage()));
+                }
+                RevenueViewModel model = new ViewModelProvider(requireActivity())
+                        .get(RevenueViewModel.class);
+                model.setRevenue(revenue);
+            }
+        }, new Response.ErrorListener() {
+
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                error.printStackTrace();
+                //Toast.makeText(getContext(), "Revenue: " + error.toString(),Toast.LENGTH_LONG).show();
+            }
+        }) {
+            @Override
+            public Map<String, String> getHeaders() {
+                HashMap<String, String> headers = new HashMap<>();
+                headers.put("Content-Type", "application/json");
+                headers.put("Authorization", loggedInUser.getAuthorizationToken());
+                return headers;
+            }
+        };
+
+        queue.add(revenueRequest);
     }
 }

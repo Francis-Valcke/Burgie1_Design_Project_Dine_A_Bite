@@ -5,6 +5,7 @@ import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
 import android.Manifest;
@@ -50,9 +51,14 @@ public class DashboardFragment extends Fragment
         implements MenuItemFragment.OnMenuItemChangedListener {
 
     private Context mContext;
-    private boolean isNewStand = false;
+
+    private String standName = "";
+    private String brandName = "";
+
+    // Menu items of the stand
     private ArrayList<CommonFood> items = new ArrayList<>();
     private DashboardListViewAdapter adapter;
+    private MenuViewModel menuViewModel;
 
     // Stores the current stock of the menu items;
     // this way the stock send to the backend is calculated to be equal to the added stock
@@ -62,6 +68,9 @@ public class DashboardFragment extends Fragment
     private FusedLocationProviderClient fusedLocationClient;
     private Location lastLocation;
 
+    // To differentiate between adding or updating the menu of the stand to the server
+    private boolean isNewStand = false;
+
     @Override
     public void onAttach(@NonNull Context context) {
         // Called when a fragment is first attached to its context.
@@ -69,7 +78,6 @@ public class DashboardFragment extends Fragment
         mContext = context;
     }
 
-    @SuppressWarnings("unchecked")
     @Nullable
     @Override
     public View onCreateView(@NonNull final LayoutInflater inflater,
@@ -80,29 +88,39 @@ public class DashboardFragment extends Fragment
                 false);
         final Button submitButton = view.findViewById(R.id.submit_menu_button);
         Button addButton = view.findViewById(R.id.add_menu_item_button);
-        ListView menuList = view.findViewById(R.id.menu_list);
+        final ListView menuListView = view.findViewById(R.id.menu_list);
         FloatingActionButton floatingActionButton = view.findViewById(R.id.fab);
+
+        menuViewModel = new ViewModelProvider(requireActivity())
+                .get(MenuViewModel.class);
+        Observer<ArrayList<CommonFood>> observer = new Observer<ArrayList<CommonFood>>() {
+            @Override
+            public void onChanged(ArrayList<CommonFood> commonFoods) {
+                items = menuViewModel.getMenuList().getValue();
+                adapter.notifyDataSetChanged();
+            }
+        };
+        menuViewModel.getMenuList().observe(getViewLifecycleOwner(), observer);
 
         // Getting the log in information from profile fragment
         final Bundle bundle = getArguments();
-        String standName = "";
-        String brandName = "";
-        if (bundle != null && Utils.isLoggedIn(getContext(), bundle)
+        if (bundle != null && Utils.isLoggedIn(mContext, bundle)
                 && Utils.isConnected(mContext)) {
             standName = bundle.getString("standName");
             brandName = bundle.getString("brandName");
-            Toast.makeText(mContext, standName, Toast.LENGTH_SHORT).show();
+            isNewStand = bundle.getBoolean("newStand");
+            //Toast.makeText(mContext, standName, Toast.LENGTH_SHORT).show(); // DEBUG
 
             // Ask for permission to get location data and set lastLocation variable
             checkLocationPermission();
 
-            items = (ArrayList<CommonFood>) bundle.getSerializable("items");
-            isNewStand = bundle.getBoolean("newStand");
+            items = menuViewModel.getMenuList().getValue();
+            if (adapter == null) {
+                adapter = new DashboardListViewAdapter(Objects.requireNonNull(getActivity()), items,
+                        this);
+            }
+            menuListView.setAdapter(adapter);
         }
-
-        adapter = new DashboardListViewAdapter(Objects.requireNonNull(getActivity()), items,
-                this);
-        menuList.setAdapter(adapter);
 
         addButton.setOnClickListener(new View.OnClickListener() {
 
@@ -122,13 +140,11 @@ public class DashboardFragment extends Fragment
         });
 
         // Submit and send the new or changed menu list to the backend
-        final String finalBrandName = brandName;
-        final String finalStandName = standName;
         submitButton.setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View v) {
-                submitMenu(mContext, bundle, finalStandName, finalBrandName);
+                submitMenu(mContext, bundle, standName, brandName);
             }
         });
 
@@ -211,26 +227,23 @@ public class DashboardFragment extends Fragment
 
     @Override
     public void onMenuItemAdded(CommonFood item) {
-        items.add(item);
+        menuViewModel.addMenuItem(item);
         addedStockMap.put(item.getName(), item.getStock());
-        adapter.notifyDataSetChanged();
     }
 
     @Override
     public void onMenuItemChanged(CommonFood item, int addedStock, int position) {
-        items.set(position, item);
+        menuViewModel.editMenuItem(item, position);
         int curr = 0;
         if (addedStockMap.containsKey(item.getName())) {
             curr = Objects.requireNonNull(addedStockMap.get(item.getName()));
         }
         addedStockMap.put(item.getName(), curr + addedStock);
-        adapter.notifyDataSetChanged();
     }
 
     @Override
     public void onMenuItemDeleted(int position) {
-        items.remove(position);
-        adapter.notifyDataSetChanged();
+        menuViewModel.deleteMenuItem(position);
     }
 
     /**
@@ -267,8 +280,8 @@ public class DashboardFragment extends Fragment
             HashMap<String, Integer> stock = new HashMap<>();
 
             for (CommonFood item : items) {
-                item.setBrandName(standName);
-                item.setStandName(brandName);
+                item.setBrandName(brandName);
+                item.setStandName(standName);
 
                 if (item.getCategory().isEmpty()) {
                     item.addCategory("");
@@ -296,8 +309,9 @@ public class DashboardFragment extends Fragment
             }
 
             // create JSON string containing the information of the menu and the stand
+            RevenueViewModel model = new ViewModelProvider(requireActivity()).get(RevenueViewModel.class);
             CommonStand commonStand = new CommonStand(standName, brandName, latitude, longitude,
-                    items);
+                    items,  model.getRevenue().getValue());
             ObjectMapper mapper = new ObjectMapper();
             String jsonString = "";
             try {
@@ -305,17 +319,6 @@ public class DashboardFragment extends Fragment
             } catch (JsonProcessingException e) {
                 e.printStackTrace();
             }
-                    // create JSON string containing the information of the menu and the stand
-                    RevenueViewModel model = new ViewModelProvider(requireActivity()).get(RevenueViewModel.class);
-                    CommonStand commonStand = new CommonStand(finalStandName, finalBrandName,
-                            latitude, longitude, items, model.getRevenue().getValue());
-                    ObjectMapper mapper = new ObjectMapper();
-                    String jsonString = "";
-                    try {
-                        jsonString = mapper.writeValueAsString(commonStand);
-                    } catch (JsonProcessingException e) {
-                        e.printStackTrace();
-                    }
 
             // Instantiate the RequestQueue
             RequestQueue queue = Volley.newRequestQueue(context);
@@ -336,7 +339,7 @@ public class DashboardFragment extends Fragment
                         public void onResponse(String response) {
                             try {
                                 JSONObject jsonObject = new JSONObject(response);
-                                Toast.makeText(getContext(), jsonObject.get("details").toString(),
+                                Toast.makeText(context, jsonObject.get("details").toString(),
                                         Toast.LENGTH_LONG).show();
                             } catch (JSONException e) {
                                 e.printStackTrace();

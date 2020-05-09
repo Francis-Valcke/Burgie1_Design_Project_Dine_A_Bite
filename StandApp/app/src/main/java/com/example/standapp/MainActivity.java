@@ -168,7 +168,8 @@ public class MainActivity extends AppCompatActivity
                     bundle.putString("standName", standName);
                     bundle.putString("brandName", brandName);
                     bundle.putString("subscriberId", subscriberId);
-                    profile.fetchMenu(standName, brandName, bundle, context);
+                    profile.fetchMenu(context, standName, brandName, bundle);
+                    profile.fetchRevenue(context, standName, brandName);
                 }
             }
         } catch (GeneralSecurityException | IOException e) {

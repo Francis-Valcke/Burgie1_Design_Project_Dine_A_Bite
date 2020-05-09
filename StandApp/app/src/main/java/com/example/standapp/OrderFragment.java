@@ -28,7 +28,6 @@ import com.android.volley.toolbox.Volley;
 import com.example.standapp.data.LoginDataSource;
 import com.example.standapp.data.LoginRepository;
 import com.example.standapp.data.model.LoggedInUser;
-import com.example.standapp.json.CommonFood;
 import com.example.standapp.order.CommonOrder;
 import com.example.standapp.order.CommonOrderItem;
 import com.example.standapp.order.CommonOrderStatusUpdate;
@@ -92,6 +91,8 @@ public class OrderFragment extends Fragment {
         if (bundle != null && Utils.isLoggedIn(mContext, bundle)) {
             standName = bundle.getString("standName");
             brandName = bundle.getString("brandName");
+            subscriberId = bundle.getString("subscriberId");
+
             Log.d("Order fragment", "Logged in stand: " + standName); // DEBUG
             //Toast.makeText(mContext, standName, Toast.LENGTH_SHORT).show(); // DEBUG
 
@@ -108,17 +109,15 @@ public class OrderFragment extends Fragment {
                 listAdapter.setStandName(standName);
                 listAdapter.notifyDataSetChanged();
             }
-
-            subscriberId = bundle.getString("subscriberId");
         }
 
         // Get already existing orders from server when opening fragment for first time
         if (listDataHeader.isEmpty() && bundle != null && Utils.isLoggedIn(mContext, bundle)) {
-            getStandOrders(mContext, user, brandName, standName);
+            getStandOrders(mContext, user, brandName, standName); // TODO DOES THIS WORK?
         }
 
         ExpandableListView listView = view.findViewById(R.id.expandable_list_view);
-        if (listAdapter == null && bundle != null) {
+        if (listAdapter == null && bundle != null && Utils.isLoggedIn(mContext, bundle)) {
             listAdapter = new ExpandableListAdapter(listDataHeader, listHash, listEvents,
                     listOrders, listStatus, standName, brandName);
         }
@@ -175,7 +174,6 @@ public class OrderFragment extends Fragment {
     private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            RevenueViewModel model;
 
             Event eventUpdate = (Event) intent.getSerializableExtra("eventUpdate");
 
@@ -205,15 +203,16 @@ public class OrderFragment extends Fragment {
                     listHash.put(orderName, orderItems);
                     listAdapter.notifyDataSetChanged();
 
-                    // Decrease current stock based on incoming order
-                    //decreaseStock(orderUpdate.getOrderItems());
-                    MenuViewModel menuViewModel = new ViewModelProvider(requireActivity()).get(MenuViewModel.class);
-
-
-                    //update revenue
                     if (orderUpdate.getOrderState() == CommonOrder.status.PENDING) {
-                        model = new ViewModelProvider(requireActivity()).get(RevenueViewModel.class);
+                        // Update revenue
+                        RevenueViewModel model = new ViewModelProvider(requireActivity())
+                                .get(RevenueViewModel.class);
                         model.updateRevenue(orderUpdate.getOrderItems());
+
+                        // Decrease current stock based on incoming order
+                        MenuViewModel menuViewModel = new ViewModelProvider(requireActivity())
+                                .get(MenuViewModel.class);
+                        menuViewModel.decreaseStock(orderUpdate.getOrderItems());
                     }
 
                     Log.d("Order fragment", "Received a new order");
@@ -224,30 +223,6 @@ public class OrderFragment extends Fragment {
 
         }
     };
-
-    /**
-     * Decrease the current stock values of the menu items of the stand
-     * based on incoming orders
-     * @param orderItems: menu items of stand that are being ordered
-     */
-    @SuppressWarnings("unchecked")
-    private void decreaseStock(List<CommonOrderItem> orderItems) {
-        ArrayList<CommonFood> items;
-        Bundle bundle = getArguments();
-        if (bundle != null) {
-            items = (ArrayList<CommonFood>) bundle.getSerializable("items");
-        } else return;
-
-        if (items != null) {
-            for (CommonOrderItem orderItem : orderItems) {
-                for (CommonFood menuItem : items) {
-                    if (orderItem.getFoodName().equals(menuItem.getName())) {
-                        menuItem.decreaseStock(orderItem.getAmount());
-                    }
-                }
-            }
-        }
-    }
 
     private void getStandOrders(final Context context, final LoggedInUser user, String brandName, String standName) {
         RequestQueue queue = Volley.newRequestQueue(context);
@@ -358,8 +333,17 @@ public class OrderFragment extends Fragment {
                     // Orders should have different order numbers (orderName)
                     listHash.put(orderName, orderItems);
 
-                    // Decrease current stock based on incoming order
-                    decreaseStock(order.getOrderItems());
+                    if (order.getOrderState() == CommonOrder.status.PENDING) {
+                        // Update revenue
+                        RevenueViewModel revenueViewModel = new ViewModelProvider(requireActivity())
+                                .get(RevenueViewModel.class);
+                        revenueViewModel.updateRevenue(order.getOrderItems());
+
+                        // Decrease current stock based on incoming order
+                        MenuViewModel menuViewModel = new ViewModelProvider(requireActivity())
+                                .get(MenuViewModel.class);
+                        menuViewModel.decreaseStock(order.getOrderItems());
+                    }
                 }
                 listAdapter.notifyDataSetChanged();
             }

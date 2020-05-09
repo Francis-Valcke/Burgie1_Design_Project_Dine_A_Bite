@@ -253,11 +253,11 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
         queue.add(request);
     }
 
-    public void setStandName(String standName) {
+    void setStandName(String standName) {
         this.standName = standName;
     }
 
-    public void setBrandName(String brandName) {
+    void setBrandName(String brandName) {
         this.brandName = brandName;
     }
 }

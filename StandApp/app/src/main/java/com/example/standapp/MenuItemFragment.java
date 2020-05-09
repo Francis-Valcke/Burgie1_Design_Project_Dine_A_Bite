@@ -117,40 +117,13 @@ public class MenuItemFragment extends DialogFragment {
                 priceInput.setText(item.getPrice().toString());
                 stockInput.setText("0");
                 descriptionInput.setText(item.getDescription());
-                prepTimeInput.setText("" + item.getPreparationTime());
+                prepTimeInput.setText("" + item.getPreparationTimeInMinutes());
 
                 if (!item.getCategory().isEmpty() && !item.getCategory().contains("")) {
-                    for (String category : categories) {
-                        @SuppressLint("InflateParams")
-                        Chip chip = (Chip) getLayoutInflater().inflate(R.layout.chip_category, null);
-                        chip.setText(category);
-                        if (item.getCategory().contains(category)) chip.setChecked(true);
-                        chipGroup.addView(chip);
-                    }
-                    for (String category : item.getCategory()) {
-                        if (!categories.contains(category) && !category.equals("PRICE PROMOTION")) {
-                            @SuppressLint("InflateParams")
-                            final Chip addedChip = (Chip) getLayoutInflater()
-                                    .inflate(R.layout.chip_category, null);
-                            addedChip.setText(category);
-                            addedChip.setChecked(true);
-                            addedChip.setCloseIconVisible(true);
-                            addedChip.setOnCloseIconClickListener(new View.OnClickListener() {
-                                @Override
-                                public void onClick(View v) {
-                                    chipGroup.removeView(addedChip);
-                                }
-                            });
-                            chipGroup.addView(addedChip);
-                        }
-                    }
+                    createStandardCategoryChips(item);
+                    createAddedCategoryChips(item);
                 } else {
-                    for (String category : categories) {
-                        @SuppressLint("InflateParams")
-                        Chip chip = (Chip) getLayoutInflater().inflate(R.layout.chip_category, null);
-                        chip.setText(category);
-                        chipGroup.addView(chip);
-                    }
+                    createStandardCategoryChips(null);
                 }
 
                 // Editing preparation time is disabled,
@@ -163,48 +136,15 @@ public class MenuItemFragment extends DialogFragment {
                 }
             }
         } else {
-            for (String category : categories) {
-                @SuppressLint("InflateParams")
-                Chip chip = (Chip) getLayoutInflater().inflate(R.layout.chip_category, null);
-                chip.setText(category);
-                chipGroup.addView(chip);
-            }
+            createStandardCategoryChips(null);
         }
 
-        // Adding categories
+        // Adding categories via + chip
         Chip addChip = view.findViewById(R.id.add_chip);
         addChip.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Ask for name of new category
-                @SuppressLint("InflateParams")
-                final View inputCategoryLayout = getLayoutInflater()
-                        .inflate(R.layout.edit_name_dialog, null);
-                final TextInputEditText editTextCategory
-                        = inputCategoryLayout.findViewById(R.id.edit_text_name);
-                MaterialAlertDialogBuilder dialog = new MaterialAlertDialogBuilder(mContext)
-                        .setView(inputCategoryLayout)
-                        .setPositiveButton("Add", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                // Create and add new category ass chip to chip group
-                                @SuppressLint("InflateParams")
-                                final Chip addedChip = (Chip) getLayoutInflater()
-                                        .inflate(R.layout.chip_category, null);
-                                addedChip.setText(Objects.requireNonNull(editTextCategory.getText())
-                                        .toString().toUpperCase());
-                                addedChip.setChecked(true);
-                                addedChip.setCloseIconVisible(true);
-                                addedChip.setOnCloseIconClickListener(new View.OnClickListener() {
-                                    @Override
-                                    public void onClick(View v) {
-                                        chipGroup.removeView(addedChip);
-                                    }
-                                });
-                                chipGroup.addView(addedChip);
-                            }
-                        }).setTitle("Add new food category");
-                dialog.show();
+                addNewCategoryChip();
             }
         });
 
@@ -240,7 +180,6 @@ public class MenuItemFragment extends DialogFragment {
             }
         });
 
-        toolbar.setTitle("New menu item");
         toolbar.inflateMenu(R.menu.dialog_menu);
         toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
             @Override
@@ -273,6 +212,7 @@ public class MenuItemFragment extends DialogFragment {
                                 Chip chip = chipGroup.findViewById(id);
                                 categories.add(chip.getText().toString());
                             }
+                            if (categories.isEmpty()) categories.add("");
 
                             CommonFood menuItem;
                             if (finalIsEditing) {
@@ -300,12 +240,11 @@ public class MenuItemFragment extends DialogFragment {
                                 toolbar.setTitle("New menu item");
 
                                 // Save the new menu item in CommonFood object
+                                // Promotion is not possible for new menu items
                                 int preparationTime = Integer.parseInt(Objects.requireNonNull(prepTimeInput
                                         .getText()).toString()) * 60;
-                                List<String> category = new ArrayList<>();
-                                category.add("");
                                 menuItem = new CommonFood(name, price, preparationTime, stock,
-                                        "", description, category);
+                                        "", description, categories);
 
                                 // Send to container (parent) fragment
                                 if (mOnMenuItemChangedListener != null) {
@@ -389,5 +328,67 @@ public class MenuItemFragment extends DialogFragment {
             throw new ClassCastException(
                     fragment.toString() + " must implement OnMenuItemChangedListener");
         }
+    }
+
+    private void createStandardCategoryChips(CommonFood item) {
+        for (String category : categories) {
+            @SuppressLint("InflateParams")
+            Chip chip = (Chip) getLayoutInflater().inflate(R.layout.chip_category, null);
+            chip.setText(category);
+            if (item != null && item.getCategory().contains(category)) chip.setChecked(true);
+            chipGroup.addView(chip);
+        }
+    }
+
+    private void createAddedCategoryChips(CommonFood item) {
+        for (String category : item.getCategory()) {
+            if (!categories.contains(category) && !category.equals("PRICE PROMOTION")) {
+                @SuppressLint("InflateParams")
+                final Chip addedChip = (Chip) getLayoutInflater()
+                        .inflate(R.layout.chip_category, null);
+                addedChip.setText(category);
+                addedChip.setChecked(true);
+                addedChip.setCloseIconVisible(true);
+                addedChip.setOnCloseIconClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        chipGroup.removeView(addedChip);
+                    }
+                });
+                chipGroup.addView(addedChip);
+            }
+        }
+    }
+
+    private void addNewCategoryChip() {
+        // Ask for name of new category
+        @SuppressLint("InflateParams")
+        final View inputCategoryLayout = getLayoutInflater()
+                .inflate(R.layout.edit_name_dialog, null);
+        final TextInputEditText editTextCategory
+                = inputCategoryLayout.findViewById(R.id.edit_text_name);
+        MaterialAlertDialogBuilder dialog = new MaterialAlertDialogBuilder(mContext)
+                .setView(inputCategoryLayout)
+                .setPositiveButton("Add", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        // Create and add new category ass chip to chip group
+                        @SuppressLint("InflateParams")
+                        final Chip addedChip = (Chip) getLayoutInflater()
+                                .inflate(R.layout.chip_category, null);
+                        addedChip.setText(Objects.requireNonNull(editTextCategory.getText())
+                                .toString().toUpperCase());
+                        addedChip.setChecked(true);
+                        addedChip.setCloseIconVisible(true);
+                        addedChip.setOnCloseIconClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                chipGroup.removeView(addedChip);
+                            }
+                        });
+                        chipGroup.addView(addedChip);
+                    }
+                }).setTitle("Add new food category");
+        dialog.show();
     }
 }
