@@ -112,6 +112,7 @@ public class OrderController {
         CommonOrder mappedOrder = newOrder.asCommonOrder();
         mappedOrder.setBrandName(orderObject.getBrandName());
         mappedOrder.setStandName(orderObject.getStandName());
+        mappedOrder.setRecType(orderObject.getRecType());
         ObjectMapper mapper = new ObjectMapper();
         mapper.registerModule(new JavaTimeModule());
         String jsonString = mapper.writeValueAsString(mappedOrder);
