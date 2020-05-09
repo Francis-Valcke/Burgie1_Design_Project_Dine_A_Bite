@@ -38,6 +38,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static cobol.commons.stub.OrderManagerStub.*;
+
 @RestController
 public class OrderController {
 
@@ -67,7 +69,7 @@ public class OrderController {
      * @throws JsonProcessingException Json processing error
      * @throws DoesNotExistException   Order does not exist
      */
-    @GetMapping("/getOrderInfo")
+    @GetMapping(GET_GET_ORDER_INFO)
     public ResponseEntity<CommonOrder> getOrderInfo(@RequestParam(name = "orderId") int orderId) throws JsonProcessingException, DoesNotExistException {
         // retrieve order
         Optional<Order> orderOptional = orderProcessor.getOrder(orderId);
@@ -87,7 +89,7 @@ public class OrderController {
      * @return JSONObject including CommonOrder "order" and JSONArray "Recommendation"
      * @throws JsonProcessingException Json processing error
      */
-    @PostMapping(value = "/placeOrder", consumes = "application/json", produces = "application/json")
+    @PostMapping(value = POST_PLACE_ORDER, consumes = "application/json", produces = "application/json")
     public ResponseEntity<JSONObject> placeOrder(@AuthenticationPrincipal CommonUser userDetails, @RequestBody CommonOrder orderObject) throws Throwable {
 
         /* -- Money Transaction for this order -- */
@@ -188,7 +190,7 @@ public class OrderController {
      * @param superOrder SuperOrder object containing a list of CommonOrderItems of a certain brand
      * @return JSONArray each element containing a field "recommendations" and a field "order" similar to return of placeOrder
      */
-    @PostMapping(value="/placeSuperOrder", consumes = "application/json", produces = "application/json")
+    @PostMapping(value=POST_PLACE_SUPER_ORDER, consumes = "application/json", produces = "application/json")
     public ResponseEntity<JSONArray> placeSuperOrder(@AuthenticationPrincipal CommonUser userDetails, @RequestBody SuperOrder superOrder) throws Throwable {
 
         // Make complete response, values will be added later on
@@ -242,7 +244,7 @@ public class OrderController {
      * @param brandName name of brand
      * @throws JsonProcessingException jsonexception
      */
-    @GetMapping("/confirmStand")
+    @GetMapping(GET_CONFIRM_STAND)
     public ResponseEntity<String> confirmStand(@RequestParam(name = "orderId") int orderId, @RequestParam(name = "standName") String standName, @RequestParam(name = "brandName") String brandName, @AuthenticationPrincipal CommonUser userDetails) throws Throwable {
         // Update order, confirm stand
         Order updatedOrder = orderProcessor.confirmStand(orderId, standName, brandName);

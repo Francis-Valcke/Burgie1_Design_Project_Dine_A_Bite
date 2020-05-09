@@ -17,6 +17,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static cobol.commons.stub.OrderManagerStub.*;
+
 
 @RestController
 public class DBController {
@@ -40,7 +42,7 @@ public class DBController {
      * @param data List of Brand objects deserialized from json
      * @return Success message or exception
      */
-    @PostMapping("/db/import")
+    @PostMapping(POST_DB_IMPORT)
     public ResponseEntity<String> load(@RequestBody List<Brand> data) {
 
         //Add stand as default owner
@@ -57,7 +59,7 @@ public class DBController {
      *
      * @return Success message or exception
      */
-    @DeleteMapping("/db/clear")
+    @DeleteMapping(DELETE_DB_CLEAR)
     public ResponseEntity<String> clear() throws ParseException, JsonProcessingException {
 
         brandRepository.deleteAll();
@@ -70,7 +72,7 @@ public class DBController {
      *
      * @return Success message or exception
      */
-    @GetMapping("/db/export")
+    @GetMapping(GET_DB_EXPORT)
     public ResponseEntity<List<Brand>> export() {
 
         List<Brand> data = brandRepository.findAll();
@@ -88,7 +90,7 @@ public class DBController {
      * @return List of stand names
      * @throws JsonProcessingException Json processing error
      */
-    @RequestMapping(value = "/updateSM", method = RequestMethod.GET)
+    @GetMapping(GET_UPDATE_SM)
     public ResponseEntity<List<String>> update() throws JsonProcessingException {
         menuHandler.updateStandManager();
 
@@ -104,7 +106,7 @@ public class DBController {
      * @throws ParseException Parsing error
      * @throws JsonProcessingException Json processing error
      */
-    @DeleteMapping("/delete")
+    @DeleteMapping(DELETE_DELETE)
     public ResponseEntity<String> delete() throws ParseException, JsonProcessingException {
         menuHandler.deleteAll();
         return ResponseEntity.ok("Database from OrderManager and StandManager cleared.");

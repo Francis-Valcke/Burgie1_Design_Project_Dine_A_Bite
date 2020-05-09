@@ -57,7 +57,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .and()
                 .authorizeRequests()
                 //Requests that should not be authenticated
-                .antMatchers("/pingOM").permitAll()
+                .antMatchers("/ping").permitAll()
                 //Permissions for the DBController
                 .antMatchers("/db/*").hasRole(Role.ADMIN)
                 //.antMatchers("/db/*").permitAll()

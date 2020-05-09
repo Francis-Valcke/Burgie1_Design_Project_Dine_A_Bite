@@ -2,6 +2,7 @@ package cobol.services.eventchannel;
 
 import cobol.commons.Event;
 import cobol.commons.ResponseModel;
+import cobol.commons.stub.EventChannelStub;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -11,6 +12,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static cobol.commons.ResponseModel.status.OK;
+import static cobol.commons.stub.EventChannelStub.*;
 
 @RestController
 public class EventController {
@@ -20,7 +22,7 @@ public class EventController {
      *
      * @return "EventChannel is alive!"
      */
-    @GetMapping("/pingEC")
+    @GetMapping(EventChannelStub.GET_PING)
     public ResponseEntity ping() {
         return ResponseEntity.ok(
                 ResponseModel.builder()
@@ -36,7 +38,7 @@ public class EventController {
      * @param name test value
      * @return hello world
      */
-    @GetMapping("/test")
+    @GetMapping(GET_TEST)
     public String test(@RequestParam(value = "name", defaultValue = "World") String name) {
         return String.format("Hello %s!", name);
     }
@@ -48,7 +50,7 @@ public class EventController {
      * @param types channels the caller wants to subscribe to, types are separated by ','.
      * @return The unique id of the event subscriber stub
      */
-    @GetMapping("/registerSubscriber")
+    @GetMapping(GET_REGISTER_SUBSCRIBER)
     public int register(@RequestParam(value = "types", defaultValue = "") String types) {
         EventSubscriber newSubscriber = new EventSubscriber(types);
         newSubscriber.subscribe();
@@ -61,7 +63,7 @@ public class EventController {
      * @param stubId The id to identify the subscriberstub
      * @param type   the channels the stub has to subscribe to
      */
-    @GetMapping("/registerSubscriber/toChannel")
+    @GetMapping(GET_REGISTER_SUBSCRIBER_TO_CHANNEL)
     public void toChannel(@RequestParam(value = "id") int stubId, @RequestParam(value = "type", defaultValue = "") String type) {
         EventBroker broker = EventBroker.getInstance();
         EventSubscriber subscriber = broker.getSubscriberStub(stubId);
@@ -75,7 +77,7 @@ public class EventController {
      * @param stubId id of the stub to desubscribe
      * @param type   channels to desubscribe from, separated by commas. If none are given, stub desubscribes from all channels
      */
-    @GetMapping("/deregisterSubscriber")
+    @GetMapping(GET_DEREGISTER_SUBSCRIBER)
     public void deRegister(@RequestParam(value = "id") int stubId, @RequestParam(value = "type", defaultValue = "") String type) {
         EventBroker broker = EventBroker.getInstance();
         EventSubscriber subscriber = broker.getSubscriberStub(stubId);
@@ -95,7 +97,7 @@ public class EventController {
      *
      * @param e The event to publish
      */
-    @PostMapping(value = "/publishEvent", consumes = "application/json")
+    @PostMapping(value = POST_PUBLISH_EVENT, consumes = "application/json")
     public void publish(@RequestBody Event e) {
         EventPublisher.publish(e);
     }
@@ -104,7 +106,7 @@ public class EventController {
      * @param id unique id of stub
      * @return the events that were received by the stub since the last poll
      */
-    @GetMapping("/events")
+    @GetMapping(GET_EVENTS)
     public ResponseEntity events(@RequestParam(value = "id") int id) throws JsonProcessingException {
         EventBroker broker = EventBroker.getInstance();
         EventSubscriber subscriber = broker.getSubscriberStub(id);

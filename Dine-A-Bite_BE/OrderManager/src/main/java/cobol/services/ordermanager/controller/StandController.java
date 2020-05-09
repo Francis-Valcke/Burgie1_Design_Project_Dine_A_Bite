@@ -27,6 +27,7 @@ import java.util.stream.Collectors;
 
 import static cobol.commons.ResponseModel.status.ERROR;
 import static cobol.commons.ResponseModel.status.OK;
+import static cobol.commons.stub.OrderManagerStub.*;
 
 @RestController
 public class StandController {
@@ -78,7 +79,7 @@ public class StandController {
      * @throws ParseException          Json parsing error
      * @throws DuplicateStandException Such a stand already exists
      */
-    @PostMapping(path = "/addStand")
+    @PostMapping(path = GET_VERIFY)
     @ResponseBody
     public ResponseEntity<HashMap<Object,Object>> addStand(@RequestBody CommonStand stand, @AuthenticationPrincipal CommonUser user) throws JsonProcessingException, ParseException, DuplicateStandException, CommunicationException {
 
@@ -101,7 +102,7 @@ public class StandController {
      * @param stand The stand that needs to be created
      * @return Success message or exception
      */
-    @PostMapping(path = "/updateStand")
+    @PostMapping(path = POST_UPDATE_STAND)
     @ResponseBody
     public ResponseEntity<HashMap<Object,Object>> updateStand(@RequestBody CommonStand stand) throws DoesNotExistException, JsonProcessingException {
         menuHandler.updateStand(stand);
@@ -126,7 +127,7 @@ public class StandController {
      * @return Success message or exception
      * @throws JsonProcessingException Json processing error
      */
-    @DeleteMapping(value = "/deleteStand")
+    @DeleteMapping(value = DELETE_DELETE_STAND)
     @ResponseBody
     public ResponseEntity<HashMap<Object,Object>> deleteStand(@RequestParam String standName, @RequestParam String brandName) throws JsonProcessingException, DoesNotExistException {
         menuHandler.deleteStandById(standName, brandName);
@@ -144,13 +145,13 @@ public class StandController {
      *
      * @return HashMap of "standName":"brandName"
      */
-    @GetMapping(value = "/stands")
+    @GetMapping(value = GET_STANDS)
     public ResponseEntity<Map<String, String>> requestStandNames() {
         return ResponseEntity.ok(standRepository.findAll()
                 .stream().collect(Collectors.toMap(Stand::getName, stand -> stand.getBrand().getName())));
     }
 
-    @GetMapping(value = "/standLocations")
+    @GetMapping(value = GET_STAND_LOCATIONS)
     public ResponseEntity<Map<String, Map<String, Double>>> requestStandLocations() {
         return ResponseEntity.ok(standRepository.findAll()
                 .stream().collect(Collectors.toMap(Stand::getName, Stand::getLocation)));

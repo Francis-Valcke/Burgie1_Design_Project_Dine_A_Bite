@@ -36,7 +36,6 @@ public class CommunicationHandler {
      * @throws CommunicationException thrown when eventchannel can't be reached
      */
     public int getSubscriberIdFromEC() throws CommunicationException {
-☺
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.add("Authorization", StandManager.authToken);
@@ -59,7 +58,7 @@ public class CommunicationHandler {
         headers.add("Authorization", StandManager.authToken);
         HttpEntity httpEntity= new HttpEntity(headers);
 
-        String uri = StandManager.ECURL + "/registerSubsc☺riber/toChannel";
+        String uri = StandManager.ECURL + "/registerSubscriber/toChannel";
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(uri)
                 .queryParam("id", subscriberId)
                 .queryParam("type", brandName);

@@ -12,6 +12,9 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static cobol.commons.stub.OrderManagerStub.GET_MENU;
+import static cobol.commons.stub.OrderManagerStub.GET_STAND_MENU;
+
 @RestController
 public class MenuController {
 
@@ -24,7 +27,7 @@ public class MenuController {
      *
      * @return Global menu
      */
-    @RequestMapping(value="/menu", method = RequestMethod.GET)
+    @GetMapping(GET_MENU)
     @ResponseBody
     public ResponseEntity<List<CommonFood>> requestGlobalMenu() throws JsonProcessingException {
         return ResponseEntity.ok(menuHandler.getGlobalMenu());
@@ -37,7 +40,7 @@ public class MenuController {
      * @param brandName name of brand
      * @return List of food items
      */
-    @GetMapping(value = "/standMenu")
+    @GetMapping(GET_STAND_MENU)
     @ResponseBody
     public ResponseEntity<List<CommonFood>> requestStandMenu(@RequestParam String standName, @RequestParam String brandName) throws DoesNotExistException {
         return ResponseEntity.ok(

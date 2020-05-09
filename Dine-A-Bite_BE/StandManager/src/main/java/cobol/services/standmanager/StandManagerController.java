@@ -8,6 +8,7 @@ import cobol.commons.order.CommonOrder;
 import cobol.commons.order.CommonOrderItem;
 import cobol.commons.order.Recommendation;
 import cobol.commons.order.SuperOrder;
+import cobol.commons.stub.StandManagerStub;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -21,6 +22,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static cobol.commons.ResponseModel.status.OK;
+import static cobol.commons.stub.StandManagerStub.*;
 
 @RestController
 public class StandManagerController {
@@ -32,7 +34,7 @@ public class StandManagerController {
      *
      * @return "StandManager is alive!"
      */
-    @GetMapping("/pingSM")
+    @GetMapping(StandManagerStub.GET_PING)
     public ResponseEntity ping() {
         return ResponseEntity.ok(
                 ResponseModel.builder()
@@ -48,7 +50,7 @@ public class StandManagerController {
      * @param stands
      * @throws JsonProcessingException when wrong input param
      */
-    @PostMapping("/update")
+    @PostMapping(POST_UPDATE)
     public void update(@RequestBody List<CommonStand> stands) throws CommunicationException {
 
         for (CommonStand stand : stands) {
@@ -58,7 +60,7 @@ public class StandManagerController {
 
     }
 
-    @PostMapping("/deleteScheduler")
+    @PostMapping(POST_DELETE_SCHEDULER)
     public void deleteScheduler(@RequestParam String standName, @RequestParam String brandName) {
 
 
@@ -74,7 +76,7 @@ public class StandManagerController {
      *              available at localhost:8081/newStand
      * @return true (if no errors)
      */
-    @RequestMapping(value = "/newStand", consumes = "application/json")
+    @PostMapping(value = POST_NEW_STAND, consumes = "application/json")
     public JSONObject addNewStand(@RequestBody() CommonStand stand) throws CommunicationException {
         return schedulerHandler.updateSchedulers(stand);
     }
@@ -84,7 +86,7 @@ public class StandManagerController {
      * @param order order which wants to be placed
      *              TODO: really implement this
      */
-    @RequestMapping(value = "/placeOrder", consumes = "application/json")
+    @PostMapping(value = POST_PLACE_ORDER, consumes = "application/json")
     public void placeOrder(@RequestBody() CommonOrder order) {
         schedulerHandler.addOrderToScheduler(order);
     }
@@ -98,7 +100,7 @@ public class StandManagerController {
      * @return JSONArray each element containing a field "recommendations" and a field "order" similar to return of placeOrder
      * recommendation field will be a JSONArray of Recommendation object
      */
-    @PostMapping(value = "/getSuperRecommendation", consumes = "application/json", produces = "application/json")
+    @PostMapping(value = POST_GET_SUPER_RECOMMENDATION, consumes = "application/json", produces = "application/json")
     public ResponseEntity<JSONArray> getSuperRecommendation(@RequestBody SuperOrder superOrder) throws JsonProcessingException, OrderException {
 
         // initialize response
@@ -142,7 +144,7 @@ public class StandManagerController {
      * @param order order object for which the Order Manager wants a recommendation
      * @return recommendation in JSON format
      */
-    @RequestMapping(value = "/getRecommendation", consumes = "application/json")
+    @PostMapping(value = POST_GET_RECOMMENDATION, consumes = "application/json")
     @ResponseBody
     public List<Recommendation> postCommonOrder(@RequestBody() CommonOrder order) throws JsonProcessingException {
         System.out.println("User requested recommended stand for " + order.getId());

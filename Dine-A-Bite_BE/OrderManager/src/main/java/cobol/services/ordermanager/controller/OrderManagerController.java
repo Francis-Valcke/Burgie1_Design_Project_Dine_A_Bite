@@ -1,6 +1,7 @@
 package cobol.services.ordermanager.controller;
 
 import cobol.commons.ResponseModel;
+import cobol.commons.stub.OrderManagerStub;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -17,7 +18,7 @@ public class OrderManagerController {
      *
      * @return "OrderManager is alive!"
      */
-    @GetMapping("/pingOM")
+    @GetMapping(OrderManagerStub.GET_PING)
     public ResponseEntity<HashMap<Object, Object>> ping() {
         return ResponseEntity.ok(
                 ResponseModel.builder()

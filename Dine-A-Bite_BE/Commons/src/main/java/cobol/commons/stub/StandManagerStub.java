@@ -8,9 +8,15 @@ import org.springframework.stereotype.Service;
 @Service
 public class StandManagerStub extends ServiceStub {
 
+    public static final String POST_UPDATE = "/update";
+    public static final String POST_DELETE_SCHEDULER = "/deleteScheduler";
+    public static final String POST_NEW_STAND = "/newStand";
+    public static final String POST_PLACE_ORDER = "/placeOrder";
+    public static final String POST_GET_SUPER_RECOMMENDATION = "/getSuperRecommendation";
+    public static final String POST_GET_RECOMMENDATION = "/getRecommendation";
+
     @Override
-    @Scheduled(fixedRate = PING_FREQUENCY)
-    void ping() {
-        log.info("Ping");
+    String getAddress() {
+        return globalConfigurationBean.getAddressStandManager();
     }
 }

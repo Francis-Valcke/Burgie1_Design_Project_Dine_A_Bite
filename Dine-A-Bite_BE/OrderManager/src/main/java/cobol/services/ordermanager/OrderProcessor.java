@@ -4,6 +4,8 @@ import cobol.commons.Event;
 import cobol.commons.exception.DoesNotExistException;
 import cobol.commons.order.CommonOrder;
 import cobol.commons.order.Recommendation;
+import cobol.commons.stub.Action;
+import cobol.commons.stub.EventChannelStub;
 import cobol.services.ordermanager.domain.entity.Food;
 import cobol.services.ordermanager.domain.entity.Order;
 import cobol.services.ordermanager.domain.entity.OrderItem;
@@ -16,6 +18,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
+import lombok.extern.log4j.Log4j2;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,9 +36,13 @@ import java.util.*;
 /**
  * This is a Singleton
  */
+@Log4j2
 @Component
 @Scope(value = "singleton")
 public class OrderProcessor {
+
+    @Autowired
+    EventChannelStub eventChannelStub;
 
     @Autowired
     StandRepository standRepository;
@@ -56,12 +63,8 @@ public class OrderProcessor {
     private double learningRate;
     private volatile LinkedList<Event> eventQueue = new LinkedList<>();
 
-
-
     // key order id
     ListMultimap<Integer, Recommendation> orderRecommendations = ArrayListMultimap.create();
-
-
 
 
     private OrderProcessor() throws CommunicationException {
@@ -73,7 +76,15 @@ public class OrderProcessor {
 
     @PostConstruct
     private void run() throws CommunicationException {
-        this.subscriberId= communicationHandler.getSubscriberIdFromEC();
+
+        eventChannelStub.doOnAvailable(() -> {
+            try {
+                this.subscriberId = communicationHandler.getSubscriberIdFromEC();
+                log.info("Successfully requested a subscriber ID from event channel: ID = " + this.subscriberId);
+            } catch (CommunicationException e) {
+                log.error("Could not request subscriber ID from event channel.", e);
+            }
+        });
     }
 
     // ---- Incoming Requests ---- //
