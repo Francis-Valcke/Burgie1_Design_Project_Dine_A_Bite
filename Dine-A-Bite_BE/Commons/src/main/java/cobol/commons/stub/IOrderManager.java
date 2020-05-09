@@ -1,14 +1,9 @@
 package cobol.commons.stub;
 
-import cobol.commons.domain.CommonBrand;
-import cobol.commons.domain.CommonFood;
-import cobol.commons.domain.CommonStand;
+import cobol.commons.domain.*;
 import cobol.commons.exception.CommunicationException;
 import cobol.commons.exception.DoesNotExistException;
 import cobol.commons.exception.DuplicateStandException;
-import cobol.commons.domain.CommonOrder;
-import cobol.commons.domain.SuperOrder;
-import cobol.commons.domain.CommonUser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -69,6 +64,8 @@ public interface IOrderManager {
 
     ResponseEntity<Map<String, Map<String, Double>>> requestStandLocations();
 
+    ResponseEntity<HashMap<Object, Object>> requestRevenue(String standName, String brandName) throws DoesNotExistException;
+
     /**
      * This method will retrieve information about a given order identified by the orderId.
      *
@@ -96,7 +93,7 @@ public interface IOrderManager {
      * @param superOrder SuperOrder object containing a list of CommonOrderItems of a certain brand
      * @return JSONArray each element containing a field "recommendations" and a field "order" similar to return of placeOrder
      */
-    ResponseEntity<JSONArray> placeSuperOrder(SuperOrder superOrder) throws JsonProcessingException, ParseException;
+    ResponseEntity<JSONArray> placeSuperOrder(CommonUser userDetails, SuperOrder superOrder) throws Throwable;
 
     /**
      * Sets stand- and brandname of according order when this recommendations is chosen
@@ -107,6 +104,8 @@ public interface IOrderManager {
      * @throws JsonProcessingException jsonexception
      */
     ResponseEntity<String> confirmStand(int orderId, String standName, String brandName, CommonUser userDetails) throws Throwable;
+
+    ResponseEntity<List<CommonOrder>> getUserOrders(CommonUser userDetails);
 
     /**
      * This API will retrieve the all of the food items in the system.

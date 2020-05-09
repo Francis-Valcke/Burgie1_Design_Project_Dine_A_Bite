@@ -53,7 +53,7 @@ public class EventChannelStub extends ServiceStub implements IEventChannel{
         Request request = new Request.Builder()
                 .url(builder.toUriString())
                 .method("GET", null)
-                .addHeader("Authorization", authorizationToken)
+                //.addHeader("Authorization", authorizationToken)
                 .build();
 
         okHttpClient.newCall(request).execute();

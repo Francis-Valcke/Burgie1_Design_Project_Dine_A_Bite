@@ -17,7 +17,9 @@ import cobol.services.ordermanager.MenuHandler;
 import cobol.services.ordermanager.OrderProcessor;
 import cobol.services.ordermanager.domain.entity.*;
 import cobol.services.ordermanager.domain.repository.BrandRepository;
+import cobol.services.ordermanager.domain.repository.FoodRepository;
 import cobol.services.ordermanager.domain.repository.StandRepository;
+import cobol.services.ordermanager.domain.repository.UserRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -28,6 +30,7 @@ import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
@@ -56,6 +59,10 @@ public class OrderManagerController implements IOrderManager {
     private MenuHandler menuHandler;
     @Autowired
     private StandRepository standRepository;
+    @Autowired
+    private UserRepository userRepository;
+    @Autowired
+    private FoodRepository foodRepository;
 
     /**
      * This API will test if the server is still alive.
@@ -104,7 +111,7 @@ public class OrderManagerController implements IOrderManager {
     }
 
     @Override
-    @PostMapping(path = GET_VERIFY)
+    @PostMapping(path = POST_ADD_STAND)
     @ResponseBody
     public ResponseEntity<HashMap<Object,Object>> addStand(@RequestBody CommonStand stand, @AuthenticationPrincipal CommonUser user) throws JsonProcessingException, ParseException, DuplicateStandException, CommunicationException {
 
@@ -162,6 +169,25 @@ public class OrderManagerController implements IOrderManager {
     }
 
     @Override
+    @GetMapping(value = OrderManagerStub.GET_REVENUE)
+    @ResponseBody
+    public ResponseEntity<HashMap<Object, Object>> requestRevenue(@RequestParam String standName, @RequestParam String brandName) throws DoesNotExistException {
+        Optional<Stand> stand = standRepository.findStandById(standName, brandName);
+        BigDecimal revenue;
+        if (stand.isPresent() && stand.get().getRevenue() != null) {
+            revenue = stand.get().getRevenue();
+        } else {
+            revenue = BigDecimal.ZERO; // new stands have 0 revenue
+        }
+        return ResponseEntity.ok(
+                ResponseModel.builder()
+                        .status(OK.toString())
+                        .details(revenue)
+                        .build().generateResponse()
+        );
+    }
+
+    @Override
     @GetMapping(GET_GET_ORDER_INFO)
     public ResponseEntity<CommonOrder> getOrderInfo(@RequestParam(name = "orderId") int orderId) throws JsonProcessingException, DoesNotExistException {
         // retrieve order
@@ -178,35 +204,23 @@ public class OrderManagerController implements IOrderManager {
     @PostMapping(value = POST_PLACE_ORDER, consumes = "application/json", produces = "application/json")
     public ResponseEntity<JSONObject> placeOrder(@AuthenticationPrincipal CommonUser userDetails, @RequestBody CommonOrder orderObject) throws Throwable {
 
-        // First calculate the total price of the order
-        Brand brand = brandRepository.findById(orderObject.getBrandName())
-                .orElseThrow(() -> new DoesNotExistException("The brand of the given order does not exist in the database, this should not be possible."));
+        /* -- Money Transaction for this order -- */
 
-        // Get all distinct food items that are present for the brand
-        List<Food> brandFood = brand.getStandList().stream().flatMap(s -> s.getFoodList().stream()).distinct().collect(Collectors.toList());
-        // Each ordered item should be in this list, search this list to find the price.
-        BigDecimal total = BigDecimal.ZERO;
-        for (CommonOrderItem orderItem : orderObject.getOrderItems()) {
-            total = total.subtract(
-                    brandFood.stream()
-                            .filter(f -> f.getName().equals(orderItem.getFoodName()) && f.getBrandName().equals(orderObject.getBrandName()))
-                            .findAny()
-                            .orElseThrow(() -> new DoesNotExistException("OrderItem " +orderItem.getFoodName() + " does not exist in the backend, this should not be possible"))
-                            .getPrice()
-                            .multiply(new BigDecimal(orderItem.getAmount()))
-            );
-        }
+        orderProcessor.orderTransaction(orderObject, userDetails);
 
-        // With this price we try to create a transaction
-        BetterResponseModel<BetterResponseModel.GetBalanceResponse> response = aSCommunicationHandler.callCreateTransaction(userDetails.getUsername(), total);
-        if (response.getStatus().equals(BetterResponseModel.Status.ERROR)){
-            // There was an error creating the transaction. Throw this.
-            throw response.getException();
-        }
+
+        /* -- Convert CommonOrder to normal Order object -- */
+
+        Order newOrder = new Order(orderObject);
+        // Set user for this order
+        User user = userRepository.findById(userDetails.getUsername()).orElse(userRepository.save(new User(userDetails)));
+        newOrder.setUser(user);
 
         // Add order to the processor
-        Order newOrder = new Order(orderObject);
         newOrder = orderProcessor.addNewOrder(newOrder);
+
+
+        /* -- Prepare and send updated order to standmanager --*/
 
         // Put order in json to send to standmanager (as commonOrder object)
         CommonOrder mappedOrder = newOrder.asCommonOrder();
@@ -218,8 +232,12 @@ public class OrderManagerController implements IOrderManager {
 
         // Ask standmanager for recommendation
         String responseString = communicationHandler.sendRestCallToStandManager("/getRecommendation", jsonString, null);
+        // Parse recommendations
         List<Recommendation> recommendations = mapper.readValue(responseString, new TypeReference<List<Recommendation>>() {});
         orderProcessor.addRecommendations(newOrder.getId(), recommendations);
+
+
+        /* -- Prepare and send response back to application -- */
 
         // send updated order and recommendation
         JSONObject completeResponse = new JSONObject();
@@ -228,45 +246,50 @@ public class OrderManagerController implements IOrderManager {
         completeResponse.put("order", newOrder.asCommonOrder());
         completeResponse.put("recommendations", recommendations);
 
-        CommonOrder test_order = newOrder.asCommonOrder();
 
         return ResponseEntity.ok(completeResponse);
 
     }
 
+
     @Override
     @PostMapping(value=POST_PLACE_SUPER_ORDER, consumes = "application/json", produces = "application/json")
-    public ResponseEntity<JSONArray> placeSuperOrder(@RequestBody SuperOrder superOrder) throws JsonProcessingException, ParseException {
+    public ResponseEntity<JSONArray> placeSuperOrder(@AuthenticationPrincipal CommonUser userDetails, @RequestBody SuperOrder superOrder) throws Throwable {
 
-        // Make complete response, values will be added
+        // Make complete response, values will be added later on
         JSONArray completeResponse= new JSONArray();
 
-
-        // ask StandManger to split these orderItems in Orders and give A recommendation
+        // ask StandManger to split these orderItems in Orders and give a recommendation
         JSONArray ordersRecommendations= communicationHandler.getSuperRecommendationFromSM(superOrder);
 
         // parse orders and recommendations
         ObjectMapper mapper= new ObjectMapper();
         for (Object ordersRecommendation : ordersRecommendations) {
             JSONObject orderRec = (JSONObject) ordersRecommendation;
-
             JSONObject orderJSON = (JSONObject) orderRec.get("order");
             CommonOrder commonOrder = mapper.readValue(orderJSON.toJSONString(), CommonOrder.class);
-            Order order= new Order(commonOrder);
             JSONArray recJSONs= (JSONArray) orderRec.get("recommendations");
-            List<Recommendation> recommendations= mapper.readValue(recJSONs.toJSONString(), new TypeReference<List<Recommendation>>() {});
+
+            orderProcessor.orderTransaction(commonOrder, userDetails);
 
             // add all seperate orders to orderprocessor, this will give them an orderId and initial values
+            Order order= new Order(commonOrder);
+            // Set user for this order
+            User user = userRepository.findById(userDetails.getUsername()).orElse(userRepository.save(new User(userDetails)));
+            order.setUser(user);
             orderProcessor.addNewOrder(order);
 
             // parse the response, add the recommendations to the hashmap of recommendations with the new orderIds
+            List<Recommendation> recommendations= mapper.readValue(recJSONs.toJSONString(), new TypeReference<List<Recommendation>>() {});
             orderProcessor.addRecommendations(order.getId(), recommendations);
 
 
+            // make response for every seperate order
             JSONObject orderResponse= new JSONObject();
             orderResponse.put("order", order.asCommonOrder());
             orderResponse.put("recommendations", recommendations);
 
+            // Place all orders with their recommendations in the complete array response
             completeResponse.add(orderResponse);
         }
 
@@ -279,12 +302,23 @@ public class OrderManagerController implements IOrderManager {
     @Override
     @GetMapping(GET_CONFIRM_STAND)
     public ResponseEntity<String> confirmStand(@RequestParam(name = "orderId") int orderId, @RequestParam(name = "standName") String standName, @RequestParam(name = "brandName") String brandName, @AuthenticationPrincipal CommonUser userDetails) throws Throwable {
-        Optional<Order> test = orderProcessor.getOrder(orderId);
         // Update order, confirm stand
         Order updatedOrder = orderProcessor.confirmStand(orderId, standName, brandName);
 
         // Publish event to standmanager
         String response= communicationHandler.publishConfirmedStand(updatedOrder.asCommonOrder(), standName, brandName);
+
+        //Update stand revenue
+        Optional<Stand> optStand = standRepository.findStandById(standName, brandName);
+        BigDecimal price = BigDecimal.ZERO;
+        if (optStand.isPresent()) {
+            for (OrderItem item : updatedOrder.getOrderItems()) {
+                price = price.add(foodRepository.findFoodById(item.getFoodName(),standName, brandName).get().getPrice().multiply(BigDecimal.valueOf(item.getAmount())));
+            }
+            Stand stand = optStand.get();
+            stand.addToRevenue(price);
+            standRepository.save(stand);
+        }
 
         // Also complete the payment
         BetterResponseModel<BetterResponseModel.GetBalanceResponse> asResponse = aSCommunicationHandler.callConfirmTransaction(userDetails.getUsername());
@@ -294,6 +328,13 @@ public class OrderManagerController implements IOrderManager {
         }
 
         return ResponseEntity.ok(response);
+    }
+
+    @Override
+    @GetMapping(value= OrderManagerStub.GET_USER_ORDERS, produces = "application/json")
+    public ResponseEntity<List<CommonOrder>> getUserOrders(@AuthenticationPrincipal CommonUser userDetails){
+        User user = userRepository.findById(userDetails.getUsername()).orElseThrow(() -> new UsernameNotFoundException("Can't find user to fetch orders from"));
+        return ResponseEntity.ok(user.getOrders().stream().map(Order::asCommonOrder).collect(Collectors.toList()));
     }
 
     @Override

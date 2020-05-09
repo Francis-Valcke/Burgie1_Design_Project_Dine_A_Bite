@@ -1,6 +1,6 @@
 package cobol.services.ordermanager.domain.repository;
 
-import cobol.commons.order.CommonOrder;
+import cobol.commons.domain.CommonOrder;
 import cobol.services.ordermanager.domain.entity.Order;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;

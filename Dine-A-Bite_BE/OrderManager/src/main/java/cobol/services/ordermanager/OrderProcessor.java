@@ -1,14 +1,11 @@
 package cobol.services.ordermanager;
 
-import cobol.commons.domain.Event;
+import cobol.commons.communication.response.BetterResponseModel;
+import cobol.commons.domain.*;
 import cobol.commons.exception.DoesNotExistException;
-import cobol.commons.domain.CommonOrder;
-import cobol.commons.domain.Recommendation;
 import cobol.commons.stub.EventChannelStub;
-import cobol.services.ordermanager.domain.entity.Food;
-import cobol.services.ordermanager.domain.entity.Order;
-import cobol.services.ordermanager.domain.entity.OrderItem;
-import cobol.services.ordermanager.domain.entity.Stand;
+import cobol.services.ordermanager.domain.entity.*;
+import cobol.services.ordermanager.domain.repository.BrandRepository;
 import cobol.services.ordermanager.domain.repository.FoodRepository;
 import cobol.services.ordermanager.domain.repository.OrderRepository;
 import cobol.services.ordermanager.domain.repository.StandRepository;
@@ -27,10 +24,12 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import javax.naming.CommunicationException;
+import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * This is a Singleton
@@ -57,6 +56,12 @@ public class OrderProcessor {
 
     @Autowired
     StandRepository stands;
+
+    @Autowired
+    BrandRepository brandRepository;
+
+    @Autowired
+    ASCommunicationHandler asCommunicationHandler;
 
     private int subscriberId;
     private double learningRate;
@@ -175,6 +180,53 @@ public class OrderProcessor {
             orderRecommendations.put(id, recommendation);
         }
     }
+
+
+    /**
+     * Prepare and do the transaction of this order
+     * It will simultaneously add prices to the incoming orderitems in the commonorder object
+     *
+     * @param orderObject CommonOrder object
+     * @param userDetails CommonUser which places the order
+     * @throws Throwable all exceptions
+     */
+    public void orderTransaction(CommonOrder orderObject, CommonUser userDetails) throws Throwable {
+        // First calculate the total price of the order
+        Brand brand = brandRepository.findById(orderObject.getBrandName())
+                .orElseThrow(() -> new DoesNotExistException("The brand of the given order does not exist in the database, this should not be possible."));
+
+        // Get all distinct food items that are present for the brand
+        List<Food> brandFood = brand.getStandList().stream().flatMap(s -> s.getFoodList().stream()).distinct().collect(Collectors.toList());
+        // Each ordered item should be in this list, search this list to find the price.
+        BigDecimal total = BigDecimal.ZERO;
+        for (CommonOrderItem orderItem : orderObject.getOrderItems()) {
+            // search for current price of this orderitem
+            BigDecimal itemPrice= brandFood.stream()
+                    .filter(f -> f.getName().equals(orderItem.getFoodName()) && f.getBrandName().equals(orderObject.getBrandName()))
+                    .findAny()
+                    .orElseThrow(() -> new DoesNotExistException("OrderItem " +orderItem.getFoodName() + " does not exist in the backend, this should not be possible"))
+                    .getPrice();
+
+
+            // add this price of this orderitem to total
+            total = total.subtract(
+                    itemPrice
+                            .multiply(new BigDecimal(orderItem.getAmount()))
+            );
+
+            // update price of this CommonOrderItem
+            orderItem.setPrice(itemPrice);
+        }
+
+        // With this price we try to create a transaction
+        BetterResponseModel<BetterResponseModel.GetBalanceResponse> response = asCommunicationHandler.callCreateTransaction(userDetails.getUsername(), total);
+        if (response.getStatus().equals(BetterResponseModel.Status.ERROR)){
+            // There was an error creating the transaction. Throw this.
+            throw response.getException();
+        }
+    }
+
+
     // ---- Getters ---- //
 
     public Optional<Order> getOrder(int orderId) {

@@ -1,11 +1,8 @@
 package cobol.services.ordermanager.domain.entity;
 
-import cobol.commons.order.CommonOrder;
-import cobol.commons.order.CommonOrderItem;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import cobol.commons.domain.CommonOrder;
 import cobol.commons.domain.CommonOrderItem;
-
 import javax.persistence.*;
 import java.io.Serializable;
 import java.math.BigDecimal;
