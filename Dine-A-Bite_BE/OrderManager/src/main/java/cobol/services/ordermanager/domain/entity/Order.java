@@ -148,6 +148,7 @@ public class Order implements Serializable {
      *
      * @param remainingTime time in seconds
      */
+    //TODO: I think this function is obsolete?
     public void setRemtime(int remainingTime) {
         expectedTime = expectedTime.plusSeconds(remainingTime);
     }
@@ -180,6 +181,15 @@ public class Order implements Serializable {
         item.setOrder(this);
     }
 
+
+    public ZonedDateTime getExpectedTime() {
+        return expectedTime;
+    }
+
+    public void setExpectedTime(ZonedDateTime expectedTime) {
+        this.expectedTime = expectedTime;
+    }
+
     public double getLatitude() {
         return this.latitude;
     }
@@ -198,6 +208,10 @@ public class Order implements Serializable {
 
     public ZonedDateTime getStartTime() {
         return startTime;
+    }
+
+    public void setStartTime(ZonedDateTime startTime){
+        this.startTime = startTime;
     }
 
     public void setOrderItems(List<OrderItem> orderItems) {

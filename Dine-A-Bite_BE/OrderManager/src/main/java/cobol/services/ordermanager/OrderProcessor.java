@@ -86,7 +86,7 @@ public class OrderProcessor {
      */
     public Order addNewOrder(Order newOrder) {
         // update order and save to database
-        newOrder.setRemtime(0);
+        //newOrder.setRemtime(0);
 
         newOrder.setState(CommonOrder.State.PENDING);
 
@@ -119,15 +119,19 @@ public class OrderProcessor {
                     .filter(r -> r.getStandName().equals(standName))
                     .findFirst();
 
-            recomOptional.ifPresent(recommendation -> updatedOrder.setRemtime(recommendation.getTimeEstimate()));
-            orderRepository.save(updatedOrder);
+            //recomOptional.ifPresent(recommendation -> updatedOrder.setRemtime(recommendation.getTimeEstimate()));
+            //orderRepository.save(updatedOrder);
 
             //send the updated order to stand to place it in the queue
             CommonOrder mappedOrder = updatedOrder.asCommonOrder();
             ObjectMapper mapper = new ObjectMapper();
             mapper.registerModule(new JavaTimeModule());
             String jsonString = mapper.writeValueAsString(mappedOrder);
-            communicationHandler.sendRestCallToStandManager("/placeOrder", jsonString, null);
+            int currentWaitingTime = Integer.parseInt(communicationHandler.sendRestCallToStandManager("/placeOrder", jsonString, null));
+            ZonedDateTime actualTime =  ZonedDateTime.now(ZoneId.of("Europe/Brussels"));
+            updatedOrder.setStartTime(actualTime);
+            updatedOrder.setExpectedTime(actualTime.plusSeconds(currentWaitingTime));
+            orderRepository.save(updatedOrder);
         }
 
 

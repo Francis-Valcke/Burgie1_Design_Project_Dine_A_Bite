@@ -82,11 +82,12 @@ public class StandManagerController {
 
     /**
      * @param order order which wants to be placed
-     *              TODO: really implement this
+     * TODO: returns a String for now because sendRestTemplate in OM is also String, but when that is fixed, this should become just a regular JSON object as return
      */
     @RequestMapping(value = "/placeOrder", consumes = "application/json")
-    public void placeOrder(@RequestBody() CommonOrder order) {
-        schedulerHandler.addOrderToScheduler(order);
+    public String placeOrder(@RequestBody() CommonOrder order) {
+        String waitingTime = schedulerHandler.addOrderToScheduler(order).get("waitingTime").toString();
+        return waitingTime;
     }
 
 

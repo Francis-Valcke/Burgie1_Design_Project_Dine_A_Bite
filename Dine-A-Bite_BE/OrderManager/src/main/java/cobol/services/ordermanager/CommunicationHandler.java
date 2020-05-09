@@ -58,6 +58,7 @@ public class CommunicationHandler {
      * @param path       Example: "/..."
      * @param jsonObject JSONObject or JSONArray format
      * @return response as String
+     * //TODO: this function is returning a String, but I think this should become a general JSON object
      */
     public String sendRestCallToStandManager(String path, String jsonObject, Map<String, String> params) throws JsonProcessingException {
         if (configurationBean.isUnitTest()) {
