@@ -1,12 +1,14 @@
 package com.example.attendeeapp;
 
 import android.annotation.SuppressLint;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.viewpager2.widget.ViewPager2;
 
 import com.example.attendeeapp.json.CommonFood;
@@ -24,6 +26,7 @@ public class MenuActivity extends ToolbarActivity implements OnCartChangeListene
     private ArrayList<CommonFood> cartList = new ArrayList<>();
     private int cartCount;
     private Toast mToast = null;
+    private AlertDialog mDialog = null;
 
     /**
      * Called after splash-screen is shown
@@ -73,6 +76,16 @@ public class MenuActivity extends ToolbarActivity implements OnCartChangeListene
         });
     }
 
+    /**
+     * Called after onCreate()
+     */
+    @Override
+    public void onStart() {
+        super.onStart();
+        // Ask for location permission
+        checkLocationPermission();
+    }
+
     @SuppressLint("SetTextI18n")
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -89,6 +102,41 @@ public class MenuActivity extends ToolbarActivity implements OnCartChangeListene
         }
     }
 
+    public void showBrandAlertMessage(final CommonFood cartItem) {
+        // Alert user if he not better like the recommended stand
+        AlertDialog.Builder builder = new AlertDialog.Builder(MenuActivity.this);
+
+        builder.setPositiveButton("Add", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                // User clicked Add button
+                dialog.cancel();
+
+                // Continue with multiple brands in a split up order
+                CommonFood newItem = new CommonFood(cartItem);
+                newItem.increaseCount();
+                cartList.add(newItem);
+                cartCount++;
+                TextView totalCount = findViewById(R.id.cart_count);
+                totalCount.setText(String.valueOf(cartCount));
+
+            }
+        });
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                // User cancelled the dialog
+                dialog.cancel();
+            }
+        });
+
+        builder.setMessage("The selected item is from another brand than the one(s) currently in your cart." +
+                "\n\nIf you choose to add this item, your order will be SPLIT UP." +
+                "\nAre you sure you want add this item?")
+                .setTitle("Add item from another brand");
+        if (mDialog != null) mDialog.cancel();
+        mDialog = builder.create();
+        mDialog.show();
+    }
+
     /**
      * Updates the cart when a menu item is added
      * If the cart contains the item, increase the count
@@ -103,6 +151,7 @@ public class MenuActivity extends ToolbarActivity implements OnCartChangeListene
         if (cartCount < MAX_CART_ITEM) {
             try {
                 boolean contains = false;
+                boolean newBrand = true;
                 for (CommonFood i : cartList) {
                     if (i.getName().equals(cartItem.getName()) &&
                             i.getStandName().equals(cartItem.getStandName()) &&
@@ -110,17 +159,33 @@ public class MenuActivity extends ToolbarActivity implements OnCartChangeListene
                         // cartItems have a unique ((foodName, brandName), standName)
                         i.increaseCount();
                         contains = true;
+                        newBrand = false;
                         break;
                     }
                 }
                 if(!contains){
-                    CommonFood newItem = new CommonFood(cartItem);
-                    newItem.increaseCount();
-                    cartList.add(newItem);
+                    // If order is from another brand, notify the user
+                    for (CommonFood i : cartList) {
+                        if (i.getBrandName().equals(cartItem.getBrandName())) {
+                            newBrand = false;
+                            break;
+                        }
+                    }
+                    if (cartList.size() == 0) newBrand = false;
+                    if (!newBrand) {
+                        CommonFood newItem = new CommonFood(cartItem);
+                        newItem.increaseCount();
+                        cartList.add(newItem);
+                    } else {
+                        // If brand is new alert the user
+                        showBrandAlertMessage(cartItem);
+                    }
                 }
-                cartCount++;
-                TextView totalCount = findViewById(R.id.cart_count);
-                totalCount.setText(String.valueOf(cartCount));
+                if (!newBrand) {
+                    cartCount++;
+                    TextView totalCount = findViewById(R.id.cart_count);
+                    totalCount.setText(String.valueOf(cartCount));
+                }
 
             } catch (ArithmeticException e){
                 if (mToast != null) mToast.cancel();

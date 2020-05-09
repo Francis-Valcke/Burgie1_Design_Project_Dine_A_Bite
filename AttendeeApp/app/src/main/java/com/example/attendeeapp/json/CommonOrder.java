@@ -35,7 +35,6 @@ public class CommonOrder implements Serializable {
     @TypeConverters(Converters.class)
     private State orderState;
 
-    private int standId;
     private String brandName;
     private String standName;
 
@@ -96,10 +95,6 @@ public class CommonOrder implements Serializable {
         return orderState;
     }
 
-    public int getStandId() {
-        return standId;
-    }
-
     public String getBrandName() {
         return brandName;
     }
@@ -126,10 +121,6 @@ public class CommonOrder implements Serializable {
 
     public void setOrderState(State orderState) {
         this.orderState = orderState;
-    }
-
-    public void setStandId(int standId) {
-        this.standId = standId;
     }
 
     public void setBrandName(String brandName) {
@@ -216,6 +207,7 @@ public class CommonOrder implements Serializable {
     public void setPrices(ArrayList<CommonFood> list) {
         for(CommonFood menuItem : list)  {
             for(CommonOrderItem item : orderItems) {
+                // TODO: check for standName too?
                 if(item.getFoodName().equals(menuItem.getName())) {
                     item.setPrice(menuItem.getPrice());
                 }

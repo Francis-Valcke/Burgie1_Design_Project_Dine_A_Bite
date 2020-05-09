@@ -4,7 +4,6 @@ import cobol.commons.BetterResponseModel;
 import cobol.commons.BetterResponseModel.GetBalanceResponse;
 import cobol.commons.BetterResponseModel.Status;
 import cobol.commons.exception.DoesNotExistException;
-import cobol.commons.exception.OrderException;
 import cobol.commons.order.CommonOrder;
 import cobol.commons.order.CommonOrderItem;
 import cobol.commons.order.Recommendation;
@@ -26,7 +25,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
-import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -90,44 +88,7 @@ public class OrderController {
 
         /* -- Money Transaction for this order -- */
 
-        // First calculate the total price of the order
-        Brand brand = brandRepository.findById(orderObject.getBrandName())
-                .orElseThrow(() -> new DoesNotExistException("The brand of the given order does not exist in the database, this should not be possible."));
-
-        // Get all distinct food items that are present for the brand
-        List<Food> brandFood = brand.getStandList().stream().flatMap(s -> s.getFoodList().stream()).distinct().collect(Collectors.toList());
-        // Each ordered item should be in this list, search this list to find the price.
-        BigDecimal total = BigDecimal.ZERO;
-        for (CommonOrderItem orderItem : orderObject.getOrderItems()) {
-            total = total.subtract(
-                    brandFood.stream()
-                    .filter(f -> f.getName().equals(orderItem.getFoodName()) && f.getBrandName().equals(orderObject.getBrandName()))
-                    .findAny()
-                    .orElseThrow(() -> new DoesNotExistException("OrderItem " +orderItem.getFoodName() + " does not exist in the backend, this should not be possible"))
-                    .getPrice()
-                    .multiply(new BigDecimal(orderItem.getAmount()))
-            );
-        }
-
-        // With this price we try to create a transaction
-        BetterResponseModel<GetBalanceResponse> response = aSCommunicationHandler.callCreateTransaction(userDetails.getUsername(), total);
-        if (response.getStatus().equals(Status.ERROR)){
-            // There was an error creating the transaction. Throw this.
-            throw response.getException();
-        }
-
-        /* -- Update incoming CommonOrder object -- */
-
-        // Update prices of the moment the order is placed
-        for (CommonOrderItem commonOrderItem : orderObject.getOrderItems()) {
-            Optional<Food> optionalFood= foodRepository.findFoodByBrand(orderObject.getBrandName()).stream().filter(food -> food.getFoodId().getName().equals(commonOrderItem.getFoodName())).findFirst();
-            if(optionalFood.isPresent()){
-                commonOrderItem.setPrice(optionalFood.get().getPrice());
-            }
-            else{
-                throw new OrderException("Could not find price of an orderItem: "+ commonOrderItem.getFoodName() + " for brand: " + orderObject.getBrandName());
-            }
-        }
+        orderTransaction(orderObject, userDetails);
 
 
         /* -- Convert CommonOrder to normal Order object -- */
@@ -172,6 +133,51 @@ public class OrderController {
 
     }
 
+
+    /**
+     * Prepare and do the transaction of this order
+     * It will simultaneously add prices to the incoming orderitems in the commonorder object
+     *
+     * @param orderObject CommonOrder object
+     * @param userDetails CommonUser which places the order
+     * @throws Throwable all exceptions
+     */
+    public void orderTransaction(CommonOrder orderObject, CommonUser userDetails) throws Throwable {
+        // First calculate the total price of the order
+        Brand brand = brandRepository.findById(orderObject.getBrandName())
+                .orElseThrow(() -> new DoesNotExistException("The brand of the given order does not exist in the database, this should not be possible."));
+
+        // Get all distinct food items that are present for the brand
+        List<Food> brandFood = brand.getStandList().stream().flatMap(s -> s.getFoodList().stream()).distinct().collect(Collectors.toList());
+        // Each ordered item should be in this list, search this list to find the price.
+        BigDecimal total = BigDecimal.ZERO;
+        for (CommonOrderItem orderItem : orderObject.getOrderItems()) {
+            // search for current price of this orderitem
+            BigDecimal itemPrice= brandFood.stream()
+                    .filter(f -> f.getName().equals(orderItem.getFoodName()) && f.getBrandName().equals(orderObject.getBrandName()))
+                    .findAny()
+                    .orElseThrow(() -> new DoesNotExistException("OrderItem " +orderItem.getFoodName() + " does not exist in the backend, this should not be possible"))
+                    .getPrice();
+
+
+            // add this price of this orderitem to total
+            total = total.subtract(
+                            itemPrice
+                            .multiply(new BigDecimal(orderItem.getAmount()))
+            );
+
+            // update price of this CommonOrderItem
+            orderItem.setPrice(itemPrice);
+        }
+
+        // With this price we try to create a transaction
+        BetterResponseModel<GetBalanceResponse> response = aSCommunicationHandler.callCreateTransaction(userDetails.getUsername(), total);
+        if (response.getStatus().equals(Status.ERROR)){
+            // There was an error creating the transaction. Throw this.
+            throw response.getException();
+        }
+    }
+
     /**
      * This method will handle an order from different stands in a certain brand
      *
@@ -179,7 +185,7 @@ public class OrderController {
      * @return JSONArray each element containing a field "recommendations" and a field "order" similar to return of placeOrder
      */
     @PostMapping(value="/placeSuperOrder", consumes = "application/json", produces = "application/json")
-    public ResponseEntity<JSONArray> placeSuperOrder(@RequestBody SuperOrder superOrder) throws JsonProcessingException, ParseException {
+    public ResponseEntity<JSONArray> placeSuperOrder(@AuthenticationPrincipal CommonUser userDetails, @RequestBody SuperOrder superOrder) throws Throwable {
 
         // Make complete response, values will be added later on
         JSONArray completeResponse= new JSONArray();
@@ -191,17 +197,21 @@ public class OrderController {
         ObjectMapper mapper= new ObjectMapper();
         for (Object ordersRecommendation : ordersRecommendations) {
             JSONObject orderRec = (JSONObject) ordersRecommendation;
-
             JSONObject orderJSON = (JSONObject) orderRec.get("order");
             CommonOrder commonOrder = mapper.readValue(orderJSON.toJSONString(), CommonOrder.class);
-            Order order= new Order(commonOrder);
             JSONArray recJSONs= (JSONArray) orderRec.get("recommendations");
-            List<Recommendation> recommendations= mapper.readValue(recJSONs.toJSONString(), new TypeReference<List<Recommendation>>() {});
+
+            orderTransaction(commonOrder, userDetails);
 
             // add all seperate orders to orderprocessor, this will give them an orderId and initial values
+            Order order= new Order(commonOrder);
+            // Set user for this order
+            User user = userRepository.findById(userDetails.getUsername()).orElse(userRepository.save(new User(userDetails)));
+            order.setUser(user);
             orderProcessor.addNewOrder(order);
 
             // parse the response, add the recommendations to the hashmap of recommendations with the new orderIds
+            List<Recommendation> recommendations= mapper.readValue(recJSONs.toJSONString(), new TypeReference<List<Recommendation>>() {});
             orderProcessor.addRecommendations(order.getId(), recommendations);
 
 
