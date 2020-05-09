@@ -1,13 +1,13 @@
 package cobol.services.standmanager;
 
-import cobol.commons.CommonFood;
-import cobol.commons.CommonStand;
+import cobol.commons.domain.CommonFood;
+import cobol.commons.domain.CommonStand;
 import cobol.commons.exception.CommunicationException;
 import cobol.commons.exception.OrderException;
-import cobol.commons.order.CommonOrder;
-import cobol.commons.order.CommonOrderItem;
-import cobol.commons.order.Recommendation;
-import cobol.commons.order.SuperOrder;
+import cobol.commons.domain.CommonOrder;
+import cobol.commons.domain.CommonOrderItem;
+import cobol.commons.domain.Recommendation;
+import cobol.commons.domain.SuperOrder;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;

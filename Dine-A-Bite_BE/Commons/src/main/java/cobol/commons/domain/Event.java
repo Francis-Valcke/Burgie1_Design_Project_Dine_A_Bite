@@ -1,4 +1,4 @@
-package cobol.commons;
+package cobol.commons.domain;
 import java.util.List;
 import org.json.simple.JSONObject;
 

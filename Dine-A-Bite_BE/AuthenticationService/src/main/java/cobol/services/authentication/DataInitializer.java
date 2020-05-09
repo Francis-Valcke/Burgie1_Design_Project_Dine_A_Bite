@@ -1,20 +1,11 @@
 package cobol.services.authentication;
 
+import cobol.commons.communication.requst.AuthenticationRequest;
 import cobol.commons.security.Role;
-import cobol.commons.security.exception.DuplicateUserException;
-import cobol.services.authentication.controller.AuthenticationController;
-import cobol.services.authentication.domain.entity.User;
-import cobol.services.authentication.domain.repository.UserRepository;
-import com.stripe.exception.StripeException;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
-
-import java.math.BigDecimal;
-import java.util.Arrays;
-import java.util.Collections;
 
 /**
  * This class will be discovered by the component scanner and exposed as a bean on which the run method will be run.

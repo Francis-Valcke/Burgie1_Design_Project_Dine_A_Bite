@@ -1,7 +1,7 @@
 package cobol.services.standmanager;
 
 
-import cobol.commons.order.CommonOrderItem;
+import cobol.commons.domain.CommonOrderItem;
 
 import java.util.ArrayList;
 import java.util.Comparator;

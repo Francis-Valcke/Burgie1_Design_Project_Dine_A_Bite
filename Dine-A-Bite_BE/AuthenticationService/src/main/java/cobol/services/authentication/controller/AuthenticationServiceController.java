@@ -1,44 +1,167 @@
 package cobol.services.authentication.controller;
 
-import cobol.commons.BetterResponseModel;
-import cobol.commons.BetterResponseModel.CreatePaymentIntentResponse;
-import cobol.commons.BetterResponseModel.GetBalanceResponse;
-import cobol.commons.BetterResponseModel.Status;
-import cobol.commons.BetterResponseModel.*;
+import cobol.commons.communication.response.BetterResponseModel;
+import cobol.commons.communication.response.ResponseModel;
 import cobol.commons.exception.DoesNotExistException;
-import cobol.commons.security.CommonUser;
+import cobol.commons.domain.CommonUser;
 import cobol.commons.security.Role;
+import cobol.commons.security.exception.DuplicateUserException;
+import cobol.commons.stub.IAuthenticationService;
+import cobol.services.authentication.AuthenticationHandler;
+import cobol.commons.communication.requst.AuthenticationRequest;
+import cobol.commons.stub.AuthenticationServiceStub;
 import cobol.services.authentication.config.ConfigurationBean;
 import cobol.services.authentication.domain.entity.User;
 import cobol.services.authentication.domain.repository.UserRepository;
 import cobol.services.authentication.exception.NotAuthorizedException;
 import cobol.services.authentication.exception.NotEnoughMoneyException;
+import cobol.services.authentication.security.JwtProviderService;
 import com.stripe.Stripe;
 import com.stripe.exception.StripeException;
 import com.stripe.model.EphemeralKey;
 import com.stripe.model.PaymentIntent;
 import com.stripe.net.RequestOptions;
 import com.stripe.param.PaymentIntentCreateParams;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
-
+import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
+import static cobol.commons.communication.response.ResponseModel.status.ERROR;
+import static cobol.commons.communication.response.ResponseModel.status.OK;
 import static cobol.commons.stub.AuthenticationServiceStub.*;
 
+/**
+ * REST api controller for authenticating and creating users.
+ */
 @RestController
-public class StripeController {
+@Log4j2
+public class AuthenticationServiceController implements IAuthenticationService {
 
-    UserRepository userRepository;
-    ConfigurationBean configurationBean;
+    @Autowired private PasswordEncoder passwordEncoder;
+    @Autowired private AuthenticationManager authenticationManager;
+    @Autowired private JwtProviderService jwtProviderService;
+    @Autowired private ConfigurationBean configurationBean;
+    @Autowired private AuthenticationHandler authenticationHandler;
+    @Autowired private UserRepository userRepository;
 
+    @Override
+    @GetMapping(AuthenticationServiceStub.GET_PING)
+    public ResponseEntity<HashMap<Object,Object>> ping(HttpServletRequest request) {
+        log.debug("Authentication Service was pinged by: " + request.getRemoteAddr());
+
+        return ResponseEntity.ok(
+                ResponseModel.builder()
+                        .status(OK.toString())
+                        .details("AuthenticationService is alive!")
+                        .build().generateResponse()
+        );
+    }
+
+    @Override
+    @PostMapping(AuthenticationServiceStub.POST_AUTHENTICATE)
+    public ResponseEntity<HashMap<Object,Object>> authenticate(@RequestBody AuthenticationRequest data){
+        try {
+            String username = data.getUsername();
+            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, data.getPassword()));
+            User user = userRepository.findById(username)
+                    .orElseThrow(() -> new UsernameNotFoundException("Username " + username + "not found"));
+
+            String token = jwtProviderService.createToken(username, user.getRoles());
+
+            Map<Object, Object> model = new HashMap<>();
+            model.put("username", username);
+            model.put("token", token);
+            return ResponseEntity.ok(
+                    ResponseModel.builder()
+                            .status(OK.toString())
+                            .details(model)
+                            .build().generateResponse()
+            );
+        } catch (AuthenticationException e) {
+            return ResponseEntity.ok(
+                    ResponseModel.builder()
+                            .status(ERROR.toString())
+                            .details(e.getLocalizedMessage())
+                            .build().generateResponse()
+            );
+
+        }
+    }
+
+    @Override
+    @PostMapping(AuthenticationServiceStub.POST_CREATE_USER)
+    public ResponseEntity<HashMap<Object,Object>> create(@RequestBody AuthenticationRequest details){
+
+        try {
+
+            authenticationHandler.createUser(details, Role.USER);
+
+            return ResponseEntity.ok(
+                    ResponseModel.builder()
+                            .status(OK.toString())
+                            .details("User: " + details.getUsername() + " created.")
+                            .build().generateResponse()
+            );
+        } catch (DuplicateUserException | StripeException e) {
+            return ResponseEntity.ok(
+                    ResponseModel.builder()
+                            .status(ERROR.toString())
+                            .details(e.getLocalizedMessage())
+                            .build().generateResponse()
+            );
+        }
+    }
+
+    @Override
+    @PostMapping(AuthenticationServiceStub.POST_CREATE_STAND_MANAGER)
+    public ResponseEntity<HashMap<Object,Object>> createStandManager(@RequestBody AuthenticationRequest data){
+
+        try {
+            authenticationHandler.createUser(data, Role.USER, Role.STAND);
+
+            return ResponseEntity.ok(
+                    ResponseModel.builder()
+                            .status(OK.toString())
+                            .details("Stand Manager: " + data.getUsername() + " created.")
+                            .build().generateResponse()
+            );
+        } catch (DuplicateUserException | StripeException e) {
+            return ResponseEntity.ok(
+                    ResponseModel.builder()
+                            .status(ERROR.toString())
+                            .details(e.getLocalizedMessage())
+                            .build().generateResponse()
+            );
+        }
+    }
+
+
+    @Override
+    @GetMapping(AuthenticationServiceStub.GET_ADMIN_INFO)
+    public ResponseEntity verifyAdminTest(){
+
+        return ResponseEntity.ok(
+                ResponseModel.builder()
+                        .status(OK.toString())
+                        .details("Welcome to the admin page")
+                        .build().generateResponse()
+        );
+    }
+
+    @Override
     @GetMapping(value = GET_STRIPE_KEY, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<BetterResponseModel<?>> getEphemeralKey(@RequestParam("api_version") String version, @AuthenticationPrincipal CommonUser user) {
 
@@ -55,16 +178,17 @@ public class StripeController {
             EphemeralKey key = EphemeralKey.create(options, requestOptions);
 
             return ResponseEntity.ok(
-                  BetterResponseModel.ok(
-                          "The payload contains the ephemeral key in json. The entire payload needs to be passed ephemeralKeyUpdateListener.onKeyUpdate()",
-                          key.getRawJson()
-                  )
+                    BetterResponseModel.ok(
+                            "The payload contains the ephemeral key in json. The entire payload needs to be passed ephemeralKeyUpdateListener.onKeyUpdate()",
+                            key.getRawJson()
+                    )
             );
         } catch (DoesNotExistException | StripeException e) {
             return ResponseEntity.ok(BetterResponseModel.error(e.getMessage(), e));
         }
     }
 
+    @Override
     @PostMapping(value = POST_STRIPE_CREATE_PAYMENT_INTENT, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<BetterResponseModel<?>> createPaymentIntent(String amount, @AuthenticationPrincipal CommonUser user) {
 
@@ -77,7 +201,7 @@ public class StripeController {
 
             // First try to create a transaction
             ResponseEntity<BetterResponseModel<?>> transaction = createTransaction(decimalAmount, null, user);
-            if (Objects.requireNonNull(transaction.getBody()).getStatus().equals(Status.ERROR)) {
+            if (Objects.requireNonNull(transaction.getBody()).getStatus().equals(BetterResponseModel.Status.ERROR)) {
                 // If there was an error creating the transaction, throw exception
                 throw transaction.getBody().getException();
             }
@@ -96,7 +220,7 @@ public class StripeController {
 
             PaymentIntent intent = PaymentIntent.create(params);
 
-            CreatePaymentIntentResponse details = new CreatePaymentIntentResponse(
+            BetterResponseModel.CreatePaymentIntentResponse details = new BetterResponseModel.CreatePaymentIntentResponse(
                     intent.getClientSecret(),
                     configurationBean.getStripePublicApiKey()
             );
@@ -108,6 +232,7 @@ public class StripeController {
         }
     }
 
+    @Override
     @PostMapping(value = POST_STRIPE_CREATE_TRANSACTION, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<BetterResponseModel<?>> createTransaction(BigDecimal amount, @RequestParam(value = "user", required = false) String otherUser, @AuthenticationPrincipal CommonUser user) {
 
@@ -130,7 +255,7 @@ public class StripeController {
             userEntity.setUnconfirmedPayment(amount);
             userRepository.save(userEntity);
 
-            GetBalanceResponse details = new GetBalanceResponse(userEntity.getBalance());
+            BetterResponseModel.GetBalanceResponse details = new BetterResponseModel.GetBalanceResponse(userEntity.getBalance());
 
             return ResponseEntity.ok(BetterResponseModel.ok("Created the transaction.", details));
 
@@ -140,6 +265,7 @@ public class StripeController {
 
     }
 
+    @Override
     @GetMapping(value = GET_STRIPE_CONFIRM_TRANSACTION, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<BetterResponseModel<?>> confirmTransaction(@RequestParam(value = "user", required = false) String otherUser, @AuthenticationPrincipal CommonUser user) {
         try {
@@ -161,7 +287,7 @@ public class StripeController {
             userEntity.setUnconfirmedPayment(BigDecimal.ZERO);
             userRepository.save(userEntity);
 
-            GetBalanceResponse details = new GetBalanceResponse(userEntity.getBalance());
+            BetterResponseModel.GetBalanceResponse details = new BetterResponseModel.GetBalanceResponse(userEntity.getBalance());
             return ResponseEntity.ok(BetterResponseModel.ok("Confirmed the transaction.", details));
 
         } catch (DoesNotExistException | NotEnoughMoneyException | NotAuthorizedException e) {
@@ -169,6 +295,7 @@ public class StripeController {
         }
     }
 
+    @Override
     @GetMapping(value = GET_STRIPE_CANCEL_TRANSACTION, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<BetterResponseModel<?>> cancelTransaction(@RequestParam(value = "user", required = false) String otherUser, @AuthenticationPrincipal CommonUser user) {
         try {
@@ -193,13 +320,54 @@ public class StripeController {
         }
     }
 
-    @Autowired
-    public void setUserRepository(UserRepository userRepository) {
-        this.userRepository = userRepository;
+    @Override
+    @GetMapping(GET_USER)
+    public ResponseEntity<CommonUser> getUserInfo(@AuthenticationPrincipal CommonUser userDetails){
+        User user = userRepository.findById(userDetails.getUsername())
+                .orElseThrow(() -> new UsernameNotFoundException(userDetails.getUsername() + " not found!"));
+
+        return ResponseEntity.ok(user.asCommonUser());
     }
 
-    @Autowired
-    public void setConfigurationBean(ConfigurationBean configurationBean) {
-        this.configurationBean = configurationBean;
+    @Override
+    @DeleteMapping(DELETE_USER)
+    public ResponseEntity deleteUser(@AuthenticationPrincipal UserDetails userDetails){
+        try {
+            userRepository.delete(userRepository.findById(userDetails.getUsername()).orElseThrow(() -> new UsernameNotFoundException(userDetails.getUsername())));
+
+            return ResponseEntity.ok(
+                    ResponseModel.builder()
+                            .status(OK.toString())
+                            .details("User: " + userDetails.getUsername() + " has been removed.")
+                            .build().generateResponse()
+            );
+        } catch (UsernameNotFoundException e) {
+            return ResponseEntity.ok(
+                    ResponseModel.builder()
+                            .status(OK.toString())
+                            .details(e.getLocalizedMessage())
+                            .build().generateResponse()
+            );
+        }
     }
+
+    @Override
+    @GetMapping(GET_USER_BALANCE)
+    public ResponseEntity<BetterResponseModel<?>> getBalance(@AuthenticationPrincipal CommonUser ap){
+        try {
+            User user = userRepository.findById(ap.getUsername()).orElseThrow(() -> new DoesNotExistException("The user does not exist, this is not possible"));
+
+            return ResponseEntity.ok(
+                    BetterResponseModel.ok(
+                            "Payload contains the balance of the user",
+                            new BetterResponseModel.GetBalanceResponse(user.getBalance())
+                    )
+            );
+
+        } catch (DoesNotExistException e) {
+            return ResponseEntity.ok(BetterResponseModel.error(e.getMessage(), e));
+        }
+
+    }
+
 }

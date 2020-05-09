@@ -1,11 +1,10 @@
 package cobol.services.ordermanager;
 
-import cobol.commons.BetterResponseModel;
-import cobol.commons.BetterResponseModel.GetBalanceResponse;
+import cobol.commons.communication.response.BetterResponseModel;
+import cobol.commons.communication.response.BetterResponseModel.GetBalanceResponse;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.*;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;

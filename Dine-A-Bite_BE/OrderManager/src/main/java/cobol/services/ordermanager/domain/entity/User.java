@@ -1,18 +1,13 @@
 package cobol.services.ordermanager.domain.entity;
 
 
-import cobol.commons.security.CommonUser;
+import cobol.commons.domain.CommonUser;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
-import lombok.experimental.SuperBuilder;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.util.*;
-
-import static java.util.stream.Collectors.toList;
 
 
 /**

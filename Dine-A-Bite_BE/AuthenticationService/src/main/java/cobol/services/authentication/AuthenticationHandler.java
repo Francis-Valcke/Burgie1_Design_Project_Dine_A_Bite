@@ -1,6 +1,6 @@
 package cobol.services.authentication;
 
-import cobol.commons.security.Role;
+import cobol.commons.communication.requst.AuthenticationRequest;
 import cobol.commons.security.exception.DuplicateUserException;
 import cobol.services.authentication.config.ConfigurationBean;
 import cobol.services.authentication.domain.entity.User;
@@ -13,7 +13,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 
 @Service

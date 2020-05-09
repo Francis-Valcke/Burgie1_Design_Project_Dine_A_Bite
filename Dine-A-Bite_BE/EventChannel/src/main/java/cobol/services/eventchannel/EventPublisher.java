@@ -1,6 +1,6 @@
 package cobol.services.eventchannel;
 
-import cobol.commons.Event;
+import cobol.commons.domain.Event;
 
 public class EventPublisher {
 

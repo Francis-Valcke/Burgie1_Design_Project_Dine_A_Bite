@@ -1,9 +1,9 @@
 package cobol.services.standmanager;
 
-import cobol.commons.CommonFood;
-import cobol.commons.Event;
+import cobol.commons.domain.CommonFood;
+import cobol.commons.domain.Event;
 import cobol.commons.exception.CommunicationException;
-import cobol.commons.order.CommonOrder;
+import cobol.commons.domain.CommonOrder;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -11,7 +11,6 @@ import org.json.simple.JSONObject;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 /**

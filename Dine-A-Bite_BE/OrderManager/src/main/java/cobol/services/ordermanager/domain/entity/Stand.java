@@ -1,6 +1,6 @@
 package cobol.services.ordermanager.domain.entity;
 
-import cobol.commons.CommonStand;
+import cobol.commons.domain.CommonStand;
 import cobol.services.ordermanager.domain.SpringContext;
 import cobol.services.ordermanager.domain.repository.*;
 import com.fasterxml.jackson.annotation.JsonIgnore;

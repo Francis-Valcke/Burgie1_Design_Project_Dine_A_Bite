@@ -1,9 +1,9 @@
 package cobol.services.ordermanager;
 
-import cobol.commons.CommonFood;
-import cobol.commons.Event;
-import cobol.commons.order.CommonOrder;
-import cobol.commons.order.SuperOrder;
+import cobol.commons.domain.CommonFood;
+import cobol.commons.domain.Event;
+import cobol.commons.domain.CommonOrder;
+import cobol.commons.domain.SuperOrder;
 import cobol.services.ordermanager.config.ConfigurationBean;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;

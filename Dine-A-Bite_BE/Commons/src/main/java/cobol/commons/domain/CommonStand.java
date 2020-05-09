@@ -1,4 +1,4 @@
-package cobol.commons;
+package cobol.commons.domain;
 
 import java.io.Serializable;
 import java.math.BigDecimal;

@@ -1,8 +1,7 @@
 package cobol.services.ordermanager.domain.entity;
 
-import cobol.commons.CommonFood;
+import cobol.commons.domain.CommonFood;
 import cobol.services.ordermanager.domain.SpringContext;
-import cobol.services.ordermanager.domain.repository.BrandRepository;
 import cobol.services.ordermanager.domain.repository.CategoryRepository;
 import cobol.services.ordermanager.domain.repository.StandRepository;
 import com.fasterxml.jackson.annotation.JsonIgnore;

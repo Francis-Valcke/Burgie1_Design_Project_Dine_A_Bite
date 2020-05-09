@@ -1,21 +1,14 @@
 package cobol.services.authentication.domain.entity;
 
 
-import cobol.commons.security.CommonUser;
+import cobol.commons.domain.CommonUser;
 import lombok.*;
-import lombok.experimental.SuperBuilder;
-import org.springframework.boot.context.properties.bind.DefaultValue;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
-
-import static java.util.stream.Collectors.toList;
 
 
 /**

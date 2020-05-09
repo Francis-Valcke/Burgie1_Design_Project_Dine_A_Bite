@@ -1,4 +1,4 @@
-package cobol.commons;
+package cobol.commons.communication.response;
 
 import lombok.Builder;
 

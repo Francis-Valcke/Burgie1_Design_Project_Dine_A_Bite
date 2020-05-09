@@ -1,13 +1,14 @@
 package cobol.services.standmanager;
 
-import cobol.commons.CommonStand;
-import cobol.commons.ResponseModel;
+import cobol.commons.domain.CommonStand;
+import cobol.commons.communication.response.ResponseModel;
 import cobol.commons.exception.CommunicationException;
 import cobol.commons.exception.OrderException;
-import cobol.commons.order.CommonOrder;
-import cobol.commons.order.CommonOrderItem;
-import cobol.commons.order.Recommendation;
-import cobol.commons.order.SuperOrder;
+import cobol.commons.domain.CommonOrder;
+import cobol.commons.domain.CommonOrderItem;
+import cobol.commons.domain.Recommendation;
+import cobol.commons.domain.SuperOrder;
+import cobol.commons.stub.IStandManager;
 import cobol.commons.stub.StandManagerStub;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.json.simple.JSONArray;
@@ -21,19 +22,16 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 
-import static cobol.commons.ResponseModel.status.OK;
+import static cobol.commons.communication.response.ResponseModel.status.OK;
 import static cobol.commons.stub.StandManagerStub.*;
 
 @RestController
-public class StandManagerController {
+public class StandManagerController implements IStandManager {
+
     @Autowired
     private SchedulerHandler schedulerHandler;
 
-    /**
-     * API endpoint to test if the server is still alive.
-     *
-     * @return "StandManager is alive!"
-     */
+    @Override
     @GetMapping(StandManagerStub.GET_PING)
     public ResponseEntity ping() {
         return ResponseEntity.ok(
@@ -44,12 +42,7 @@ public class StandManagerController {
         );
     }
 
-    /**
-     * adds schedulers to SM
-     *
-     * @param stands
-     * @throws JsonProcessingException when wrong input param
-     */
+    @Override
     @PostMapping(POST_UPDATE)
     public void update(@RequestBody List<CommonStand> stands) throws CommunicationException {
 
@@ -60,6 +53,7 @@ public class StandManagerController {
 
     }
 
+    @Override
     @PostMapping(POST_DELETE_SCHEDULER)
     public void deleteScheduler(@RequestParam String standName, @RequestParam String brandName) {
 
@@ -71,21 +65,14 @@ public class StandManagerController {
     }
 
 
-    /**
-     * @param stand class object StandInfo which is used to start a scheduler for stand added in order manager
-     *              available at localhost:8081/newStand
-     * @return true (if no errors)
-     */
+    @Override
     @PostMapping(value = POST_NEW_STAND, consumes = "application/json")
     public JSONObject addNewStand(@RequestBody() CommonStand stand) throws CommunicationException {
         return schedulerHandler.updateSchedulers(stand);
     }
 
 
-    /**
-     * @param order order which wants to be placed
-     *              TODO: really implement this
-     */
+    @Override
     @PostMapping(value = POST_PLACE_ORDER, consumes = "application/json")
     public void placeOrder(@RequestBody() CommonOrder order) {
         schedulerHandler.addOrderToScheduler(order);
@@ -93,13 +80,7 @@ public class StandManagerController {
 
 
 
-    /**
-     * This method will split a superorder and give a recommendation for all the orders
-     *
-     * @param superOrder List with orderitems and corresponding brand
-     * @return JSONArray each element containing a field "recommendations" and a field "order" similar to return of placeOrder
-     * recommendation field will be a JSONArray of Recommendation object
-     */
+    @Override
     @PostMapping(value = POST_GET_SUPER_RECOMMENDATION, consumes = "application/json", produces = "application/json")
     public ResponseEntity<JSONArray> getSuperRecommendation(@RequestBody SuperOrder superOrder) throws JsonProcessingException, OrderException {
 
@@ -140,10 +121,7 @@ public class StandManagerController {
     }
 
 
-    /**
-     * @param order order object for which the Order Manager wants a recommendation
-     * @return recommendation in JSON format
-     */
+    @Override
     @PostMapping(value = POST_GET_RECOMMENDATION, consumes = "application/json")
     @ResponseBody
     public List<Recommendation> postCommonOrder(@RequestBody() CommonOrder order) throws JsonProcessingException {

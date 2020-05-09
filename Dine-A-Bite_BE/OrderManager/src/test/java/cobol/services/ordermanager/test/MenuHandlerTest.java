@@ -1,7 +1,7 @@
 package cobol.services.ordermanager.test;
 
-import cobol.commons.CommonFood;
-import cobol.commons.CommonStand;
+import cobol.commons.domain.CommonFood;
+import cobol.commons.domain.CommonStand;
 import cobol.services.ordermanager.domain.entity.Brand;
 import cobol.services.ordermanager.domain.entity.Food;
 import cobol.services.ordermanager.domain.entity.Stand;

@@ -2,7 +2,7 @@ package cobol.services.ordermanager.domain.entity;
 
 
 
-import cobol.commons.order.CommonOrderItem;
+import cobol.commons.domain.CommonOrderItem;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import javax.persistence.*;

@@ -1,29 +1,27 @@
 package cobol.services.eventchannel;
 
-import cobol.commons.Event;
-import cobol.commons.ResponseModel;
+import cobol.commons.domain.Event;
+import cobol.commons.communication.response.ResponseModel;
 import cobol.commons.stub.EventChannelStub;
+import cobol.commons.stub.IEventChannel;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import static cobol.commons.ResponseModel.status.OK;
+import static cobol.commons.communication.response.ResponseModel.status.OK;
 import static cobol.commons.stub.EventChannelStub.*;
 
 @RestController
-public class EventController {
+public class EventChannelController implements IEventChannel {
 
-    /**
-     * API endpoint to test if the server is still alive.
-     *
-     * @return "EventChannel is alive!"
-     */
+    @Override
     @GetMapping(EventChannelStub.GET_PING)
-    public ResponseEntity ping() {
+    public ResponseEntity getPing() {
         return ResponseEntity.ok(
                 ResponseModel.builder()
                         .status(OK.toString())
@@ -32,39 +30,23 @@ public class EventController {
         );
     }
 
-    /**
-     * This is a test function
-     *
-     * @param name test value
-     * @return hello world
-     */
+    @Override
     @GetMapping(GET_TEST)
-    public String test(@RequestParam(value = "name", defaultValue = "World") String name) {
+    public String getTest(@RequestParam(value = "name", defaultValue = "World") String name) {
         return String.format("Hello %s!", name);
     }
 
-    /**
-     * The callee sends this request along with the channels it wants to subscribe to. A stub is created and gets a
-     * unique id. This is returned to the callee.
-     *
-     * @param types channels the caller wants to subscribe to, types are separated by ','.
-     * @return The unique id of the event subscriber stub
-     */
+    @Override
     @GetMapping(GET_REGISTER_SUBSCRIBER)
-    public int register(@RequestParam(value = "types", defaultValue = "") String types) {
+    public int getRegisterSubscriber(@RequestParam(value = "types", defaultValue = "") String types) {
         EventSubscriber newSubscriber = new EventSubscriber(types);
         newSubscriber.subscribe();
         return newSubscriber.getId();
     }
 
-    /**
-     * This method allows subscribers to subscribe to channels they were previously not subscribed to.
-     *
-     * @param stubId The id to identify the subscriberstub
-     * @param type   the channels the stub has to subscribe to
-     */
+    @Override
     @GetMapping(GET_REGISTER_SUBSCRIBER_TO_CHANNEL)
-    public void toChannel(@RequestParam(value = "id") int stubId, @RequestParam(value = "type", defaultValue = "") String type) {
+    public void getRegisterSubscriberToChannel(@RequestParam(value = "id") int stubId, @RequestParam(value = "type", defaultValue = "") String type) {
         EventBroker broker = EventBroker.getInstance();
         EventSubscriber subscriber = broker.getSubscriberStub(stubId);
         subscriber.addType(type);
@@ -73,12 +55,9 @@ public class EventController {
         broker.subscribe(subscriber, newTypes);
     }
 
-    /**
-     * @param stubId id of the stub to desubscribe
-     * @param type   channels to desubscribe from, separated by commas. If none are given, stub desubscribes from all channels
-     */
+    @Override
     @GetMapping(GET_DEREGISTER_SUBSCRIBER)
-    public void deRegister(@RequestParam(value = "id") int stubId, @RequestParam(value = "type", defaultValue = "") String type) {
+    public void getDeregisterSubscriber(@RequestParam(value = "id") int stubId, @RequestParam(value = "type", defaultValue = "") String type) {
         EventBroker broker = EventBroker.getInstance();
         EventSubscriber subscriber = broker.getSubscriberStub(stubId);
         if (type.equals("")) {
@@ -91,23 +70,15 @@ public class EventController {
         }
     }
 
-
-    /**
-     * Receives an event in JSON format, forwards it to the proper channels
-     *
-     * @param e The event to publish
-     */
+    @Override
     @PostMapping(value = POST_PUBLISH_EVENT, consumes = "application/json")
-    public void publish(@RequestBody Event e) {
+    public void postPublishEvent(@RequestBody Event e) {
         EventPublisher.publish(e);
     }
 
-    /**
-     * @param id unique id of stub
-     * @return the events that were received by the stub since the last poll
-     */
+    @Override
     @GetMapping(GET_EVENTS)
-    public ResponseEntity events(@RequestParam(value = "id") int id) throws JsonProcessingException {
+    public ResponseEntity getEvents(@RequestParam(value = "id") int id) throws JsonProcessingException {
         EventBroker broker = EventBroker.getInstance();
         EventSubscriber subscriber = broker.getSubscriberStub(id);
         List<Event> response = subscriber.getUnhandledEvents();

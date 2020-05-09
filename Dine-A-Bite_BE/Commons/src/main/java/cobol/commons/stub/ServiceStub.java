@@ -12,7 +12,9 @@ import org.springframework.scheduling.annotation.Scheduled;
 import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 @Log4j2
@@ -24,11 +26,13 @@ public abstract class ServiceStub {
     protected boolean available = false;
     protected GlobalConfigurationBean globalConfigurationBean;
 
+    protected String authorizationToken;
+
     private List<Action> onAvailableActionList = new ArrayList<>();
     private List<Action> onUnavailableActionList = new ArrayList<>();
 
     @Scheduled(fixedRate = PING_FREQUENCY)
-    void ping() {
+    private void ping() {
 
         String url = getAddress() + GET_PING;
 
@@ -68,7 +72,21 @@ public abstract class ServiceStub {
         this.onUnavailableActionList.add(action);
     }
 
-    abstract String getAddress();
+    protected String buildUrl(String baseUrl, HashMap<String, String> params) {
+
+        if (params != null && !params.isEmpty()) {
+            baseUrl += "?";
+            StringBuilder baseUrlBuilder = new StringBuilder(baseUrl);
+            for (Map.Entry<String, String> entry : params.entrySet()) {
+                baseUrlBuilder.append(entry.getKey()).append("=").append(entry.getValue()).append("&");
+            }
+            baseUrl = baseUrlBuilder.toString();
+        }
+        //remove the last &
+        return baseUrl.substring(0, baseUrl.length() - 1);
+    }
+
+    public abstract String getAddress();
 
     @Autowired
     public void setGlobalConfigurationBean(GlobalConfigurationBean globalConfigurationBean) {

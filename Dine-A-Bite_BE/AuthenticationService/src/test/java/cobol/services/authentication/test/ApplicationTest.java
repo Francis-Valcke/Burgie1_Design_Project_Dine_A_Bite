@@ -1,7 +1,5 @@
 package cobol.services.authentication.test;
 
-import cobol.commons.stub.AuthenticationServiceStub;
-import cobol.services.authentication.controller.AuthenticationController;
 import cobol.services.authentication.domain.entity.User;
 import cobol.services.authentication.domain.repository.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;

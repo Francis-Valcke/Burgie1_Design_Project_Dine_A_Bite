@@ -1,10 +1,9 @@
 package cobol.services.ordermanager;
 
-import cobol.commons.Event;
+import cobol.commons.domain.Event;
 import cobol.commons.exception.DoesNotExistException;
-import cobol.commons.order.CommonOrder;
-import cobol.commons.order.Recommendation;
-import cobol.commons.stub.Action;
+import cobol.commons.domain.CommonOrder;
+import cobol.commons.domain.Recommendation;
 import cobol.commons.stub.EventChannelStub;
 import cobol.services.ordermanager.domain.entity.Food;
 import cobol.services.ordermanager.domain.entity.Order;

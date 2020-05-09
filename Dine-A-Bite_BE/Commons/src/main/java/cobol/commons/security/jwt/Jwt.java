@@ -1,6 +1,6 @@
 package cobol.commons.security.jwt;
 
-import cobol.commons.security.CommonUser;
+import cobol.commons.domain.CommonUser;
 import cobol.commons.security.exception.InvalidJwtAuthenticationException;
 import io.jsonwebtoken.*;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;

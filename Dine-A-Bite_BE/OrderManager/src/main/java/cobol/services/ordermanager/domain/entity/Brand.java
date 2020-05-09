@@ -1,5 +1,6 @@
 package cobol.services.ordermanager.domain.entity;
 
+import cobol.commons.domain.CommonBrand;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
@@ -14,7 +15,6 @@ import java.util.Objects;
 
 @Entity
 @Data
-//@JsonDeserialize(using = BrandDeserializer.class)
 public class Brand implements Serializable {
 
     @Id
@@ -32,6 +32,10 @@ public class Brand implements Serializable {
         this.name = name;
     }
 
+    public Brand(CommonBrand commonBrand) {
+        this.name = commonBrand.getName();
+
+    }
 
     // --- GETTERS & SETTERS ---
 

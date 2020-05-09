@@ -37,7 +37,7 @@ public class OrderManagerStub extends ServiceStub{
 
 
     @Override
-    String getAddress() {
+    public String getAddress() {
         return globalConfigurationBean.getAddressOrderManager();
     }
 }

@@ -1,4 +1,4 @@
-package cobol.commons.order;
+package cobol.commons.domain;
 
 import java.util.List;
 

@@ -1,7 +1,7 @@
 package cobol.services.eventchannel.test;
 
 
-import cobol.commons.Event;
+import cobol.commons.domain.Event;
 import cobol.services.eventchannel.EventBroker;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;

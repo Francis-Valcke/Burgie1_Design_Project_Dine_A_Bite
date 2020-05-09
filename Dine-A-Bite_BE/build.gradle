@@ -216,7 +216,14 @@ project(':StandManager'){
         implementation group: 'org.springframework.boot', name: 'spring-boot-starter-web', version: '2.2.5.RELEASE'
         implementation group: 'org.springframework.boot', name: 'spring-boot-configuration-processor', version: '2.2.7.RELEASE'
 
+        compileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.12'
+        annotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.12'
+
         testCompile group: 'com.h2database', name: 'h2', version: '1.4.200'
+
+        //Library for removing lots of boilerplate code, use in combination with intellij plugin
+        testCompileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.12'
+        testAnnotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.12'
 
     }
 }

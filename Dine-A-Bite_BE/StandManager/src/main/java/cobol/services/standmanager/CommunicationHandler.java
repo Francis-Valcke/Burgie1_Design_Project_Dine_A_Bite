@@ -1,14 +1,17 @@
 package cobol.services.standmanager;
 
 
-import cobol.commons.Event;
+import cobol.commons.domain.Event;
 import cobol.commons.exception.CommunicationException;
+import cobol.commons.stub.EventChannelStub;
+import cobol.commons.stub.IEventChannel;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.ParseException;
+import jdk.nashorn.internal.runtime.logging.Logger;
+import lombok.extern.log4j.Log4j2;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -17,11 +20,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.io.IOException;
 import java.util.List;
 
-
+@Log4j2
 @Service
 public class CommunicationHandler {
+
+    @Autowired
+    EventChannelStub eventChannel;
 
     public CommunicationHandler() {
     }
@@ -39,7 +46,7 @@ public class CommunicationHandler {
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.add("Authorization", StandManager.authToken);
-        String uri = StandManager.ECURL + "/registerSubscriber";
+        String uri = eventChannel.getAddress() + EventChannelStub.GET_REGISTER_SUBSCRIBER;
         //String uri = "http://cobol.idlab.ugent.be:8093/registerSubscriber";
         HttpEntity entity = new HttpEntity(headers);
         ResponseEntity<String> response = restTemplate.exchange(uri, HttpMethod.GET, entity, String.class);
@@ -53,17 +60,11 @@ public class CommunicationHandler {
 
     public void registerToOrdersFromBrand(int subscriberId, String brandName) {
 
-        RestTemplate restTemplate= new RestTemplate();
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Authorization", StandManager.authToken);
-        HttpEntity httpEntity= new HttpEntity(headers);
-
-        String uri = StandManager.ECURL + "/registerSubscriber/toChannel";
-        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(uri)
-                .queryParam("id", subscriberId)
-                .queryParam("type", brandName);
-
-        restTemplate.exchange(builder.toUriString(), HttpMethod.GET, httpEntity, String.class);
+        try {
+            eventChannel.getRegisterSubscriberToChannel(subscriberId, brandName);
+        } catch (IOException e) {
+            log.error("Could not register to orders from brand.", e);
+        }
 
     }
 
@@ -72,7 +73,7 @@ public class CommunicationHandler {
         HttpHeaders headers = new HttpHeaders();
         headers.add("Authorization", StandManager.authToken);
         HttpEntity httpEntity= new HttpEntity(headers);
-        String uri = StandManager.ECURL + "/events";
+        String uri =eventChannel.getAddress() + EventChannelStub.GET_EVENTS;
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(uri)
                 .queryParam("id", subscriberId);
         ResponseEntity<String> response = restTemplate.exchange(builder.toUriString(), HttpMethod.GET, httpEntity, String.class);
