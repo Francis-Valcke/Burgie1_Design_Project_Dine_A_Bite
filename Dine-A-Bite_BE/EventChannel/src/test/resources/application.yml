@@ -15,3 +15,7 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.H2Dialect
+
+eventchannel:
+  username: EventChannel
+  password: EventChannel

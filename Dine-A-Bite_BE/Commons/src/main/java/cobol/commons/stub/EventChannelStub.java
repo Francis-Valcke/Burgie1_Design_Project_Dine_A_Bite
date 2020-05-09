@@ -1,5 +1,6 @@
 package cobol.commons.stub;
 
+import cobol.commons.annotation.Authenticated;
 import cobol.commons.domain.Event;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import okhttp3.OkHttpClient;
@@ -41,6 +42,7 @@ public class EventChannelStub extends ServiceStub implements IEventChannel{
         return 0;
     }
 
+    @Authenticated
     @Override
     public void getRegisterSubscriberToChannel(int subscriberId, String type) throws IOException {
 

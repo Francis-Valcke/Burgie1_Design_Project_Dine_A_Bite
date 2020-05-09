@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.HashMap;
 
@@ -29,7 +30,7 @@ public interface IAuthenticationService {
      * @param data expects a json body with username and password provided.
      * @return token when login successful.
      */
-    ResponseEntity<HashMap<Object,Object>> authenticate(AuthenticationRequest data);
+    BetterResponseModel<String> authenticate(AuthenticationRequest data) throws IOException;
 
     /**
      * API endpoint to create a new account.

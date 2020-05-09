@@ -1,7 +1,10 @@
 package cobol.services.ordermanager.config;
 
 
+import cobol.commons.communication.requst.AuthenticationRequest;
+import cobol.commons.communication.response.BetterResponseModel;
 import cobol.commons.stub.Action;
+import cobol.commons.stub.AuthenticationServiceStub;
 import cobol.commons.stub.StandManagerStub;
 import cobol.services.ordermanager.MenuHandler;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -13,6 +16,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Configuration;
 
 import javax.annotation.PostConstruct;
+import java.util.Objects;
 
 @Log4j2
 @Data
@@ -24,7 +28,11 @@ public class ConfigurationBean {
     MenuHandler menuHandler;
     @Autowired
     StandManagerStub standManagerStub;
+    @Autowired
+    AuthenticationServiceStub authenticationServiceStub;
 
+    private String username;
+    private String password;
     boolean unitTest;
 
     @PostConstruct
@@ -38,5 +46,30 @@ public class ConfigurationBean {
             }
         });
     }
+
+
+    ///**
+    // * When the authentication service becomes available, try to authenticate.
+    // */
+    //@PostConstruct
+    //public void run(){
+    //    authenticationServiceStub.doOnAvailable(() -> {
+    //
+    //        try {
+    //
+    //            BetterResponseModel<String> response = authenticationServiceStub.authenticate(new AuthenticationRequest(username, password));
+    //            if (response.isOk()) {
+    //
+    //                authenticationServiceStub.setAuthorizationToken(Objects.requireNonNull(response).getPayload());
+    //                log.info("Successfully authenticated this module.");
+    //
+    //            } else throw response.getException();
+    //
+    //        } catch (Throwable throwable) {
+    //            log.error("Could not authenticate.", throwable);
+    //        }
+    //
+    //    });
+    //}
 
 }

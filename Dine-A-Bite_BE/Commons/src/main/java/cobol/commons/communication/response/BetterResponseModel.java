@@ -41,6 +41,10 @@ public class BetterResponseModel<T> {
         this.payload = payload;
     }
 
+    public boolean isOk(){
+        return status.equals(Status.OK);
+    }
+
     public String getStatus() {
         return status;
     }

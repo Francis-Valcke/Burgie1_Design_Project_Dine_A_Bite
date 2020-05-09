@@ -80,7 +80,7 @@ public class OrderManagerController implements IOrderManager {
     }
 
     @Override
-    @GetMapping(path = "/verify")
+    @GetMapping(GET_VERIFY)
     public ResponseEntity<HashMap<Object,Object>> verify(@RequestParam String standName, @RequestParam String brandName, @AuthenticationPrincipal CommonUser authenticatedUser){
 
         Stand stand = standRepository.findStandById(standName, brandName).orElse(null);
@@ -111,7 +111,7 @@ public class OrderManagerController implements IOrderManager {
     }
 
     @Override
-    @PostMapping(path = POST_ADD_STAND)
+    @PostMapping(POST_ADD_STAND)
     @ResponseBody
     public ResponseEntity<HashMap<Object,Object>> addStand(@RequestBody CommonStand stand, @AuthenticationPrincipal CommonUser user) throws JsonProcessingException, ParseException, DuplicateStandException, CommunicationException {
 
@@ -127,7 +127,7 @@ public class OrderManagerController implements IOrderManager {
 
 
     @Override
-    @PostMapping(path = POST_UPDATE_STAND)
+    @PostMapping(POST_UPDATE_STAND)
     @ResponseBody
     public ResponseEntity<HashMap<Object,Object>> updateStand(@RequestBody CommonStand stand) throws DoesNotExistException, JsonProcessingException {
         menuHandler.updateStand(stand);

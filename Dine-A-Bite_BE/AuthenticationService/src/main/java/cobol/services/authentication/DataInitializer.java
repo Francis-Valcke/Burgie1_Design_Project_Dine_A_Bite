@@ -30,8 +30,12 @@ public class DataInitializer implements CommandLineRunner {
             authenticationHandler.createUser(new AuthenticationRequest("admin", "adminadmin"), Role.USER, Role.STAND, Role.ADMIN);
             authenticationHandler.createUser(new AuthenticationRequest("user", "useruser"), Role.USER);
             authenticationHandler.createUser(new AuthenticationRequest("stand", "standstand"), Role.USER, Role.STAND);
+            authenticationHandler.createUser(new AuthenticationRequest("AuthenticationService", "AuthenticationService"), Role.APPLICATION);
             authenticationHandler.createUser(new AuthenticationRequest("OrderManager", "OrderManager"), Role.APPLICATION);
             authenticationHandler.createUser(new AuthenticationRequest("StandManager", "StandManager"), Role.APPLICATION);
+            authenticationHandler.createUser(new AuthenticationRequest("EventChannel", "EventChannel"), Role.APPLICATION);
+            authenticationHandler.createUser(new AuthenticationRequest("SystemTester", "SystemTester"), Role.APPLICATION);
+
         } catch (Exception e) {
             //Silent fail
         }

@@ -105,6 +105,9 @@ project(':Commons'){
         implementation group: 'org.springframework.boot', name: 'spring-boot-starter-security', version: '2.2.5.RELEASE'
         implementation group: 'org.springframework.boot', name: 'spring-boot-starter-web', version: '2.2.5.RELEASE'
         implementation group: 'org.springframework.boot', name: 'spring-boot-configuration-processor', version: '2.2.7.RELEASE'
+        implementation group: 'org.springframework.boot', name: 'spring-boot-starter-aop', version: '2.2.7.RELEASE'
+        implementation group: 'org.aspectj', name: 'aspectjweaver', version: '1.9.5'
+
 
         implementation group: 'com.squareup.okhttp3', name: 'okhttp', version: '4.6.0'
 
@@ -132,6 +135,9 @@ project(':AuthenticationService'){
         implementation group: 'org.springframework.boot', name: 'spring-boot-starter-security', version: '2.2.5.RELEASE'
         implementation group: 'org.springframework.boot', name: 'spring-boot-starter-web', version: '2.2.5.RELEASE'
         implementation group: 'org.springframework.boot', name: 'spring-boot-configuration-processor', version: '2.2.7.RELEASE'
+        implementation group: 'org.springframework.boot', name: 'spring-boot-starter-aop', version: '2.2.7.RELEASE'
+        implementation group: 'org.aspectj', name: 'aspectjweaver', version: '1.9.5'
+
 
         //Support for json web tokens in java
         implementation group: 'io.jsonwebtoken', name: 'jjwt', version: '0.9.1'
@@ -174,6 +180,9 @@ project(':OrderManager'){
         implementation group: 'org.springframework.boot', name: 'spring-boot-starter-security', version: '2.2.5.RELEASE'
         implementation group: 'org.springframework.boot', name: 'spring-boot-starter-web', version: '2.2.5.RELEASE'
         implementation group: 'org.springframework.boot', name: 'spring-boot-configuration-processor', version: '2.2.7.RELEASE'
+        implementation group: 'org.springframework.boot', name: 'spring-boot-starter-aop', version: '2.2.7.RELEASE'
+        implementation group: 'org.aspectj', name: 'aspectjweaver', version: '1.9.5'
+
 
         implementation group: 'com.squareup.okhttp3', name: 'okhttp', version: '4.6.0'
 
@@ -215,6 +224,9 @@ project(':StandManager'){
         implementation group: 'org.springframework.boot', name: 'spring-boot-starter-security', version: '2.2.5.RELEASE'
         implementation group: 'org.springframework.boot', name: 'spring-boot-starter-web', version: '2.2.5.RELEASE'
         implementation group: 'org.springframework.boot', name: 'spring-boot-configuration-processor', version: '2.2.7.RELEASE'
+        implementation group: 'org.springframework.boot', name: 'spring-boot-starter-aop', version: '2.2.7.RELEASE'
+        implementation group: 'org.aspectj', name: 'aspectjweaver', version: '1.9.5'
+
 
         compileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.12'
         annotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.12'
@@ -239,6 +251,13 @@ project(':EventChannel'){
         implementation group: 'org.springframework.boot', name: 'spring-boot-starter-security', version: '2.2.5.RELEASE'
         implementation group: 'org.springframework.boot', name: 'spring-boot-starter-web', version: '2.2.5.RELEASE'
         implementation group: 'org.springframework.boot', name: 'spring-boot-configuration-processor', version: '2.2.7.RELEASE'
+        implementation group: 'org.springframework.boot', name: 'spring-boot-starter-aop', version: '2.2.7.RELEASE'
+        implementation group: 'org.aspectj', name: 'aspectjweaver', version: '1.9.5'
+
+
+        //Library for removing lots of boilerplate code, use in combination with intellij plugin
+        compileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.12'
+        annotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.12'
 
         //For testing REST API
         testImplementation 'io.rest-assured:rest-assured:4.2.0'
@@ -248,6 +267,10 @@ project(':EventChannel'){
         testImplementation('org.springframework.boot:spring-boot-starter-test') {
             exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
         }
+
+        //Library for removing lots of boilerplate code, use in combination with intellij plugin
+        testCompileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.12'
+        testAnnotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.12'
 
         testCompile group: 'com.h2database', name: 'h2', version: '1.4.200'
     }

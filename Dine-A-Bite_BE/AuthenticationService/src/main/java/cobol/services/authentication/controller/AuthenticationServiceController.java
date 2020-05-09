@@ -50,16 +50,22 @@ import static cobol.commons.stub.AuthenticationServiceStub.*;
 @Log4j2
 public class AuthenticationServiceController implements IAuthenticationService {
 
-    @Autowired private PasswordEncoder passwordEncoder;
-    @Autowired private AuthenticationManager authenticationManager;
-    @Autowired private JwtProviderService jwtProviderService;
-    @Autowired private ConfigurationBean configurationBean;
-    @Autowired private AuthenticationHandler authenticationHandler;
-    @Autowired private UserRepository userRepository;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+    @Autowired
+    private AuthenticationManager authenticationManager;
+    @Autowired
+    private JwtProviderService jwtProviderService;
+    @Autowired
+    private ConfigurationBean configurationBean;
+    @Autowired
+    private AuthenticationHandler authenticationHandler;
+    @Autowired
+    private UserRepository userRepository;
 
     @Override
     @GetMapping(AuthenticationServiceStub.GET_PING)
-    public ResponseEntity<HashMap<Object,Object>> ping(HttpServletRequest request) {
+    public ResponseEntity<HashMap<Object, Object>> ping(HttpServletRequest request) {
         log.debug("Authentication Service was pinged by: " + request.getRemoteAddr());
 
         return ResponseEntity.ok(
@@ -72,7 +78,7 @@ public class AuthenticationServiceController implements IAuthenticationService {
 
     @Override
     @PostMapping(AuthenticationServiceStub.POST_AUTHENTICATE)
-    public ResponseEntity<HashMap<Object,Object>> authenticate(@RequestBody AuthenticationRequest data){
+    public BetterResponseModel<String> authenticate(@RequestBody AuthenticationRequest data) {
         try {
             String username = data.getUsername();
             authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, data.getPassword()));
@@ -81,29 +87,25 @@ public class AuthenticationServiceController implements IAuthenticationService {
 
             String token = jwtProviderService.createToken(username, user.getRoles());
 
-            Map<Object, Object> model = new HashMap<>();
-            model.put("username", username);
-            model.put("token", token);
-            return ResponseEntity.ok(
-                    ResponseModel.builder()
-                            .status(OK.toString())
-                            .details(model)
-                            .build().generateResponse()
-            );
-        } catch (AuthenticationException e) {
-            return ResponseEntity.ok(
-                    ResponseModel.builder()
-                            .status(ERROR.toString())
-                            .details(e.getLocalizedMessage())
-                            .build().generateResponse()
-            );
 
+            return BetterResponseModel.ok(
+                            "Authentication success.",
+                            token
+                    );
+
+        } catch (AuthenticationException e) {
+
+            return BetterResponseModel.error(
+                            "Authentication failed.",
+                            e
+
+                    );
         }
     }
 
     @Override
     @PostMapping(AuthenticationServiceStub.POST_CREATE_USER)
-    public ResponseEntity<HashMap<Object,Object>> create(@RequestBody AuthenticationRequest details){
+    public ResponseEntity<HashMap<Object, Object>> create(@RequestBody AuthenticationRequest details) {
 
         try {
 
@@ -127,7 +129,7 @@ public class AuthenticationServiceController implements IAuthenticationService {
 
     @Override
     @PostMapping(AuthenticationServiceStub.POST_CREATE_STAND_MANAGER)
-    public ResponseEntity<HashMap<Object,Object>> createStandManager(@RequestBody AuthenticationRequest data){
+    public ResponseEntity<HashMap<Object, Object>> createStandManager(@RequestBody AuthenticationRequest data) {
 
         try {
             authenticationHandler.createUser(data, Role.USER, Role.STAND);
@@ -151,7 +153,7 @@ public class AuthenticationServiceController implements IAuthenticationService {
 
     @Override
     @GetMapping(AuthenticationServiceStub.GET_ADMIN_INFO)
-    public ResponseEntity verifyAdminTest(){
+    public ResponseEntity verifyAdminTest() {
 
         return ResponseEntity.ok(
                 ResponseModel.builder()
@@ -239,7 +241,7 @@ public class AuthenticationServiceController implements IAuthenticationService {
         try {
 
             // When otherUser is specified, check if the authenticationPrincipal is our application that issued the request
-            if (otherUser != null && !user.getRoles().contains(Role.APPLICATION)){
+            if (otherUser != null && !user.getRoles().contains(Role.APPLICATION)) {
                 throw new NotAuthorizedException("User: " + user.getUsername() + " is not authorized to perform this action.");
             }
 
@@ -247,7 +249,7 @@ public class AuthenticationServiceController implements IAuthenticationService {
                     .orElseThrow(() -> new DoesNotExistException("This user does not exist in the database. This should not be possible!"));
 
             // Check if the transaction could go through ie remaining balance >=0
-            if (userEntity.getBalance().add(amount).compareTo(BigDecimal.ZERO) < 0){
+            if (userEntity.getBalance().add(amount).compareTo(BigDecimal.ZERO) < 0) {
                 throw new NotEnoughMoneyException("There is not enough money on the account for this transaction.");
             }
 
@@ -271,7 +273,7 @@ public class AuthenticationServiceController implements IAuthenticationService {
         try {
 
             // When otherUser is specified, check if the authenticationPrincipal is our application that issued the request
-            if (otherUser != null && !user.getRoles().contains(Role.APPLICATION)){
+            if (otherUser != null && !user.getRoles().contains(Role.APPLICATION)) {
                 throw new NotAuthorizedException("User: " + user.getUsername() + " is not authorized to perform this action.");
             }
 
@@ -279,7 +281,7 @@ public class AuthenticationServiceController implements IAuthenticationService {
                     .orElseThrow(() -> new DoesNotExistException("This user does not exist in the database. This should not be possible!"));
 
             // Check again if the transaction could go through ie remaining balance >=0
-            if (userEntity.getBalance().add(userEntity.getUnconfirmedPayment()).compareTo(BigDecimal.ZERO) < 0){
+            if (userEntity.getBalance().add(userEntity.getUnconfirmedPayment()).compareTo(BigDecimal.ZERO) < 0) {
                 throw new NotEnoughMoneyException("There is not enough money on the account for this transaction.");
             }
 
@@ -301,7 +303,7 @@ public class AuthenticationServiceController implements IAuthenticationService {
         try {
 
             // When otherUser is specified, check if the authenticationPrincipal is our application that issued the request
-            if (otherUser != null && !user.getRoles().contains(Role.APPLICATION)){
+            if (otherUser != null && !user.getRoles().contains(Role.APPLICATION)) {
                 throw new NotAuthorizedException("User: " + user.getUsername() + " is not authorized to perform this action.");
             }
 
@@ -322,7 +324,7 @@ public class AuthenticationServiceController implements IAuthenticationService {
 
     @Override
     @GetMapping(GET_USER)
-    public ResponseEntity<CommonUser> getUserInfo(@AuthenticationPrincipal CommonUser userDetails){
+    public ResponseEntity<CommonUser> getUserInfo(@AuthenticationPrincipal CommonUser userDetails) {
         User user = userRepository.findById(userDetails.getUsername())
                 .orElseThrow(() -> new UsernameNotFoundException(userDetails.getUsername() + " not found!"));
 
@@ -331,7 +333,7 @@ public class AuthenticationServiceController implements IAuthenticationService {
 
     @Override
     @DeleteMapping(DELETE_USER)
-    public ResponseEntity deleteUser(@AuthenticationPrincipal UserDetails userDetails){
+    public ResponseEntity deleteUser(@AuthenticationPrincipal UserDetails userDetails) {
         try {
             userRepository.delete(userRepository.findById(userDetails.getUsername()).orElseThrow(() -> new UsernameNotFoundException(userDetails.getUsername())));
 
@@ -353,7 +355,7 @@ public class AuthenticationServiceController implements IAuthenticationService {
 
     @Override
     @GetMapping(GET_USER_BALANCE)
-    public ResponseEntity<BetterResponseModel<?>> getBalance(@AuthenticationPrincipal CommonUser ap){
+    public ResponseEntity<BetterResponseModel<?>> getBalance(@AuthenticationPrincipal CommonUser ap) {
         try {
             User user = userRepository.findById(ap.getUsername()).orElseThrow(() -> new DoesNotExistException("The user does not exist, this is not possible"));
 

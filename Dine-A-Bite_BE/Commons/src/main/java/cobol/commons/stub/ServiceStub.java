@@ -1,7 +1,10 @@
 package cobol.commons.stub;
 
 
+import cobol.commons.annotation.Authenticated;
 import cobol.commons.config.GlobalConfigurationBean;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.log4j.Log4j2;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -24,15 +27,18 @@ public abstract class ServiceStub {
     protected static final int PING_FREQUENCY = 10000; //10 seconds
     protected final OkHttpClient okHttpClient = new OkHttpClient().newBuilder().connectTimeout(1, TimeUnit.SECONDS).build();
     protected boolean available = false;
+    @Autowired
     protected GlobalConfigurationBean globalConfigurationBean;
 
     protected String authorizationToken;
+
+    protected ObjectMapper objectMapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     private List<Action> onAvailableActionList = new ArrayList<>();
     private List<Action> onUnavailableActionList = new ArrayList<>();
 
     @Scheduled(fixedRate = PING_FREQUENCY)
-    private void ping() {
+    protected void heartBeat() {
 
         String url = getAddress() + GET_PING;
 
@@ -45,7 +51,7 @@ public abstract class ServiceStub {
 
             okHttpClient.newCall(request).execute().close();
             log.info("Ping: " + url + " success!");
-            if (!available){
+            if (!available) {
                 log.info(url + " => now AVAILABLE!");
                 onAvailableActionList.forEach(Action::execute);
             }
@@ -55,7 +61,7 @@ public abstract class ServiceStub {
         } catch (IOException e) {
 
             log.error("Could not ping: " + url);
-            if (available){
+            if (available) {
                 log.info(url + " => now UNAVAILABLE!");
                 onUnavailableActionList.forEach(Action::execute);
             }
@@ -64,11 +70,11 @@ public abstract class ServiceStub {
         }
     }
 
-    public void doOnAvailable(Action action){
+    public void doOnAvailable(Action action) {
         this.onAvailableActionList.add(action);
     }
 
-    public void doOnUnavailable(Action action){
+    public void doOnUnavailable(Action action) {
         this.onUnavailableActionList.add(action);
     }
 
@@ -88,8 +94,8 @@ public abstract class ServiceStub {
 
     public abstract String getAddress();
 
-    @Autowired
-    public void setGlobalConfigurationBean(GlobalConfigurationBean globalConfigurationBean) {
-        this.globalConfigurationBean = globalConfigurationBean;
+    public void setAuthorizationToken(String authorizationToken) {
+        this.authorizationToken = "Bearer " + authorizationToken;
     }
+
 }
