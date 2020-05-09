@@ -24,8 +24,6 @@ public class CommonOrder implements Serializable {
     private String brandName;
     private String standName;
 
-    private RecommendType recType;
-
     private BigDecimal totalPrice;
     private int totalCount;
     //----- Request ------//
@@ -34,6 +32,8 @@ public class CommonOrder implements Serializable {
     // Coordinates Attendee on moment that order was mad
     private double latitude;
     private double longitude;
+
+    private RecommendType recType;
 
     public enum status {
         SEND,
@@ -145,8 +145,8 @@ public class CommonOrder implements Serializable {
         return recType;
     }
 
-    public void setRecType(RecommendType type) {
-        this.recType = type;
+    public void setRecType(RecommendType recType) {
+        this.recType = recType;
     }
 
     @NonNull
