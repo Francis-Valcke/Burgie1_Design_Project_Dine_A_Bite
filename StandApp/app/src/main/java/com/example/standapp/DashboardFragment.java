@@ -5,6 +5,7 @@ import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 
 import android.Manifest;
 import android.content.Context;
@@ -167,8 +168,9 @@ public class DashboardFragment extends Fragment
                     }
 
                     // create JSON string containing the information of the menu and the stand
+                    RevenueViewModel model = new ViewModelProvider(requireActivity()).get(RevenueViewModel.class);
                     CommonStand commonStand = new CommonStand(finalStandName, finalBrandName,
-                            latitude, longitude, items);
+                            latitude, longitude, items, model.getRevenue().getValue());
                     ObjectMapper mapper = new ObjectMapper();
                     String jsonString = "";
                     try {

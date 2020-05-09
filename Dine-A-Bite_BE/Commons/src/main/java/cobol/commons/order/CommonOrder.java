@@ -34,7 +34,7 @@ public class CommonOrder {
 
     public CommonOrder(){}
 
-    public CommonOrder(int id, ZonedDateTime startTime, ZonedDateTime expectedTime, State orderState, String brandName, String standName, List<CommonOrderItem> orderItems, double latitude, double longitude, int totalCount, BigDecimal totalPrice, RecommendType recType) {
+    public CommonOrder(int id, ZonedDateTime startTime, ZonedDateTime expectedTime, State orderState, String brandName, String standName, List<CommonOrderItem> orderItems, double latitude, double longitude, RecommendType recType, int totalCount, BigDecimal totalPrice) {
         TimeZone.setDefault(TimeZone.getTimeZone("Europe/Brussels"));
         this.id = id;
         this.startTime = startTime;
@@ -45,9 +45,9 @@ public class CommonOrder {
         this.orderItems = orderItems;
         this.latitude = latitude;
         this.longitude = longitude;
+        this.recType = recType;
         this.totalCount = totalCount;
         this.totalPrice=totalPrice;
-        this.recType = recType;
     }
 
     public enum State {

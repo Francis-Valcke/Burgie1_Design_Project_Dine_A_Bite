@@ -132,9 +132,9 @@ public class Order implements Serializable {
                 this.orderItems.stream().map(OrderItem::asCommonOrderItem).collect(Collectors.toList()),
                 this.latitude,
                 this.longitude,
+                this.recType,
                 totalAmount,
-                totalPrice,
-                this.recType
+                totalPrice
         );
 
 

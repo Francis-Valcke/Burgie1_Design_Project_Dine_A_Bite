@@ -42,6 +42,16 @@ public class Converters {
     }
 
     @TypeConverter
+    public static Integer getRecommendTypeInt(CommonOrder.RecommendType type) {
+        return type.ordinal();
+    }
+
+    @TypeConverter
+    public static CommonOrder.RecommendType getRecommendType(Integer type) {
+        return CommonOrder.RecommendType.values()[type];
+    }
+
+    @TypeConverter
     public static Long ZonedDateTimeToTimestamp(ZonedDateTime zonedDateTime) {
         return zonedDateTime == null ? null : zonedDateTime.toInstant().toEpochMilli();
     }
