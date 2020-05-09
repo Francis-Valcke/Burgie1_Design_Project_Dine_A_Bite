@@ -10,7 +10,9 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.ExpandableListView;
+import android.widget.Switch;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -37,12 +39,12 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.android.material.switchmaterial.SwitchMaterial;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -59,7 +61,12 @@ public class OrderFragment extends Fragment {
     private HashMap<String, List<String>> listHash = new HashMap<>();
     private ArrayList<CommonOrder> listOrders = new ArrayList<>();
     private HashMap<String, CommonOrderStatusUpdate.status> listStatus = new HashMap<>();
-    private ArrayList<Event> listEvents = new ArrayList<>(); // deprecated
+
+    // Lists containing order info separated into picked up and active
+    private ArrayList<String> oldListDataHeader = new ArrayList<>();
+    private ArrayList<CommonOrder> oldListOrders = new ArrayList<>();
+    private ArrayList<String> activeListDataHeader = new ArrayList<>();
+    private ArrayList<CommonOrder> activeListOrders = new ArrayList<>();
 
     // Polling service
     private Intent intent;
@@ -102,9 +109,10 @@ public class OrderFragment extends Fragment {
                     && listAdapter != null) {
                 listDataHeader.clear();
                 listHash.clear();
-                listEvents.clear();
                 listOrders.clear();
                 listStatus.clear();
+                oldListDataHeader.clear();
+                oldListOrders.clear();
                 listAdapter.setBrandName(brandName);
                 listAdapter.setStandName(standName);
                 listAdapter.notifyDataSetChanged();
@@ -112,14 +120,18 @@ public class OrderFragment extends Fragment {
         }
 
         // Get already existing orders from server when opening fragment for first time
-        if (listDataHeader.isEmpty() && bundle != null && Utils.isLoggedIn(mContext, bundle)) {
-            getStandOrders(mContext, user, brandName, standName); // TODO DOES THIS WORK?
+        if (activeListDataHeader.isEmpty() && oldListDataHeader.isEmpty()
+                && bundle != null && Utils.isLoggedIn(mContext, bundle)) {
+            getStandOrders(mContext, user, brandName, standName);
         }
 
         ExpandableListView listView = view.findViewById(R.id.expandable_list_view);
         if (listAdapter == null && bundle != null && Utils.isLoggedIn(mContext, bundle)) {
-            listAdapter = new ExpandableListAdapter(listDataHeader, listHash, listEvents,
-                    listOrders, listStatus, standName, brandName);
+            listAdapter = new ExpandableListAdapter(listDataHeader, listHash,
+                    listOrders, listStatus, oldListDataHeader, oldListOrders, activeListDataHeader,
+                    activeListOrders, standName, brandName);
+            listAdapter.setListDataHeader(activeListDataHeader);
+            listAdapter.setListOrders(activeListOrders);
         }
         listView.setAdapter(listAdapter);
 
@@ -130,6 +142,21 @@ public class OrderFragment extends Fragment {
                 if (bundle != null && Utils.isLoggedIn(mContext, bundle)) {
                     getOrderEvents(mContext, user);
                 }
+            }
+        });
+
+        SwitchMaterial historySwitch = view.findViewById(R.id.switch_history);
+        historySwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    listAdapter.setListDataHeader(activeListDataHeader);
+                    listAdapter.setListOrders(activeListOrders);
+                } else {
+                    listAdapter.setListDataHeader(oldListDataHeader);
+                    listAdapter.setListOrders(oldListOrders);
+                }
+                listAdapter.notifyDataSetChanged();
             }
         });
 
@@ -178,10 +205,8 @@ public class OrderFragment extends Fragment {
             Event eventUpdate = (Event) intent.getSerializableExtra("eventUpdate");
 
             if (eventUpdate != null && eventUpdate.getDataType().equals("Order")) {
-                // Add objects to the beginning of the ArrayLists
+                // Add objects to the beginning of the ArrayLists -> TODO DOES NOT WORK
                 // -> most recent order at the top of the list on screen
-                //listEvents.add(0, eventUpdate);
-                //listEvents.add(eventUpdate);
 
                 ObjectMapper mapper = new ObjectMapper();
                 JsonNode eventData = eventUpdate.getEventData();
@@ -189,11 +214,11 @@ public class OrderFragment extends Fragment {
                 try {
                     CommonOrder orderUpdate = mapper.treeToValue(orderJson, CommonOrder.class);
                     //listOrders.add(0, orderUpdate);
-                    listOrders.add(orderUpdate);
+                    activeListOrders.add(0, orderUpdate);
 
                     String orderName = "#" + orderUpdate.getId();
                     //listDataHeader.add(0, orderName);
-                    listDataHeader.add(orderName);
+                    activeListDataHeader.add(0, orderName);
                     listStatus.put(orderName, CommonOrderStatusUpdate.status.PENDING);
                     List<String> orderItems = new ArrayList<>();
                     for (CommonOrderItem item : orderUpdate.getOrderItems()) {
@@ -239,9 +264,16 @@ public class OrderFragment extends Fragment {
                     ArrayList<CommonOrder> allStandOrders = mapper.readValue(response.toString(),
                             new TypeReference<ArrayList<CommonOrder>>() {});
                     for (CommonOrder order : allStandOrders) {
-                        listOrders.add(order);
                         String orderName = "#" + order.getId();
-                        listDataHeader.add(orderName);
+                        if (order.getOrderState() == CommonOrder.status.PICKED_UP) {
+                            oldListOrders.add(0, order);
+                            oldListDataHeader.add(0, orderName);
+                        } else {
+                            activeListOrders.add(0, order);
+                            activeListDataHeader.add(0, orderName);
+                        }
+                        //listOrders.add(0, order);
+                        //listDataHeader.add(0, orderName);
                         listStatus.put(orderName, CommonOrderStatusUpdate.convertStatus(order.getOrderState()));
                         List<String> orderItems = new ArrayList<>();
                         for (CommonOrderItem item : order.getOrderItems()) {
@@ -308,14 +340,12 @@ public class OrderFragment extends Fragment {
                         JSONObject eventJSON = (JSONObject) response.get(i);
                         Event event = mapper.readValue(eventJSON.toString(), Event.class);
                         if (!event.getDataType().equals("Order")) return;
-                        //listEvents.add(0, event);
-                        //listEvents.add(event);
 
                         JSONObject eventData = (JSONObject) eventJSON.get("eventData");
                         JSONObject order = (JSONObject) eventData.get("order");
                         orders.add(mapper.readValue(order.toString(), CommonOrder.class));
                         //listOrders.add(0, mapper.readValue(order.toString(), CommonOrder.class));
-                        listOrders.add(mapper.readValue(order.toString(), CommonOrder.class));
+                        activeListOrders.add(0, mapper.readValue(order.toString(), CommonOrder.class));
                     } catch (JSONException | JsonProcessingException e) {
                         e.printStackTrace();
                     }
@@ -324,7 +354,7 @@ public class OrderFragment extends Fragment {
                 for (CommonOrder order : orders) {
                     String orderName = "#" + order.getId();
                     //listDataHeader.add(0, orderName);
-                    listDataHeader.add(orderName);
+                    activeListDataHeader.add(0, orderName);
                     listStatus.put(orderName, CommonOrderStatusUpdate.status.PENDING);
                     List<String> orderItems = new ArrayList<>();
                     for (CommonOrderItem item : order.getOrderItems()) {

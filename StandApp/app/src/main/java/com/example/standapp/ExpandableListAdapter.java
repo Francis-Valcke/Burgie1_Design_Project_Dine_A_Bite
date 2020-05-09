@@ -35,22 +35,37 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
 
     private ArrayList<String> listDataHeader;
     private HashMap<String, List<String>> listHashMap;
-    private ArrayList<Event> listEvents;
     private ArrayList<CommonOrder> listOrders;
     private HashMap<String, CommonOrderStatusUpdate.status> listStatus;
+
+    private ArrayList<String> oldListDataHeader;
+    private ArrayList<CommonOrder> oldListOrders;
+    private ArrayList<String> activeListDataHeader;
+    private ArrayList<CommonOrder> activeListOrders;
 
     private String standName;
     private String brandName;
 
-    ExpandableListAdapter(ArrayList<String> listDataHeader, HashMap<String, List<String>> listHashMap,
-                          ArrayList<Event> listEvents, ArrayList<CommonOrder> listOrders,
+
+    ExpandableListAdapter(ArrayList<String> listDataHeader,
+                          HashMap<String, List<String>> listHashMap,
+                          ArrayList<CommonOrder> listOrders,
                           HashMap<String, CommonOrderStatusUpdate.status> listStatus,
-                          String standName, String brandName) {
+                          ArrayList<String> oldListDataHeader,
+                          ArrayList<CommonOrder> oldListOrders,
+                          ArrayList<String> activeListDataHeader,
+                          ArrayList<CommonOrder> activeListOrders,
+                          String standName,
+                          String brandName) {
+
         this.listDataHeader = listDataHeader;
         this.listHashMap = listHashMap;
-        this.listEvents = listEvents;
         this.listOrders = listOrders;
         this.listStatus = listStatus;
+        this.oldListDataHeader = oldListDataHeader;
+        this.oldListOrders = oldListOrders;
+        this.activeListDataHeader = activeListDataHeader;
+        this.activeListOrders = activeListOrders;
         this.standName = standName;
         this.brandName = brandName;
     }
@@ -92,22 +107,34 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
     }
 
     @Override
-    public View getGroupView(int groupPosition, boolean isExpanded, View convertView,
-                             ViewGroup parent) {
-        View view = convertView;
-        if (convertView == null) {
-            view = LayoutInflater.from(parent.getContext())
-                    .inflate(R.layout.custom_expandable_list_group, parent, false);
-        }
+    public boolean isChildSelectable(int groupPosition, int childPosition) {
+        return false;
+    }
 
+    @Override
+    public View getGroupView(final int groupPosition, boolean isExpanded, View convertView,
+                             ViewGroup parent) {
+
+        View view = LayoutInflater.from(parent.getContext())
+                .inflate(R.layout.custom_expandable_list_group, parent, false);
+
+        // Set order number (title/header)
         final String headerTitle = (String) getGroup(groupPosition); // equals order number
         TextView listHeader = view.findViewById(R.id.order_number);
         listHeader.setText(headerTitle);
 
         final View finalView = view;
-        final int finalGroupPosition = groupPosition;
+
         CommonOrderStatusUpdate.status status = listStatus.get(headerTitle);
+
         MaterialButtonToggleGroup toggleGroup = view.findViewById(R.id.status_toggle_button);
+        toggleGroup.clearChecked();
+
+        // Set checked status in toggle group
+        // - PENDING -> NOTHING
+        // - CONFIRMED -> START button
+        // - READY -> DONE button
+        // - Others -> PICKED UP button
         if (status == CommonOrderStatusUpdate.status.PENDING) {
             toggleGroup.findViewById(R.id.button_start).setEnabled(true);
             toggleGroup.findViewById(R.id.button_done).setEnabled(false);
@@ -125,34 +152,87 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
             toggleGroup.findViewById(R.id.button_done).setEnabled(false);
             toggleGroup.check(R.id.button_picked_up);
         }
+
         toggleGroup.addOnButtonCheckedListener(new MaterialButtonToggleGroup.OnButtonCheckedListener() {
             @Override
             public void onButtonChecked(MaterialButtonToggleGroup group, int checkedId, boolean isChecked) {
-                group.setSelectionRequired(true);
+
                 if (checkedId == R.id.button_start && isChecked) {
+                    // User clicks on START button (and checks it)
+                    // - enable DONE button
+
                     Toast.makeText(group.getContext(), headerTitle + ": Start",
                             Toast.LENGTH_SHORT).show();
+                    if (listStatus.get(headerTitle) == CommonOrderStatusUpdate.status.PENDING) {
+                        sendOrderStatusUpdate(groupPosition, finalView.getContext());
+                    }
                     listStatus.put(headerTitle, CommonOrderStatusUpdate.status.CONFIRMED);
-                    sendOrderStatusUpdate(finalGroupPosition, finalView.getContext());
                     group.findViewById(R.id.button_done).setEnabled(true);
+
                 } else if (checkedId == R.id.button_done && isChecked) {
+                    // User clicks on DONE button (and checks it)
+                    // - enable PICKED UP button
+
                     Toast.makeText(group.getContext(), headerTitle + ": Done",
                             Toast.LENGTH_SHORT).show();
                     listStatus.put(headerTitle, CommonOrderStatusUpdate.status.READY);
-                    sendOrderStatusUpdate(finalGroupPosition, finalView.getContext());
+                    //sendOrderStatusUpdate(finalGroupPosition, finalView.getContext());
                     group.findViewById(R.id.button_picked_up).setEnabled(true);
+
                 } else if (checkedId == R.id.button_picked_up && isChecked) {
+                    // User clicks on PICKED UP button (and checks it)
+
                     Toast.makeText(group.getContext(), headerTitle + ": Picked up",
                             Toast.LENGTH_SHORT).show();
                     listStatus.put(headerTitle, CommonOrderStatusUpdate.status.PICKED_UP);
+                    group.check(R.id.button_picked_up);
+
                     // TODO delete picked up, or put in other list (picked up orders list) ?
                     // TODO that can be shown in a history view for example ?
                     // TODO sent this change to server ?
                     // TODO Remove order when picked up
-                } else if (checkedId == R.id.button_start) {
-                    group.findViewById(R.id.button_start).setEnabled(false);
+
+                    oldListOrders.add(listOrders.get(groupPosition));
+                    oldListDataHeader.add(listDataHeader.get(groupPosition));
+                    if (listDataHeader.size() == activeListDataHeader.size()) {
+                        listOrders.remove(groupPosition);
+                        listDataHeader.remove(groupPosition);
+                        notifyDataSetChanged();
+                    } else {
+                        activeListOrders.remove(groupPosition);
+                        activeListDataHeader.remove(groupPosition);
+                    }
+
+                } else if (checkedId == R.id.button_start)  {
+                    // Is activated when changing from START button
+
+                    if (group.getCheckedButtonId() == R.id.button_done) {
+                        // User clicks on DONE button
+                        group.findViewById(R.id.button_start).setEnabled(false);
+                        sendOrderStatusUpdate(groupPosition, finalView.getContext());
+                    } else {
+                        // User clicks on START button
+                        group.check(R.id.button_start);
+                    }
+
                 } else if (checkedId == R.id.button_done) {
-                    group.findViewById(R.id.button_done).setEnabled(false);
+                    // Is activated when changing from DONE button
+
+                    if (group.getCheckedButtonId() == R.id.button_picked_up) {
+                        // User clicks on PICKED UP button
+                        group.findViewById(R.id.button_done).setEnabled(false);
+                        //sendOrderStatusUpdate(finalGroupPosition, finalView.getContext());
+                    } else {
+                        // User clicks on DONE button
+                        group.check(R.id.button_done);
+                    }
+
+                }
+                else if (checkedId == R.id.button_picked_up) {
+                    // Is activated when changing from PICKED UP button
+
+                    group.check(R.id.button_picked_up);
+
                 }
             }
         });
@@ -174,11 +254,6 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
         textListHeader.setText(childText);
 
         return view;
-    }
-
-    @Override
-    public boolean isChildSelectable(int groupPosition, int childPosition) {
-        return false;
     }
 
     /**
@@ -259,5 +334,13 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
 
     void setBrandName(String brandName) {
         this.brandName = brandName;
+    }
+
+    void setListDataHeader(ArrayList<String> listDataHeader) {
+        this.listDataHeader = listDataHeader;
+    }
+
+    void setListOrders(ArrayList<CommonOrder> listOrders) {
+        this.listOrders = listOrders;
     }
 }

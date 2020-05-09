@@ -185,7 +185,7 @@ public class MenuItemFragment extends DialogFragment {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
                 // Beware: the MenuItem object as argument is NOT a CommonFood object
-                switch(item.getItemId()) {
+                switch (item.getItemId()) {
                     case R.id.action_save:
                         // Check if required field are filled in to be able to save the menu item
                         // (except for description field)

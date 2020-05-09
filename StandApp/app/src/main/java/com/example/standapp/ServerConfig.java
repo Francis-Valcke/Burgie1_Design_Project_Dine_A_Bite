@@ -2,7 +2,7 @@ package com.example.standapp;
 
 public class ServerConfig {
 
-    private static final boolean localTest = true;
+    private static final boolean localTest = false;
     private static final boolean emulator= false;
 
     private static final String ip = emulator ? "10.0.2.2" : "192.168.0.221";

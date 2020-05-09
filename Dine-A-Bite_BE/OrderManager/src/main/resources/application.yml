@@ -6,9 +6,9 @@ spring:
   datasource:
 
 #    local testing
-    url: jdbc:mysql://localhost:3306/menu?useLegacyDatetimeCode=false&serverTimezone=UTC
-    username: root
-    password: rootroot
+#    url: jdbc:mysql://localhost:3306/menu?useLegacyDatetimeCode=false&serverTimezone=UTC
+#    username: root
+#    password: rootroot
 
 #    remote testing
 #    url: jdbc:mysql://cobol.idlab.ugent.be:3306/menu_test?useLegacyDatetimeCode=false&serverTimezone=UTC
@@ -16,9 +16,9 @@ spring:
 #    password: cobol2020
 
 #    production
-#    url: jdbc:mysql://cobol.idlab.ugent.be:3306/menu?useLegacyDatetimeCode=false&serverTimezone=UTC
-#    username: www
-#   password: cobol2020
+    url: jdbc:mysql://cobol.idlab.ugent.be:3306/menu?useLegacyDatetimeCode=false&serverTimezone=UTC
+    username: www
+    password: cobol2020
 
 
   jpa:

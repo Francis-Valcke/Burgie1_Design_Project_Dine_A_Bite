@@ -10,7 +10,7 @@ public class StandManager {
 
     public static final String authToken= "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJTdGFuZE1hbmFnZXIiLCJyb2xlcyI6WyJBUFBMSUNBVElPTiJdLCJpYXQiOjE1ODg1NDE2NTMsImV4cCI6MTc0NjIyMTY1M30.RtY_OYCR-2K3APztc-Up8UUWNQJ7_YteY09f4e7phfM";
 
-    public static final boolean localTest = true;
+    public static final boolean localTest = false;
 
     public static final String ACURL = localTest ? "http://localhost:8080" : "http://cobol.idlab.ugent.be:8090";
     public static final  String OMURL = localTest ? "http://localhost:8081" : "http://cobol.idlab.ugent.be:8091";
