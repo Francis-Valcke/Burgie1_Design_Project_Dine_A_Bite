@@ -133,7 +133,7 @@ public class Order implements Serializable {
                 this.latitude,
                 this.longitude,
                 totalAmount,
-                totalPrice
+                totalPrice,
                 this.recType
         );
 
