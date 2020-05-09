@@ -24,8 +24,8 @@ public class SchedulerComparatorDistance implements Comparator<Scheduler> {
      */
     public int compare(Scheduler o1, Scheduler o2) {
         SchedulerComparator s = new SchedulerComparator();
-        double distance1 = s.getDistance(this.lat, this.lon, o1.getLat(), o1.getLon());
-        double distance2 = s.getDistance(this.lat, this.lon, o2.getLat(), o2.getLon());
+        double distance1 = getDistance(o1.getLat(), o1.getLon());
+        double distance2 = getDistance(o2.getLat(), o2.getLon());
         return Double.compare(distance1, distance2);
     }
 

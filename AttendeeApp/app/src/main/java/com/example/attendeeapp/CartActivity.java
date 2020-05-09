@@ -4,14 +4,19 @@ import android.annotation.SuppressLint;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
 
 import com.example.attendeeapp.json.CommonFood;
+import com.example.attendeeapp.json.CommonOrder;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -23,13 +28,14 @@ import java.util.Objects;
 /**
  * Activity to handle the view cart page
  */
-public class CartActivity extends ToolbarActivity {
+public class CartActivity extends ToolbarActivity implements AdapterView.OnItemSelectedListener {
 
     private CartItemAdapter cartAdapter;
     private Toast mToast;
     private Intent returnIntent;
     private BigDecimal totalPrice = new BigDecimal(0);
     private AlertDialog mDialog = null;
+    private CommonOrder.RecommendType recommendType;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,6 +45,17 @@ public class CartActivity extends ToolbarActivity {
         // Initialize the toolbar
         initToolbar();
         upButtonToolbar();
+
+        // Initialize spinner for recommendation type choice
+        Spinner spinner = findViewById(R.id.recommend_spinner);
+        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this, R.array.recommender_types_list, R.layout.stand_spinner_item);
+        adapter.setDropDownViewResource(R.layout.stand_spinner_item);
+        spinner.setAdapter(adapter);
+        // Set default spinner value to time and distance
+        String defaultValue = "Time and distance";
+        int defaultPosition = adapter.getPosition(defaultValue);
+        spinner.setSelection(defaultPosition);
+        spinner.setOnItemSelectedListener(this);
 
         // Get the ordered items from the cart in the menu view (ignore warning)
         final ArrayList<CommonFood> ordered = (ArrayList<CommonFood>) getIntent().getSerializableExtra("cartList");
@@ -88,6 +105,7 @@ public class CartActivity extends ToolbarActivity {
                         intent.putExtra("order", ordered);
                         intent.putExtra("totalPrice", totalPrice);
                         intent.putExtra("cartCount", cartAdapter.getCartCount());
+                        intent.putExtra("recType", recommendType);
                         startActivity(intent);
                     }
 
@@ -137,6 +155,7 @@ public class CartActivity extends ToolbarActivity {
                 intent.putExtra("order", ordered);
                 intent.putExtra("totalPrice", totalPrice);
                 intent.putExtra("cartCount", cartAdapter.getCartCount());
+                intent.putExtra("recType", recommendType);
                 startActivity(intent);
 
             }
@@ -170,4 +189,20 @@ public class CartActivity extends ToolbarActivity {
         total.setText(symbol + totalPrice);
     }
 
+    @Override
+    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+        String requestedRecType = (String) parent.getItemAtPosition(position);
+        //preprocess string to use valueOf
+        if (requestedRecType.equals("Time and distance")) {
+            requestedRecType = "DISTANCE_AND_TIME";
+        } else {
+            requestedRecType = requestedRecType.toUpperCase();
+        }
+        recommendType = CommonOrder.RecommendType.valueOf(requestedRecType);
+    }
+
+    @Override
+    public void onNothingSelected(AdapterView<?> parent) {
+        recommendType = CommonOrder.RecommendType.DISTANCE_AND_TIME;
+    }
 }

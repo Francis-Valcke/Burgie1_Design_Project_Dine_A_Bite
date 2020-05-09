@@ -32,6 +32,9 @@ import com.example.attendeeapp.json.Recommendation;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.android.gms.common.internal.service.Common;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -91,6 +94,7 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
 
     private Toast mToast = null;
     private AlertDialog mDialog = null;
+    private CommonOrder.RecommendType recommendType = null;
 
     private LoggedInUser user = LoginRepository.getInstance(new LoginDataSource()).getLoggedInUser();
 
@@ -105,6 +109,7 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
 
         // Ignore warning
         ordered = (ArrayList<CommonFood>) getIntent().getSerializableExtra("order");
+        recommendType = (CommonOrder.RecommendType) getIntent().getSerializableExtra("recType");
 
         // Divide items into different brands
         for (CommonFood item : ordered) {
@@ -383,7 +388,7 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
         }
 
         // Make JSON Object with ordered items and location
-        CommonOrder orderSent = new CommonOrder(ordered, specificStand, specificBrand, latitude, longitude);
+        CommonOrder orderSent = new CommonOrder(ordered, specificStand, specificBrand, latitude, longitude, recommendType);
         JSONObject jsonOrder = null;
         try {
             ObjectMapper mapper = new ObjectMapper();
@@ -462,7 +467,7 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
         }
 
         // Make JSON Object with ordered items and location
-        CommonOrder orderSent = new CommonOrder(ordered, specificStand, specificBrand, latitude, longitude);
+        CommonOrder orderSent = new CommonOrder(ordered, specificStand, specificBrand, latitude, longitude, recommendType);
         JSONObject jsonOrder = null;
         try {
             ObjectMapper mapper = new ObjectMapper();

@@ -10,16 +10,19 @@ public class Recommendation {
     private double distance;
     // milliseconds
     private int timeEstimate;
+    // the rank of the recommendation (1 meaning it's the best recomendation etc)
+    private int rank;
 
 
     public Recommendation() {
     }
 
-    public Recommendation(String standName, String brandName, double distance, int timeEstimate) {
+    public Recommendation(String standName, String brandName, double distance, int timeEstimate, int rank) {
         this.standName=standName;
         this.brandName=brandName;
         this.distance = distance;
         this.timeEstimate = timeEstimate;
+        this.rank = rank;
     }
 
     public String getBrandName() {
@@ -52,5 +55,13 @@ public class Recommendation {
 
     public void setTimeEstimate(int timeEstimate) {
         this.timeEstimate = timeEstimate;
+    }
+
+    public int getRank() {
+        return rank;
+    }
+
+    public void setRank(int rank) {
+        this.rank = rank;
     }
 }

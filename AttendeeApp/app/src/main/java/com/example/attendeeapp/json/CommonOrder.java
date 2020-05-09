@@ -38,6 +38,9 @@ public class CommonOrder implements Serializable {
     private String brandName;
     private String standName;
 
+    @TypeConverters(Converters.class)
+    private RecommendType recType;
+
     //----- Request ------//
     @TypeConverters(Converters.class)
     private List<CommonOrderItem> orderItems;
@@ -61,9 +64,16 @@ public class CommonOrder implements Serializable {
         READY
     }
 
+    //type of recommendation wanted
+    public enum RecommendType {
+        DISTANCE,
+        TIME,
+        DISTANCE_AND_TIME
+    }
+
     public CommonOrder() {}
 
-    public CommonOrder(List<CommonFood> menuItems, String standName, String brandName, double latitude, double longitude){
+    public CommonOrder(List<CommonFood> menuItems, String standName, String brandName, double latitude, double longitude, RecommendType recType){
         this.id=0;
         this.latitude=latitude;
         this.longitude=longitude;
@@ -75,6 +85,7 @@ public class CommonOrder implements Serializable {
         this.expectedTime=ZonedDateTime.now(ZoneId.of("Europe/Brussels"));
 
         this.orderState=State.SEND;
+        this.recType = recType;
 
         this.orderItems=new ArrayList<>();
         for (CommonFood menuItem : menuItems) {
@@ -181,6 +192,14 @@ public class CommonOrder implements Serializable {
 
     public void setUpdateSeen(boolean updateSeen) {
         this.updateSeen = updateSeen;
+    }
+
+    public RecommendType getRecType() {
+        return recType;
+    }
+
+    public void setRecType(RecommendType type) {
+        this.recType = type;
     }
 
     /**

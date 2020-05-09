@@ -19,13 +19,9 @@ public class SchedulerComparatorTime implements Comparator<Scheduler> {
 
     @Override
     public int compare(Scheduler o1, Scheduler o2) {
-        int time1 = 0;
-        int time2 = 0;
-        for (CommonOrderItem orderItem : orderItems) {
-            String foodName = orderItem.getFoodName();
-            time1 += o1.getPreptime(foodName) * orderItem.getAmount();
-            time2 += o2.getPreptime(foodName) * orderItem.getAmount();
-        }
+        int time1 = getLongestFoodPrepTime(o1);
+        int time2 = getLongestFoodPrepTime(o2);
+
         return Long.compare(o1.timeSum() + time1, o2.timeSum() + time2);
     }
 

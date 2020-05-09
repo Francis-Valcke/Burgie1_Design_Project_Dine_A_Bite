@@ -140,35 +140,44 @@ public class SchedulerHandler {
      * @return JSON with a certain amount of recommended stands (currently based on lowest queue time only)
      */
     public List<Recommendation> recommend(CommonOrder order) throws JsonProcessingException {
-        /* choose how many recommends you want */
+        //choose how many recommends you want
         int amountOfRecommends = 3;
 
-        /* find stands (schedulers) which offer correct food for the order */
+        // find stands (schedulers) which offer correct food for the order
         ArrayList<Scheduler> goodSchedulers = findCorrespondStands(order);
 
-        /* sort the stands (schedulers) based on remaining time */
-        //Collections.sort(goodSchedulers, new SchedulerComparatorTime(order.getFull_order()));
+        // weight for when using mixed recommender, for now this is set (like amount of recs), but could also be chosen by attendee in future
+        double weight = 5;
 
-        /* sort the stands (schedulers) based on distance */
-        Collections.sort(goodSchedulers, new SchedulerComparatorDistance(order.getLatitude(), order.getLongitude()));
+        //now look which type of recommendation we want and order the scheduler based on that
+        if (order.getRecType().equals(CommonOrder.RecommendType.TIME)){
+            //sort the stands (schedulers) based on remaining time
+            Collections.sort(goodSchedulers, new SchedulerComparatorTime(new ArrayList<>(order.getOrderItems())));
+        }
+        else if (order.getRecType().equals(CommonOrder.RecommendType.DISTANCE)){
+            //sort the stands (schedulers) based on distance
+            Collections.sort(goodSchedulers, new SchedulerComparatorDistance(order.getLatitude(), order.getLongitude()));
+        }
+        else if (order.getRecType().equals(CommonOrder.RecommendType.DISTANCE_AND_TIME)) {
+            //sort the stands (schedulers) based on mix between distance and time
+            Collections.sort(goodSchedulers, new SchedulerComparator(order.getLatitude(), order.getLongitude(), weight, new ArrayList<>(order.getOrderItems())));
+        }
+        else {
+            System.out.println("THE CHOSEN RECOMMENDATION TYPE IS NOT VALID ");
+        }
 
-        /* TODO: this is how you sort based on combination, weight is how much time you add for each unit of distance */
-        /* sort the stands (schedulers) based on combination of time and distance */
-        //double weight = 5;
-        //Collections.sort(goodSchedulers, new SchedulerComparator(order.getLat(), order.getLon(), weight);
-
-        /* check if you have enough stands (for amount of recommendations you want) */
+        // check if you have enough stands (for amount of recommendations you want)
         if (goodSchedulers.size() < amountOfRecommends) {
             amountOfRecommends = goodSchedulers.size();
         }
-        /* put everything into a JSON file to give as return value */
+        // put everything into a JSON file to give as return value
         List<Recommendation> recommendations = new ArrayList<>();
 
         for (int i = 0; i < amountOfRecommends; i++) {
             Scheduler curScheduler = goodSchedulers.get(i);
             SchedulerComparatorDistance sc = new SchedulerComparatorDistance(curScheduler.getLat(), curScheduler.getLon());
             SchedulerComparatorTime st = new SchedulerComparatorTime(new ArrayList<>(order.getOrderItems()));
-            recommendations.add(new Recommendation(curScheduler.getStandName(), curScheduler.getBrand(), sc.getDistance(order.getLatitude(), order.getLongitude()), st.getTimesum(curScheduler)));
+            recommendations.add(new Recommendation(curScheduler.getStandName(), curScheduler.getBrand(), sc.getDistance(order.getLatitude(), order.getLongitude()), st.getTimesum(curScheduler), i+1));
         }
 
         return recommendations;
