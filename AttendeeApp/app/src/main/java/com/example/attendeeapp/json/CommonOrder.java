@@ -8,16 +8,16 @@ import com.example.attendeeapp.appDatabase.Converters;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
+import org.threeten.bp.Duration;
+import org.threeten.bp.ZoneId;
+import org.threeten.bp.ZonedDateTime;
+
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-
-import org.threeten.bp.Duration;
-import org.threeten.bp.ZoneId;
-import org.threeten.bp.ZonedDateTime;
 
 @Entity
 public class CommonOrder implements Serializable {
@@ -35,7 +35,6 @@ public class CommonOrder implements Serializable {
     @TypeConverters(Converters.class)
     private State orderState;
 
-    private int standId;
     private String brandName;
     private String standName;
 
@@ -47,11 +46,9 @@ public class CommonOrder implements Serializable {
     private double latitude;
     private double longitude;
 
-    @JsonIgnore
     @TypeConverters(Converters.class)
     private BigDecimal totalPrice;
 
-    @JsonIgnore
     private int totalCount;
     @JsonIgnore
     private boolean updateSeen = true;
@@ -98,10 +95,6 @@ public class CommonOrder implements Serializable {
         return orderState;
     }
 
-    public int getStandId() {
-        return standId;
-    }
-
     public String getBrandName() {
         return brandName;
     }
@@ -128,10 +121,6 @@ public class CommonOrder implements Serializable {
 
     public void setOrderState(State orderState) {
         this.orderState = orderState;
-    }
-
-    public void setStandId(int standId) {
-        this.standId = standId;
     }
 
     public void setBrandName(String brandName) {
@@ -203,7 +192,12 @@ public class CommonOrder implements Serializable {
         NumberFormat euro = NumberFormat.getCurrencyInstance(Locale.FRANCE);
         euro.setMinimumFractionDigits(2);
         String symbol = euro.getCurrency().getSymbol();
-        return symbol + " " + totalPrice.toString();
+        if(totalPrice!=null){
+            return symbol + " " + totalPrice.toString();
+        }
+        else{
+            return symbol + " NA";
+        }
     }
 
     /**
@@ -213,6 +207,7 @@ public class CommonOrder implements Serializable {
     public void setPrices(ArrayList<CommonFood> list) {
         for(CommonFood menuItem : list)  {
             for(CommonOrderItem item : orderItems) {
+                // TODO: check for standName too?
                 if(item.getFoodName().equals(menuItem.getName())) {
                     item.setPrice(menuItem.getPrice());
                 }

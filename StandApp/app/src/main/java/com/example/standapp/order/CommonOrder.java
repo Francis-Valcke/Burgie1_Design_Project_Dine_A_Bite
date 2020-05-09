@@ -5,6 +5,7 @@ import androidx.annotation.NonNull;
 import com.example.standapp.json.CommonFood;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -23,6 +24,8 @@ public class CommonOrder implements Serializable {
     private String brandName;
     private String standName;
 
+    private BigDecimal totalPrice;
+    private int totalCount;
     //----- Request ------//
     private List<CommonOrderItem> orderItems;
 
@@ -56,7 +59,7 @@ public class CommonOrder implements Serializable {
 
         this.orderItems=new ArrayList<>();
         for (CommonFood menuItem : menuItems) {
-            orderItems.add(new CommonOrderItem(menuItem.getName(), menuItem.getCount()));
+            orderItems.add(new CommonOrderItem(menuItem.getName(), menuItem.getCount(), menuItem.getPrice()));
         }
     }
 
@@ -66,6 +69,22 @@ public class CommonOrder implements Serializable {
 
     public int computeRemainingTime(){
         return (int) (expectedTime.getTimeInMillis()-startTime.getTimeInMillis());
+    }
+
+    public BigDecimal getTotalPrice() {
+        return totalPrice;
+    }
+
+    public void setTotalPrice(BigDecimal totalPrice) {
+        this.totalPrice = totalPrice;
+    }
+
+    public int getTotalCount() {
+        return totalCount;
+    }
+
+    public void setTotalCount(int totalCount) {
+        this.totalCount = totalCount;
     }
 
     public status getOrderState() {

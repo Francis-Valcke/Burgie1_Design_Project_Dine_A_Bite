@@ -1,33 +1,17 @@
 package com.example.attendeeapp;
 
-import android.Manifest;
 import android.annotation.SuppressLint;
+import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.location.Location;
 import android.os.Bundle;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.View;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
+import androidx.appcompat.app.AlertDialog;
 
 import com.example.attendeeapp.json.CommonFood;
-import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
-
-import org.jetbrains.annotations.NotNull;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -41,12 +25,11 @@ import java.util.Objects;
  */
 public class CartActivity extends ToolbarActivity {
 
-    private FusedLocationProviderClient fusedLocationClient;
-    private Location lastLocation;
     private CartItemAdapter cartAdapter;
     private Toast mToast;
     private Intent returnIntent;
     private BigDecimal totalPrice = new BigDecimal(0);
+    private AlertDialog mDialog = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -85,21 +68,31 @@ public class CartActivity extends ToolbarActivity {
         // Handle button to confirm order
         // Only if there are items in the cart, the order can continue
         Button confirmButton = findViewById(R.id.button_confirm_order);
-        confirmButton.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
+        confirmButton.setOnClickListener(v -> {
                 // confirm order -> go to order view
                 // Send order with JSON + location
                 if (cartAdapter.getCartList().size() > 0) {
                     checkLocationPermission();
+                    boolean differentBrands = false;
+                    CommonFood firstItem = ordered.get(0);
+                    for (CommonFood i : ordered.subList(1, ordered.size())) {
+                        if (!i.getBrandName().equals(firstItem.getBrandName())) {
+                            // If brand is new alert the user
+                            showBrandAlertMessage(ordered);
+                            differentBrands = true;
+                            break;
+                        }
+                    }
+                    if (!differentBrands) {
+                        Intent intent = new Intent(CartActivity.this, ConfirmActivity.class);
+                        intent.putExtra("order", ordered);
+                        intent.putExtra("totalPrice", totalPrice);
+                        intent.putExtra("cartCount", cartAdapter.getCartCount());
+                        startActivity(intent);
+                    }
+
                     //if(cartAdapter.getCartList().get(0).getStandName().equals("")) {
-                    Intent intent = new Intent(CartActivity.this, ConfirmActivity.class);
-                    intent.putExtra("order", ordered);
-                    intent.putExtra("location", lastLocation);
-                    intent.putExtra("totalPrice", totalPrice);
-                    intent.putExtra("cartCount", cartAdapter.getCartCount());
-                    startActivity(intent);
+
                     /*} else {
                         Intent intent = new Intent(CartActivity.this, OrderActivity.class);
                         intent.putExtra("order_list", ordered);
@@ -112,18 +105,14 @@ public class CartActivity extends ToolbarActivity {
                             Toast.LENGTH_SHORT);
                     mToast.show();
                 }
-            }
         });
 
     }
 
-    /**
-     * Called after onCreate()
-     */
     @Override
     public void onStart() {
         super.onStart();
-        // Ask for location permission
+        // Get most recent location
         checkLocationPermission();
     }
 
@@ -134,71 +123,37 @@ public class CartActivity extends ToolbarActivity {
         super.onBackPressed();
     }
 
-    /**
-     * Check if location permission is granted
-     * It not: request the location permission
-     * else if permission was granted, renew user location
-     */
-    public void checkLocationPermission() {
-        if (ContextCompat.checkSelfPermission(this,
-                Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED) {
-            // Permission is not granted
-            // Request the permission
-            ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                    1);
-        } else {
-            // Request the latest user location
-            fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
-            fusedLocationClient.getLastLocation()
-                    .addOnCompleteListener(new OnCompleteListener<Location>() {
-                        @Override
-                        public void onComplete(@NotNull Task<Location> task ) {
-                            if(task.isSuccessful() && task.getResult() != null){
-                                lastLocation = task.getResult();
-                            }
-                        }
-                    });
-        }
-    }
+    public void showBrandAlertMessage(final ArrayList<CommonFood> ordered) {
+        // Alert user if he not better like the recommended stand
+        AlertDialog.Builder builder = new AlertDialog.Builder(CartActivity.this);
 
-    /**
-     * Handle the requested permissions,
-     * here only the location permission is handled
-     * @param requestCode: 1 = location permission was requested
-     * @param permissions: the requested permission(s) names
-     * @param grantResults: if the permission is granted or not
-     */
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NotNull String[] permissions,
-                                           @NotNull int[] grantResults) {
-        switch (requestCode) {
-            case 1: {
-                // If request is cancelled, the result arrays are empty.
-                if (grantResults.length > 0
-                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    // permission was granted, yay!
-                    // Create location request to fetch latest user location
-                    fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
-                    fusedLocationClient.getLastLocation()
-                            .addOnCompleteListener(new OnCompleteListener<Location>() {
-                                @Override
-                                public void onComplete(@NotNull Task<Location> task ) {
-                                    if(task.isSuccessful() && task.getResult() != null){
-                                        lastLocation = task.getResult();
-                                    }
-                                }
-                            });
-                } else {
-                    // permission denied, boo! Disable the
-                    // functionality that depends on this permission.
-                }
-                return;
+        builder.setPositiveButton("Continue", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                // User clicked Continue button
+                dialog.cancel();
+
+                // Continue with multiple brands in a split up order
+                Intent intent = new Intent(CartActivity.this, ConfirmActivity.class);
+                intent.putExtra("order", ordered);
+                intent.putExtra("totalPrice", totalPrice);
+                intent.putExtra("cartCount", cartAdapter.getCartCount());
+                startActivity(intent);
+
             }
-            // other 'case' lines to check for other
-            // permissions this app might request.
-        }
+        });
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                // User cancelled the dialog
+                dialog.cancel();
+            }
+        });
+
+        builder.setMessage("The items in your cart are from multiple brands." +
+                "\n\nIf you choose to continue, your order will be split up.")
+                .setTitle("Continue with multiple brands");
+        if (mDialog != null) mDialog.cancel();
+        mDialog = builder.create();
+        mDialog.show();
     }
 
     /**
