@@ -182,7 +182,7 @@ public class StandController {
         Stand stand = standRepository.findStandById(standName, brandName).orElse(null);
         if (stand != null) {
             return ResponseEntity.ok(stand.getOrderList().stream().map(Order::asCommonOrder).collect(Collectors.toList()));
-        } else throw new DoesNotExistException("Stand " + standName + " does not exist, or does not have a menu saved.");
+        } else throw new DoesNotExistException("Stand " + standName + " does not exist, or does not have orders saved.");
     }
 }
 

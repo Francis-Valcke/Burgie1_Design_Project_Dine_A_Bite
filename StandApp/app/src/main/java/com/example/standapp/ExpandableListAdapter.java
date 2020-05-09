@@ -39,14 +39,20 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
     private ArrayList<CommonOrder> listOrders;
     private HashMap<String, CommonOrderStatusUpdate.status> listStatus;
 
+    private String standName;
+    private String brandName;
+
     ExpandableListAdapter(ArrayList<String> listDataHeader, HashMap<String, List<String>> listHashMap,
                           ArrayList<Event> listEvents, ArrayList<CommonOrder> listOrders,
-                          HashMap<String, CommonOrderStatusUpdate.status> listStatus) {
+                          HashMap<String, CommonOrderStatusUpdate.status> listStatus,
+                          String standName, String brandName) {
         this.listDataHeader = listDataHeader;
         this.listHashMap = listHashMap;
         this.listEvents = listEvents;
         this.listOrders = listOrders;
         this.listStatus = listStatus;
+        this.standName = standName;
+        this.brandName = brandName;
     }
 
     @Override
@@ -191,8 +197,11 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
                 = new CommonOrderStatusUpdate(listOrders.get(groupPosition).getId(), newStatus);
         JsonNode eventData = mapper.valueToTree(orderStatusUpdate);
 
-        Event event = new Event(eventData, listEvents.get(groupPosition).getTypes(),
-                "OrderStatusUpdate");
+        ArrayList<String> types = new ArrayList<>();
+        types.add("s_" + standName + "_" + brandName);
+        types.add("o_" + listOrders.get(groupPosition).getId());
+
+        Event event = new Event(eventData, types, "OrderStatusUpdate");
         String jsonString = "";
         try {
             jsonString = mapper.writeValueAsString(event);
@@ -242,5 +251,13 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
         };
 
         queue.add(request);
+    }
+
+    public void setStandName(String standName) {
+        this.standName = standName;
+    }
+
+    public void setBrandName(String brandName) {
+        this.brandName = brandName;
     }
 }

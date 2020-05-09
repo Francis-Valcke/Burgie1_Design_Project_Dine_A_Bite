@@ -50,22 +50,26 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-// TODO (optional) change polling to FCM
-
 public class OrderFragment extends Fragment {
 
     private Context mContext;
 
+    // List/Maps containing order info
     private ExpandableListAdapter listAdapter;
     private ArrayList<String> listDataHeader = new ArrayList<>();
     private HashMap<String, List<String>> listHash = new HashMap<>();
-    private ArrayList<Event> listEvents = new ArrayList<>();
     private ArrayList<CommonOrder> listOrders = new ArrayList<>();
     private HashMap<String, CommonOrderStatusUpdate.status> listStatus = new HashMap<>();
+    private ArrayList<Event> listEvents = new ArrayList<>(); // deprecated
+
+    // Polling service
     private Intent intent;
 
-    // ID from the Event Channel
+    // Stand name, brand name and ID from the Event Channel
+    private String standName;
+    private String brandName;
     private String subscriberId;
+
 
     @Override
     public void onAttach(@NonNull Context context) {
@@ -84,10 +88,10 @@ public class OrderFragment extends Fragment {
         final LoggedInUser user = LoginRepository.getInstance(new LoginDataSource())
                 .getLoggedInUser();
 
-        // Getting the log in information from profile fragment
         final Bundle bundle = getArguments();
         if (bundle != null && Utils.isLoggedIn(mContext, bundle)) {
-            String standName = bundle.getString("standName"); // DEBUG
+            standName = bundle.getString("standName");
+            brandName = bundle.getString("brandName");
             Log.d("Order fragment", "Logged in stand: " + standName); // DEBUG
             //Toast.makeText(mContext, standName, Toast.LENGTH_SHORT).show(); // DEBUG
 
@@ -100,6 +104,8 @@ public class OrderFragment extends Fragment {
                 listEvents.clear();
                 listOrders.clear();
                 listStatus.clear();
+                listAdapter.setBrandName(brandName);
+                listAdapter.setStandName(standName);
                 listAdapter.notifyDataSetChanged();
             }
 
@@ -107,20 +113,24 @@ public class OrderFragment extends Fragment {
         }
 
         // Get already existing orders from server when opening fragment for first time
-        if (listDataHeader.isEmpty()) {
-            // TODO
+        if (listDataHeader.isEmpty() && bundle != null && Utils.isLoggedIn(mContext, bundle)) {
+            getStandOrders(mContext, user, brandName, standName);
         }
 
         ExpandableListView listView = view.findViewById(R.id.expandable_list_view);
-        if (listAdapter == null) listAdapter =
-                new ExpandableListAdapter(listDataHeader, listHash, listEvents, listOrders, listStatus);
+        if (listAdapter == null && bundle != null) {
+            listAdapter = new ExpandableListAdapter(listDataHeader, listHash, listEvents,
+                    listOrders, listStatus, standName, brandName);
+        }
         listView.setAdapter(listAdapter);
 
         Button refreshButton = view.findViewById(R.id.refresh_button);
         refreshButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                getOrderEvents(mContext, user);
+                if (bundle != null && Utils.isLoggedIn(mContext, bundle)) {
+                    getOrderEvents(mContext, user);
+                }
             }
         });
 
@@ -173,7 +183,7 @@ public class OrderFragment extends Fragment {
                 // Add objects to the beginning of the ArrayLists
                 // -> most recent order at the top of the list on screen
                 //listEvents.add(0, eventUpdate);
-                listEvents.add(eventUpdate);
+                //listEvents.add(eventUpdate);
 
                 ObjectMapper mapper = new ObjectMapper();
                 JsonNode eventData = eventUpdate.getEventData();
@@ -196,7 +206,9 @@ public class OrderFragment extends Fragment {
                     listAdapter.notifyDataSetChanged();
 
                     // Decrease current stock based on incoming order
-                    decreaseStock(orderUpdate.getOrderItems());
+                    //decreaseStock(orderUpdate.getOrderItems());
+                    MenuViewModel menuViewModel = new ViewModelProvider(requireActivity()).get(MenuViewModel.class);
+
 
                     //update revenue
                     if (orderUpdate.getOrderState() == CommonOrder.status.PENDING) {
@@ -237,11 +249,13 @@ public class OrderFragment extends Fragment {
         }
     }
 
-    private void getStandOrders(final Context context, final LoggedInUser user) {
+    private void getStandOrders(final Context context, final LoggedInUser user, String brandName, String standName) {
         RequestQueue queue = Volley.newRequestQueue(context);
-        String url = ServerConfig.OM_ADDRESS + "/getStandOrders";
+        String url = ServerConfig.OM_ADDRESS + "/getStandOrders?brandName=" + brandName
+                + "&standName=" + standName;
 
-        JsonArrayRequest request = new JsonArrayRequest(Request.Method.GET, url, null, new Response.Listener<JSONArray>() {
+        JsonArrayRequest request = new JsonArrayRequest(Request.Method.GET, url, null,
+                new Response.Listener<JSONArray>() {
             @Override
             public void onResponse(JSONArray response) {
                 System.out.println("Received orders from OM: " + response.toString()); // DEBUG
@@ -320,7 +334,7 @@ public class OrderFragment extends Fragment {
                         Event event = mapper.readValue(eventJSON.toString(), Event.class);
                         if (!event.getDataType().equals("Order")) return;
                         //listEvents.add(0, event);
-                        listEvents.add(event);
+                        //listEvents.add(event);
 
                         JSONObject eventData = (JSONObject) eventJSON.get("eventData");
                         JSONObject order = (JSONObject) eventData.get("order");
