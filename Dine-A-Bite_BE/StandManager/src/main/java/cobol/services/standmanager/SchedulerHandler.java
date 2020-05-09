@@ -163,7 +163,7 @@ public class SchedulerHandler {
             Collections.sort(goodSchedulers, new SchedulerComparator(order.getLatitude(), order.getLongitude(), weight, new ArrayList<>(order.getOrderItems())));
         }
         else {
-            System.out.println("THE CHOSEN RECOMMENDATION TYPE IS NOT VALID");
+            System.out.println("THE CHOSEN RECOMMENDATION TYPE IS NOT VALID ");
         }
 
         // check if you have enough stands (for amount of recommendations you want)
