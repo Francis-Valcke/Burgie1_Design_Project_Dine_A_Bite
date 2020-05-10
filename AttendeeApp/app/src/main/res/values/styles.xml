@@ -17,7 +17,7 @@
         <!-- Applied to toolbar background -->
         <item name="colorPrimary">@color/colorPrimary</item>
 
-        <!-- Applied to status bar -->
+        <!-- Applied to State bar -->
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
 
 <!--        &lt;!&ndash; Applied to inactive Shipping Method name and amount &ndash;&gt;-->
