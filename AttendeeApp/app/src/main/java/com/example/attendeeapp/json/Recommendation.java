@@ -10,19 +10,25 @@ public class Recommendation {
     private double distance;
     // milliseconds
     private int timeEstimate;
-
+    // the rank of the recommendation (1 meaning it's the best recomendation etc)
     private int rank;
 
+    //ID of scheduler where this recommend was coming from (used in priority queues)
+    private int schedulerId;
+    //preparation time of the order in the scheduler of the recommendation (used in priority queues, necessary if different prep times for same order in different stands)
+    private int orderPrepTime;
 
     public Recommendation() {
     }
 
-    public Recommendation(String standName, String brandName, double distance, int timeEstimate, int rank) {
+    public Recommendation(String standName, String brandName, double distance, int timeEstimate, int rank, int schedulerId, int prepTime) {
         this.standName=standName;
         this.brandName=brandName;
         this.distance = distance;
         this.timeEstimate = timeEstimate;
         this.rank = rank;
+        this.schedulerId = schedulerId;
+        this.orderPrepTime = prepTime;
     }
 
     public String getBrandName() {
@@ -63,5 +69,13 @@ public class Recommendation {
 
     public void setRank(int rank) {
         this.rank = rank;
+    }
+
+    public int getSchedulerId() {
+        return schedulerId;
+    }
+
+    public int getOrderPrepTime() {
+        return orderPrepTime;
     }
 }

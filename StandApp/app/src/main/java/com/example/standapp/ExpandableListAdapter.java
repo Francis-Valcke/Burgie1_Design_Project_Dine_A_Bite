@@ -35,18 +35,39 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
 
     private ArrayList<String> listDataHeader;
     private HashMap<String, List<String>> listHashMap;
-    private ArrayList<Event> listEvents;
     private ArrayList<CommonOrder> listOrders;
-    private HashMap<String, CommonOrderStatusUpdate.status> listStatus;
+    private HashMap<String, CommonOrderStatusUpdate.State> listStatus;
 
-    ExpandableListAdapter(ArrayList<String> listDataHeader, HashMap<String, List<String>> listHashMap,
-                          ArrayList<Event> listEvents, ArrayList<CommonOrder> listOrders,
-                          HashMap<String, CommonOrderStatusUpdate.status> listStatus) {
+    private ArrayList<String> oldListDataHeader;
+    private ArrayList<CommonOrder> oldListOrders;
+    private ArrayList<String> activeListDataHeader;
+    private ArrayList<CommonOrder> activeListOrders;
+
+    private String standName;
+    private String brandName;
+
+
+    ExpandableListAdapter(ArrayList<String> listDataHeader,
+                          HashMap<String, List<String>> listHashMap,
+                          ArrayList<CommonOrder> listOrders,
+                          HashMap<String, CommonOrderStatusUpdate.State> listStatus,
+                          ArrayList<String> oldListDataHeader,
+                          ArrayList<CommonOrder> oldListOrders,
+                          ArrayList<String> activeListDataHeader,
+                          ArrayList<CommonOrder> activeListOrders,
+                          String standName,
+                          String brandName) {
+
         this.listDataHeader = listDataHeader;
         this.listHashMap = listHashMap;
-        this.listEvents = listEvents;
         this.listOrders = listOrders;
         this.listStatus = listStatus;
+        this.oldListDataHeader = oldListDataHeader;
+        this.oldListOrders = oldListOrders;
+        this.activeListDataHeader = activeListDataHeader;
+        this.activeListOrders = activeListOrders;
+        this.standName = standName;
+        this.brandName = brandName;
     }
 
     @Override
@@ -86,31 +107,43 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
     }
 
     @Override
-    public View getGroupView(int groupPosition, boolean isExpanded, View convertView,
-                             ViewGroup parent) {
-        View view = convertView;
-        if (convertView == null) {
-            view = LayoutInflater.from(parent.getContext())
-                    .inflate(R.layout.custom_expandable_list_group, parent, false);
-        }
+    public boolean isChildSelectable(int groupPosition, int childPosition) {
+        return false;
+    }
 
+    @Override
+    public View getGroupView(final int groupPosition, boolean isExpanded, View convertView,
+                             ViewGroup parent) {
+
+        View view = LayoutInflater.from(parent.getContext())
+                .inflate(R.layout.custom_expandable_list_group, parent, false);
+
+        // Set order number (title/header)
         final String headerTitle = (String) getGroup(groupPosition); // equals order number
         TextView listHeader = view.findViewById(R.id.order_number);
         listHeader.setText(headerTitle);
 
         final View finalView = view;
-        final int finalGroupPosition = groupPosition;
-        CommonOrderStatusUpdate.status status = listStatus.get(headerTitle);
+
+        CommonOrderStatusUpdate.State State = listStatus.get(headerTitle);
+
         MaterialButtonToggleGroup toggleGroup = view.findViewById(R.id.status_toggle_button);
-        if (status == CommonOrderStatusUpdate.status.PENDING) {
+        toggleGroup.clearChecked();
+
+        // Set checked status in toggle group
+        // - PENDING -> NOTHING
+        // - CONFIRMED -> START button
+        // - READY -> DONE button
+        // - Others -> PICKED UP button
+        if (State == CommonOrderStatusUpdate.State.PENDING) {
             toggleGroup.findViewById(R.id.button_start).setEnabled(true);
             toggleGroup.findViewById(R.id.button_done).setEnabled(false);
             toggleGroup.findViewById(R.id.button_picked_up).setEnabled(false);
-        } else if (status == CommonOrderStatusUpdate.status.CONFIRMED) {
+        } else if (State == CommonOrderStatusUpdate.State.CONFIRMED) {
             toggleGroup.check(R.id.button_start);
             toggleGroup.findViewById(R.id.button_done).setEnabled(true);
             toggleGroup.findViewById(R.id.button_picked_up).setEnabled(false);
-        } else if (status == CommonOrderStatusUpdate.status.READY) {
+        } else if (State == CommonOrderStatusUpdate.State.READY) {
             toggleGroup.findViewById(R.id.button_start).setEnabled(false);
             toggleGroup.check(R.id.button_done);
             toggleGroup.findViewById(R.id.button_picked_up).setEnabled(true);
@@ -119,34 +152,87 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
             toggleGroup.findViewById(R.id.button_done).setEnabled(false);
             toggleGroup.check(R.id.button_picked_up);
         }
+
         toggleGroup.addOnButtonCheckedListener(new MaterialButtonToggleGroup.OnButtonCheckedListener() {
             @Override
             public void onButtonChecked(MaterialButtonToggleGroup group, int checkedId, boolean isChecked) {
-                group.setSelectionRequired(true);
+
                 if (checkedId == R.id.button_start && isChecked) {
+                    // User clicks on START button (and checks it)
+                    // - enable DONE button
+
                     Toast.makeText(group.getContext(), headerTitle + ": Start",
                             Toast.LENGTH_SHORT).show();
-                    listStatus.put(headerTitle, CommonOrderStatusUpdate.status.CONFIRMED);
-                    sendOrderStatusUpdate(finalGroupPosition, finalView.getContext());
+                    if (listStatus.get(headerTitle) == CommonOrderStatusUpdate.State.PENDING) {
+                        sendOrderStatusUpdate(groupPosition, finalView.getContext());
+                    }
+                    listStatus.put(headerTitle, CommonOrderStatusUpdate.State.CONFIRMED);
                     group.findViewById(R.id.button_done).setEnabled(true);
+
                 } else if (checkedId == R.id.button_done && isChecked) {
+                    // User clicks on DONE button (and checks it)
+                    // - enable PICKED UP button
+
                     Toast.makeText(group.getContext(), headerTitle + ": Done",
                             Toast.LENGTH_SHORT).show();
-                    listStatus.put(headerTitle, CommonOrderStatusUpdate.status.READY);
-                    sendOrderStatusUpdate(finalGroupPosition, finalView.getContext());
+                    listStatus.put(headerTitle, CommonOrderStatusUpdate.State.READY);
+                    //sendOrderStatusUpdate(finalGroupPosition, finalView.getContext());
                     group.findViewById(R.id.button_picked_up).setEnabled(true);
+
                 } else if (checkedId == R.id.button_picked_up && isChecked) {
+                    // User clicks on PICKED UP button (and checks it)
+
                     Toast.makeText(group.getContext(), headerTitle + ": Picked up",
                             Toast.LENGTH_SHORT).show();
-                    listStatus.put(headerTitle, CommonOrderStatusUpdate.status.PICKED_UP);
+                    listStatus.put(headerTitle, CommonOrderStatusUpdate.State.PICKED_UP);
+                    group.check(R.id.button_picked_up);
+
                     // TODO delete picked up, or put in other list (picked up orders list) ?
                     // TODO that can be shown in a history view for example ?
                     // TODO sent this change to server ?
                     // TODO Remove order when picked up
-                } else if (checkedId == R.id.button_start) {
-                    group.findViewById(R.id.button_start).setEnabled(false);
+
+                    oldListOrders.add(listOrders.get(groupPosition));
+                    oldListDataHeader.add(listDataHeader.get(groupPosition));
+                    if (listDataHeader.size() == activeListDataHeader.size()) {
+                        listOrders.remove(groupPosition);
+                        listDataHeader.remove(groupPosition);
+                        notifyDataSetChanged();
+                    } else {
+                        activeListOrders.remove(groupPosition);
+                        activeListDataHeader.remove(groupPosition);
+                    }
+
+                } else if (checkedId == R.id.button_start)  {
+                    // Is activated when changing from START button
+
+                    if (group.getCheckedButtonId() == R.id.button_done) {
+                        // User clicks on DONE button
+                        group.findViewById(R.id.button_start).setEnabled(false);
+                        sendOrderStatusUpdate(groupPosition, finalView.getContext());
+                    } else {
+                        // User clicks on START button
+                        group.check(R.id.button_start);
+                    }
+
                 } else if (checkedId == R.id.button_done) {
-                    group.findViewById(R.id.button_done).setEnabled(false);
+                    // Is activated when changing from DONE button
+
+                    if (group.getCheckedButtonId() == R.id.button_picked_up) {
+                        // User clicks on PICKED UP button
+                        group.findViewById(R.id.button_done).setEnabled(false);
+                        //sendOrderStatusUpdate(finalGroupPosition, finalView.getContext());
+                    } else {
+                        // User clicks on DONE button
+                        group.check(R.id.button_done);
+                    }
+
+                }
+                else if (checkedId == R.id.button_picked_up) {
+                    // Is activated when changing from PICKED UP button
+
+                    group.check(R.id.button_picked_up);
+
                 }
             }
         });
@@ -170,11 +256,6 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
         return view;
     }
 
-    @Override
-    public boolean isChildSelectable(int groupPosition, int childPosition) {
-        return false;
-    }
-
     /**
      * Send order status update to Event Channel
      * @param groupPosition position of order information in arrays
@@ -184,15 +265,18 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
 
         final LoggedInUser user = LoginRepository.getInstance(new LoginDataSource()).getLoggedInUser();
 
-        CommonOrderStatusUpdate.status newStatus = listStatus.get(listDataHeader.get(groupPosition));
+        CommonOrderStatusUpdate.State newState = listStatus.get(listDataHeader.get(groupPosition));
         ObjectMapper mapper = new ObjectMapper();
 
         CommonOrderStatusUpdate orderStatusUpdate
-                = new CommonOrderStatusUpdate(listOrders.get(groupPosition).getId(), newStatus);
+                = new CommonOrderStatusUpdate(listOrders.get(groupPosition).getId(), newState);
         JsonNode eventData = mapper.valueToTree(orderStatusUpdate);
 
-        Event event = new Event(eventData, listEvents.get(groupPosition).getTypes(),
-                "OrderStatusUpdate");
+        ArrayList<String> types = new ArrayList<>();
+        types.add("s_" + standName + "_" + brandName);
+        types.add("o_" + listOrders.get(groupPosition).getId());
+
+        Event event = new Event(eventData, types, "OrderStatusUpdate");
         String jsonString = "";
         try {
             jsonString = mapper.writeValueAsString(event);
@@ -236,11 +320,27 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
             public Map<String, String> getHeaders() {
                 HashMap<String, String> headers = new HashMap<>();
                 headers.put("Content-Type", "application/json");
-                headers.put("Authorization", user.getAutorizationToken());
+                headers.put("Authorization", user.getAuthorizationToken());
                 return headers;
             }
         };
 
         queue.add(request);
+    }
+
+    void setStandName(String standName) {
+        this.standName = standName;
+    }
+
+    void setBrandName(String brandName) {
+        this.brandName = brandName;
+    }
+
+    void setListDataHeader(ArrayList<String> listDataHeader) {
+        this.listDataHeader = listDataHeader;
+    }
+
+    void setListOrders(ArrayList<CommonOrder> listOrders) {
+        this.listOrders = listOrders;
     }
 }

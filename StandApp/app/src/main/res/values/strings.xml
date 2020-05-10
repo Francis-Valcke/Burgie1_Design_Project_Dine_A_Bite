@@ -45,7 +45,7 @@
     <string name="profile">Profile</string>
     <string name="orders">Orders</string>
     <string name="refresh">Refresh</string>
-    <string name="your_active_orders">Your active orders</string>
+    <string name="your_orders">Your orders</string>
     <string name="order_number">Order#</string>
     <string name="description_of_menu_item">Description of menu item (optional)</string>
     <string name="description">Description</string>
@@ -74,7 +74,9 @@
     <string name="create_account">Create account</string>
     <string name="email">Email</string>
     <string name="categories">Categories</string>
+    <string name="shared_pref_file_key">com.example.standapp.PREFERENCE_FILE_KEY</string>
     <string name="revenue">Total revenue:</string>
     <string name="promotion">Promotion</string>
     <string name="price_promotion">Price promotion</string>
+    <string name="only_active_orders">Only active orders</string>
 </resources>

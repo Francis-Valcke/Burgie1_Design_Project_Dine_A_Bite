@@ -18,13 +18,11 @@ public class CommonOrder implements Serializable {
     private Calendar startTime;
     private Calendar expectedTime;
 
-    private status orderState;
+    private State orderState;
 
     private int standId;
     private String brandName;
     private String standName;
-
-    private RecommendType recType;
 
     private BigDecimal totalPrice;
     private int totalCount;
@@ -35,12 +33,15 @@ public class CommonOrder implements Serializable {
     private double latitude;
     private double longitude;
 
-    public enum status {
+    private RecommendType recType;
+
+    public enum State {
         SEND,
         PENDING,
         DECLINED,
         CONFIRMED,
-        READY
+        READY,
+        PICKED_UP
     }
 
     //type of recommendation wanted
@@ -64,7 +65,7 @@ public class CommonOrder implements Serializable {
         this.startTime=Calendar.getInstance();
         this.expectedTime=Calendar.getInstance();
 
-        this.orderState =status.SEND;
+        this.orderState = State.SEND;
         this.recType = recType;
 
         this.orderItems=new ArrayList<>();
@@ -97,7 +98,7 @@ public class CommonOrder implements Serializable {
         this.totalCount = totalCount;
     }
 
-    public status getOrderState() {
+    public State getOrderState() {
         return orderState;
     }
 
@@ -145,8 +146,8 @@ public class CommonOrder implements Serializable {
         return recType;
     }
 
-    public void setRecType(RecommendType type) {
-        this.recType = type;
+    public void setRecType(RecommendType recType) {
+        this.recType = recType;
     }
 
     @NonNull

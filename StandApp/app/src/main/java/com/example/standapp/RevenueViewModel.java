@@ -19,8 +19,9 @@ public class RevenueViewModel extends ViewModel {
     public void updateRevenue(List<CommonOrderItem> items) {
         BigDecimal totalRevenue = revenue.getValue();
         for (CommonOrderItem item : items) {
-            BigDecimal itemPrice = Objects.requireNonNull(Objects.requireNonNull(prices.getValue()).get(item.getFoodName())).multiply(BigDecimal.valueOf(item.getAmount()));
-            totalRevenue = totalRevenue.add(itemPrice);
+            BigDecimal itemPrice = Objects.requireNonNull(Objects.requireNonNull(prices.getValue())
+                    .get(item.getFoodName())).multiply(BigDecimal.valueOf(item.getAmount()));
+            if (totalRevenue != null) totalRevenue = totalRevenue.add(itemPrice);
         }
         revenue.setValue(totalRevenue);
     }
@@ -45,7 +46,7 @@ public class RevenueViewModel extends ViewModel {
         } else {
              map = prices.getValue();
         }
-        map.put(foodName, price);
+        if (map != null) map.put(foodName, price);
         prices.setValue(map);
     }
 }
