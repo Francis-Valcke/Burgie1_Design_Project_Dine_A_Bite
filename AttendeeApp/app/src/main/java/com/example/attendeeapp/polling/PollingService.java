@@ -1,5 +1,7 @@
 package com.example.attendeeapp.polling;
 
+import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -7,9 +9,12 @@ import android.app.Service;
 import android.app.TaskStackBuilder;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.location.Location;
+import android.location.LocationManager;
 import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
@@ -18,6 +23,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
@@ -25,7 +31,12 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonArrayRequest;
+import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+import com.example.attendeeapp.MapsActivity;
 import com.example.attendeeapp.OrderActivity;
 import com.example.attendeeapp.R;
 import com.example.attendeeapp.ServerConfig;
@@ -37,12 +48,16 @@ import com.example.attendeeapp.json.CommonOrder;
 import com.example.attendeeapp.json.CommonOrderStatusUpdate;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.LatLng;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 
 /**
@@ -55,6 +70,9 @@ public class PollingService extends Service {
     private int subscribeId;
     private LoggedInUser user = LoginRepository.getInstance(new LoginDataSource()).getLoggedInUser();
     private NotificationManagerCompat notificationManager;
+
+    private Map<Integer, LatLng> mapIdLocation = new HashMap<>();
+    //protected Map<String, Map<String, Double>> standLocations = new HashMap<>();
 
     public static final String CHANNEL_START_ID = "orderStart";
     public static final String CHANNEL_DONE_ID = "orderDone";
@@ -134,6 +152,22 @@ public class PollingService extends Service {
 
                                         if (orderStatusUpdate.getNewState() == CommonOrderStatusUpdate.State.CONFIRMED) {
                                             // Send Notification that order is being prepared
+                                    /*if (orderStatusUpdate.getNewState() == CommonOrderStatusUpdate.State.CONFIRMED) {
+                                        // Send Notification that order is being prepared
+                                        // Find your own location and location of the stand from which you ordered
+                                        LatLng stand_location = mapIdLocation.get(orderStatusUpdate.getOrderId());
+                                        double stand_lat = stand_location.latitude;
+                                        double stand_lon = stand_location.longitude;
+                                        LocationManager lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+                                        @SuppressLint("MissingPermission") Location my_location = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+                                        double my_lat = my_location.getLatitude();
+                                        double my_lon = my_location.getLongitude();
+                                        float[] result = new float[1];
+                                        // Compute distance between both locations
+                                        Location.distanceBetween(my_lat, my_lon, stand_lat, stand_lon, result); // distance in meters stored in result[0]
+                                        System.out.println("STAND LOCATION: latitude: " + stand_lat + "; longitude: " + stand_lon);
+                                        System.out.println("MY LOCATION: latitude: " + my_lat + "; longitude: " + my_lon);
+                                        System.out.println("DISTANCE between both locations in meter: " + result[0] + " m and in km: " + result[0]/1000 + " km");*/
 
                                             NotificationCompat.Builder notification = new NotificationCompat.Builder(context, CHANNEL_START_ID)
                                                     .setSmallIcon(R.mipmap.ic_launcher_foreground)
@@ -201,6 +235,8 @@ public class PollingService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         context = getBaseContext();
         createNotificationChannels();
+        //requestStandLocations();
+        mapIdLocation = (HashMap<Integer, LatLng>) intent.getSerializableExtra("locations");
         handler = new Handler();
         handler.post(runnableService);
         Log.i("Polling service", "Polling service started");

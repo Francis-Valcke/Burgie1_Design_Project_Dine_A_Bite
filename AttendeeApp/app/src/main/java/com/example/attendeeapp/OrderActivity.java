@@ -30,6 +30,7 @@ import com.example.attendeeapp.polling.PollingService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.android.gms.maps.model.LatLng;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -130,6 +131,7 @@ public class OrderActivity extends ToolbarActivity {
         if (subscribeId != -1) {
             Intent intent = new Intent(getApplicationContext(), PollingService.class);
             intent.putExtra("subscribeId", subscribeId);
+            intent.putExtra("locations", getMapIdLocation());
             startService(intent);
         }
         // Register the listener for polling updates
@@ -325,6 +327,7 @@ public class OrderActivity extends ToolbarActivity {
             // Start the polling service
             Intent intent = new Intent(getApplicationContext(), PollingService.class);
             intent.putExtra("subscribeId", subscribeId);
+            intent.putExtra("locations", getMapIdLocation());
             startService(intent);
         }, error -> {
             showToast("Could not subscribe to order updates");
@@ -346,6 +349,15 @@ public class OrderActivity extends ToolbarActivity {
     private void showToast(String message) {
         Toast.makeText(OrderActivity.this, message,
                 Toast.LENGTH_SHORT).show();
+    }
+
+    private HashMap<Integer, LatLng> getMapIdLocation() {
+        HashMap<Integer, LatLng> result = new HashMap<>();
+        for (CommonOrder order : orders) {
+            LatLng loc = new LatLng(order.getLatitude(), order.getLongitude());
+            result.put(order.getId(), loc);
+        }
+        return result;
     }
 
 
