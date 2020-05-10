@@ -211,6 +211,7 @@ public class Scheduler extends Thread {
         return this.brandName;
     }
 
-
-
+    public int getSubscriberId() {
+        return subscriberId;
+    }
 }

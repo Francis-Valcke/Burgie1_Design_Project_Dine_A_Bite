@@ -5,7 +5,7 @@ import androidx.room.RoomDatabase;
 
 import com.example.attendeeapp.json.CommonOrder;
 
-@Database(entities = {CommonOrder.class}, version = 6, exportSchema = false)
+@Database(entities = {CommonOrder.class}, version = 7, exportSchema = false)
 public abstract class AppDatabase extends RoomDatabase {
     public abstract OrderDao orderDao();
 }
