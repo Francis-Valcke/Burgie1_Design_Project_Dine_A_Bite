@@ -20,7 +20,7 @@ public class CommonFood implements Serializable {
     private String name;
     private BigDecimal price;
     private int count = 0;
-    private int preparationTime;
+    private int preparationTime; // in seconds
     private int stock;
     private String standName = "";
     private String brandName = "";
@@ -178,6 +178,10 @@ public class CommonFood implements Serializable {
 
     public void setPreparationTime(int preparationTime) {
         this.preparationTime = preparationTime;
+    }
+
+    public int getPreparationTimeInMinutes() {
+        return preparationTime/60;
     }
 
     public int getStock() {

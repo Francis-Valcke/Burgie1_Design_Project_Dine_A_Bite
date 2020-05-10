@@ -1,6 +1,8 @@
 package com.example.standapp.ui.login;
 
 import android.app.Activity;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -19,9 +21,17 @@ import androidx.annotation.StringRes;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.security.crypto.EncryptedSharedPreferences;
+import androidx.security.crypto.MasterKeys;
 
 import com.example.standapp.R;
 import com.google.android.material.snackbar.Snackbar;
+import com.example.standapp.data.LoginDataSource;
+import com.example.standapp.data.LoginRepository;
+import com.example.standapp.data.model.LoggedInUser;
+
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 
 public class RegisterActivity extends AppCompatActivity {
 
@@ -36,6 +46,8 @@ public class RegisterActivity extends AppCompatActivity {
         setContentView(R.layout.activity_register);
         loginViewModel = new ViewModelProvider(this, new LoginViewModelFactory())
                 .get(LoginViewModel.class);
+
+        final Context mContext = this;
 
         final EditText usernameEditText = findViewById(R.id.username);
         final EditText passwordEditText = findViewById(R.id.password);
@@ -75,6 +87,27 @@ public class RegisterActivity extends AppCompatActivity {
                 if (loginResult.getSuccess() != null) {
                     updateUiWithUser(loginResult.getSuccess());
                     setResult(Activity.RESULT_OK);
+
+                    LoggedInUser user = LoginRepository.getInstance(new LoginDataSource())
+                            .getLoggedInUser();
+
+                    // Save credentials of LoggedInUser
+                    try {
+                        String masterKeyAlias = MasterKeys.getOrCreate(MasterKeys.AES256_GCM_SPEC);
+                        SharedPreferences sharedPreferences = EncryptedSharedPreferences.create(
+                                getString(R.string.shared_pref_file_key),
+                                masterKeyAlias,
+                                mContext,
+                                EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                                EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+                        );
+                        SharedPreferences.Editor editor = sharedPreferences.edit();
+                        editor.putString("username", user.getDisplayName());
+                        editor.putString("user_id", user.getUserId()); // token
+                        editor.apply();
+                    } catch (GeneralSecurityException | IOException e) {
+                        e.printStackTrace();
+                    }
 
                     // Complete and destroy login activity once successful
                     finish();
