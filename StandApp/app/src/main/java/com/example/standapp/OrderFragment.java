@@ -12,7 +12,6 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.ExpandableListView;
-import android.widget.Switch;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -60,7 +59,7 @@ public class OrderFragment extends Fragment {
     private ArrayList<String> listDataHeader = new ArrayList<>();
     private HashMap<String, List<String>> listHash = new HashMap<>();
     private ArrayList<CommonOrder> listOrders = new ArrayList<>();
-    private HashMap<String, CommonOrderStatusUpdate.status> listStatus = new HashMap<>();
+    private HashMap<String, CommonOrderStatusUpdate.State> listStatus = new HashMap<>();
 
     // Lists containing order info separated into picked up and active
     private ArrayList<String> oldListDataHeader = new ArrayList<>();
@@ -219,7 +218,7 @@ public class OrderFragment extends Fragment {
                     String orderName = "#" + orderUpdate.getId();
                     //listDataHeader.add(0, orderName);
                     activeListDataHeader.add(0, orderName);
-                    listStatus.put(orderName, CommonOrderStatusUpdate.status.PENDING);
+                    listStatus.put(orderName, CommonOrderStatusUpdate.State.PENDING);
                     List<String> orderItems = new ArrayList<>();
                     for (CommonOrderItem item : orderUpdate.getOrderItems()) {
                         orderItems.add(item.getAmount() + " : " + item.getFoodName());
@@ -228,7 +227,7 @@ public class OrderFragment extends Fragment {
                     listHash.put(orderName, orderItems);
                     listAdapter.notifyDataSetChanged();
 
-                    if (orderUpdate.getOrderState() == CommonOrder.status.PENDING) {
+                    if (orderUpdate.getOrderState() == CommonOrder.State.PENDING) {
                         // Update revenue
                         RevenueViewModel model = new ViewModelProvider(requireActivity())
                                 .get(RevenueViewModel.class);
@@ -249,6 +248,15 @@ public class OrderFragment extends Fragment {
         }
     };
 
+    /**
+     * Get the orders of the logged in stand from the server after logging back in
+     * or opening the app after it being force closed
+     *
+     * @param context context from which the method is called
+     * @param user logged in user
+     * @param brandName brand name of logged in stand
+     * @param standName stand name of logged in stand
+     */
     private void getStandOrders(final Context context, final LoggedInUser user, String brandName, String standName) {
         RequestQueue queue = Volley.newRequestQueue(context);
         String url = ServerConfig.OM_ADDRESS + "/getStandOrders?brandName=" + brandName
@@ -265,7 +273,7 @@ public class OrderFragment extends Fragment {
                             new TypeReference<ArrayList<CommonOrder>>() {});
                     for (CommonOrder order : allStandOrders) {
                         String orderName = "#" + order.getId();
-                        if (order.getOrderState() == CommonOrder.status.PICKED_UP) {
+                        if (order.getOrderState() == CommonOrder.State.PICKED_UP) {
                             oldListOrders.add(0, order);
                             oldListDataHeader.add(0, orderName);
                         } else {
@@ -355,7 +363,7 @@ public class OrderFragment extends Fragment {
                     String orderName = "#" + order.getId();
                     //listDataHeader.add(0, orderName);
                     activeListDataHeader.add(0, orderName);
-                    listStatus.put(orderName, CommonOrderStatusUpdate.status.PENDING);
+                    listStatus.put(orderName, CommonOrderStatusUpdate.State.PENDING);
                     List<String> orderItems = new ArrayList<>();
                     for (CommonOrderItem item : order.getOrderItems()) {
                         orderItems.add(item.getAmount() + " : " + item.getFoodName());
@@ -363,7 +371,7 @@ public class OrderFragment extends Fragment {
                     // Orders should have different order numbers (orderName)
                     listHash.put(orderName, orderItems);
 
-                    if (order.getOrderState() == CommonOrder.status.PENDING) {
+                    if (order.getOrderState() == CommonOrder.State.PENDING) {
                         // Update revenue
                         RevenueViewModel revenueViewModel = new ViewModelProvider(requireActivity())
                                 .get(RevenueViewModel.class);

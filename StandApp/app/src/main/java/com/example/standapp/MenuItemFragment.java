@@ -330,6 +330,12 @@ public class MenuItemFragment extends DialogFragment {
         }
     }
 
+    /**
+     * Create and add category chips to chip group in layout from the default category list
+     * and check the category chips that are a category of the menu item
+     *
+     * @param item CommonFood menu item of stand containing categories
+     */
     private void createStandardCategoryChips(CommonFood item) {
         for (String category : categories) {
             @SuppressLint("InflateParams")
@@ -340,6 +346,12 @@ public class MenuItemFragment extends DialogFragment {
         }
     }
 
+    /**
+     * Create and add category chips to chip group in layout with categories
+     * of menu item not in default category list and set the chips to checked
+     *
+     * @param item CommonFood menu item of stand containing categories
+     */
     private void createAddedCategoryChips(CommonFood item) {
         for (String category : item.getCategory()) {
             if (!categories.contains(category) && !category.equals("PRICE PROMOTION")) {
@@ -360,6 +372,9 @@ public class MenuItemFragment extends DialogFragment {
         }
     }
 
+    /**
+     * Add a new category chip to the chip group in the layout
+     */
     private void addNewCategoryChip() {
         // Ask for name of new category
         @SuppressLint("InflateParams")

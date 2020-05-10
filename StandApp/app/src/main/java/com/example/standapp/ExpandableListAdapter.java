@@ -36,7 +36,7 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
     private ArrayList<String> listDataHeader;
     private HashMap<String, List<String>> listHashMap;
     private ArrayList<CommonOrder> listOrders;
-    private HashMap<String, CommonOrderStatusUpdate.status> listStatus;
+    private HashMap<String, CommonOrderStatusUpdate.State> listStatus;
 
     private ArrayList<String> oldListDataHeader;
     private ArrayList<CommonOrder> oldListOrders;
@@ -50,7 +50,7 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
     ExpandableListAdapter(ArrayList<String> listDataHeader,
                           HashMap<String, List<String>> listHashMap,
                           ArrayList<CommonOrder> listOrders,
-                          HashMap<String, CommonOrderStatusUpdate.status> listStatus,
+                          HashMap<String, CommonOrderStatusUpdate.State> listStatus,
                           ArrayList<String> oldListDataHeader,
                           ArrayList<CommonOrder> oldListOrders,
                           ArrayList<String> activeListDataHeader,
@@ -125,7 +125,7 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
 
         final View finalView = view;
 
-        CommonOrderStatusUpdate.status status = listStatus.get(headerTitle);
+        CommonOrderStatusUpdate.State State = listStatus.get(headerTitle);
 
         MaterialButtonToggleGroup toggleGroup = view.findViewById(R.id.status_toggle_button);
         toggleGroup.clearChecked();
@@ -135,15 +135,15 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
         // - CONFIRMED -> START button
         // - READY -> DONE button
         // - Others -> PICKED UP button
-        if (status == CommonOrderStatusUpdate.status.PENDING) {
+        if (State == CommonOrderStatusUpdate.State.PENDING) {
             toggleGroup.findViewById(R.id.button_start).setEnabled(true);
             toggleGroup.findViewById(R.id.button_done).setEnabled(false);
             toggleGroup.findViewById(R.id.button_picked_up).setEnabled(false);
-        } else if (status == CommonOrderStatusUpdate.status.CONFIRMED) {
+        } else if (State == CommonOrderStatusUpdate.State.CONFIRMED) {
             toggleGroup.check(R.id.button_start);
             toggleGroup.findViewById(R.id.button_done).setEnabled(true);
             toggleGroup.findViewById(R.id.button_picked_up).setEnabled(false);
-        } else if (status == CommonOrderStatusUpdate.status.READY) {
+        } else if (State == CommonOrderStatusUpdate.State.READY) {
             toggleGroup.findViewById(R.id.button_start).setEnabled(false);
             toggleGroup.check(R.id.button_done);
             toggleGroup.findViewById(R.id.button_picked_up).setEnabled(true);
@@ -163,10 +163,10 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
 
                     Toast.makeText(group.getContext(), headerTitle + ": Start",
                             Toast.LENGTH_SHORT).show();
-                    if (listStatus.get(headerTitle) == CommonOrderStatusUpdate.status.PENDING) {
+                    if (listStatus.get(headerTitle) == CommonOrderStatusUpdate.State.PENDING) {
                         sendOrderStatusUpdate(groupPosition, finalView.getContext());
                     }
-                    listStatus.put(headerTitle, CommonOrderStatusUpdate.status.CONFIRMED);
+                    listStatus.put(headerTitle, CommonOrderStatusUpdate.State.CONFIRMED);
                     group.findViewById(R.id.button_done).setEnabled(true);
 
                 } else if (checkedId == R.id.button_done && isChecked) {
@@ -175,7 +175,7 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
 
                     Toast.makeText(group.getContext(), headerTitle + ": Done",
                             Toast.LENGTH_SHORT).show();
-                    listStatus.put(headerTitle, CommonOrderStatusUpdate.status.READY);
+                    listStatus.put(headerTitle, CommonOrderStatusUpdate.State.READY);
                     //sendOrderStatusUpdate(finalGroupPosition, finalView.getContext());
                     group.findViewById(R.id.button_picked_up).setEnabled(true);
 
@@ -184,7 +184,7 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
 
                     Toast.makeText(group.getContext(), headerTitle + ": Picked up",
                             Toast.LENGTH_SHORT).show();
-                    listStatus.put(headerTitle, CommonOrderStatusUpdate.status.PICKED_UP);
+                    listStatus.put(headerTitle, CommonOrderStatusUpdate.State.PICKED_UP);
                     group.check(R.id.button_picked_up);
 
                     // TODO delete picked up, or put in other list (picked up orders list) ?
@@ -265,11 +265,11 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
 
         final LoggedInUser user = LoginRepository.getInstance(new LoginDataSource()).getLoggedInUser();
 
-        CommonOrderStatusUpdate.status newStatus = listStatus.get(listDataHeader.get(groupPosition));
+        CommonOrderStatusUpdate.State newState = listStatus.get(listDataHeader.get(groupPosition));
         ObjectMapper mapper = new ObjectMapper();
 
         CommonOrderStatusUpdate orderStatusUpdate
-                = new CommonOrderStatusUpdate(listOrders.get(groupPosition).getId(), newStatus);
+                = new CommonOrderStatusUpdate(listOrders.get(groupPosition).getId(), newState);
         JsonNode eventData = mapper.valueToTree(orderStatusUpdate);
 
         ArrayList<String> types = new ArrayList<>();

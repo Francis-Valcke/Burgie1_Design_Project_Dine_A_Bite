@@ -18,7 +18,7 @@ public class CommonOrder implements Serializable {
     private Calendar startTime;
     private Calendar expectedTime;
 
-    private status orderState;
+    private State orderState;
 
     private int standId;
     private String brandName;
@@ -35,7 +35,7 @@ public class CommonOrder implements Serializable {
 
     private RecommendType recType;
 
-    public enum status {
+    public enum State {
         SEND,
         PENDING,
         DECLINED,
@@ -65,7 +65,7 @@ public class CommonOrder implements Serializable {
         this.startTime=Calendar.getInstance();
         this.expectedTime=Calendar.getInstance();
 
-        this.orderState =status.SEND;
+        this.orderState = State.SEND;
         this.recType = recType;
 
         this.orderItems=new ArrayList<>();
@@ -98,7 +98,7 @@ public class CommonOrder implements Serializable {
         this.totalCount = totalCount;
     }
 
-    public status getOrderState() {
+    public State getOrderState() {
         return orderState;
     }
 

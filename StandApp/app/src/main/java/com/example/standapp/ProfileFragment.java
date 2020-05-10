@@ -514,6 +514,13 @@ public class ProfileFragment extends Fragment {
         queue.add(jsonRequest);
     }
 
+    /**
+     * This method will fetch the saved revenue of the logged in stand from the server
+     *
+     * @param context context from which the method is called
+     * @param standName stand name of logged in stand
+     * @param brandName brand name of logged in stand
+     */
     void fetchRevenue(Context context, String standName, String brandName) {
 
         final LoggedInUser loggedInUser = LoginRepository.getInstance(new LoginDataSource())

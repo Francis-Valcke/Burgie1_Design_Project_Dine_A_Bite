@@ -6,9 +6,9 @@ package com.example.standapp.order;
 public class CommonOrderStatusUpdate {
 
     private int orderId;
-    private status newStatus;
+    private State mNewState;
 
-    public enum status {
+    public enum State {
         SEND,
         PENDING,
         DECLINED,
@@ -19,33 +19,33 @@ public class CommonOrderStatusUpdate {
 
     public CommonOrderStatusUpdate() {}
 
-    public CommonOrderStatusUpdate(int orderId, status newStatus) {
+    public CommonOrderStatusUpdate(int orderId, State newState) {
         this.orderId = orderId;
-        this.newStatus = newStatus;
+        this.mNewState = newState;
     }
 
     public int getOrderId() {
         return orderId;
     }
 
-    public status getNewStatus() {
-        return newStatus;
+    public State getNewState() {
+        return mNewState;
     }
 
-    public static status convertStatus(CommonOrder.status status) {
-        switch (status) {
+    public static State convertStatus(CommonOrder.State State) {
+        switch (State) {
             case SEND:
-                return CommonOrderStatusUpdate.status.SEND;
+                return CommonOrderStatusUpdate.State.SEND;
             case PENDING:
-                return CommonOrderStatusUpdate.status.PENDING;
+                return CommonOrderStatusUpdate.State.PENDING;
             case DECLINED:
-                return CommonOrderStatusUpdate.status.DECLINED;
+                return CommonOrderStatusUpdate.State.DECLINED;
             case CONFIRMED:
-                return CommonOrderStatusUpdate.status.CONFIRMED;
+                return CommonOrderStatusUpdate.State.CONFIRMED;
             case READY:
-                return CommonOrderStatusUpdate.status.READY;
+                return CommonOrderStatusUpdate.State.READY;
             default:
-                return CommonOrderStatusUpdate.status.PICKED_UP;
+                return CommonOrderStatusUpdate.State.PICKED_UP;
         }
     }
 }
