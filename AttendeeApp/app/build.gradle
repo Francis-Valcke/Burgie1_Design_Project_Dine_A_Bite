@@ -25,6 +25,13 @@ android {
     testOptions {
         unitTests.includeAndroidResources = true
     }
+    compileOptions {
+        sourceCompatibility = 1.8
+        targetCompatibility = 1.8
+    }
+    lintOptions {
+        abortOnError false
+    }
 }
 jacocoAndroidUnitTestReport {
     csv.enabled false
@@ -48,6 +55,11 @@ dependencies {
     implementation 'androidx.localbroadcastmanager:localbroadcastmanager:1.0.0'
     implementation "androidx.security:security-crypto:1.0.0-rc01"
     implementation "androidx.room:room-runtime:2.2.5"
+    implementation 'com.stripe:stripe-android:14.4.0'
+    implementation 'io.reactivex.rxjava3:rxjava:3.0.2'
+    implementation group: 'io.reactivex.rxjava3', name: 'rxandroid', version: '3.0.0'
+    implementation("com.squareup.okhttp3:okhttp:4.6.0")
+    implementation 'com.google.android.gms:play-services-wallet:18.0.0'
     annotationProcessor "androidx.room:room-compiler:2.2.5"
 
     implementation 'com.android.volley:volley:1.1.1'
@@ -58,6 +70,8 @@ dependencies {
     implementation 'com.fasterxml.jackson.core:jackson-core:2.11.0.rc1'
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.11.0.rc1'
     implementation 'com.squareup.okhttp3:okhttp:4.5.0'
+
+    implementation 'com.jakewharton.threetenabp:threetenabp:1.2.3'
 
     testImplementation 'junit:junit:4.12'
     testImplementation 'androidx.test:core:1.2.0'

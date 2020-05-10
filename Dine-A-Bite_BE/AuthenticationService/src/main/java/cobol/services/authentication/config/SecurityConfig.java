@@ -62,12 +62,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .and()
                 .authorizeRequests()
                 .antMatchers("/admin").hasRole(Role.ADMIN)
-                .antMatchers("/user").hasAnyRole(Role.ADMIN, Role.USER)
-                .antMatchers("/getUser").hasAnyRole(Role.ADMIN, Role.APPLICATION)
                 .antMatchers("/authenticate").permitAll()
                 .antMatchers("/createUser").permitAll()
                 .antMatchers("/createStandManager").permitAll()
                 .antMatchers("/pingAS").permitAll()
+                .antMatchers("/stripe/*").hasAnyRole(Role.ADMIN, Role.APPLICATION, Role.USER)
                 .anyRequest().authenticated()
                 .and()
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

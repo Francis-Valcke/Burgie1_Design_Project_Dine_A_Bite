@@ -11,7 +11,6 @@ public class CommonOrderItem implements Serializable {
 
     private String foodName;
     private int amount;
-    private int itemId;
     private BigDecimal price;
 
     public CommonOrderItem() {}
@@ -24,10 +23,6 @@ public class CommonOrderItem implements Serializable {
 
     public String getFoodName() {
         return foodName;
-    }
-
-    public int getItemId() {
-        return itemId;
     }
 
     public int getAmount() {
@@ -51,7 +46,13 @@ public class CommonOrderItem implements Serializable {
         NumberFormat euro = NumberFormat.getCurrencyInstance(Locale.FRANCE);
         euro.setMinimumFractionDigits(2);
         String symbol = euro.getCurrency().getSymbol();
-        return symbol + " " + price.toString();
+
+        if(price!=null){
+            return symbol + " " + price.toString();
+        }
+        else{
+            return symbol + " NA";
+        }
     }
 
 

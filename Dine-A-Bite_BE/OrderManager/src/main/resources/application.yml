@@ -4,19 +4,28 @@ server:
 
 spring:
   datasource:
+
+#    local testing
 #    url: jdbc:mysql://localhost:3306/menu?useLegacyDatetimeCode=false&serverTimezone=UTC
 #    username: root
-#    password: root
+#    password: rootroot
 
+#    remote testing
+#    url: jdbc:mysql://cobol.idlab.ugent.be:3306/menu_test?useLegacyDatetimeCode=false&serverTimezone=UTC
+#    username: www
+#    password: cobol2020
+
+#    production
     url: jdbc:mysql://cobol.idlab.ugent.be:3306/menu?useLegacyDatetimeCode=false&serverTimezone=UTC
     username: www
     password: cobol2020
 
+
   jpa:
-    show_sql: true
+#    show_sql: true
     generate-ddl: true
-#    hibernate:
-#      ddl-auto: create-drop
+    #hibernate:
+      #ddl-auto: create-drop
 
 logging:
   level:

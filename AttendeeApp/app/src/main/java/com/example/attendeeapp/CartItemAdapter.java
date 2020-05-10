@@ -85,44 +85,38 @@ public class CartItemAdapter  extends BaseAdapter {
 
         // Handle plus and minus Buttons and add onClickListeners for one menu item
         Button plusBtn = view.findViewById(R.id.cart_plus);
-        plusBtn.setOnClickListener(new View.OnClickListener(){
-            @Override
-            public void onClick(View v) {
-                if(cartCount < 25) {
-                    try {
-                        cartList.get(position).increaseCount();
-                        cartCount++;
-                        // Add the itemPrice to the total price
-                        ((CartActivity) context).updatePrice(cartList.get(position).getPrice());
-                        notifyDataSetChanged();
+        plusBtn.setOnClickListener(v -> {
+            if(cartCount < 25) {
+                try {
+                    cartList.get(position).increaseCount();
+                    cartCount++;
+                    // Add the itemPrice to the total price
+                    ((CartActivity) context).updatePrice(cartList.get(position).getPrice());
+                    notifyDataSetChanged();
 
-                    } catch (ArithmeticException e) {
-                        if (mToast != null) mToast.cancel();
-                        mToast = Toast.makeText(v.getContext(),"No more than 10 items",
-                                Toast.LENGTH_SHORT);
-                        mToast.show();
-                    }
-                } else {
+                } catch (ArithmeticException e) {
                     if (mToast != null) mToast.cancel();
-                    mToast = Toast.makeText(v.getContext(),"No more than 25 in total",
+                    mToast = Toast.makeText(v.getContext(),"No more than 10 items",
                             Toast.LENGTH_SHORT);
                     mToast.show();
                 }
-
+            } else {
+                if (mToast != null) mToast.cancel();
+                mToast = Toast.makeText(v.getContext(),"No more than 25 in total",
+                        Toast.LENGTH_SHORT);
+                mToast.show();
             }
+
         });
 
         Button minusBtn = view.findViewById(R.id.cart_minus);
-        minusBtn.setOnClickListener(new View.OnClickListener(){
-            @Override
-            public void onClick(View v) {
-                cartList.get(position).decreaseCount();
-                cartCount--;
-                // Add the negative of the itemPrice to the total price
-                ((CartActivity) context).updatePrice(cartList.get(position).getPrice().negate());
-                if(cartList.get(position).getCount() == 0) cartList.remove(cartList.get(position));
-                notifyDataSetChanged();
-            }
+        minusBtn.setOnClickListener(v -> {
+            cartList.get(position).decreaseCount();
+            cartCount--;
+            // Add the negative of the itemPrice to the total price
+            ((CartActivity) context).updatePrice(cartList.get(position).getPrice().negate());
+            if(cartList.get(position).getCount() == 0) cartList.remove(cartList.get(position));
+            notifyDataSetChanged();
         });
 
 

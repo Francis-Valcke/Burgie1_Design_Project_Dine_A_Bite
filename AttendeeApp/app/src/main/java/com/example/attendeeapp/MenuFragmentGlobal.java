@@ -8,7 +8,6 @@ import android.widget.ListView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 /**
  * Handles the view for the global menu
@@ -32,12 +31,9 @@ public class MenuFragmentGlobal extends MenuFragment {
 
         // Setup swipe to refresh menu (e.g. no internet connection)
         pullToRefresh = view.findViewById(R.id.swiperefresh);
-        pullToRefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-            @Override
-            public void onRefresh() {
-                fetchMenu("", "");
-                pullToRefresh.setRefreshing(false);
-            }
+        pullToRefresh.setOnRefreshListener(() -> {
+            fetchMenu("", "");
+            pullToRefresh.setRefreshing(true);
         });
 
         // Fetch global menu from server

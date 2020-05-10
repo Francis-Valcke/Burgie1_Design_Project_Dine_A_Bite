@@ -6,33 +6,40 @@ import androidx.room.TypeConverters;
 
 import com.example.attendeeapp.appDatabase.Converters;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+
+import org.threeten.bp.Duration;
+import org.threeten.bp.ZoneId;
+import org.threeten.bp.ZonedDateTime;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.text.NumberFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
 
 @Entity
 public class CommonOrder implements Serializable {
-
     // unique id for this order
     @PrimaryKey
     private int id;
 
     @TypeConverters(Converters.class)
-    private Calendar startTime;
+    @JsonDeserialize(using = ZonedDateTimeDeserializer.class)
+    private ZonedDateTime startTime;
     @TypeConverters(Converters.class)
-    private Calendar expectedTime;
+    @JsonDeserialize(using = ZonedDateTimeDeserializer.class)
+    private ZonedDateTime expectedTime;
 
     @TypeConverters(Converters.class)
     private State orderState;
 
-    private int standId;
     private String brandName;
     private String standName;
+
+    @TypeConverters(Converters.class)
+    private RecommendType recType;
 
     //----- Request ------//
     @TypeConverters(Converters.class)
@@ -42,11 +49,9 @@ public class CommonOrder implements Serializable {
     private double latitude;
     private double longitude;
 
-    @JsonIgnore
     @TypeConverters(Converters.class)
     private BigDecimal totalPrice;
 
-    @JsonIgnore
     private int totalCount;
     @JsonIgnore
     private boolean updateSeen = true;
@@ -59,9 +64,16 @@ public class CommonOrder implements Serializable {
         READY
     }
 
+    //type of recommendation wanted
+    public enum RecommendType {
+        DISTANCE,
+        TIME,
+        DISTANCE_AND_TIME
+    }
+
     public CommonOrder() {}
 
-    public CommonOrder(List<CommonFood> menuItems, String standName, String brandName, double latitude, double longitude){
+    public CommonOrder(List<CommonFood> menuItems, String standName, String brandName, double latitude, double longitude, RecommendType recType){
         this.id=0;
         this.latitude=latitude;
         this.longitude=longitude;
@@ -69,10 +81,11 @@ public class CommonOrder implements Serializable {
         this.standName=standName;
         this.brandName=brandName;
 
-        this.startTime=Calendar.getInstance();
-        this.expectedTime=Calendar.getInstance();
+        this.startTime=ZonedDateTime.now(ZoneId.of("Europe/Brussels"));
+        this.expectedTime=ZonedDateTime.now(ZoneId.of("Europe/Brussels"));
 
         this.orderState=State.SEND;
+        this.recType = recType;
 
         this.orderItems=new ArrayList<>();
         for (CommonFood menuItem : menuItems) {
@@ -86,15 +99,11 @@ public class CommonOrder implements Serializable {
     }
 
     public int computeRemainingTime(){
-        return (int) (expectedTime.getTimeInMillis()-startTime.getTimeInMillis());
+        return (int) Duration.between(startTime, expectedTime).toMillis();
     }
 
     public State getOrderState() {
         return orderState;
-    }
-
-    public int getStandId() {
-        return standId;
     }
 
     public String getBrandName() {
@@ -125,10 +134,6 @@ public class CommonOrder implements Serializable {
         this.orderState = orderState;
     }
 
-    public void setStandId(int standId) {
-        this.standId = standId;
-    }
-
     public void setBrandName(String brandName) {
         this.brandName = brandName;
     }
@@ -149,19 +154,19 @@ public class CommonOrder implements Serializable {
         this.longitude = longitude;
     }
 
-    public Calendar getStartTime() {
+    public ZonedDateTime getStartTime() {
         return startTime;
     }
 
-    public void setStartTime(Calendar startTime) {
+    public void setStartTime(ZonedDateTime startTime) {
         this.startTime = startTime;
     }
 
-    public Calendar getExpectedTime() {
+    public ZonedDateTime getExpectedTime() {
         return expectedTime;
     }
 
-    public void setExpectedTime(Calendar expectedTime) {
+    public void setExpectedTime(ZonedDateTime expectedTime) {
         this.expectedTime = expectedTime;
     }
 
@@ -189,6 +194,14 @@ public class CommonOrder implements Serializable {
         this.updateSeen = updateSeen;
     }
 
+    public RecommendType getRecType() {
+        return recType;
+    }
+
+    public void setRecType(RecommendType type) {
+        this.recType = type;
+    }
+
     /**
      * Return the total price of the order with the euro symbol
      * @return String of euro symbol with total price
@@ -198,7 +211,12 @@ public class CommonOrder implements Serializable {
         NumberFormat euro = NumberFormat.getCurrencyInstance(Locale.FRANCE);
         euro.setMinimumFractionDigits(2);
         String symbol = euro.getCurrency().getSymbol();
-        return symbol + " " + totalPrice.toString();
+        if(totalPrice!=null){
+            return symbol + " " + totalPrice.toString();
+        }
+        else{
+            return symbol + " NA";
+        }
     }
 
     /**
@@ -208,6 +226,7 @@ public class CommonOrder implements Serializable {
     public void setPrices(ArrayList<CommonFood> list) {
         for(CommonFood menuItem : list)  {
             for(CommonOrderItem item : orderItems) {
+                // TODO: check for standName too?
                 if(item.getFoodName().equals(menuItem.getName())) {
                     item.setPrice(menuItem.getPrice());
                 }

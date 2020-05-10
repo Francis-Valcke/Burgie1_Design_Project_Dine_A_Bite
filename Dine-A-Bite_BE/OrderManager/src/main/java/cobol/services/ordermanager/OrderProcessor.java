@@ -12,6 +12,8 @@ import cobol.services.ordermanager.domain.repository.FoodRepository;
 import cobol.services.ordermanager.domain.repository.OrderRepository;
 import cobol.services.ordermanager.domain.repository.StandRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import org.json.simple.JSONObject;
@@ -23,10 +25,10 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import javax.naming.CommunicationException;
-import java.util.Calendar;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Optional;
+import java.time.Duration;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.util.*;
 
 /**
  * This is a Singleton
@@ -55,6 +57,7 @@ public class OrderProcessor {
     private volatile LinkedList<Event> eventQueue = new LinkedList<>();
 
 
+
     // key order id
     ListMultimap<Integer, Recommendation> orderRecommendations = ArrayListMultimap.create();
 
@@ -63,6 +66,7 @@ public class OrderProcessor {
 
     private OrderProcessor() throws CommunicationException {
 
+        TimeZone.setDefault(TimeZone.getTimeZone("Europe/Brussels"));
         //set learning rate for the running averages
         this.learningRate = 0.2;
     }
@@ -85,7 +89,6 @@ public class OrderProcessor {
         newOrder.setRemtime(0);
 
         newOrder.setState(CommonOrder.State.PENDING);
-        //orderRepository.saveAndFlush(newOrder);
 
         newOrder=orderRepository.save(newOrder);
 
@@ -95,12 +98,12 @@ public class OrderProcessor {
         return newOrder;
     }
 
-    public Order confirmStand(int orderId, String standName, String brandName) throws DoesNotExistException {
+    public Order confirmStand(int orderId, String standName, String brandName) throws DoesNotExistException, JsonProcessingException {
         Optional<Order> orderOptional = this.getOrder(orderId);
         Stand stand = standRepository.findStandById(standName, brandName).orElseThrow(() -> new DoesNotExistException("Stand does not exist"));
 
         if (!orderOptional.isPresent()) {
-            throw new DoesNotExistException("Order is does not exist, please make an order first before confirming a stand");
+            throw new DoesNotExistException("Order does not exist, please make an order first before confirming a stand");
         }
 
         if (stand == null) {
@@ -118,16 +121,25 @@ public class OrderProcessor {
 
             recomOptional.ifPresent(recommendation -> updatedOrder.setRemtime(recommendation.getTimeEstimate()));
             orderRepository.save(updatedOrder);
+
+            //send the updated order to stand to place it in the queue
+            CommonOrder mappedOrder = updatedOrder.asCommonOrder();
+            ObjectMapper mapper = new ObjectMapper();
+            mapper.registerModule(new JavaTimeModule());
+            String jsonString = mapper.writeValueAsString(mappedOrder);
+            communicationHandler.sendRestCallToStandManager("/placeOrder", jsonString, null);
         }
+
+
         return updatedOrder;
     }
 
     // ---- Update or Process existing orders ---- //
 
     private void updatePreparationEstimate(Order order) {
-        Calendar actualTime =  Calendar.getInstance();
+        ZonedDateTime actualTime =  ZonedDateTime.now(ZoneId.of("Europe/Brussels"));
         // Compute how long the stand has been working on this order
-        int actualPrepTime = (int) ((actualTime.getTime().getTime() - order.getStartTime().getTime().getTime())) / 1000;
+        int actualPrepTime = (int) Duration.between(actualTime, order.getStartTime()).getSeconds();
 
         String brandName = order.getStand().getBrandName();
         int largestPreptime = 0;
@@ -143,7 +155,9 @@ public class OrderProcessor {
         int updatedAverage = (int) (((1-this.learningRate) * largestPreptime) + (learningRate * actualPrepTime));
         if(foodToUpdate!=null){
             foodToUpdate.setPreparationTime(updatedAverage);
+            foodRepository.updatePreparationTime(foodToUpdate.getFoodId().getName(), order.getStand().getName(), brandName, updatedAverage);
         }
+
     }
 
     public void addRecommendations(int id, List<Recommendation> recommendations) {
@@ -178,25 +192,27 @@ public class OrderProcessor {
                 String newStatusString = (String) eventData.get("newStatus");
                 CommonOrder.State newStatus = CommonOrder.State.valueOf(newStatusString);
                 int orderId = (int) eventData.get("orderId");
-                Order localOrder = orderRepository.findById(orderId).orElse(null);
-                if(localOrder!=null){
+                Optional<Order> localOrderOptional = orderRepository.findFullOrderById(orderId);
+                if(localOrderOptional.isPresent()){
 
                     // update to new state
+                    Order localOrder= localOrderOptional.get();
                     localOrder.setState(newStatus);
                     if (newStatus.equals(CommonOrder.State.DECLINED) || newStatus.equals(CommonOrder.State.READY)) {
                         if (newStatus.equals(CommonOrder.State.READY)) {
                             updatePreparationEstimate(localOrder);
                         }
 
-                        orderRepository.delete(localOrder);
 
                         // deregister from order
                         communicationHandler.deregisterFromOrder(subscriberId, orderId);
-
                     }
+
+                    orderRepository.updateState(localOrder.getId(), localOrder.getOrderState());
                 }
             }
         }
     }
+
 }
 

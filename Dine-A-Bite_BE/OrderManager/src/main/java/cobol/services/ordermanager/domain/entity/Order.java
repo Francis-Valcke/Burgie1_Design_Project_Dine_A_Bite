@@ -2,23 +2,22 @@ package cobol.services.ordermanager.domain.entity;
 
 import cobol.commons.order.CommonOrder;
 import cobol.commons.order.CommonOrderItem;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.json.simple.JSONObject;
-import org.springframework.data.jpa.repository.Modifying;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import javax.persistence.*;
 import java.io.Serializable;
-import java.util.*;
+import java.math.BigDecimal;
+import java.time.Duration;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "orders")
 public class Order implements Serializable {
 
-    // Static counter that keeps track of number of order
-    // TODO: needs to change, counter must be kept in database
-    private static int orderCounter = 1;
 
 
     //----- Backend Information -----//
@@ -28,10 +27,13 @@ public class Order implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
+
+
+
     @Column(columnDefinition = "datetime")
-    private Calendar startTime;
+    private ZonedDateTime startTime;
     @Column(columnDefinition = "datetime")
-    private Calendar expectedTime;
+    private ZonedDateTime expectedTime;
     @Column
     private CommonOrder.State orderState;
     // Coordinates Attendee on moment that order was mad
@@ -49,14 +51,20 @@ public class Order implements Serializable {
     )
     private Stand stand;
 
+    @JsonIgnore
+    @ManyToOne
+    private User user;
+
     //----- Request ------//
     @OneToMany(
             targetEntity = OrderItem.class,
             mappedBy = "order",
+            fetch = FetchType.LAZY,
             cascade = CascadeType.ALL,
             orphanRemoval = true
     )
     private List<OrderItem> orderItems;
+    private CommonOrder.RecommendType recType;
 
 
     // ---- Constructor / Transformers ---- //
@@ -77,14 +85,16 @@ public class Order implements Serializable {
         this.latitude = orderObject.getLatitude();
         this.longitude = orderObject.getLongitude();
         this.orderItems = new ArrayList<>();
-        for (CommonOrderItem orderItem : orderObject.getOrderItems()) {
-            this.addOrderItem(new OrderItem(orderItem, this));
+
+        for (CommonOrderItem commonOrderItem : orderObject.getOrderItems()) {
+
+            this.addOrderItem(new OrderItem(commonOrderItem, this));
+
         }
         this.orderState = orderObject.getOrderState();
-        this.startTime = Calendar.getInstance();
-        this.expectedTime = Calendar.getInstance();
-        expectedTime.setTime(startTime.getTime());
-        expectedTime.add(Calendar.MINUTE, 15);
+        this.startTime = ZonedDateTime.now(ZoneId.of("Europe/Brussels"));
+        this.expectedTime = ZonedDateTime.from(startTime);
+        this.recType = orderObject.getRecType();
 
     }
 
@@ -104,6 +114,14 @@ public class Order implements Serializable {
             brandName = this.stand.getBrandName();
         }
 
+        int totalAmount=0;
+        BigDecimal totalPrice=new BigDecimal(0);
+        for (OrderItem orderItem : this.orderItems) {
+            totalAmount+=orderItem.getAmount();
+            totalPrice= totalPrice.add(orderItem.getPrice().multiply(BigDecimal.valueOf(orderItem.getAmount())));
+        }
+
+
         return new CommonOrder(
                 this.id,
                 this.startTime,
@@ -113,7 +131,10 @@ public class Order implements Serializable {
                 standName,
                 this.orderItems.stream().map(OrderItem::asCommonOrderItem).collect(Collectors.toList()),
                 this.latitude,
-                this.longitude
+                this.longitude,
+                this.recType,
+                totalAmount,
+                totalPrice
         );
 
 
@@ -128,8 +149,7 @@ public class Order implements Serializable {
      * @param remainingTime time in seconds
      */
     public void setRemtime(int remainingTime) {
-        expectedTime.setTime(startTime.getTime());
-        expectedTime.add(Calendar.SECOND, remainingTime);
+        expectedTime = expectedTime.plusSeconds(remainingTime);
     }
 
 
@@ -138,7 +158,14 @@ public class Order implements Serializable {
      * @return RemainingTime in seconds
      */
     public int computeRemainingTime() {
-        return (int) (expectedTime.getTimeInMillis() - Calendar.getInstance().getTimeInMillis())/1000;
+        ZonedDateTime actual = ZonedDateTime.now(ZoneId.of("Europe/Brussels"));
+        if (actual.isAfter(expectedTime)){
+            return 0;
+        }
+        else {
+            Duration remaining = Duration.between(actual, expectedTime);
+            return (int) remaining.getSeconds();
+        }
     }
 
     // ---- Getters and Setters ----- //
@@ -169,7 +196,7 @@ public class Order implements Serializable {
         return stand;
     }
 
-    public Calendar getStartTime() {
+    public ZonedDateTime getStartTime() {
         return startTime;
     }
 
@@ -201,6 +228,14 @@ public class Order implements Serializable {
         return this.stand != null;
     }
 
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
+
     @Override
     public String toString() {
         return "Order{" +
@@ -211,5 +246,6 @@ public class Order implements Serializable {
                 ", longitude=" + longitude +
                 '}';
     }
+
 
 }

@@ -2,6 +2,7 @@ package cobol.services.standmanager;
 
 
 import cobol.commons.order.CommonOrderItem;
+import cobol.commons.order.Recommendation;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -19,22 +20,28 @@ public class SchedulerComparatorTime implements Comparator<Scheduler> {
 
     @Override
     public int compare(Scheduler o1, Scheduler o2) {
-        int time1 = 0;
-        int time2 = 0;
-        for (CommonOrderItem orderItem : orderItems) {
-            String foodName = orderItem.getFoodName();
-            time1 += o1.getPreptime(foodName) * orderItem.getAmount();
-            time2 += o2.getPreptime(foodName) * orderItem.getAmount();
-        }
+        int time1 = getLongestFoodPrepTime(o1);
+        int time2 = getLongestFoodPrepTime(o2);
+
         return Long.compare(o1.timeSum() + time1, o2.timeSum() + time2);
     }
 
 
     public int getTimesum(Scheduler o) {
-        int time = 0;
-        for (CommonOrderItem orderItem : orderItems) {
-            time += o.getPreptime(orderItem.getFoodName()) * orderItem.getAmount();
-        }
-        return o.timeSum() + time;
+        //we use the fooditem with longest preparation time as the general preparation time of the full order
+
+        int longestFoodPrepTime = getLongestFoodPrepTime(o);
+        return o.timeSum() + longestFoodPrepTime;
     }
+
+    public int getLongestFoodPrepTime(Scheduler o){
+        int longestFoodPrepTime = 0;
+        for (CommonOrderItem orderItem : orderItems) {
+            if (o.getPreptime(orderItem.getFoodName()) > longestFoodPrepTime){
+                longestFoodPrepTime = o.getPreptime(orderItem.getFoodName());
+            }
+        }
+        return longestFoodPrepTime;
+    }
+
 }

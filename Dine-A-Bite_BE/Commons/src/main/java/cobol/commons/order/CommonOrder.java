@@ -2,19 +2,28 @@ package cobol.commons.order;
 
 import lombok.Data;
 
-import java.util.Calendar;
+import java.math.BigDecimal;
+import java.time.Duration;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.TimeZone;
+
+//import java.util.Calendar;
 
 @Data
 public class CommonOrder {
 
     private int id;
 
-    private Calendar startTime;
-    private Calendar expectedTime;
+    private ZonedDateTime startTime;
+    private ZonedDateTime expectedTime;
     private State orderState;
     private String brandName;
     private String standName;
+    private RecommendType recType;
+    private int totalCount;
+    private BigDecimal totalPrice;
 
     private List<CommonOrderItem> orderItems;
 
@@ -22,9 +31,11 @@ public class CommonOrder {
     private double latitude;
     private double longitude;
 
+
     public CommonOrder(){}
 
-    public CommonOrder(int id, Calendar startTime, Calendar expectedTime, State orderState, String brandName, String standName, List<CommonOrderItem> orderItems, double latitude, double longitude) {
+    public CommonOrder(int id, ZonedDateTime startTime, ZonedDateTime expectedTime, State orderState, String brandName, String standName, List<CommonOrderItem> orderItems, double latitude, double longitude, RecommendType recType, int totalCount, BigDecimal totalPrice) {
+        TimeZone.setDefault(TimeZone.getTimeZone("Europe/Brussels"));
         this.id = id;
         this.startTime = startTime;
         this.expectedTime = expectedTime;
@@ -34,6 +45,9 @@ public class CommonOrder {
         this.orderItems = orderItems;
         this.latitude = latitude;
         this.longitude = longitude;
+        this.recType = recType;
+        this.totalCount = totalCount;
+        this.totalPrice=totalPrice;
     }
 
     public enum State {
@@ -43,13 +57,26 @@ public class CommonOrder {
         CONFIRMED,
         READY
     }
+    //type of recommendation wanted
+    public enum RecommendType {
+        DISTANCE,
+        TIME,
+        DISTANCE_AND_TIME
+    }
 
     /**
      * Computes remaining time till expected time with respect to current time
      * @return RemainingTime in seconds
      */
     public int computeRemainingTime(){
-        return (int) (expectedTime.getTimeInMillis()-startTime.getTimeInMillis())/1000;
+        ZonedDateTime actual = ZonedDateTime.now(ZoneId.of("Europe/Brussels"));
+        if (actual.isAfter(expectedTime)){
+            return -1;
+        }
+        else {
+            Duration remaining = Duration.between(actual, expectedTime);
+            return (int) remaining.getSeconds();
+        }
     }
 
 }

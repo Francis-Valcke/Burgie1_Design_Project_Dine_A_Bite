@@ -55,21 +55,15 @@ public class MenuBottomSheetDialog extends BottomSheetDialogFragment {
 
         // Handle plus and minus Buttons and add onClickListeners for one menu item
         Button plusBtn = view.findViewById(R.id.bottom_sheet_plus);
-        plusBtn.setOnClickListener(new View.OnClickListener(){
-            @Override
-            public void onClick(View v) {
-                // Pass menu item to the cart to (try) to be added
-                cartListener.onCartChangedAdd(item);
-            }
+        plusBtn.setOnClickListener(v -> {
+            // Pass menu item to the cart to (try) to be added
+            cartListener.onCartChangedAdd(item);
         });
 
         Button minusBtn = view.findViewById(R.id.bottom_sheet_minus);
-        minusBtn.setOnClickListener(new View.OnClickListener(){
-            @Override
-            public void onClick(View v) {
-                // Pass menu item to the cart to (try) to be removed
-                cartListener.onCartChangedRemove(item);
-            }
+        minusBtn.setOnClickListener(v -> {
+            // Pass menu item to the cart to (try) to be removed
+            cartListener.onCartChangedRemove(item);
         });
 
         return view;

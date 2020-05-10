@@ -20,6 +20,10 @@
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="true">
 
+        <meta-data
+            android:name="com.google.android.gms.wallet.api.enabled"
+            android:value="true" />
+
         <activity
             android:name=".MainActivity">
 
@@ -30,6 +34,16 @@
         </activity>
 
         <activity
+            android:name=".ToolbarActivity"
+            android:parentActivityName=".MainActivity">
+
+            <!-- Parent activity meta-data to support 4.0 and lower -->
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".MainActivity" />
+        </activity>
+
+        <activity
             android:name=".AccountActivity"
             android:parentActivityName=".MenuActivity">
 
@@ -37,6 +51,16 @@
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".MenuActivity" />
+        </activity>
+
+        <activity
+                android:name=".TopUpActivity"
+                android:parentActivityName=".AccountActivity">
+
+            <!-- Parent activity meta-data to support 4.0 and lower -->
+            <meta-data
+                    android:name="android.support.PARENT_ACTIVITY"
+                    android:value=".AccountActivity" />
         </activity>
 
         <activity
@@ -52,6 +76,17 @@
         <activity
             android:name=".ui.login.LoginActivity"
             android:label="@string/title_activity_login" />
+
+        <activity
+            android:name=".ui.login.RegisterActivity"
+            android:label="@string/register"
+            android:parentActivityName=".ui.login.LoginActivity">
+
+            <!-- Parent activity meta-data to support 4.0 and lower -->
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".ui.login.LoginActivity" />
+        </activity>
 
         <activity
             android:name=".OrderActivity"

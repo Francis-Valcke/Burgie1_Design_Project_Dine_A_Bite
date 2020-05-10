@@ -3,11 +3,12 @@ package cobol.services.standmanager;
 import cobol.commons.CommonFood;
 import cobol.commons.CommonStand;
 import cobol.commons.exception.CommunicationException;
+import cobol.commons.exception.OrderException;
 import cobol.commons.order.CommonOrder;
 import cobol.commons.order.CommonOrderItem;
 import cobol.commons.order.Recommendation;
+import cobol.commons.order.SuperOrder;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -16,7 +17,9 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 @Scope(value = "singleton")
@@ -25,6 +28,9 @@ public class SchedulerHandler {
 
     @Autowired
     CommunicationHandler communicationHandler;
+
+    @Autowired
+    PriorityQueues priorityQueues;
 
     /**
      * The schedulerhandler has a list of all schedulers.
@@ -35,7 +41,6 @@ public class SchedulerHandler {
     public SchedulerHandler() {
         schedulers = new ArrayList<Scheduler>();
     }
-
 
 
     public void clearSchedulers() {
@@ -50,8 +55,9 @@ public class SchedulerHandler {
     public void removeScheduler(Scheduler scheduler) {
         this.schedulers.remove(scheduler);
     }
+
     /**
-     * @param order the order for which you want to find corresponding stands
+     * @param order the order for which you want to find corresponding stands (brand
      * @return list of schedulers (so the stands) which offer the correct food to complete the order
      */
     public ArrayList<Scheduler> findCorrespondStands(CommonOrder order) {
@@ -63,68 +69,146 @@ public class SchedulerHandler {
         ArrayList<Scheduler> goodSchedulers = new ArrayList<>();
 
         for (int i = 0; i < this.schedulers.size(); i++) {
-            boolean validStand = true;
+            if (order.getBrandName().equals(this.schedulers.get(i).getBrand())) {
+                boolean validStand = true;
+                Scheduler currentScheduler = this.schedulers.get(i);
 
-            Scheduler currentScheduler = this.schedulers.get(i);
-
-            for (CommonOrderItem orderItem : orderItems) {
-                String food = orderItem.getFoodName();
-                if (currentScheduler.checkType(food)) {
-                    validStand = true;
-                } else {
-                    validStand = false;
-                    break;
+                for (CommonOrderItem orderItem : orderItems) {
+                    String food = orderItem.getFoodName();
+                    if (currentScheduler.checkType(food)) {
+                        validStand = true;
+                    } else {
+                        validStand = false;
+                        break;
+                    }
                 }
-            }
-
-            if (validStand) {
-                goodSchedulers.add(currentScheduler);
+                if (validStand) {
+                    goodSchedulers.add(currentScheduler);
+                }
             }
         }
         return goodSchedulers;
     }
 
 
+    public List<HashSet<CommonOrderItem>> splitSuperOrder(SuperOrder superOrder) throws OrderException {
+
+        // Extract and copy complete list of CommonOrderItems from superOrder
+        List<CommonOrderItem> items = new ArrayList<>(superOrder.getOrderItems());
+
+        // search items that can be executed together
+        List<HashSet<CommonOrderItem>> itemSplit = new ArrayList<>();
+
+        // Get schedulers from this brand
+        List<Scheduler> brandSchedulers = getSchedulers()
+                .stream().filter(s -> s.getBrand().equals(superOrder.getBrandName()))
+                .collect(Collectors.toList());
+
+        // Check if there is a scheduler that can make all items together
+        List<Scheduler> everythingSchedulers = brandSchedulers
+                .stream().filter(bs -> bs.getMenu().stream().map(CommonFood::getName).collect(Collectors.toList())
+                        .containsAll(items.stream().map(CommonOrderItem::getFoodName).collect(Collectors.toList())))
+                .collect(Collectors.toList());
+
+
+        if (!everythingSchedulers.isEmpty()) {
+            itemSplit.add(new HashSet<>(items));
+        } else {
+            // Split order items in sets which can be executed together
+            for (Scheduler scheduler : brandSchedulers) {
+                // As long items list is not empty, search stand which can do it
+                if (!items.isEmpty()) {
+                    List<String> stringMenu = scheduler.getMenu().stream().map(CommonFood::getName).collect(Collectors.toList());
+                    List<CommonOrderItem> canExecuteTogether = items.stream().filter(item -> stringMenu.contains(item.getFoodName())).collect(Collectors.toList());
+
+                    if(!canExecuteTogether.isEmpty()){
+                        itemSplit.add(new HashSet<>(canExecuteTogether));
+                        items.removeAll(canExecuteTogether);
+                    }
+                } else {
+                    break;
+                }
+            }
+
+            if(!items.isEmpty()){
+                throw new OrderException("Super order contains items from other brands");
+            }
+        }
+
+        return itemSplit;
+    }
+
     /**
      * @param order is the order for which the recommended stands are required
      * @return JSON with a certain amount of recommended stands (currently based on lowest queue time only)
      */
     public List<Recommendation> recommend(CommonOrder order) throws JsonProcessingException {
-        /* choose how many recommends you want */
-        int amountOfRecommends = 3;
-
-        /* find stands (schedulers) which offer correct food for the order */
+        // find stands (schedulers) which offer correct food for the order
         ArrayList<Scheduler> goodSchedulers = findCorrespondStands(order);
 
-        /* sort the stands (schedulers) based on remaining time */
-        //Collections.sort(goodSchedulers, new SchedulerComparatorTime(order.getFull_order()));
+        // weight for when using mixed recommender, for now this is set (like amount of recs), but could also be chosen by attendee in future
+        double weight = 5;
 
-        /* sort the stands (schedulers) based on distance */
-        Collections.sort(goodSchedulers, new SchedulerComparatorDistance(order.getLatitude(), order.getLongitude()));
-
-        /* TODO: this is how you sort based on combination, weight is how much time you add for each unit of distance */
-        /* sort the stands (schedulers) based on combination of time and distance */
-        //double weight = 5;
-        //Collections.sort(goodSchedulers, new SchedulerComparator(order.getLat(), order.getLon(), weight);
-
-        /* check if you have enough stands (for amount of recommendations you want) */
-        if (goodSchedulers.size() < amountOfRecommends) {
-            amountOfRecommends = goodSchedulers.size();
+        //now look which type of recommendation we want and order the scheduler based on that
+        if (order.getRecType().equals(CommonOrder.RecommendType.TIME)){
+            //sort the stands (schedulers) based on remaining time
+            Collections.sort(goodSchedulers, new SchedulerComparatorTime(new ArrayList<>(order.getOrderItems())));
         }
-        /* put everything into a JSON file to give as return value */
+        else if (order.getRecType().equals(CommonOrder.RecommendType.DISTANCE)){
+            //sort the stands (schedulers) based on distance
+            Collections.sort(goodSchedulers, new SchedulerComparatorDistance(order.getLatitude(), order.getLongitude()));
+        }
+        else if (order.getRecType().equals(CommonOrder.RecommendType.DISTANCE_AND_TIME)) {
+            //sort the stands (schedulers) based on mix between distance and time
+            Collections.sort(goodSchedulers, new SchedulerComparator(order.getLatitude(), order.getLongitude(), weight, new ArrayList<>(order.getOrderItems())));
+        }
+        else {
+            System.out.println("THE CHOSEN RECOMMENDATION TYPE IS NOT VALID ");
+        }
+
+        //choose how many recommends you want
+        int amountOfRecommends = goodSchedulers.size();
+
+        // put everything into a JSON file to give as return value
         List<Recommendation> recommendations = new ArrayList<>();
 
         for (int i = 0; i < amountOfRecommends; i++) {
             Scheduler curScheduler = goodSchedulers.get(i);
-            System.out.println(curScheduler.getStandName());
             SchedulerComparatorDistance sc = new SchedulerComparatorDistance(curScheduler.getLat(), curScheduler.getLon());
             SchedulerComparatorTime st = new SchedulerComparatorTime(new ArrayList<>(order.getOrderItems()));
-            recommendations.add(new Recommendation(curScheduler.getStandName(), curScheduler.getBrand(), sc.getDistance(order.getLatitude(), order.getLongitude()), st.getTimesum(curScheduler)));
-            System.out.println(st.getTimesum(curScheduler));
+            recommendations.add(new Recommendation(curScheduler.getStandName(), curScheduler.getBrand(), sc.getDistance(order.getLatitude(), order.getLongitude()), st.getTimesum(curScheduler), i + 1, curScheduler.getSubscriberId(), st.getLongestFoodPrepTime(curScheduler)));
         }
 
-        return recommendations;
+        //add the queue times of the priority queues
+        priorityQueues.computeExtraTime(recommendations, order.getId(), order.getRecType());
+
+        //sort the recommendation list again based on added times (ONLY WHEN recommendation type is NOT distance)
+        if (!order.getRecType().equals(CommonOrder.RecommendType.DISTANCE)) {
+            List<Recommendation> sortedRecommends = priorityQueues.sortAndRerank(recommendations);
+            return sortedRecommends;
+        } else {
+            return recommendations;
+        }
     }
+
+
+    public JSONObject addOrderToScheduler(CommonOrder order) {
+        JSONObject obj = new JSONObject();
+        for (Scheduler s : schedulers) {
+            if (s.getStandName().equals(order.getStandName()) && s.getBrand().equals(order.getBrandName())) {
+                s.addOrder(order);
+                obj.put("added", true);
+                break;
+            }
+        }
+
+        //remove this order from priority queues
+        this.priorityQueues.removeOrder(order.getId());
+
+        return obj;
+    }
+
+
     @Scheduled(fixedDelay = 5000)
     public void pollEvents() {
         if (schedulers.size() == 0) return;
@@ -132,6 +216,7 @@ public class SchedulerHandler {
             s.pollEvents();
         }
     }
+
     public JSONObject updateSchedulers(CommonStand info) throws CommunicationException {
         boolean newScheduler = true;
         JSONObject obj = new JSONObject();
@@ -147,20 +232,20 @@ public class SchedulerHandler {
                     ArrayList<String> l = new ArrayList<>();
                     for (CommonFood mi : info.getMenu()) {
                         l.add(mi.getName());
-                        boolean olditem=false;
+                        boolean olditem = false;
                         for (CommonFood mi2 : s.getMenu()) {
 
                             olditem = Scheduler.updateItem(mi, mi2);
 
                         }
-                        if (!olditem){
+                        if (!olditem) {
                             s.getMenu().add(mi);
                         }
                     }
 
-                    List<CommonFood> toRemove= new ArrayList<>();
+                    List<CommonFood> toRemove = new ArrayList<>();
                     for (CommonFood mi2 : s.getMenu()) {
-                        if (!l.contains(mi2.getName())){
+                        if (!l.contains(mi2.getName())) {
                             toRemove.add(mi2);
                         }
                     }
@@ -182,6 +267,7 @@ public class SchedulerHandler {
 
         return obj;
     }
+
     public List<Scheduler> getSchedulers() {
         return schedulers;
     }

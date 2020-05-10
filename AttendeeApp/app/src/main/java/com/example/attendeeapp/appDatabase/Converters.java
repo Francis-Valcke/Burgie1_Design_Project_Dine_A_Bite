@@ -8,6 +8,10 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import org.threeten.bp.Instant;
+import org.threeten.bp.ZoneId;
+import org.threeten.bp.ZonedDateTime;
+
 import java.math.BigDecimal;
 import java.util.Calendar;
 import java.util.List;
@@ -38,18 +42,23 @@ public class Converters {
     }
 
     @TypeConverter
-    public static Calendar fromTimestamp(Long value) {
-        Calendar cal = Calendar.getInstance();
-        if (value == null) {
-            return null;
-        }
-        cal.setTimeInMillis(value);
-        return cal;
+    public static Integer getRecommendTypeInt(CommonOrder.RecommendType type) {
+        return type.ordinal();
     }
 
     @TypeConverter
-    public static Long CalendarToTimestamp(Calendar cal) {
-        return cal == null? null : cal.getTime().getTime();
+    public static CommonOrder.RecommendType getRecommendType(Integer type) {
+        return CommonOrder.RecommendType.values()[type];
+    }
+
+    @TypeConverter
+    public static Long ZonedDateTimeToTimestamp(ZonedDateTime zonedDateTime) {
+        return zonedDateTime == null ? null : zonedDateTime.toInstant().toEpochMilli();
+    }
+
+    @TypeConverter
+    public static ZonedDateTime ZonedDateTimeFromTimestamp(Long value) {
+        return ZonedDateTime.ofInstant(Instant.ofEpochMilli(value), ZoneId.of("Europe/Brussels"));
     }
 
     @TypeConverter

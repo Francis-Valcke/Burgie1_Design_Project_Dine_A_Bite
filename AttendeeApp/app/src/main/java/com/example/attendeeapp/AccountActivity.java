@@ -1,78 +1,159 @@
 package com.example.attendeeapp;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.util.Log;
+import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
+import androidx.annotation.Nullable;
+import androidx.security.crypto.EncryptedSharedPreferences;
+import androidx.security.crypto.MasterKeys;
 
+import com.example.attendeeapp.appDatabase.OrderDatabaseService;
 import com.example.attendeeapp.data.LoginDataSource;
 import com.example.attendeeapp.data.LoginRepository;
 import com.example.attendeeapp.data.model.LoggedInUser;
+import com.example.attendeeapp.json.BetterResponseModel;
+import com.example.attendeeapp.json.BetterResponseModel.GetBalanceResponse;
+import com.example.attendeeapp.polling.OkHttpRequestTool;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
-// TODO log out button and functionality
-// TODO show history of picked up orders
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 
-public class AccountActivity extends AppCompatActivity {
+import io.reactivex.rxjava3.disposables.CompositeDisposable;
+import okhttp3.Request;
 
-    TextView username;
+public class AccountActivity extends ToolbarActivity {
 
+    private static final String TAG = AccountActivity.class.getSimpleName();
+
+    public static final int REQUEST_TOP_TUP = 0;
+
+    private LoggedInUser user;
+    private TextView balance;
+    CompositeDisposable disposables;
+
+    @SuppressLint("ApplySharedPref")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_account);
 
-        // Custom Toolbar (instead of standard actionbar)
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+        disposables = new CompositeDisposable();
 
-        // Get a support ActionBar corresponding to this toolbar
-        ActionBar ab = getSupportActionBar();
-
-        // Enable the Up button
-        assert ab != null;
-        ab.setDisplayHomeAsUpEnabled(true);
-
-        ab.setTitle("Account");
+        // Initialize the toolbar
+        initToolbar();
+        upButtonToolbar();
 
         // Show username of currently logged in user
-        LoggedInUser user = LoginRepository.getInstance(new LoginDataSource()).getLoggedInUser();
-        username = findViewById(R.id.username);
+        user = LoginRepository.getInstance(new LoginDataSource()).getLoggedInUser();
+        TextView username = findViewById(R.id.username);
         username.setText(user.getDisplayName());
+
+        balance = findViewById(R.id.balance);
+        updateBalance();
+
+
+        Button logOutButton = findViewById(R.id.button_log_out);
+        logOutButton.setOnClickListener(v -> {
+            // Delete persistent data from the currently logged in user
+            // (clear db of all entries)
+            OrderDatabaseService orderDatabaseService =
+                    new OrderDatabaseService(getApplicationContext());
+            orderDatabaseService.deleteAllOrders();
+
+            // Clear Shared Preference file, this will reset the logged in user
+            try {
+                String masterKeyAlias = MasterKeys.getOrCreate(MasterKeys.AES256_GCM_SPEC);
+                SharedPreferences sharedPreferences = EncryptedSharedPreferences.create(
+                        getString(R.string.shared_pref_file_key),
+                        masterKeyAlias,
+                        getApplicationContext(),
+                        EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                        EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+                );
+                SharedPreferences.Editor editor = sharedPreferences.edit();
+                editor.clear();
+                // Ignore warning: needs to be commit to be synchronous
+                editor.commit();
+            } catch (GeneralSecurityException | IOException e) {
+                e.printStackTrace();
+            }
+
+            LoginRepository.getInstance(new LoginDataSource()).logout();
+
+            // Start MainActivity again
+            Intent intent = new Intent(AccountActivity.this, MainActivity.class);
+            startActivity(intent);
+            finish();
+        });
+
+
+        Button topUp = findViewById(R.id.button_top_up);
+        topUp.setOnClickListener(button -> {
+            Intent intent = new Intent(this, TopUpActivity.class);
+            startActivityForResult(intent, REQUEST_TOP_TUP);
+        });
+
+    }
+
+    private void updateBalance() {
+
+        String url = ServerConfig.AS_ADDRESS + "/user/balance";
+        Request request = new Request.Builder()
+                .url(url)
+                .method("GET", null)
+                .addHeader("Authorization", user.getAuthorizationToken())
+                .build();
+
+        disposables.add(OkHttpRequestTool.wrapRequest(request).subscribe(
+                response -> {
+                    try {
+                        ObjectMapper om = new ObjectMapper();
+                        BetterResponseModel<GetBalanceResponse> object =
+                                om.readValue(response, new TypeReference<BetterResponseModel<GetBalanceResponse>>() {
+                                });
+
+                        if (object.isOk()) {
+                            balance.setText(String.valueOf(object.getPayload().getBalance()));
+                        } else throw object.getException();
+
+                    } catch (Throwable throwable) {
+                        Toast.makeText(this, "Could not retrieve balance from the server.", Toast.LENGTH_SHORT).show();
+                        Log.e(TAG, "updateBalance: ", throwable);
+                    }
+                },
+                throwable -> {
+                    Toast.makeText(this, "Could not retrieve balance from the server.", Toast.LENGTH_SHORT).show();
+                    Log.e(TAG, "updateBalance: ", throwable);
+                }
+        ));
+
     }
 
     @Override
     public boolean onOptionsItemSelected(@NonNull android.view.MenuItem item) {
-        switch (item.getItemId()) {
-            case android.R.id.home:
-                // This takes the user 'back', as if they pressed the left-facing triangle icon
-                // on the main android toolbar.
-                onBackPressed();
-                return true;
-            case R.id.orders_action:
-                // User chooses the "My Orders" item
-                Intent intent = new Intent(AccountActivity.this, OrderActivity.class);
-                startActivity(intent);
-                return true;
-            case R.id.account_action:
-                // User chooses the "Account" item
-                Intent intent2 = new Intent(AccountActivity.this, AccountActivity.class);
-                startActivity(intent2);
-                return true;
-            case R.id.settings_action:
-                // User chooses the "Settings" item
-                // TODO make settings activity
-                return true;
-            case R.id.map_action:
-                //User chooses the "Map" item
-                Intent mapIntent = new Intent(AccountActivity.this, MapsActivity.class);
-                startActivity(mapIntent);
-                return true;
-            default:
-                return super.onOptionsItemSelected(item);
+        if (item.getItemId() == R.id.account_action) {
+            // User chooses the "Account" item
+            return true;
         }
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == REQUEST_TOP_TUP) {
+            updateBalance();
+        }
+
     }
 }

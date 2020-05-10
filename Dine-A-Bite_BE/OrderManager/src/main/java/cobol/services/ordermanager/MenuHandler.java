@@ -17,6 +17,7 @@ import cobol.services.ordermanager.domain.repository.UserRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.Getter;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -84,6 +85,7 @@ public class MenuHandler {
      */
     public void updateStandManager() throws JsonProcessingException {
         ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new JavaTimeModule());
         String json = mapper.writeValueAsString(standRepository.findAll()
                 .stream().map(Stand::asCommonStand).collect(Collectors.toList()));
         communicationHandler.sendRestCallToStandManager("/update", json, null);
@@ -131,11 +133,13 @@ public class MenuHandler {
         // This will just take over the stock value, but as stock is given in an incremental fashion, this needs to be adjusted
         Stand modifiedStand = originalStand.update(commonStand);
 
+        modifiedStand = standRepository.save(modifiedStand);
 
         // Now we need to adjust the stock of the food items of the new stand
         //This map will contain mapping between the hash of the original food item and the adjusted food item
         Map<Food, Food> originalModifiedFoodMapping = new HashMap<>();
         modifiedStand.getFoodList().forEach(modifiedFood -> {
+
             //Every modified food item that is not new will be added to the mapping
             foodRepository.findFoodById(modifiedFood.getName(), modifiedFood.getStandName(), modifiedFood.getBrandName()).ifPresent(originalFood -> {
                 originalModifiedFoodMapping.put(originalFood, modifiedFood);
@@ -195,7 +199,7 @@ public class MenuHandler {
         Stand newStand = new Stand(newCommonStand, brand);
         brand.getStandList().add(newStand);
 
-        //Try to find user and it he doesnt exist, create a new user
+        //Try to find user and if he doesnt exist, create a new user
         User userEntity = userRepository.save(new User(user));
 
         newStand.getOwners().add(userEntity);
@@ -203,10 +207,9 @@ public class MenuHandler {
 
         brandRepository.save(brand);
 
-        Stand standje = standRepository.findStandById(newStand.getName(), newStand.getBrandName()).orElse(null);
-
         // Also send the new stand to the StandManager
         ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new JavaTimeModule());
         String jsonString = mapper.writeValueAsString(newStand.asCommonStand());
         String response = communicationHandler.sendRestCallToStandManager("/newStand", jsonString, null);
 

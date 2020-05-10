@@ -20,7 +20,7 @@
             android:layout_height="wrap_content"
             android:paddingStart="15dp"
             android:paddingEnd="15dp"
-            android:text="@string/your_active_orders"
+            android:text="@string/your_orders"
             android:textAppearance="@style/TextAppearance.MaterialComponents.Headline6" />
 
         <Button
@@ -29,15 +29,29 @@
             android:layout_height="wrap_content"
             android:text="@string/refresh"
             android:layout_marginEnd="15dp"
-            style="@style/Widget.MaterialComponents.Button"/>
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"/>
 
     </LinearLayout>
+
+    <com.google.android.material.switchmaterial.SwitchMaterial
+        android:id="@+id/switch_history"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/only_active_orders"
+        android:enabled="true"
+        android:checked="true"
+        android:layout_marginStart="22dp"
+        android:layout_marginEnd="22dp"
+        android:paddingBottom="15dp"
+        android:paddingTop="15dp"
+        android:layout_marginBottom="10dp"
+        android:layout_below="@id/orders_head_bar"/>
 
     <ExpandableListView
         android:id="@+id/expandable_list_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_margin="5dp"
-        android:layout_below="@id/orders_head_bar"/>
+        android:layout_below="@id/switch_history"/>
 
 </RelativeLayout>
