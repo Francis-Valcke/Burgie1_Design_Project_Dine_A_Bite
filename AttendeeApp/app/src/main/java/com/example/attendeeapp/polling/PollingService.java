@@ -116,7 +116,7 @@ public class PollingService extends Service {
                                             stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
                                     Bitmap largeIcon = BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher_foreground);
 
-                                    if (orderStatusUpdate.getNewStatus() == CommonOrderStatusUpdate.status.CONFIRMED) {
+                                    if (orderStatusUpdate.getNewState() == CommonOrderStatusUpdate.State.CONFIRMED) {
                                         // Send Notification that order is being prepared
 
                                         NotificationCompat.Builder notification = new NotificationCompat.Builder(context, CHANNEL_START_ID)
@@ -133,7 +133,7 @@ public class PollingService extends Service {
                                         // notificationId is a unique int for each notification that you must define
                                         notificationManager.notify(notificationID, notification.build());
 
-                                    } else if (orderStatusUpdate.getNewStatus() == CommonOrderStatusUpdate.status.READY) {
+                                    } else if (orderStatusUpdate.getNewState() == CommonOrderStatusUpdate.State.READY) {
                                         // Send Notification that order is ready
 
                                         NotificationCompat.Builder notification = new NotificationCompat.Builder(context, CHANNEL_DONE_ID)
