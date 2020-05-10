@@ -3,6 +3,7 @@ package cobol.services.ordermanager;
 import cobol.commons.communication.response.BetterResponseModel;
 import cobol.commons.domain.*;
 import cobol.commons.exception.DoesNotExistException;
+import cobol.commons.stub.Action;
 import cobol.commons.stub.EventChannelStub;
 import cobol.services.ordermanager.domain.entity.*;
 import cobol.services.ordermanager.domain.repository.BrandRepository;
@@ -88,7 +89,7 @@ public class OrderProcessor {
             } catch (CommunicationException e) {
                 log.error("Could not request subscriber ID from event channel.", e);
             }
-        });
+        }, Action.PRIORITY_HIGHEST, true);
     }
 
     // ---- Incoming Requests ---- //

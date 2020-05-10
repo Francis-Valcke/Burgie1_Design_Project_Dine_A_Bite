@@ -1,23 +1,18 @@
 package cobol.commons.stub;
 
 
-import cobol.commons.annotation.Authenticated;
 import cobol.commons.config.GlobalConfigurationBean;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import javafx.util.Pair;
 import lombok.extern.log4j.Log4j2;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
-import okhttp3.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 
-import javax.annotation.PostConstruct;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 @Log4j2
@@ -29,15 +24,13 @@ public abstract class ServiceStub {
     protected boolean available = false;
     @Autowired
     protected GlobalConfigurationBean globalConfigurationBean;
-
     protected static String authorizationToken;
-
     protected ObjectMapper objectMapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    private Queue<Pair<Integer, Action>> onAvailableActionQueue = new PriorityQueue<>(Comparator.comparingInt(Pair::getKey));
+    private Queue<Pair<Integer, Action>> onUnavailableActionQueue = new PriorityQueue<>(Comparator.comparingInt(Pair::getKey));
 
-    private List<Action> onAvailableActionList = new ArrayList<>();
-    private List<Action> onUnavailableActionList = new ArrayList<>();
-
-    @Scheduled(fixedRate = PING_FREQUENCY)
+    // Wait PING_FREQUENCY seconds before pinging, and ping with a frequency of PING_FREQUENCY seconds
+    @Scheduled(initialDelay = PING_FREQUENCY, fixedRate = PING_FREQUENCY)
     protected void heartBeat() {
 
         String url = getAddress() + GET_PING;
@@ -53,7 +46,7 @@ public abstract class ServiceStub {
             log.info("Ping: " + url + " success!");
             if (!available) {
                 log.info(url + " => now AVAILABLE!");
-                onAvailableActionList.forEach(Action::execute);
+                onAvailableActionQueue.forEach(pair -> pair.getValue().execute());
             }
 
             available = true;
@@ -63,33 +56,28 @@ public abstract class ServiceStub {
             log.error("Could not ping: " + url);
             if (available) {
                 log.info(url + " => now UNAVAILABLE!");
-                onUnavailableActionList.forEach(Action::execute);
+                onUnavailableActionQueue.forEach(pair -> pair.getValue().execute());
             }
 
             available = false;
         }
+
     }
 
-    public void doOnAvailable(Action action) {
-        this.onAvailableActionList.add(action);
-    }
-
-    public void doOnUnavailable(Action action) {
-        this.onUnavailableActionList.add(action);
-    }
-
-    protected String buildUrl(String baseUrl, HashMap<String, String> params) {
-
-        if (params != null && !params.isEmpty()) {
-            baseUrl += "?";
-            StringBuilder baseUrlBuilder = new StringBuilder(baseUrl);
-            for (Map.Entry<String, String> entry : params.entrySet()) {
-                baseUrlBuilder.append(entry.getKey()).append("=").append(entry.getValue()).append("&");
-            }
-            baseUrl = baseUrlBuilder.toString();
+    public void doOnAvailable(Action action, int priority, boolean tryImmediately) {
+        // Execute immediately if currently available
+        if (tryImmediately && available){
+            action.execute();
         }
-        //remove the last &
-        return baseUrl.substring(0, baseUrl.length() - 1);
+        this.onAvailableActionQueue.add(new Pair<>(priority,action));
+    }
+
+    public void doOnUnavailable(Action action, int priority, boolean tryImmediately) {
+        // Execute immediately if currently unavailable
+        if (tryImmediately && !available){
+            action.execute();
+        }
+        this.onUnavailableActionQueue.add(new Pair<>(priority,action));
     }
 
     public abstract String getAddress();

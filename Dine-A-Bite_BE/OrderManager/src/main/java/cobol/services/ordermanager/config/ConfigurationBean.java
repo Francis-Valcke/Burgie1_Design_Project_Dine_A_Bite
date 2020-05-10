@@ -35,6 +35,30 @@ public class ConfigurationBean {
     private String password;
     boolean unitTest;
 
+    /**
+     * When the authentication service becomes available, try to authenticate.
+     */
+    @PostConstruct
+    public void run(){
+        authenticationServiceStub.doOnAvailable(() -> {
+
+            try {
+
+                BetterResponseModel<String> response = authenticationServiceStub.authenticate(new AuthenticationRequest(username, password));
+                if (response.isOk()) {
+
+                    authenticationServiceStub.setAuthorizationToken(Objects.requireNonNull(response).getPayload());
+                    log.info("Successfully authenticated this module.");
+
+                } else throw response.getException();
+
+            } catch (Throwable throwable) {
+                log.error("Could not authenticate.", throwable);
+            }
+
+        }, Action.PRIORITY_HIGHEST, true);
+    }
+
     @PostConstruct
     public void postConstruct(){
         standManagerStub.doOnAvailable(() -> {
@@ -44,32 +68,7 @@ public class ConfigurationBean {
             } catch (JsonProcessingException e) {
                 log.error("Could not update stand manager after becoming available again.", e);
             }
-        });
+        }, Action.PRIORITY_HIGH, true);
     }
-
-
-    ///**
-    // * When the authentication service becomes available, try to authenticate.
-    // */
-    //@PostConstruct
-    //public void run(){
-    //    authenticationServiceStub.doOnAvailable(() -> {
-    //
-    //        try {
-    //
-    //            BetterResponseModel<String> response = authenticationServiceStub.authenticate(new AuthenticationRequest(username, password));
-    //            if (response.isOk()) {
-    //
-    //                authenticationServiceStub.setAuthorizationToken(Objects.requireNonNull(response).getPayload());
-    //                log.info("Successfully authenticated this module.");
-    //
-    //            } else throw response.getException();
-    //
-    //        } catch (Throwable throwable) {
-    //            log.error("Could not authenticate.", throwable);
-    //        }
-    //
-    //    });
-    //}
 
 }
