@@ -134,7 +134,11 @@ public class Stand implements Serializable {
         this.standId = new StandId(commonStand.getName(), brand);
         this.latitude = commonStand.getLatitude();
         this.longitude = commonStand.getLongitude();
-        this.revenue = commonStand.getRevenue();
+        if (commonStand.getRevenue() == null) {
+            this.revenue = BigDecimal.ZERO;
+        } else {
+            this.revenue = commonStand.getRevenue();
+        }
         commonStand.getMenu().forEach(cf -> {
             Food food = new Food(cf, this);
             foodList.add(food); //Map bidirectional relationship

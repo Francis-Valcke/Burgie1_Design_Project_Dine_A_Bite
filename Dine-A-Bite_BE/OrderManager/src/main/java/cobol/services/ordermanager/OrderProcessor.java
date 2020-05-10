@@ -103,7 +103,7 @@ public class OrderProcessor {
         Stand stand = standRepository.findStandById(standName, brandName).orElseThrow(() -> new DoesNotExistException("Stand does not exist"));
 
         if (!orderOptional.isPresent()) {
-            throw new DoesNotExistException("Order is does not exist, please make an order first before confirming a stand");
+            throw new DoesNotExistException("Order does not exist, please make an order first before confirming a stand");
         }
 
         if (stand == null) {
