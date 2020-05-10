@@ -131,12 +131,41 @@
     </LinearLayout>
 
     <LinearLayout
+        android:id="@+id/revenue_info"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_below="@id/brand_name_info"
         android:orientation="horizontal"
-        android:layout_below="@+id/brand_name_info"
+        android:paddingStart="20dp"
+        android:paddingTop="15dp"
+        android:paddingEnd="20dp">
+
+        <TextView
+            android:id="@+id/revenue"
+            style="@style/TextAppearance.MaterialComponents.Body1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingStart="0dp"
+            android:paddingEnd="10dp"
+            android:text="@string/revenue"
+            android:textSize="18sp" />
+
+        <TextView
+            android:id="@+id/revenue_amount"
+            style="@style/TextAppearance.MaterialComponents.Body1"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/revenue_info"
         android:layout_marginTop="40dp"
-        android:gravity="center">
+        android:gravity="center"
+        android:orientation="horizontal">
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/button_verify"
