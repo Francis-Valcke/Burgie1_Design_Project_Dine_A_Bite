@@ -29,6 +29,9 @@ public class SchedulerHandler {
     @Autowired
     CommunicationHandler communicationHandler;
 
+    @Autowired
+    PriorityQueues priorityQueues;
+
     /**
      * The schedulerhandler has a list of all schedulers.
      * More information on schedulers in class Scheduler
@@ -140,9 +143,6 @@ public class SchedulerHandler {
      * @return JSON with a certain amount of recommended stands (currently based on lowest queue time only)
      */
     public List<Recommendation> recommend(CommonOrder order) throws JsonProcessingException {
-        //choose how many recommends you want
-        int amountOfRecommends = 3;
-
         // find stands (schedulers) which offer correct food for the order
         ArrayList<Scheduler> goodSchedulers = findCorrespondStands(order);
 
@@ -166,10 +166,9 @@ public class SchedulerHandler {
             System.out.println("THE CHOSEN RECOMMENDATION TYPE IS NOT VALID ");
         }
 
-        // check if you have enough stands (for amount of recommendations you want)
-        if (goodSchedulers.size() < amountOfRecommends) {
-            amountOfRecommends = goodSchedulers.size();
-        }
+        //choose how many recommends you want
+        int amountOfRecommends = goodSchedulers.size();
+
         // put everything into a JSON file to give as return value
         List<Recommendation> recommendations = new ArrayList<>();
 
@@ -177,11 +176,21 @@ public class SchedulerHandler {
             Scheduler curScheduler = goodSchedulers.get(i);
             SchedulerComparatorDistance sc = new SchedulerComparatorDistance(curScheduler.getLat(), curScheduler.getLon());
             SchedulerComparatorTime st = new SchedulerComparatorTime(new ArrayList<>(order.getOrderItems()));
-            recommendations.add(new Recommendation(curScheduler.getStandName(), curScheduler.getBrand(), sc.getDistance(order.getLatitude(), order.getLongitude()), st.getTimesum(curScheduler), i+1));
+            recommendations.add(new Recommendation(curScheduler.getStandName(), curScheduler.getBrand(), sc.getDistance(order.getLatitude(), order.getLongitude()), st.getTimesum(curScheduler), i + 1, curScheduler.getSubscriberId(), st.getLongestFoodPrepTime(curScheduler)));
         }
 
-        return recommendations;
+        //add the queue times of the priority queues
+        priorityQueues.computeExtraTime(recommendations, order.getId(), order.getRecType());
+
+        //sort the recommendation list again based on added times (ONLY WHEN recommendation type is NOT distance)
+        if (!order.getRecType().equals(CommonOrder.RecommendType.DISTANCE)) {
+            List<Recommendation> sortedRecommends = priorityQueues.sortAndRerank(recommendations);
+            return sortedRecommends;
+        } else {
+            return recommendations;
+        }
     }
+
 
     public JSONObject addOrderToScheduler(CommonOrder order) {
         JSONObject obj = new JSONObject();
@@ -192,6 +201,10 @@ public class SchedulerHandler {
                 break;
             }
         }
+
+        //remove this order from priority queues
+        this.priorityQueues.removeOrder(order.getId());
+
         return obj;
     }
 
