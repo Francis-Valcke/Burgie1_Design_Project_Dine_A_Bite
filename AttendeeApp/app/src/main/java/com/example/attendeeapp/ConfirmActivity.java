@@ -35,9 +35,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.android.gms.common.internal.service.Common;
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Multimap;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -530,8 +527,7 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
                             confirmSplitOrderNumber = 1;
                             handleReceivedRecommendation(splitOrderRecommendations.getJSONObject(0));
                         }
-
-                    } catch (JsonProcessingException e) {
+                    } catch (JsonProcessingException | JSONException e) {
                         Log.v("JSON exception", "JSON exception in confirmActivity");
                     }
                     // If no specific stand was chosen, update the view

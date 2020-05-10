@@ -2,8 +2,7 @@ package cobol.services.ordermanager.controller;
 
 import cobol.commons.BetterResponseModel;
 import cobol.commons.CommonStand;
-import cobol.commons.ResponseModel;
-import cobol.commons.exception.CommunicationException;
+import cobol.commons.exception.DoesNotExistException;
 import cobol.commons.order.CommonOrder;
 import cobol.commons.security.CommonUser;
 import cobol.services.ordermanager.MenuHandler;
@@ -17,7 +16,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -33,7 +31,7 @@ public class StandController {
     private StandRepository standRepository;
 
     @GetMapping(path = "/verify")
-    public ResponseEntity<BetterResponseModel<?>> verify(@RequestParam String standName, @RequestParam String brandName, @AuthenticationPrincipal CommonUser authenticatedUser){
+    public ResponseEntity<BetterResponseModel<?>> verify(@RequestParam String standName, @RequestParam String brandName, @AuthenticationPrincipal CommonUser authenticatedUser) {
 
         Stand stand = standRepository.findStandById(standName, brandName).orElse(null);
         User user = new User(authenticatedUser); //Convert to real User object to be able to compare
@@ -82,7 +80,7 @@ public class StandController {
      */
     @PostMapping(path = "/updateStand")
     @ResponseBody
-    public ResponseEntity<BetterResponseModel<?>> updateStand(@RequestBody CommonStand stand)  {
+    public ResponseEntity<BetterResponseModel<?>> updateStand(@RequestBody CommonStand stand) {
         try {
             menuHandler.updateStand(stand);
         } catch (Throwable throwable) {
@@ -128,14 +126,13 @@ public class StandController {
      */
     @GetMapping(value = "/stands")
     public ResponseEntity<BetterResponseModel<Map<String, String>>> requestStandNames() {
-        Map<String, String> stands= standRepository.findAll()
+        Map<String, String> stands = standRepository.findAll()
                 .stream().collect(Collectors.toMap(Stand::getName, stand -> stand.getBrand().getName()));
-        if(stands.isEmpty()){
+        if (stands.isEmpty()) {
             System.out.println("ERROR: no stands found");
             return ResponseEntity.ok(BetterResponseModel.error("No stands found", null));
-        }
-        else{
-            return ResponseEntity.ok(BetterResponseModel.ok("Successfully retrieved the stands",stands));
+        } else {
+            return ResponseEntity.ok(BetterResponseModel.ok("Successfully retrieved the stands", stands));
         }
 
     }
@@ -143,14 +140,13 @@ public class StandController {
     @GetMapping(value = "/standLocations")
     public ResponseEntity<BetterResponseModel<Map<String, Map<String, Double>>>> requestStandLocations() {
 
-        Map<String, Map<String, Double>> locations= standRepository.findAll()
+        Map<String, Map<String, Double>> locations = standRepository.findAll()
                 .stream().collect(Collectors.toMap(Stand::getName, Stand::getLocation));
 
-        if(locations.isEmpty()){
+        if (locations.isEmpty()) {
             System.out.println("ERROR: no locations found");
             return ResponseEntity.ok(BetterResponseModel.error("No locations found", null));
-        }
-        else{
+        } else {
             return ResponseEntity.ok(BetterResponseModel.ok("Successfully retrieved locations", locations));
         }
 
@@ -159,30 +155,26 @@ public class StandController {
 
     @GetMapping(value = "/revenue")
     @ResponseBody
-    public ResponseEntity<HashMap<Object, Object>> requestRevenue(@RequestParam String standName, @RequestParam String brandName) throws DoesNotExistException {
+    public ResponseEntity<BetterResponseModel<BigDecimal>> requestRevenue(@RequestParam String standName, @RequestParam String brandName) {
         Optional<Stand> stand = standRepository.findStandById(standName, brandName);
         BigDecimal revenue;
         if (stand.isPresent() && stand.get().getRevenue() != null) {
             revenue = stand.get().getRevenue();
+            return ResponseEntity.ok(BetterResponseModel.ok("Successfully retrieved revenue from database",revenue));
         } else {
-            revenue = BigDecimal.ZERO; // new stands have 0 revenue
+            return ResponseEntity.ok(BetterResponseModel.error("Error while retrieving revenue from database", new DoesNotExistException("Such stand does not exist")));
         }
-        return ResponseEntity.ok(
-                ResponseModel.builder()
-                    .status(OK.toString())
-                    .details(revenue)
-                    .build().generateResponse()
-        );
     }
 
-    @GetMapping(value= "/getStandOrders", produces = "application/json")
-    public ResponseEntity<List<CommonOrder>> getUserOrders(@RequestParam(name = "standName") String standName,
-                                                           @RequestParam(name = "brandName") String brandName)
-                                                            throws DoesNotExistException {
+    @GetMapping(value = "/getStandOrders", produces = "application/json")
+    public ResponseEntity<BetterResponseModel<List<CommonOrder>>> getUserOrders(@RequestParam(name = "standName") String standName,
+                                                           @RequestParam(name = "brandName") String brandName) {
         Stand stand = standRepository.findStandById(standName, brandName).orElse(null);
         if (stand != null) {
-            return ResponseEntity.ok(stand.getOrderList().stream().map(Order::asCommonOrder).collect(Collectors.toList()));
-        } else throw new DoesNotExistException("Stand " + standName + " does not exist, or does not have orders saved.");
+            return ResponseEntity.ok(BetterResponseModel.ok( "Successfully retrieved orders from database",stand.getOrderList().stream().map(Order::asCommonOrder).collect(Collectors.toList())));
+        } else{
+            return ResponseEntity.ok(BetterResponseModel.error("Error while fetching orders from database", new DoesNotExistException("Stand " + standName + " does not exist, or does not have orders saved.")));
+        }
     }
 }
 
