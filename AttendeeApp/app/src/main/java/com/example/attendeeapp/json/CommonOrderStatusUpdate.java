@@ -8,9 +8,9 @@ import java.io.Serializable;
 public class CommonOrderStatusUpdate implements Serializable {
 
     private int orderId;
-    private status newStatus;
+    private State newState;
 
-    public enum status {
+    public enum State {
         SEND,
         PENDING,
         DECLINED,
@@ -21,16 +21,16 @@ public class CommonOrderStatusUpdate implements Serializable {
 
     public CommonOrderStatusUpdate() {}
 
-    public CommonOrderStatusUpdate(int orderId, status newStatus) {
+    public CommonOrderStatusUpdate(int orderId, State newState) {
         this.orderId = orderId;
-        this.newStatus = newStatus;
+        this.newState = newState;
     }
 
     public int getOrderId() {
         return orderId;
     }
 
-    public status getNewStatus() {
-        return newStatus;
+    public State getNewState() {
+        return newState;
     }
 }
