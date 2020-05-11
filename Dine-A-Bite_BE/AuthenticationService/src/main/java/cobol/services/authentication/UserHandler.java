@@ -16,7 +16,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 
 @Service
-public class AuthenticationHandler {
+public class UserHandler {
 
     private UserRepository userRepository;
     private ConfigurationBean configurationBean;

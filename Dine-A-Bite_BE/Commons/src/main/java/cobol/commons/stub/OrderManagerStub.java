@@ -9,6 +9,7 @@ import lombok.extern.log4j.Log4j2;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
+import org.springframework.context.annotation.Scope;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -18,6 +19,7 @@ import java.util.Map;
 
 @Log4j2
 @Service
+@Scope(value = "singleton")
 public class OrderManagerStub extends ServiceStub implements IOrderManager{
 
     // DBController

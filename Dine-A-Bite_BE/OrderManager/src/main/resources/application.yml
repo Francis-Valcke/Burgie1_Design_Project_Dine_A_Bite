@@ -37,5 +37,7 @@ spring:
 
 ordermanager:
   unitTest: false
+
+credentials:
   username: OrderManager
   password: OrderManager

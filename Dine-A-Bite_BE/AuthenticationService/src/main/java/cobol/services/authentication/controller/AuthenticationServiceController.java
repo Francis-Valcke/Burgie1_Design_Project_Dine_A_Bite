@@ -7,7 +7,7 @@ import cobol.commons.domain.CommonUser;
 import cobol.commons.security.Role;
 import cobol.commons.security.exception.DuplicateUserException;
 import cobol.commons.stub.IAuthenticationService;
-import cobol.services.authentication.AuthenticationHandler;
+import cobol.services.authentication.UserHandler;
 import cobol.commons.communication.requst.AuthenticationRequest;
 import cobol.commons.stub.AuthenticationServiceStub;
 import cobol.services.authentication.config.ConfigurationBean;
@@ -59,7 +59,7 @@ public class AuthenticationServiceController implements IAuthenticationService {
     @Autowired
     private ConfigurationBean configurationBean;
     @Autowired
-    private AuthenticationHandler authenticationHandler;
+    private UserHandler userHandler;
     @Autowired
     private UserRepository userRepository;
 
@@ -109,7 +109,7 @@ public class AuthenticationServiceController implements IAuthenticationService {
 
         try {
 
-            authenticationHandler.createUser(details, Role.USER);
+            userHandler.createUser(details, Role.USER);
 
             return ResponseEntity.ok(
                     ResponseModel.builder()
@@ -132,7 +132,7 @@ public class AuthenticationServiceController implements IAuthenticationService {
     public ResponseEntity<HashMap<Object, Object>> createStandManager(@RequestBody AuthenticationRequest data) {
 
         try {
-            authenticationHandler.createUser(data, Role.USER, Role.STAND);
+            userHandler.createUser(data, Role.USER, Role.STAND);
 
             return ResponseEntity.ok(
                     ResponseModel.builder()

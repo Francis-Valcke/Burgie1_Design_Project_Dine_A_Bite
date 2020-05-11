@@ -191,7 +191,6 @@ project(':OrderManager'){
         //Library for removing lots of boilerplate code, use in combination with intellij plugin
         compileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.12'
         annotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.12'
-        implementation group: 'org.springframework.boot', name: 'spring-boot-configuration-processor', version: '2.2.6.RELEASE'
 
         implementation "org.springframework.boot:spring-boot-configuration-processor"
         //-----TESTING-----

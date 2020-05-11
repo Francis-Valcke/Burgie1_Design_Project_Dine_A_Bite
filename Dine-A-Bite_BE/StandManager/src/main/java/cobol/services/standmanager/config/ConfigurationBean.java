@@ -2,7 +2,7 @@ package cobol.services.standmanager.config;
 
 import cobol.commons.communication.requst.AuthenticationRequest;
 import cobol.commons.communication.response.BetterResponseModel;
-import cobol.commons.stub.AuthenticateAspect;
+import cobol.commons.stub.AuthenticationHandler;
 import cobol.commons.stub.AuthenticationServiceStub;
 import lombok.Data;
 import lombok.extern.log4j.Log4j2;
@@ -20,7 +20,7 @@ import java.util.Objects;
 public class ConfigurationBean {
 
     @Autowired
-    AuthenticateAspect authenticateAspect;
+    AuthenticationHandler authenticationHandler;
     @Autowired
     AuthenticationServiceStub authenticationServiceStub;
 
@@ -32,8 +32,8 @@ public class ConfigurationBean {
      */
     @PostConstruct
     public void setupAuthentication(){
-        authenticateAspect.setUsername(username);
-        authenticateAspect.setPassword(password);
+        authenticationHandler.setUsername(username);
+        authenticationHandler.setPassword(password);
     }
 
     /**

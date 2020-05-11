@@ -2,17 +2,20 @@ package cobol.commons.stub;
 
 import cobol.commons.annotation.Authenticated;
 import cobol.commons.domain.Event;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
+import org.springframework.context.annotation.Scope;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import javax.naming.CommunicationException;
 import java.io.IOException;
-import java.util.HashMap;
 
 @Service
+@Scope(value = "singleton")
 public class EventChannelStub extends ServiceStub implements IEventChannel{
 
     public static final String GET_TEST = "/test";
@@ -37,29 +40,26 @@ public class EventChannelStub extends ServiceStub implements IEventChannel{
         return null;
     }
 
+    @Authenticated
     @Override
-    public int getRegisterSubscriber(String types) {
-        return 0;
+    public int getRegisterSubscriber(String types) throws IOException {
+
+        String url = getAddress() + GET_REGISTER_SUBSCRIBER;
+
+        String response = request("GET", url, null);
+
+        return Integer.parseInt(response);
     }
 
-    @Authenticated
     @Override
     public void getRegisterSubscriberToChannel(int subscriberId, String type) throws IOException {
 
-        String uri = globalConfigurationBean.getAddressEventChannel() + GET_REGISTER_SUBSCRIBER_TO_CHANNEL;
-
-        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(uri)
+        String url = globalConfigurationBean.getAddressEventChannel() + GET_REGISTER_SUBSCRIBER_TO_CHANNEL;
+        url += UriComponentsBuilder.fromUriString(url)
                 .queryParam("id", subscriberId)
-                .queryParam("type", type);
+                .queryParam("type", type).toUriString();
 
-        Request request = new Request.Builder()
-                .url(builder.toUriString())
-                .method("GET", null)
-                //.addHeader("Authorization", authorizationToken)
-                .build();
-
-        okHttpClient.newCall(request).execute();
-
+        request("GET", url, null);
     }
 
     @Override
@@ -73,7 +73,10 @@ public class EventChannelStub extends ServiceStub implements IEventChannel{
     }
 
     @Override
-    public ResponseEntity getEvents(int id) throws JsonProcessingException {
+    public ResponseEntity getEvents(int id) {
+
+        String url = getAddress() + GET_EVENTS;
+
 
         return null;
     }

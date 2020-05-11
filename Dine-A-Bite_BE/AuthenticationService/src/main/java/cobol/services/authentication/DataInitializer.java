@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class DataInitializer implements CommandLineRunner {
 
-    private AuthenticationHandler authenticationHandler;
+    private UserHandler userHandler;
 
     /**
      * Debug methods for placing some initial users into the database.
@@ -27,14 +27,14 @@ public class DataInitializer implements CommandLineRunner {
     public void run(String... args) throws Exception {
 
         try {
-            authenticationHandler.createUser(new AuthenticationRequest("admin", "adminadmin"), Role.USER, Role.STAND, Role.ADMIN);
-            authenticationHandler.createUser(new AuthenticationRequest("user", "useruser"), Role.USER);
-            authenticationHandler.createUser(new AuthenticationRequest("stand", "standstand"), Role.USER, Role.STAND);
-            authenticationHandler.createUser(new AuthenticationRequest("AuthenticationService", "AuthenticationService"), Role.APPLICATION);
-            authenticationHandler.createUser(new AuthenticationRequest("OrderManager", "OrderManager"), Role.APPLICATION);
-            authenticationHandler.createUser(new AuthenticationRequest("StandManager", "StandManager"), Role.APPLICATION);
-            authenticationHandler.createUser(new AuthenticationRequest("EventChannel", "EventChannel"), Role.APPLICATION);
-            authenticationHandler.createUser(new AuthenticationRequest("SystemTester", "SystemTester"), Role.APPLICATION);
+            userHandler.createUser(new AuthenticationRequest("admin", "adminadmin"), Role.USER, Role.STAND, Role.ADMIN);
+            userHandler.createUser(new AuthenticationRequest("user", "useruser"), Role.USER);
+            userHandler.createUser(new AuthenticationRequest("stand", "standstand"), Role.USER, Role.STAND);
+            userHandler.createUser(new AuthenticationRequest("AuthenticationService", "AuthenticationService"), Role.APPLICATION);
+            userHandler.createUser(new AuthenticationRequest("OrderManager", "OrderManager"), Role.APPLICATION);
+            userHandler.createUser(new AuthenticationRequest("StandManager", "StandManager"), Role.APPLICATION);
+            userHandler.createUser(new AuthenticationRequest("EventChannel", "EventChannel"), Role.APPLICATION);
+            userHandler.createUser(new AuthenticationRequest("SystemTester", "SystemTester"), Role.APPLICATION);
 
         } catch (Exception e) {
             //Silent fail
@@ -43,7 +43,7 @@ public class DataInitializer implements CommandLineRunner {
     }
 
     @Autowired
-    public void setAuthenticationHandler(AuthenticationHandler authenticationHandler) {
-        this.authenticationHandler = authenticationHandler;
+    public void setUserHandler(UserHandler userHandler) {
+        this.userHandler = userHandler;
     }
 }

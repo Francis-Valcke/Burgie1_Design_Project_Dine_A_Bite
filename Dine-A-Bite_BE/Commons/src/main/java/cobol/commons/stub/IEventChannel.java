@@ -31,7 +31,7 @@ public interface IEventChannel {
      * @param types channels the caller wants to subscribe to, types are separated by ','.
      * @return The unique id of the event subscriber stub
      */
-    int getRegisterSubscriber(String types);
+    int getRegisterSubscriber(String types) throws IOException;
 
     /**
      * This method allows subscribers to subscribe to channels they were previously not subscribed to.

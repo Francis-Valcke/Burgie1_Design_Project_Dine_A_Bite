@@ -5,6 +5,7 @@ import cobol.commons.domain.*;
 import cobol.commons.exception.DoesNotExistException;
 import cobol.commons.stub.Action;
 import cobol.commons.stub.EventChannelStub;
+import cobol.services.ordermanager.config.ConfigurationBean;
 import cobol.services.ordermanager.domain.entity.*;
 import cobol.services.ordermanager.domain.repository.BrandRepository;
 import cobol.services.ordermanager.domain.repository.FoodRepository;
@@ -22,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import javax.naming.CommunicationException;
@@ -36,7 +38,7 @@ import java.util.stream.Collectors;
  * This is a Singleton
  */
 @Log4j2
-@Component
+@Service
 @Scope(value = "singleton")
 public class OrderProcessor {
 
@@ -64,6 +66,9 @@ public class OrderProcessor {
     @Autowired
     ASCommunicationHandler asCommunicationHandler;
 
+    @Autowired
+    ConfigurationBean configurationBean;
+
     private int subscriberId;
     private double learningRate;
     private volatile LinkedList<Event> eventQueue = new LinkedList<>();
@@ -71,25 +76,11 @@ public class OrderProcessor {
     // key order id
     ListMultimap<Integer, Recommendation> orderRecommendations = ArrayListMultimap.create();
 
-
     private OrderProcessor() throws CommunicationException {
 
         TimeZone.setDefault(TimeZone.getTimeZone("Europe/Brussels"));
         //set learning rate for the running averages
         this.learningRate = 0.2;
-    }
-
-    @PostConstruct
-    private void run() throws CommunicationException {
-
-        eventChannelStub.doOnAvailable(() -> {
-            try {
-                this.subscriberId = communicationHandler.getSubscriberIdFromEC();
-                log.info("Successfully requested a subscriber ID from event channel: ID = " + this.subscriberId);
-            } catch (CommunicationException e) {
-                log.error("Could not request subscriber ID from event channel.", e);
-            }
-        }, Action.PRIORITY_HIGHEST, true);
     }
 
     // ---- Incoming Requests ---- //
@@ -238,8 +229,12 @@ public class OrderProcessor {
 
     @Scheduled(fixedDelay = 500)
     public void pollEvents() throws CommunicationException, JsonProcessingException, ParseException {
-        List<Event> newEvents= communicationHandler.pollEventsFromEC(subscriberId);
-        eventQueue.addAll(newEvents);
+
+        if (configurationBean.isAuthenticated() && configurationBean.isSubscribed()) {
+            List<Event> newEvents = communicationHandler.pollEventsFromEC(subscriberId);
+            eventQueue.addAll(newEvents);
+        }
+
     }
 
     /**
@@ -275,6 +270,10 @@ public class OrderProcessor {
                 }
             }
         }
+    }
+
+    public void setSubscriberId(int subscriberId) {
+        this.subscriberId = subscriberId;
     }
 
 }

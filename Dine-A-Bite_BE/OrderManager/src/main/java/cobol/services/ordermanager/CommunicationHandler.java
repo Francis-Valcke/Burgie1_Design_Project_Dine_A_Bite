@@ -4,6 +4,7 @@ import cobol.commons.domain.CommonFood;
 import cobol.commons.domain.Event;
 import cobol.commons.domain.CommonOrder;
 import cobol.commons.domain.SuperOrder;
+import cobol.commons.stub.EventChannelStub;
 import cobol.services.ordermanager.config.ConfigurationBean;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -34,6 +35,9 @@ public class CommunicationHandler {
 
     @Autowired
     CommunicationHandler communicationHandler;
+
+    @Autowired
+    EventChannelStub eventChannelStub;
 
     private RestTemplate template;
     private HttpHeaders headers;
@@ -127,13 +131,21 @@ public class CommunicationHandler {
      */
     public int getSubscriberIdFromEC() throws CommunicationException {
         if (configurationBean.isUnitTest()) return 0;
+
+
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.add("Authorization", OrderManager.authToken);
         String uri = OrderManager.ECURL + "/registerSubscriber";
         //String uri = "http://cobol.idlab.ugent.be:8093/registerSubscriber";
         HttpEntity entity = new HttpEntity(headers);
+
+
         ResponseEntity<String> response = restTemplate.exchange(uri, HttpMethod.GET, entity, String.class);
+
+
+
+
         if (response.getBody() != null) {
             return Integer.parseInt(response.getBody());
         } else {
@@ -143,6 +155,9 @@ public class CommunicationHandler {
 
     public List<Event> pollEventsFromEC(int subscriberId) throws CommunicationException, JsonProcessingException, ParseException {
         if (configurationBean.isUnitTest()) return new ArrayList<>();
+
+
+
 
         String uri = OrderManager.ECURL + "/events";
 
