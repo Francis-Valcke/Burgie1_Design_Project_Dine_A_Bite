@@ -10,6 +10,7 @@ public interface Action {
     int PRIORITY_LOW = 30;
     int PRIORITY_LOWEST = 40;
 
-    void execute();
+    // True indicates success
+    boolean execute();
 
 }

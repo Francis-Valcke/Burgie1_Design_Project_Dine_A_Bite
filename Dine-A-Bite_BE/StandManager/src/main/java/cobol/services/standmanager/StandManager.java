@@ -18,14 +18,10 @@ import javax.annotation.PostConstruct;
 @SpringBootApplication
 public class StandManager {
 
-
-
     public static final String authToken= "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJTdGFuZE1hbmFnZXIiLCJyb2xlcyI6WyJBUFBMSUNBVElPTiJdLCJpYXQiOjE1ODg1NDE2NTMsImV4cCI6MTc0NjIyMTY1M30.RtY_OYCR-2K3APztc-Up8UUWNQJ7_YteY09f4e7phfM";
 
     public static void main(String[] args) {
         SpringApplication.run(StandManager.class, args);
     }
-
-
 
 }

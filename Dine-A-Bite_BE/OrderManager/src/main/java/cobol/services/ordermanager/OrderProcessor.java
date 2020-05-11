@@ -230,9 +230,12 @@ public class OrderProcessor {
     @Scheduled(fixedDelay = 500)
     public void pollEvents() throws CommunicationException, JsonProcessingException, ParseException {
 
-        if (configurationBean.isAuthenticated() && configurationBean.isSubscribed()) {
+        if (configurationBean.isSubscribed()) {
+            log.debug("Polling events for subscriber ID " + subscriberId);
             List<Event> newEvents = communicationHandler.pollEventsFromEC(subscriberId);
             eventQueue.addAll(newEvents);
+        } else {
+            log.debug("Waiting on subscriber id before polling events");
         }
 
     }

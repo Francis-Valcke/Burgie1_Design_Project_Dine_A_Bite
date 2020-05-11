@@ -46,7 +46,6 @@ public class ConfigurationBean {
     private String password;
     boolean unitTest;
 
-    private boolean authenticated = false;
     private boolean subscribed = false;
 
     /**
@@ -56,23 +55,33 @@ public class ConfigurationBean {
     private void getSubscriberId() {
 
         eventChannelStub.doOnAvailable(() -> {
+
+            boolean success;
+
             try {
+                log.info("Trying to register at event channel");
+
                 int id = eventChannelStub.getRegisterSubscriber("");
                 orderProcessor.setSubscriberId(id);
                 subscribed = true;
-
-                log.info("Successfully requested a subscriber ID from event channel: ID = " + id);
+                success = true;
+                log.info("Successfully registered with subscriber ID from event channel: ID = " + id);
             } catch (Exception e) {
                 subscribed = false;
-                log.error("Could not request subscriber ID from event channel.", e);
+                success = false;
+                log.info("Could not request subscriber ID from event channel.");
+                log.debug("Could not request subscriber ID from event channel.", e);
             }
-        }, Action.PRIORITY_NORMAL, false);
+
+            return success;
+
+        }, Action.PRIORITY_NORMAL, false, true);
+
 
         eventChannelStub.doOnUnavailable(()->{
-
             subscribed = false;
-
-        }, Action.PRIORITY_NORMAL, false);
+            return true;
+        }, Action.PRIORITY_NORMAL, false, false);
     }
 
     /**
@@ -80,13 +89,24 @@ public class ConfigurationBean {
      */
     @PostConstruct
     public void updateStandManager(){
+
         standManagerStub.doOnAvailable(() -> {
+
+            boolean success;
+
             try {
                 menuHandler.updateStandManager();
+                success = true;
                 log.info("Stand manager has been updated successfully");
             } catch (JsonProcessingException e) {
+                success = false;
+                log.info("Could not update stand manager after becoming available again.");
                 log.error("Could not update stand manager after becoming available again.", e);
             }
-        }, Action.PRIORITY_NORMAL, false);
+
+            return success;
+
+        }, Action.PRIORITY_NORMAL, false, true);
+
     }
 }

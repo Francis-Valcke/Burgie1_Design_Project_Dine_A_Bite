@@ -44,23 +44,44 @@ public abstract class ServiceStub {
 
         try {
             request("GET", url, null);
-            log.info("Ping: " + url + " success!");
-
+            log.debug("Ping: " + url + " success!");
 
             if (!available) {
                 log.info(url + " => now AVAILABLE!");
+
+                // When the state changes from unavailable to available, execute all actions
                 onAvailableActionQueue.forEach(ActionWrapper::execute);
+
+                // Now reset all actions in the onUnavailableActionQueue so they can achieve success again.
+                onUnavailableActionQueue.forEach(ActionWrapper::reset);
+
+            } else {
+
+                // When there is no state change, only execute the actions that should be retried until success and that
+                // are not yet successful
+                // The ActionWrapper.execute() method will automatically register if the action was successful or not.
+                onAvailableActionQueue.stream().filter(a -> a.isRetry() && !a.isSuccess()).forEach(ActionWrapper::execute);
             }
 
             available = true;
 
         } catch (IOException e) {
-            log.error("Could not ping: " + url);
-
+            log.debug("Could not ping: " + url);
 
             if (available) {
                 log.info(url + " => now UNAVAILABLE!");
+
+                // When the state changes from available to unavailable, execute all actions
                 onUnavailableActionQueue.forEach(ActionWrapper::execute);
+
+                // Now reset all actions in the onAvailableActionQueue so they can achieve success again.
+                onAvailableActionQueue.forEach(ActionWrapper::reset);
+
+            } else {
+
+                // When there is no state change, only execute the actions that should be retried until success and that
+                // are not yet successful
+                onUnavailableActionQueue.stream().filter(a -> a.isRetry() && !a.isSuccess()).forEach(ActionWrapper::execute);
             }
 
             available = false;
@@ -68,9 +89,9 @@ public abstract class ServiceStub {
 
     }
 
-    public void doOnAvailable(Action action, int priority, boolean tryImmediately) {
+    public void doOnAvailable(Action action, int priority, boolean tryImmediately, boolean retry) {
 
-        ActionWrapper actionWrapper = new ActionWrapper(action, priority);
+        ActionWrapper actionWrapper = new ActionWrapper(action, priority, retry);
 
         // Execute immediately if currently available
         if (tryImmediately && available){
@@ -80,9 +101,9 @@ public abstract class ServiceStub {
 
     }
 
-    public void doOnUnavailable(Action action, int priority, boolean tryImmediately) {
+    public void doOnUnavailable(Action action, int priority, boolean tryImmediately, boolean retry) {
 
-        ActionWrapper actionWrapper = new ActionWrapper(action, priority);
+        ActionWrapper actionWrapper = new ActionWrapper(action, priority, retry);
 
         // Execute immediately if currently unavailable
         if (tryImmediately && !available){
