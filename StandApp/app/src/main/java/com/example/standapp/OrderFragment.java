@@ -198,7 +198,6 @@ public class OrderFragment extends Fragment {
         }
     }
 
-    // TODO fix reversing of orders list (graphical glitch?)
     // Receives the order updates from the polling service
     private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
         @Override
@@ -207,7 +206,7 @@ public class OrderFragment extends Fragment {
             Event eventUpdate = (Event) intent.getSerializableExtra("eventUpdate");
 
             if (eventUpdate != null && eventUpdate.getDataType().equals("Order")) {
-                // Add objects to the beginning of the ArrayLists -> TODO DOES NOT WORK
+                // Add objects to the beginning of the ArrayLists
                 // -> most recent order at the top of the list on screen
 
                 ObjectMapper mapper = new ObjectMapper();
@@ -215,11 +214,9 @@ public class OrderFragment extends Fragment {
                 JsonNode orderJson = eventData.get("order");
                 try {
                     CommonOrder orderUpdate = mapper.treeToValue(orderJson, CommonOrder.class);
-                    //listOrders.add(0, orderUpdate);
                     activeListOrders.add(0, orderUpdate);
 
                     String orderName = "#" + orderUpdate.getId();
-                    //listDataHeader.add(0, orderName);
                     activeListDataHeader.add(0, orderName);
                     listStatus.put(orderName, CommonOrderStatusUpdate.State.PENDING);
                     List<String> orderItems = new ArrayList<>();
@@ -378,7 +375,6 @@ public class OrderFragment extends Fragment {
                         JsonNode eventData = event.getEventData();
                         JsonNode order = eventData.get("order");
                         orders.add(mapper.readValue(order.toString(), CommonOrder.class));
-                        //listOrders.add(0, mapper.readValue(order.toString(), CommonOrder.class));
                         activeListOrders.add(0, mapper.readValue(order.toString(), CommonOrder.class));
                     } catch (JsonProcessingException e) {
                         e.printStackTrace();
@@ -387,7 +383,6 @@ public class OrderFragment extends Fragment {
 
                 for (CommonOrder order : orders) {
                     String orderName = "#" + order.getId();
-                    //listDataHeader.add(0, orderName);
                     activeListDataHeader.add(0, orderName);
                     listStatus.put(orderName, CommonOrderStatusUpdate.State.PENDING);
                     List<String> orderItems = new ArrayList<>();
