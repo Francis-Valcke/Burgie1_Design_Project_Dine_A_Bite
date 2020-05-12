@@ -13,8 +13,8 @@ import java.util.Map;
 import java.util.Objects;
 
 public class RevenueViewModel extends ViewModel {
-    private MutableLiveData<BigDecimal> revenue;
-    private MutableLiveData<Map<String, BigDecimal>> prices;
+    private MutableLiveData<BigDecimal> revenue = new MutableLiveData<>();
+    private MutableLiveData<Map<String, BigDecimal>> prices = new MutableLiveData<>();
 
     public void updateRevenue(List<CommonOrderItem> items) {
         BigDecimal totalRevenue = revenue.getValue();
@@ -27,8 +27,7 @@ public class RevenueViewModel extends ViewModel {
     }
 
     public LiveData<BigDecimal> getRevenue() {
-        if (revenue == null) {
-            revenue = new MutableLiveData<>();
+        if (revenue.getValue() == null) {
             revenue.setValue(BigDecimal.ZERO);
         }
         return revenue;
@@ -40,13 +39,27 @@ public class RevenueViewModel extends ViewModel {
 
     public void addPrice(String foodName, BigDecimal price) {
         Map<String, BigDecimal> map;
-        if (prices == null) {
+        if (prices.getValue() == null) {
             map = new HashMap<>();
-            prices = new MutableLiveData<>();
         } else {
              map = prices.getValue();
         }
         if (map != null) map.put(foodName, price);
         prices.setValue(map);
+    }
+
+    public void editPrice(String foodName, BigDecimal price) {
+        Map<String, BigDecimal> map = prices.getValue();
+        if (map != null) {
+            map.remove(foodName);
+            map.put(foodName, price);
+        }
+    }
+
+    public void deletePrice(String foodName) {
+        Map<String, BigDecimal> map = prices.getValue();
+        if (map != null) {
+            map.remove(foodName);
+        }
     }
 }
