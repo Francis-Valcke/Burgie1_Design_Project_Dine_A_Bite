@@ -4,6 +4,8 @@ package cobol.services.authentication.config;
 import cobol.commons.communication.requst.AuthenticationRequest;
 import cobol.commons.communication.response.BetterResponseModel;
 import cobol.commons.config.GlobalConfigurationBean;
+import cobol.commons.stub.Action;
+import cobol.commons.stub.AuthenticationHandler;
 import cobol.commons.stub.AuthenticationServiceStub;
 import lombok.Data;
 import lombok.extern.log4j.Log4j2;
@@ -26,32 +28,27 @@ public class ConfigurationBean {
     @Autowired
     AuthenticationServiceStub authenticationServiceStub;
 
-    private String username;
-    private String password;
+    @Autowired
+    AuthenticationHandler authenticationHandler;
+    
     private String stripeSecretApiKey;
     private String stripePublicApiKey;
 
-    ///**
-    // * When the authentication service becomes available, try to authenticate.
-    // */
-    //@PostConstruct
-    //public void run(){
-    //    authenticationServiceStub.doOnAvailable(() -> {
-    //
-    //        try {
-    //
-    //            BetterResponseModel<String> response = authenticationServiceStub.authenticate(new AuthenticationRequest(username, password));
-    //            if (response.isOk()) {
-    //
-    //                authenticationServiceStub.setAuthorizationToken(Objects.requireNonNull(response).getPayload());
-    //                log.info("Successfully authenticated this module.");
-    //
-    //            } else throw response.getException();
-    //
-    //        } catch (Throwable throwable) {
-    //            log.error("Could not authenticate.", throwable);
-    //        }
-    //
-    //    });
-    //}
+//    /**
+//     * When the authentication service becomes available, try to authenticate.
+//     */
+//    @PostConstruct
+//    public void run(){
+//        authenticationServiceStub.doOnAvailable(() -> {
+//
+//            authenticationHandler.authenticateAdvice();
+//
+//            if (authenticationHandler.isAuthenticated()){
+//                return true;
+//            } else {
+//                return false;
+//            }
+//
+//        }, Action.PRIORITY_NORMAL, true, true);
+//    }
 }

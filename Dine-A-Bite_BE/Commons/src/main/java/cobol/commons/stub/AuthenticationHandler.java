@@ -35,7 +35,7 @@ public class AuthenticationHandler {
      * Every method annotated with @Authenticated will try to authenticate if not authenticated yet
      */
     @Before("@annotation(cobol.commons.annotation.Authenticated)")
-    public void authenticateAdvice() throws Throwable {
+    public void authenticateAdvice() {
 
         if (!isAuthenticated()) {
 

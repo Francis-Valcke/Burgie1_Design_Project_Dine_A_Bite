@@ -8,7 +8,9 @@ import cobol.commons.domain.CommonOrder;
 import cobol.commons.domain.CommonOrderItem;
 import cobol.commons.domain.Recommendation;
 import cobol.commons.domain.SuperOrder;
+import cobol.commons.stub.EventChannelStub;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import lombok.extern.log4j.Log4j2;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -21,6 +23,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Log4j2
 @Component
 @Scope(value = "singleton")
 public class SchedulerHandler {
@@ -28,6 +31,9 @@ public class SchedulerHandler {
 
     @Autowired
     CommunicationHandler communicationHandler;
+
+    @Autowired
+    EventChannelStub eventChannelStub;
 
     /**
      * The schedulerhandler has a list of all schedulers.
@@ -191,7 +197,14 @@ public class SchedulerHandler {
     public void pollEvents() {
         if (schedulers.size() == 0) return;
         for (Scheduler s : schedulers) {
-            s.pollEvents();
+            if (s.isSubscribed() && s.isRegistered()) {
+                log.debug("Scheduler ID = " + s.getId() + " : Trying to poll events for scheduler with ID");
+                s.pollEvents();
+                log.debug("Scheduler ID = " + s.getId() + " : Poll events success!");
+
+            } else {
+                log.debug("Scheduler ID = " + s.getId() + " : Poll events failed!");
+            }
         }
     }
 
@@ -237,7 +250,7 @@ public class SchedulerHandler {
         }
         //create scheduler
         if (newScheduler) {
-            Scheduler s = new Scheduler(info.getMenu(), info.getName(), info.getBrandName(), info.getLatitude(), info.getLongitude(), communicationHandler);
+            Scheduler s = new Scheduler(info.getMenu(), info.getName(), info.getBrandName(), info.getLatitude(), info.getLongitude(), eventChannelStub);
             addScheduler(s);
             s.start();
             obj.put("added", true);

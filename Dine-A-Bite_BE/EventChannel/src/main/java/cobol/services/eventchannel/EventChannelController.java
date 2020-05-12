@@ -1,5 +1,6 @@
 package cobol.services.eventchannel;
 
+import cobol.commons.communication.response.BetterResponseModel;
 import cobol.commons.domain.Event;
 import cobol.commons.communication.response.ResponseModel;
 import cobol.commons.stub.EventChannelStub;
@@ -78,11 +79,18 @@ public class EventChannelController implements IEventChannel {
 
     @Override
     @GetMapping(GET_EVENTS)
-    public ResponseEntity getEvents(@RequestParam(value = "id") int id) throws JsonProcessingException {
-        EventBroker broker = EventBroker.getInstance();
-        EventSubscriber subscriber = broker.getSubscriberStub(id);
-        List<Event> response = subscriber.getUnhandledEvents();
+    public BetterResponseModel<List<Event>> getEvents(@RequestParam(value = "id") int id) {
 
-        return ResponseEntity.ok(response);
+        List<Event> response = null;
+        try {
+            EventBroker broker = EventBroker.getInstance();
+            EventSubscriber subscriber = broker.getSubscriberStub(id);
+            response = subscriber.getUnhandledEvents();
+            return BetterResponseModel.ok("Payload consists of list of events", response);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return BetterResponseModel.error("Error while trying to get events", e);
+        }
     }
 }

@@ -21,7 +21,7 @@ import java.util.concurrent.TimeUnit;
 public abstract class ServiceStub {
 
     public static final String GET_PING = "/ping";
-    protected static final int PING_FREQUENCY = 10000; //10 seconds
+    protected static final int PING_FREQUENCY = 1000; //10 seconds
     protected final OkHttpClient okHttpClient = new OkHttpClient().newBuilder().connectTimeout(1, TimeUnit.SECONDS).build();
     protected boolean available = false;
 

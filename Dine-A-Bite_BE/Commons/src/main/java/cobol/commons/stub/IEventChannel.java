@@ -1,10 +1,12 @@
 package cobol.commons.stub;
 
+import cobol.commons.communication.response.BetterResponseModel;
 import cobol.commons.domain.Event;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.springframework.http.ResponseEntity;
 
 import java.io.IOException;
+import java.util.List;
 
 public interface IEventChannel {
 
@@ -58,5 +60,5 @@ public interface IEventChannel {
      * @param id unique id of stub
      * @return the events that were received by the stub since the last poll
      */
-    ResponseEntity getEvents(int id) throws JsonProcessingException;
+    BetterResponseModel<List<Event>> getEvents(int id) throws IOException;
 }

@@ -45,6 +45,11 @@ public class BetterResponseModel<T> {
         return status.equals(Status.OK);
     }
 
+    public T getOrThrow() throws Throwable {
+        if (!isOk()) throw exception;
+        return payload;
+    }
+
     public String getStatus() {
         return status;
     }

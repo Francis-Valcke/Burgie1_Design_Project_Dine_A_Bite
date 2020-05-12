@@ -1,14 +1,19 @@
 package cobol.services.standmanager;
 
+import cobol.commons.communication.response.BetterResponseModel;
 import cobol.commons.domain.CommonFood;
 import cobol.commons.domain.Event;
 import cobol.commons.exception.CommunicationException;
 import cobol.commons.domain.CommonOrder;
+import cobol.commons.stub.Action;
+import cobol.commons.stub.EventChannelStub;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import lombok.extern.log4j.Log4j2;
 import org.json.simple.JSONObject;
 
+import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -17,10 +22,11 @@ import java.util.concurrent.TimeUnit;
  * schedulers all have:
  * TODO: change "inc" to proper schedule
  */
+@Log4j2
 public class Scheduler extends Thread {
 
 
-    private CommunicationHandler communicationHandler;
+    private EventChannelStub eventChannelStub;
 
     // incoming orders
     private List<CommonOrder> inc = new LinkedList<>();
@@ -35,11 +41,13 @@ public class Scheduler extends Thread {
 
 
     // Scheduler properties
+    private boolean subscribed = false;
+    private boolean registered = false;
     private int subscriberId;
     private String brandName;
 
     private ObjectMapper objectMapper;
-    public Scheduler(List<CommonFood> menu, String standName, String brandName, double lat, double lon, CommunicationHandler communicationHandler) throws CommunicationException {
+    public Scheduler(List<CommonFood> menu, String standName, String brandName, double lat, double lon, EventChannelStub eventChannelStub) throws CommunicationException {
         // set stand properties
         this.menu = menu;
         this.standName = standName;
@@ -47,12 +55,62 @@ public class Scheduler extends Thread {
         this.lat= lat;
         this.lon=lon;
 
-        this.communicationHandler=communicationHandler;
-        // retrieve subscriber id
-        subscriberId= communicationHandler.getSubscriberIdFromEC();
+        this.eventChannelStub = eventChannelStub;
 
-        // register to orders from a brand
-        communicationHandler.registerToOrdersFromBrand(subscriberId, brandName);
+        // Retrieve subscriber id for this scheduler
+        eventChannelStub.doOnAvailable(() -> {
+
+            boolean success;
+
+            try {
+                log.info("Trying to register at event channel");
+
+                int id = eventChannelStub.getRegisterSubscriber("");
+                subscriberId = id;
+                registered = true;
+                success = true;
+                log.info("Successfully registered with subscriber ID from event channel: ID = " + id);
+            } catch (Exception e) {
+                success = false;
+                registered = false;
+                log.info("Could not request subscriber ID from event channel.");
+                log.debug("Could not request subscriber ID from event channel.", e);
+            }
+
+            return success;
+
+        }, Action.PRIORITY_HIGHEST, true, true);
+
+        // Register to orders from a brand
+        eventChannelStub.doOnAvailable(() -> {
+
+            boolean success;
+
+            try {
+                log.info("Trying to subscribe to brand " + brandName);
+
+                eventChannelStub.getRegisterSubscriberToChannel(subscriberId,brandName);
+
+                success = true;
+                subscribed = true;
+                log.info("Successfully subscribed to brand " + brandName);
+            } catch (Exception e) {
+                success = false;
+                subscribed = false;
+
+                log.info("Could not subscribe to brand " + brandName);
+                log.debug("Could not subscribe to brand " + brandName, e);
+            }
+
+            return success;
+
+        }, Action.PRIORITY_HIGH, true, true);
+
+        eventChannelStub.doOnUnavailable(()->{
+            subscribed = false;
+            registered = false;
+            return true;
+        }, Action.PRIORITY_NORMAL, false, false);
 
     }
 
@@ -75,24 +133,23 @@ public class Scheduler extends Thread {
     public void pollEvents() {
 
         try {
+            BetterResponseModel<List<Event>> model = eventChannelStub.getEvents(subscriberId);
+            List<Event> events = model.getOrThrow();
 
-            List<Event> eventList=communicationHandler.pollEventsFromEC(subscriberId);
-
-            for (Event event : eventList) {
+            for (Event event : events) {
                 JSONObject eventData = event.getEventData();
-                JSONObject menuchange = (JSONObject) eventData.get("menuItem");
+                JSONObject menuChange = (JSONObject) eventData.get("menuItem");
                 objectMapper.registerModule(new JavaTimeModule());
-                CommonFood mi = objectMapper.readValue(menuchange.toString(), CommonFood.class);
+                CommonFood mi = objectMapper.readValue(menuChange.toString(), CommonFood.class);
                 for (CommonFood mi2 : menu) {
                     updateItem(mi, mi2);
                 }
             }
-        } catch (JsonProcessingException e) {
-            System.err.println(e);
-            e.printStackTrace();
-        } catch (CommunicationException e) {
+
+        } catch (Throwable e) {
             e.printStackTrace();
         }
+
     }
 
 
@@ -211,5 +268,11 @@ public class Scheduler extends Thread {
     }
 
 
+    public boolean isSubscribed() {
+        return subscribed;
+    }
 
+    public boolean isRegistered() {
+        return registered;
+    }
 }

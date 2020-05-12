@@ -232,7 +232,14 @@ public class OrderProcessor {
 
         if (configurationBean.isSubscribed()) {
             log.debug("Polling events for subscriber ID " + subscriberId);
-            List<Event> newEvents = communicationHandler.pollEventsFromEC(subscriberId);
+
+            List<Event> newEvents = null;
+            try {
+                newEvents = eventChannelStub.getEvents(subscriberId).getOrThrow();
+            } catch (Throwable throwable) {
+                log.error("Could not retrieve events!", throwable);
+
+            }
             eventQueue.addAll(newEvents);
         } else {
             log.debug("Waiting on subscriber id before polling events");

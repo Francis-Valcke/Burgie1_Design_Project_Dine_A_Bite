@@ -3,10 +3,7 @@ package cobol.services.ordermanager.config;
 
 import cobol.commons.communication.requst.AuthenticationRequest;
 import cobol.commons.communication.response.BetterResponseModel;
-import cobol.commons.stub.Action;
-import cobol.commons.stub.AuthenticationServiceStub;
-import cobol.commons.stub.EventChannelStub;
-import cobol.commons.stub.StandManagerStub;
+import cobol.commons.stub.*;
 import cobol.services.ordermanager.MenuHandler;
 import cobol.services.ordermanager.OrderProcessor;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -34,11 +31,13 @@ public class ConfigurationBean {
     StandManagerStub standManagerStub;
     @Autowired
     EventChannelStub eventChannelStub;
+    @Autowired
+    AuthenticationServiceStub authenticationServiceStub;
+    @Autowired
+    AuthenticationHandler authenticationHandler;
 
     @Autowired
     MenuHandler menuHandler;
-    @Autowired
-    AuthenticationServiceStub authenticationServiceStub;
     @Autowired
     OrderProcessor orderProcessor;
 
@@ -47,6 +46,25 @@ public class ConfigurationBean {
     boolean unitTest;
 
     private boolean subscribed = false;
+
+//    /**
+//     * When the authentication service becomes available, try to authenticate.
+//     */
+//    @PostConstruct
+//    public void run(){
+//        authenticationServiceStub.doOnAvailable(() -> {
+//
+//            authenticationHandler.authenticateAdvice();
+//
+//            if (authenticationHandler.isAuthenticated()){
+//                return true;
+//            } else {
+//                return false;
+//            }
+//
+//        }, Action.PRIORITY_NORMAL, true, true);
+//    }
+
 
     /**
      * When the event channel becomes available, try to retrieve a subscriberID

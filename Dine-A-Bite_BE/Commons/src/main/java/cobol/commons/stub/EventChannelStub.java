@@ -1,7 +1,12 @@
 package cobol.commons.stub;
 
 import cobol.commons.annotation.Authenticated;
+import cobol.commons.communication.response.BetterResponseModel;
 import cobol.commons.domain.Event;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.springframework.context.annotation.Scope;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -13,6 +18,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.naming.CommunicationException;
 import java.io.IOException;
+import java.util.List;
 
 @Service
 @Scope(value = "singleton")
@@ -51,11 +57,11 @@ public class EventChannelStub extends ServiceStub implements IEventChannel{
         return Integer.parseInt(response);
     }
 
+    @Authenticated
     @Override
     public void getRegisterSubscriberToChannel(int subscriberId, String type) throws IOException {
 
-        String url = globalConfigurationBean.getAddressEventChannel() + GET_REGISTER_SUBSCRIBER_TO_CHANNEL;
-        url += UriComponentsBuilder.fromUriString(url)
+        String url = UriComponentsBuilder.fromUriString(getAddress() + GET_REGISTER_SUBSCRIBER_TO_CHANNEL)
                 .queryParam("id", subscriberId)
                 .queryParam("type", type).toUriString();
 
@@ -72,12 +78,18 @@ public class EventChannelStub extends ServiceStub implements IEventChannel{
 
     }
 
+    @Authenticated
     @Override
-    public ResponseEntity getEvents(int id) {
+    public BetterResponseModel<List<Event>> getEvents(int id) throws IOException {
 
-        String url = getAddress() + GET_EVENTS;
+        String url = UriComponentsBuilder.fromUriString(getAddress() + GET_EVENTS)
+                .queryParam("id", id).toUriString();
 
+        String response = request("GET", url, null);
 
-        return null;
+        ObjectMapper objectMapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        objectMapper.registerModule(new JavaTimeModule());
+
+        return objectMapper.readValue(response, new TypeReference<BetterResponseModel<List<Event>>>() {});
     }
 }
