@@ -119,16 +119,18 @@ public class CommonOrder implements Serializable {
         return startTime;
     }
 
-    public void setStartTime(Calendar startTime) {
-        this.startTime = startTime;
+    public void setStartTime(long startTime) {
+        this.startTime = Calendar.getInstance();
+        this.startTime.setTimeInMillis(startTime*100);
     }
 
     public Calendar getExpectedTime() {
         return expectedTime;
     }
 
-    public void setExpectedTime(Calendar expectedTime) {
-        this.expectedTime = expectedTime;
+    public void setExpectedTime(long expectedTime) {
+        this.expectedTime = Calendar.getInstance();
+        this.expectedTime.setTimeInMillis(expectedTime*100);
     }
 
     @NonNull

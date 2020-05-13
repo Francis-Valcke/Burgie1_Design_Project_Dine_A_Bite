@@ -236,6 +236,8 @@ public class OrderProcessor {
             List<Event> newEvents = null;
             try {
                 newEvents = eventChannelStub.getEvents(subscriberId).getOrThrow();
+                log.debug("Polling events for subscriber ID " + subscriberId + " success!");
+
             } catch (Throwable throwable) {
                 log.error("Could not retrieve events!", throwable);
 

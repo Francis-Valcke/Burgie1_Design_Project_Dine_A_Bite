@@ -24,10 +24,12 @@ import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
+import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.example.standapp.data.LoginDataSource;
 import com.example.standapp.data.LoginRepository;
 import com.example.standapp.data.model.LoggedInUser;
+import com.example.standapp.json.BetterResponseModel;
 import com.example.standapp.json.CommonFood;
 import com.example.standapp.order.CommonOrder;
 import com.example.standapp.order.CommonOrderItem;
@@ -35,6 +37,7 @@ import com.example.standapp.order.CommonOrderStatusUpdate;
 import com.example.standapp.order.Event;
 import com.example.standapp.polling.PollingService;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -48,6 +51,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+
+import static com.android.volley.VolleyLog.TAG;
 
 // TODO (optional) change polling to FCM
 
@@ -128,19 +133,21 @@ public class OrderFragment extends Fragment {
                 System.out.println("Getting orders, URL: " + url);
 
                 // GET request to server
-                final JsonArrayRequest jsonRequest = new JsonArrayRequest(Request.Method.GET, url,
-                        null, new Response.Listener<JSONArray>() {
+                final StringRequest jsonRequest = new StringRequest(Request.Method.GET, url,
+                        new Response.Listener<String>() {
 
                     @Override
-                    public void onResponse(JSONArray response) {
-                        System.out.println(response.toString());
+                    public void onResponse(String response) {
                         ObjectMapper mapper = new ObjectMapper();
                         ArrayList<CommonOrder> orders = new ArrayList<>();
 
-                        for (int i = 0; i < response.length(); i++) {
-                            try {
-                                JSONObject eventJSON = (JSONObject) response.get(i);
-                                Event event = mapper.readValue(eventJSON.toString(), Event.class);
+                        try {
+                            List<Event> events = mapper.readValue(response, new TypeReference<BetterResponseModel<List<Event>>>() {}).getOrThrow();
+
+                            for (Event event : events) {
+
+                                JSONObject eventJSON = new JSONObject(mapper.writeValueAsString(event));
+
                                 if (!event.getDataType().equals("Order")) return;
                                 //listEvents.add(0, event);
                                 listEvents.add(event);
@@ -150,9 +157,12 @@ public class OrderFragment extends Fragment {
                                 orders.add(mapper.readValue(order.toString(), CommonOrder.class));
                                 //listOrders.add(0, mapper.readValue(order.toString(), CommonOrder.class));
                                 listOrders.add(mapper.readValue(order.toString(), CommonOrder.class));
-                            } catch (JSONException | JsonProcessingException e) {
-                                e.printStackTrace();
+
                             }
+
+                        } catch (Throwable throwable) {
+                            Log.e(TAG, "onResponse: Failed to poll", throwable);
+                            throwable.printStackTrace();
                         }
 
                         for (CommonOrder order : orders) {

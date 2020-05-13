@@ -27,13 +27,11 @@ spring:
     #hibernate:
       #ddl-auto: create-drop
 
-#logging:
-#  level:
-#    org.springframework.web: INFO
-#    org.springframework.security: DEBUG
-#    cobol: DEBUG
-#  file:
-#    name: app.log
+logging:
+  level:
+    org.springframework.web: INFO
+    org.springframework.security: INFO
+    cobol: DEBUG
 
 ordermanager:
   unitTest: false

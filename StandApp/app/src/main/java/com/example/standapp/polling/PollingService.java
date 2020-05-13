@@ -17,13 +17,16 @@ import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
+import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.example.standapp.ServerConfig;
 import com.example.standapp.data.LoginDataSource;
 import com.example.standapp.data.LoginRepository;
 import com.example.standapp.data.model.LoggedInUser;
+import com.example.standapp.json.BetterResponseModel;
 import com.example.standapp.order.Event;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.json.JSONArray;
@@ -31,7 +34,10 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+
+import static com.android.volley.VolleyLog.TAG;
 
 
 /**
@@ -60,29 +66,27 @@ public class PollingService extends Service {
             String url = ServerConfig.EC_ADDRESS + "/events?id=" + subscribeId;
 
             // Request a string response from the provided URL
-            JsonArrayRequest jsonArray = new JsonArrayRequest(Request.Method.GET, url,
-                    null, new Response.Listener<JSONArray>() {
+            StringRequest request = new StringRequest(Request.Method.GET, url,
+                    new Response.Listener<String>() {
                 @Override
-                public void onResponse(JSONArray response) {
+                public void onResponse(String response) {
                     Toast mToast = Toast.makeText(context, "Polling success",
                             Toast.LENGTH_SHORT);
                     mToast.show();
 
-                    System.out.println("RESPONSE: " + response.toString());
-
                     ObjectMapper mapper = new ObjectMapper();
+                    try {
+                        List<Event> events = mapper.readValue(response, new TypeReference<BetterResponseModel<List<Event>>>() {}).getOrThrow();
 
-                    for (int i = 0; i < response.length(); i++) {
-                        try {
-                            JSONObject event = (JSONObject) response.get(i);
-                            Event eventUpdate = mapper.readValue(event.toString(), Event.class);
-
+                        for (Event event : events) {
                             Intent intent = new Intent("eventUpdate");
-                            intent.putExtra("eventUpdate", eventUpdate);
+                            intent.putExtra("eventUpdate", event);
                             LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
-                        } catch (JSONException | JsonProcessingException e) {
-                            e.printStackTrace();
                         }
+
+                    } catch (Throwable throwable) {
+                        Log.e(TAG, "onResponse: Failed to poll", throwable);
+                        throwable.printStackTrace();
                     }
                 }
             }, new Response.ErrorListener() {
@@ -105,7 +109,7 @@ public class PollingService extends Service {
             };
 
             // Add the request to the RequestQueue
-            queue.add(jsonArray);
+            queue.add(request);
 
             handler.postDelayed(runnableService, DEFAULT_SYNC_INTERVAL);
         }

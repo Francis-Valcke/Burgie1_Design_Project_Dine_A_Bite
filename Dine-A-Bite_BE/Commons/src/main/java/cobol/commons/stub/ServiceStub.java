@@ -10,6 +10,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import javafx.util.Pair;
 import lombok.extern.log4j.Log4j2;
 import okhttp3.*;
+import org.apache.logging.log4j.Level;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 
@@ -44,7 +45,7 @@ public abstract class ServiceStub {
 
         try {
             request("GET", url, null);
-            log.debug("Ping: " + url + " success!");
+//            log.log(Level.ALL,"Ping: " + url + " success!");
 
             if (!available) {
                 log.info(url + " => now AVAILABLE!");
@@ -66,7 +67,7 @@ public abstract class ServiceStub {
             available = true;
 
         } catch (IOException e) {
-            log.debug("Could not ping: " + url);
+//            log.log(Level.ALL,"Could not ping: " + url);
 
             if (available) {
                 log.info(url + " => now UNAVAILABLE!");

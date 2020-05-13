@@ -66,7 +66,7 @@ public class AuthenticationServiceController implements IAuthenticationService {
     @Override
     @GetMapping(AuthenticationServiceStub.GET_PING)
     public ResponseEntity<HashMap<Object, Object>> ping(HttpServletRequest request) {
-        log.debug("Authentication Service was pinged by: " + request.getRemoteAddr());
+//        log.debug("Authentication Service was pinged by: " + request.getRemoteAddr());
 
         return ResponseEntity.ok(
                 ResponseModel.builder()

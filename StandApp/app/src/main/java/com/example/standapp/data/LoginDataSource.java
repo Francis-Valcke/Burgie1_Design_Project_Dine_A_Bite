@@ -4,6 +4,8 @@ import android.util.Log;
 
 import com.example.standapp.ServerConfig;
 import com.example.standapp.data.model.LoggedInUser;
+import com.example.standapp.json.BetterResponseModel;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -109,14 +111,19 @@ public class LoginDataSource {
 
         // Getting the information from the authentication response
         ObjectMapper mapper = new ObjectMapper();
+
         String token;
         String status;
+
         try {
-            JsonNode jsonNode = mapper.readTree(mResponseBody);
-            status = jsonNode.get("status").textValue();
-            if (status.equals("ERROR")) throw new IOException(status);
-            token = jsonNode.get("details").get("token").textValue();
-        } catch (IOException e) {
+
+            BetterResponseModel<String> response = mapper.readValue(mResponseBody, new TypeReference<BetterResponseModel<String>>() {});
+
+            token = response.getOrThrow();
+            status = response.getStatus();
+
+
+        } catch (Throwable e) {
             mResponseBody = null;
             e.printStackTrace();
             return new Result.Error(new IOException("Error logging in", e));

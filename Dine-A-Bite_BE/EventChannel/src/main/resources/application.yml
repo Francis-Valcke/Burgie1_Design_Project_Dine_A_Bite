@@ -1,6 +1,12 @@
 server:
   port: 8083
 
+logging:
+  level:
+    org.springframework.web: INFO
+    org.springframework.security: INFO
+    cobol: DEBUG
+
 eventchannel:
 
 credentials:
