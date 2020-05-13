@@ -62,4 +62,8 @@ public class CommonStand implements Serializable {
     public void addToRevenue(BigDecimal addedRevenue) { this.revenue = this.revenue.add(addedRevenue); }
 
     public void setRevenue(BigDecimal newRevenue) { this.revenue = newRevenue; }
+
+    public void setBrandName(String brandName) {
+        this.brandName = brandName;
+    }
 }

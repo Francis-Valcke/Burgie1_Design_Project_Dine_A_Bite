@@ -1,5 +1,7 @@
 package com.example.attendeeapp.json;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import java.math.BigDecimal;
 
 public class BetterResponseModel<T> {
@@ -41,8 +43,15 @@ public class BetterResponseModel<T> {
         this.payload = payload;
     }
 
+    @JsonIgnore
     public boolean isOk(){
         return status.equals(Status.OK);
+    }
+
+    @JsonIgnore
+    public T getOrThrow() throws Throwable {
+        if (!isOk()) throw exception;
+        return payload;
     }
 
     public String getStatus() {
@@ -133,6 +142,5 @@ public class BetterResponseModel<T> {
             this.balance = balance;
         }
     }
-
 }
 

@@ -17,6 +17,4 @@ spring:
         dialect: org.hibernate.dialect.H2Dialect
 
 ordermanager:
-  unitTest: false
-  username: OrderManager
-  password: OrderManager
+  unitTest: true

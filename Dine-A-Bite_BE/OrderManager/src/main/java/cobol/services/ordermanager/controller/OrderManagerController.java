@@ -359,12 +359,14 @@ public class OrderManagerController implements IOrderManager {
     @Override
     @PostMapping(POST_DB_IMPORT)
     public ResponseEntity<String> load(@RequestBody List<CommonBrand> data) {
+        User user = userRepository.save(new User("stand"));
 
-        //Add stand as default owner
-        //User user = userRepository.save(User.builder().username("stand").build());
-        //data.stream().flatMap(brand -> brand.getStandList().stream()).forEach(stand -> stand.getOwners().add(user));
-        //TODO FIX THIS
-        //data.forEach(brand -> brandRepository.save(brand));
+        List<Brand> brands = data.stream().map(Brand::new)
+                .peek(brand -> brand.getStandList().forEach(stand -> stand.getOwners().add(user)))
+                .collect(Collectors.toList());
+
+        brands.forEach(brand -> brandRepository.save(brand));
+
         return ResponseEntity.ok("Success");
     }
 

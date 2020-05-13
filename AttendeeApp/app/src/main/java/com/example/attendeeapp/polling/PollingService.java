@@ -27,6 +27,7 @@ import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
+import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.example.attendeeapp.OrderActivity;
 import com.example.attendeeapp.R;
@@ -34,9 +35,12 @@ import com.example.attendeeapp.ServerConfig;
 import com.example.attendeeapp.data.LoginDataSource;
 import com.example.attendeeapp.data.LoginRepository;
 import com.example.attendeeapp.data.model.LoggedInUser;
+import com.example.attendeeapp.json.BetterResponseModel;
 import com.example.attendeeapp.json.CommonOrder;
 import com.example.attendeeapp.json.CommonOrderStatusUpdate;
+import com.example.attendeeapp.json.Event;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.json.JSONArray;
@@ -44,6 +48,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 
@@ -76,21 +81,22 @@ public class PollingService extends Service {
             String url = ServerConfig.EC_ADDRESS + "/events?id="+subscribeId;
 
             // Request a string response from the provided URL
-            JsonArrayRequest jsonArray = new JsonArrayRequest(Request.Method.GET, url, null, new Response.Listener<JSONArray>() {
+            StringRequest request = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
                 @Override
-                public void onResponse(JSONArray response) {
-                    /*Toast mToast = null;
-                    if (mToast != null) mToast.cancel();
-                    mToast = Toast.makeText(context, "Polling success",
-                            Toast.LENGTH_SHORT);
-                    mToast.show();*/
+                public void onResponse(String response) {
 
                     ObjectMapper mapper = new ObjectMapper();
+                    List<Event> events;
                     try {
-                        for (int i = 0; i < response.length(); i++) {
-                            JSONObject event = (JSONObject) response.get(i);
-                            JSONObject eventData = (JSONObject) event.get("eventData");
-                            String eventClass = event.getString("dataType");
+                        events = mapper
+                                .readValue(response, new TypeReference<BetterResponseModel<List<Event>>>() {})
+                                .getOrThrow();
+
+
+                        for (Event event : events) {
+
+                            JSONObject eventData = event.getEventData();
+                            String eventClass = event.getDataType();
 
                             Intent intent = new Intent("orderUpdate");
                             switch(eventClass) {
@@ -159,6 +165,8 @@ public class PollingService extends Service {
                         }
                     } catch (JSONException | JsonProcessingException e) {
                         Log.v("JSONException", "JSONException in polling service");
+                    } catch (Throwable throwable) {
+                        throwable.printStackTrace();
                     }
 
                 }
@@ -182,7 +190,7 @@ public class PollingService extends Service {
             };
 
             // Add the request to the RequestQueue
-            queue.add(jsonArray);
+            queue.add(request);
 
             handler.postDelayed(runnableService, DEFAULT_SYNC_INTERVAL);
         }

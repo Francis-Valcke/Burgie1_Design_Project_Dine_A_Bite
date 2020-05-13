@@ -12,6 +12,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Entity
 @Data
@@ -33,9 +34,14 @@ public class Brand implements Serializable {
     }
 
     public Brand(CommonBrand commonBrand) {
-        this.name = commonBrand.getName();
 
+        //Set the brandname of the underlying stands
+        commonBrand.getStandList().forEach(commonStand -> commonStand.setBrandName(commonBrand.getName()));
+
+        this.name = commonBrand.getName();
+        standList.addAll(commonBrand.getStandList().stream().map(Stand::new).collect(Collectors.toList()));
     }
+
 
     // --- GETTERS & SETTERS ---
 

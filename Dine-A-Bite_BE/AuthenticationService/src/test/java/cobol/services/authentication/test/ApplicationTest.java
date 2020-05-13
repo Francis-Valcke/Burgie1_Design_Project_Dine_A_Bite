@@ -1,7 +1,9 @@
 package cobol.services.authentication.test;
 
+import cobol.commons.communication.response.BetterResponseModel;
 import cobol.services.authentication.domain.entity.User;
 import cobol.services.authentication.domain.repository.UserRepository;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.json.JSONObject;
@@ -73,13 +75,13 @@ public class ApplicationTest {
     }
 
     @Test
-    public void authenticateUserTest() throws Exception {
+    public void authenticateUserTest() throws Throwable {
         createUser("test");
         authenticateUser("test");
     }
 
     @Test
-    public void userRoleAuthenticationTest() throws Exception {
+    public void userRoleAuthenticationTest() throws Throwable {
         String token = authenticateUser("user");
         this.mockMvc
                 .perform(
@@ -97,7 +99,7 @@ public class ApplicationTest {
     }
 
     @Test
-    public void adminRoleAuthenticationTest() throws Exception {
+    public void adminRoleAuthenticationTest() throws Throwable {
         String token = authenticateUser("admin");
         this.mockMvc
                 .perform(
@@ -126,8 +128,8 @@ public class ApplicationTest {
                 .andExpect(status().isOk());
     }
 
-    private String authenticateUser(String user) throws Exception {
-        JSONObject response = new JSONObject(this.mockMvc
+    private String authenticateUser(String user) throws Throwable {
+        String response = this.mockMvc
                 .perform(
                         post(POST_AUTHENTICATE)
                                 .contentType(MediaType.APPLICATION_JSON)
@@ -135,9 +137,11 @@ public class ApplicationTest {
                                         User.builder().username(user).password(user+user).build()
                                 ))
                 )
-                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString()
-        );
-        return (String) response.getJSONObject("details").get("token");
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        return objectMapper.readValue(response, new TypeReference<BetterResponseModel<String>>() {}).getOrThrow();
     }
 
 }

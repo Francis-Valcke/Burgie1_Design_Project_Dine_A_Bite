@@ -43,6 +43,7 @@ public class ConfigurationBean {
 
     private String username;
     private String password;
+
     boolean unitTest;
 
     private boolean subscribed = false;

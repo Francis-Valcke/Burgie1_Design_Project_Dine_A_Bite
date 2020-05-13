@@ -1,7 +1,9 @@
 package cobol.services.eventchannel.test;
 
 
+import cobol.commons.communication.response.BetterResponseModel;
 import cobol.commons.domain.Event;
+import cobol.commons.stub.EventChannelStub;
 import cobol.services.eventchannel.EventBroker;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -52,7 +54,7 @@ public class EventChannelTest {
         if (!setupDone) {
             this.mockMvc
                     .perform(
-                            get("/registerSubscriber")
+                            get(EventChannelStub.GET_REGISTER_SUBSCRIBER)
                                     .param("types", "1,2,3,5")
                     );
             JSONObject testData = new JSONObject();
@@ -70,7 +72,7 @@ public class EventChannelTest {
             for (Event e : eventList) {
                 this.mockMvc
                         .perform(
-                                post("/publishEvent")
+                                post(EventChannelStub.POST_PUBLISH_EVENT)
                                         .contentType(MediaType.APPLICATION_JSON)
                                         .content(objectMapper.writeValueAsBytes(e))
                         )
@@ -84,7 +86,7 @@ public class EventChannelTest {
     public void pingTest() throws Exception {
         this.mockMvc
                 .perform(
-                        get("/pingEC")
+                        get(EventChannelStub.GET_PING)
                 )
                 .andExpect(status().isOk());
     }
@@ -93,7 +95,7 @@ public class EventChannelTest {
     public void subscribeTest() throws Exception {
         String id = this.mockMvc
                 .perform(
-                        get("/registerSubscriber")
+                        get(EventChannelStub.GET_REGISTER_SUBSCRIBER)
                                 .param("types", "1,2,3,5")
                 )
                 .andExpect(status().isOk())
@@ -105,7 +107,7 @@ public class EventChannelTest {
     public void addChannelsTest() throws Exception {
         this.mockMvc
                 .perform(
-                        get("/registerSubscriber/toChannel")
+                        get(EventChannelStub.GET_REGISTER_SUBSCRIBER_TO_CHANNEL)
                                 .param("type", "4")
                                 .param("id", "0")
                 )
@@ -116,24 +118,24 @@ public class EventChannelTest {
     public void deRegisterTest() throws Exception {
         this.mockMvc
                 .perform(
-                        get("/deregisterSubscriber")
+                        get(EventChannelStub.GET_DEREGISTER_SUBSCRIBER)
                                 .param("id", "0")
                                 .param("type", "5")
                 )
                 .andExpect(status().isOk());
     }
     @Test
-    public void testEventPolling() throws Exception {
+    public void testEventPolling() throws Throwable {
         String data = this.mockMvc
                 .perform(
-                        get("/events")
+                        get(EventChannelStub.GET_EVENTS)
                                 .param("id", "0")
                 )
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
         //JSONObject response = objectMapper.readValue(data, JSONObject.class);
         //String details = (String) response.get("details");
-        List<Event> eventList = objectMapper.readValue(data, new TypeReference<List<Event>>() {});
+        List<Event> eventList = objectMapper.readValue(data, new TypeReference<BetterResponseModel<List<Event>>>() {}).getOrThrow();
         assert (eventList.size() == 3); //event from channel 1,2 and 3;
         for (Event e : eventList) {
             assert (e.getMyId() == 0 || e.getMyId() == 1);

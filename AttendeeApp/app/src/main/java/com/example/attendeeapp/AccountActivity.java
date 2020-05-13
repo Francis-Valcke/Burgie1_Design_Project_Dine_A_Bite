@@ -22,6 +22,7 @@ import com.example.attendeeapp.json.BetterResponseModel;
 import com.example.attendeeapp.json.BetterResponseModel.GetBalanceResponse;
 import com.example.attendeeapp.polling.OkHttpRequestTool;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
@@ -118,8 +119,7 @@ public class AccountActivity extends ToolbarActivity {
                     try {
                         ObjectMapper om = new ObjectMapper();
                         BetterResponseModel<GetBalanceResponse> object =
-                                om.readValue(response, new TypeReference<BetterResponseModel<GetBalanceResponse>>() {
-                                });
+                                om.readValue(response, new TypeReference<BetterResponseModel<GetBalanceResponse>>() {});
 
                         if (object.isOk()) {
                             balance.setText(String.valueOf(object.getPayload().getBalance()));
