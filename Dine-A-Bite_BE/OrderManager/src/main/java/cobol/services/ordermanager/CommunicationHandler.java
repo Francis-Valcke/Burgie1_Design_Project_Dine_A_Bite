@@ -11,8 +11,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -112,7 +110,7 @@ public class CommunicationHandler {
      * @return JSONArray of  JSONObject with field "recommendations" and a field "order" similar to return of placeOrder
      * recommendation field will be a JSONArray of Recommendation object
      */
-    public JSONArray getSuperRecommendationFromSM(SuperOrder superOrder) throws ParseException {
+    public JSONArray getSuperRecommendationFromSM(SuperOrder superOrder) throws Throwable {
 
         RestTemplate template = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
@@ -126,10 +124,19 @@ public class CommunicationHandler {
 
 
         String responseString= template.postForObject(builder.toUriString(), request, String.class);
-        JSONParser parser= new JSONParser();
-
-
-        return (JSONArray) parser.parse(responseString);
+        ObjectMapper mapper= new ObjectMapper();
+        BetterResponseModel<JSONArray> responseModel= mapper.readValue(responseString, new TypeReference<BetterResponseModel<JSONArray>>() {});
+        if(responseModel!=null){
+            if(responseModel.isOk()){
+                return responseModel.getPayload();
+            }
+            else{
+                throw responseModel.getException();
+            }
+        }
+        else{
+            throw new NullPointerException("empty response from standmanager for superorder recommendations");
+        }
     }
 
 

@@ -138,6 +138,8 @@ public class StandManagerController {
                 // set coordinates
                 order.setLatitude(superOrder.getLatitude());
                 order.setLongitude(superOrder.getLongitude());
+                order.setRecType(superOrder.getRecType());
+
 
                 // -- Ask recommendation for newly created order -- //
                 List<Recommendation> recommendations = schedulerHandler.recommend(order);
