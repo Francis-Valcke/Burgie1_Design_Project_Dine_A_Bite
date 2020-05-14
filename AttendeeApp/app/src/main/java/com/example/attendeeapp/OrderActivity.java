@@ -229,7 +229,10 @@ public class OrderActivity extends ToolbarActivity {
                         // TODO: Update local database better way @Nathan
                         orderDatabaseService.deleteAllOrders();
                         for (CommonOrder order : allUserOrders) {
-                            orderDatabaseService.insertOrder(order);
+                            // TODO solve this, unconfirmed orders give an error when placing in local db
+                            if(order.getRecType()!=null){
+                                orderDatabaseService.insertOrder(order);
+                            }
                         }
 
                         orders.clear();
@@ -238,7 +241,7 @@ public class OrderActivity extends ToolbarActivity {
                         ArrayList<CommonOrder> readyOrders = new ArrayList<CommonOrder>();
                         if (runningOrderSwitch.isChecked()) {
                             for (CommonOrder order : orders) {
-                                if (order.getOrderState() == CommonOrder.State.READY) {
+                                if (order.getOrderState() == CommonOrder.State.READY || order.getOrderState() == CommonOrder.State.PICKED_UP) {
                                     readyOrders.add(order);
                                 }
                             }

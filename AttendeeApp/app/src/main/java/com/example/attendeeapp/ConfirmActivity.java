@@ -90,7 +90,7 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
     // when an order of the same brand is split up over multiple stands
     private int confirmSplitOrderNumber = 0;
     // the recommendations of a split order of the same brand
-    private JSONArray splitOrderRecommendations = null;
+    private List<JsonNode> splitOrderRecommendations = null;
 
     private Toast mToast = null;
     private AlertDialog mDialog = null;
@@ -147,13 +147,13 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
                     confirmedOrders.add(orderReceived);
 
                     if (confirmNumber - 1 == brandItemMap.keySet().size() &&
-                            confirmSplitOrderNumber == splitOrderRecommendations.length()) {
+                            confirmSplitOrderNumber == splitOrderRecommendations.size()) {
                         // Continue to overview with confirmed stands for the orders
                         Intent listIntent = new Intent(ConfirmActivity.this, OrderActivity.class);
                         listIntent.putExtra("orderList", confirmedOrders);
                         startActivity(listIntent);
                     } else {
-                        if (splitOrderRecommendations.length() > confirmSplitOrderNumber) {
+                        if (splitOrderRecommendations.size() > confirmSplitOrderNumber) {
                             // Continue confirming next stand for split order
                             confirmNextSplitStand();
                         } else {
@@ -180,14 +180,14 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
                         confirmedOrders.add(orderReceived);
 
                         if (confirmNumber - 1 == brandItemMap.keySet().size() &&
-                                confirmSplitOrderNumber == splitOrderRecommendations.length()) {
+                                confirmSplitOrderNumber == splitOrderRecommendations.size()) {
                             // Continue to overview with confirmed stands for the orders
                             Intent listIntent = new Intent(ConfirmActivity.this, OrderActivity.class);
                             listIntent.putExtra("orderList", confirmedOrders);
                             startActivity(listIntent);
                         } else {
                             // Continue confirming stands for the next brand
-                            if (splitOrderRecommendations.length() > confirmSplitOrderNumber) {
+                            if (splitOrderRecommendations.size() > confirmSplitOrderNumber) {
                                 // Continue confirming next stand for split order
                                 confirmNextSplitStand();
                             } else {
@@ -268,7 +268,7 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
         orderReceived = null;
         chosenRecommend = -1;
         confirmSplitOrderNumber = 0;
-        splitOrderRecommendations = new JSONArray();
+        splitOrderRecommendations = new ArrayList<>();
         specificRecommendation = null;
 
         if (specificStand.equals("")) {
@@ -333,7 +333,7 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
         chosenRecommend = -1;
         specificRecommendation = null;
         try {
-            handleReceivedRecommendation(splitOrderRecommendations.getJSONObject(confirmSplitOrderNumber));
+            handleReceivedRecommendation(splitOrderRecommendations.get(confirmSplitOrderNumber));
         } catch (JSONException | JsonProcessingException e) {
             Log.v("JSON exception", "JSON exception in confirmActivity");
         }
@@ -344,7 +344,7 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
         // Display which split stand number is currently being confirmed
         TextView confirmBrandNumberTxt = findViewById(R.id.confirm_brand_number);
         confirmBrandNumberTxt.setVisibility(View.VISIBLE);
-        confirmBrandNumberTxt.setText("(" + confirmSplitOrderNumber + "/" + splitOrderRecommendations.length() + ")");
+        confirmBrandNumberTxt.setText("(" + confirmSplitOrderNumber + "/" + splitOrderRecommendations.size() + ")");
 
         showSplitOrderAlert();
 
@@ -440,7 +440,7 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
 
                     // Response is ok, no exception on server
                     try {
-                        handleReceivedRecommendation(response);
+                        handleReceivedRecommendation(responseModel.getPayload());
                     } catch (JsonProcessingException | JSONException e) {
                         Log.v("JSON exception", "JSON exception in confirmActivity");
                     }
@@ -519,13 +519,16 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
         JsonArrayRequest jsonRequest = new JsonArrayRequest(Request.Method.POST, url, null,
                 response -> {
                     try {
-                        splitOrderRecommendations = response;
+                        for(int i = 0; i<response.length(); i++){
+                            splitOrderRecommendations.add((JsonNode) response.get(i));
+                        }
+
                         if (response.length() > 1) {
                             confirmNextSplitStand();
                         } else {
                             // Order has not been split up
                             confirmSplitOrderNumber = 1;
-                            handleReceivedRecommendation(splitOrderRecommendations.getJSONObject(0));
+                            handleReceivedRecommendation(splitOrderRecommendations.get(0));
                         }
                     } catch (JsonProcessingException | JSONException e) {
                         Log.v("JSON exception", "JSON exception in confirmActivity");
@@ -564,11 +567,11 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
     /**
      * Handles one recommendation/order pair to handle the confirmation of a stand for that order
      * Called by the place(Super)Order http request response listeners and confirmNextSplitStand
-     * @param response: jsonObject containing the recommendation(s) and the order
+     * @param response: jsonNode containing the recommendation(s) and the order
      * @throws JSONException
      * @throws JsonProcessingException
      */
-    private void handleReceivedRecommendation(JSONObject response) throws JSONException, JsonProcessingException {
+    private void handleReceivedRecommendation(JsonNode response) throws JSONException, JsonProcessingException {
         ObjectMapper mapper = new ObjectMapper();
         //mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         recommendations = mapper.readValue(response.get("recommendations").toString(),

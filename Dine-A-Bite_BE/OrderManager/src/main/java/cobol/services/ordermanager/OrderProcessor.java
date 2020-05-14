@@ -189,7 +189,7 @@ public class OrderProcessor {
             assert e != null;
             if (e.getDataType().equals("OrderStatusUpdate")) {
                 JSONObject eventData = e.getEventData();
-                String newStatusString = (String) eventData.get("newStatus");
+                String newStatusString = (String) eventData.get("newState");
                 CommonOrder.State newStatus = CommonOrder.State.valueOf(newStatusString);
                 int orderId = (int) eventData.get("orderId");
                 Optional<Order> localOrderOptional = orderRepository.findFullOrderById(orderId);

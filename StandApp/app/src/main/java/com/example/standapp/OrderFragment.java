@@ -26,6 +26,7 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.JsonRequest;
 import com.android.volley.toolbox.Volley;
 import com.example.standapp.data.LoginDataSource;
 import com.example.standapp.data.LoginRepository;
@@ -349,27 +350,37 @@ public class OrderFragment extends Fragment {
         System.out.println("Getting orders, URL: " + url);
 
         // GET request to server
-        JsonArrayRequest jsonRequest = new JsonArrayRequest(Request.Method.GET, url,
-                null, new Response.Listener<JSONArray>() {
+        JsonObjectRequest jsonRequest = new JsonObjectRequest(Request.Method.GET, url,
+                null, new Response.Listener<JSONObject>() {
 
             @Override
-            public void onResponse(JSONArray response) {
-                System.out.println(response.toString());
+            public void onResponse(JSONObject response) {
                 ObjectMapper mapper = new ObjectMapper();
                 ArrayList<CommonOrder> orders = new ArrayList<>();
 
-                for (int i = 0; i < response.length(); i++) {
+                // map to betterresponsemodel
+                BetterResponseModel<List<Event>> responseModel=null;
+                try {
+                    responseModel = mapper
+                            .readValue(response.toString(), new TypeReference<BetterResponseModel<List<Event>>>() {
+                            });
+                }
+                catch (JsonProcessingException e){
+                    e.printStackTrace();
+                    Toast.makeText(context,"Error while parsing response for getting orders", Toast.LENGTH_LONG).show();
+                    return;
+                }
+
+                for (Event event : responseModel.getPayload()) {
                     try {
-                        JSONObject eventJSON = (JSONObject) response.get(i);
-                        Event event = mapper.readValue(eventJSON.toString(), Event.class);
                         if (!event.getDataType().equals("Order")) return;
 
-                        JSONObject eventData = (JSONObject) eventJSON.get("eventData");
-                        JSONObject order = (JSONObject) eventData.get("order");
+                        JsonNode eventData = event.getEventData();
+                        JsonNode order = eventData.get("order");
                         orders.add(mapper.readValue(order.toString(), CommonOrder.class));
                         //listOrders.add(0, mapper.readValue(order.toString(), CommonOrder.class));
                         activeListOrders.add(0, mapper.readValue(order.toString(), CommonOrder.class));
-                    } catch (JSONException | JsonProcessingException e) {
+                    } catch (JsonProcessingException e) {
                         e.printStackTrace();
                     }
                 }
