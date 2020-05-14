@@ -158,7 +158,7 @@ public class CommunicationHandler {
         }
     }
 
-    public List<Event> pollEventsFromEC(int subscriberId) throws CommunicationException, JsonProcessingException, ParseException {
+    public List<Event> pollEventsFromEC(int subscriberId) throws JsonProcessingException, CommunicationException {
         if (configurationBean.isUnitTest()) return new ArrayList<>();
 
         String uri = OrderManager.ECURL + "/events";
@@ -175,16 +175,17 @@ public class CommunicationHandler {
         ResponseEntity<String> response = restTemplate.exchange(builder.toUriString(), HttpMethod.GET, httpEntity, String.class);
 
 
-        // Handle Response
+        // parse BetterResponseModel from stringresponse
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
-        if (response.getBody() != null) {
+        BetterResponseModel<List<Event>> responseModel= objectMapper.readValue(response.getBody(), new TypeReference<BetterResponseModel<List<Event>>>() {});
 
-            List<Event> events= objectMapper.readValue(response.getBody(), new TypeReference<List<Event>>() {});
-            return events;
-        } else {
-            throw new CommunicationException("EventChannel cannot be reached while polling events in ordermanager");
+        if(responseModel!=null){
+            if(responseModel.isOk()){
+                return responseModel.getPayload();
+            }
         }
+        throw new CommunicationException("EventChannel cannot be reached while polling events in ordermanager");
     }
 
     /**

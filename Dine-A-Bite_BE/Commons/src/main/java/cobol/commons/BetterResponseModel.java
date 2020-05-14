@@ -1,5 +1,7 @@
 package cobol.commons;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import java.math.BigDecimal;
 
 public class BetterResponseModel<T> {
@@ -39,6 +41,11 @@ public class BetterResponseModel<T> {
         this.details = details;
         this.exception = null;
         this.payload = payload;
+    }
+
+    @JsonIgnore
+    public boolean isOk(){
+        return status.equals(Status.OK);
     }
 
     public String getStatus() {

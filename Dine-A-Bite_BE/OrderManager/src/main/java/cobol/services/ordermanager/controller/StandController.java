@@ -162,7 +162,9 @@ public class StandController {
             revenue = stand.get().getRevenue();
             return ResponseEntity.ok(BetterResponseModel.ok("Successfully retrieved revenue from database",revenue));
         } else {
-            return ResponseEntity.ok(BetterResponseModel.error("Error while retrieving revenue from database", new DoesNotExistException("Such stand does not exist")));
+            DoesNotExistException e=new DoesNotExistException("Such stand does not exist");
+            e.printStackTrace();
+            return ResponseEntity.ok(BetterResponseModel.error("Error while retrieving revenue from database", e));
         }
     }
 
@@ -173,7 +175,9 @@ public class StandController {
         if (stand != null) {
             return ResponseEntity.ok(BetterResponseModel.ok( "Successfully retrieved orders from database",stand.getOrderList().stream().map(Order::asCommonOrder).collect(Collectors.toList())));
         } else{
-            return ResponseEntity.ok(BetterResponseModel.error("Error while fetching orders from database", new DoesNotExistException("Stand " + standName + " does not exist, or does not have orders saved.")));
+            DoesNotExistException e= new DoesNotExistException("Stand " + standName + " does not exist, or does not have orders saved.");
+            e.printStackTrace();
+            return ResponseEntity.ok(BetterResponseModel.error("Error while fetching orders from database", e));
         }
     }
 }

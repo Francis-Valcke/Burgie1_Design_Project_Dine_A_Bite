@@ -25,10 +25,12 @@ import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
+import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import com.example.standapp.data.LoginDataSource;
 import com.example.standapp.data.LoginRepository;
 import com.example.standapp.data.model.LoggedInUser;
+import com.example.standapp.json.BetterResponseModel;
 import com.example.standapp.order.CommonOrder;
 import com.example.standapp.order.CommonOrderItem;
 import com.example.standapp.order.CommonOrderStatusUpdate;
@@ -252,8 +254,8 @@ public class OrderFragment extends Fragment {
      * Get the orders of the logged in stand from the server after logging back in
      * or opening the app after it being force closed
      *
-     * @param context context from which the method is called
-     * @param user logged in user
+     * @param context   context from which the method is called
+     * @param user      logged in user
      * @param brandName brand name of logged in stand
      * @param standName stand name of logged in stand
      */
@@ -262,41 +264,54 @@ public class OrderFragment extends Fragment {
         String url = ServerConfig.OM_ADDRESS + "/getStandOrders?brandName=" + brandName
                 + "&standName=" + standName;
 
-        JsonArrayRequest request = new JsonArrayRequest(Request.Method.GET, url, null,
-                new Response.Listener<JSONArray>() {
-            @Override
-            public void onResponse(JSONArray response) {
-                System.out.println("Received orders from OM: " + response.toString()); // DEBUG
-                ObjectMapper mapper = new ObjectMapper();
-                try {
-                    ArrayList<CommonOrder> allStandOrders = mapper.readValue(response.toString(),
-                            new TypeReference<ArrayList<CommonOrder>>() {});
-                    for (CommonOrder order : allStandOrders) {
-                        String orderName = "#" + order.getId();
-                        if (order.getOrderState() == CommonOrder.State.PICKED_UP) {
-                            oldListOrders.add(0, order);
-                            oldListDataHeader.add(0, orderName);
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, url, null,
+                new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        System.out.println("Received orders from OM: " + response.toString()); // DEBUG
+                        ObjectMapper mapper = new ObjectMapper();
+
+                        BetterResponseModel<List<CommonOrder>> responseModel = null;
+                        try {
+                            responseModel = mapper
+                                    .readValue(response.toString(), new TypeReference<BetterResponseModel<List<CommonOrder>>>() {
+                                    });
+                        } catch (JsonProcessingException e) {
+                            e.printStackTrace();
+                            Toast.makeText(context, "Error parsing response while fetching orders", Toast.LENGTH_LONG).show();
+                        }
+
+
+                        if (responseModel != null) {
+                            if (responseModel.isOk()) {
+                                for (CommonOrder order : responseModel.getPayload()) {
+                                    String orderName = "#" + order.getId();
+                                    if (order.getOrderState() == CommonOrder.State.PICKED_UP) {
+                                        oldListOrders.add(0, order);
+                                        oldListDataHeader.add(0, orderName);
+                                    } else {
+                                        activeListOrders.add(0, order);
+                                        activeListDataHeader.add(0, orderName);
+                                    }
+                                    //listOrders.add(0, order);
+                                    //listDataHeader.add(0, orderName);
+                                    listStatus.put(orderName, CommonOrderStatusUpdate.convertStatus(order.getOrderState()));
+                                    List<String> orderItems = new ArrayList<>();
+                                    for (CommonOrderItem item : order.getOrderItems()) {
+                                        orderItems.add(item.getAmount() + " : " + item.getFoodName());
+                                    }
+                                    // Orders should have different order numbers (orderName)
+                                    listHash.put(orderName, orderItems);
+                                }
+                                listAdapter.notifyDataSetChanged();
+                            } else {
+                                Toast.makeText(context, "Error while fetching stand orders", Toast.LENGTH_LONG).show();
+                            }
                         } else {
-                            activeListOrders.add(0, order);
-                            activeListDataHeader.add(0, orderName);
+                            Toast.makeText(context, "Error while fetching stand orders", Toast.LENGTH_LONG).show();
                         }
-                        //listOrders.add(0, order);
-                        //listDataHeader.add(0, orderName);
-                        listStatus.put(orderName, CommonOrderStatusUpdate.convertStatus(order.getOrderState()));
-                        List<String> orderItems = new ArrayList<>();
-                        for (CommonOrderItem item : order.getOrderItems()) {
-                            orderItems.add(item.getAmount() + " : " + item.getFoodName());
-                        }
-                        // Orders should have different order numbers (orderName)
-                        listHash.put(orderName, orderItems);
                     }
-                    listAdapter.notifyDataSetChanged();
-                } catch (JsonProcessingException e) {
-                    e.printStackTrace();
-                    Toast.makeText(context, e.toString(), Toast.LENGTH_SHORT).show(); // DEBUG
-                }
-            }
-        }, new Response.ErrorListener() {
+                }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
                 error.printStackTrace();
@@ -319,7 +334,7 @@ public class OrderFragment extends Fragment {
      * Get orders from Event Channel
      *
      * @param context context from which method is called
-     * @param user logged in user
+     * @param user    logged in user
      */
     private void getOrderEvents(final Context context, final LoggedInUser user) {
 
