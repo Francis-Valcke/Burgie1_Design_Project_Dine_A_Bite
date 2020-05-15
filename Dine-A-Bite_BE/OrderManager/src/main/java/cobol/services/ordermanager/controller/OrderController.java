@@ -282,6 +282,10 @@ public class OrderController {
             User user = userRepository.findById(userDetails.getUsername()).orElseThrow(() -> new UsernameNotFoundException("Can't find user to fetch orders from"));
             return ResponseEntity.ok(BetterResponseModel.ok("Successfully retrieved orders of user",user.getOrders().stream().map(Order::asCommonOrder).collect(Collectors.toList())));
         }
+        catch(UsernameNotFoundException e){
+            e.printStackTrace();
+            return ResponseEntity.ok(BetterResponseModel.error(e.getMessage(), e));
+        }
         catch (Exception e){
             e.printStackTrace();
             return ResponseEntity.ok(BetterResponseModel.error("Server: Error while retrieving orders from db", e));

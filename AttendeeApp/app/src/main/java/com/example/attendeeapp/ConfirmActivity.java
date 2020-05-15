@@ -559,7 +559,7 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
                             }
                         }
                         else{
-                            showToast(responseModel.getDetails());
+                            showToast(responseModel.getException().getMessage());
                         }
 
                     }
