@@ -4,23 +4,16 @@ import cobol.commons.BetterResponseModel;
 import cobol.commons.BetterResponseModel.GetBalanceResponse;
 import cobol.commons.BetterResponseModel.Status;
 import cobol.commons.exception.DoesNotExistException;
-import cobol.commons.order.CommonOrder;
-import cobol.commons.order.CommonOrderItem;
-import cobol.commons.order.Recommendation;
-import cobol.commons.order.SuperOrder;
+import cobol.commons.order.*;
 import cobol.commons.security.CommonUser;
 import cobol.services.ordermanager.ASCommunicationHandler;
 import cobol.services.ordermanager.CommunicationHandler;
 import cobol.services.ordermanager.OrderProcessor;
-import cobol.services.ordermanager.domain.entity.Brand;
-import cobol.services.ordermanager.domain.entity.Food;
-import cobol.services.ordermanager.domain.entity.Order;
-import cobol.services.ordermanager.domain.entity.User;
 import cobol.services.ordermanager.domain.entity.*;
 import cobol.services.ordermanager.domain.repository.BrandRepository;
 import cobol.services.ordermanager.domain.repository.FoodRepository;
-import cobol.services.ordermanager.domain.repository.UserRepository;
 import cobol.services.ordermanager.domain.repository.StandRepository;
+import cobol.services.ordermanager.domain.repository.UserRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -202,22 +195,16 @@ public class OrderController {
 
         try {
             // ask StandManger to split these orderItems in Orders and give A recommendation
-            JSONArray ordersRecommendations = communicationHandler.getSuperRecommendationFromSM(superOrder);
+            List<SuperOrderRec> ordersRecommendations = communicationHandler.getSuperRecommendationFromSM(superOrder);
 
-            // parse orders and recommendations
-            ObjectMapper mapper = new ObjectMapper();
-            for (Object ordersRecommendation : ordersRecommendations) {
-                JSONObject orderRec = (JSONObject) ordersRecommendation;
+            for (SuperOrderRec ordersRecommendation : ordersRecommendations) {
+                CommonOrder commonOrder= ordersRecommendation.getOrder();
+                List<Recommendation> recommendations= ordersRecommendation.getRecommendations();
 
-                JSONObject orderJSON = (JSONObject) orderRec.get("order");
-                CommonOrder commonOrder = mapper.readValue(orderJSON.toJSONString(), CommonOrder.class);
-                Order order = new Order(commonOrder);
-                JSONArray recJSONs = (JSONArray) orderRec.get("recommendations");
-                List<Recommendation> recommendations = mapper.readValue(recJSONs.toJSONString(), new TypeReference<List<Recommendation>>() {
-                });
+                orderTransaction(commonOrder, userDetails);
 
                 // add all seperate orders to orderprocessor, this will give them an orderId and initial values
-
+                Order order = new Order(commonOrder);
                 User user = userRepository.findById(userDetails.getUsername()).orElse(userRepository.save(new User(userDetails)));
                 order.setUser(user);
                 orderProcessor.addNewOrder(order);
@@ -233,12 +220,12 @@ public class OrderController {
             }
         } catch (Throwable e) {
             e.printStackTrace();
-            return ResponseEntity.ok(BetterResponseModel.error("Error while placing a superorder", e));
+            return ResponseEntity.ok(BetterResponseModel.error("Server: Error while placing a superorder", e));
         }
 
 
         // return all the updated orders in a JSONArray with the recommendations
-        return ResponseEntity.ok(BetterResponseModel.ok("Successfully placed a superorder", completeResponse));
+        return ResponseEntity.ok(BetterResponseModel.ok("Server: Successfully placed a superorder", completeResponse));
     }
 
 

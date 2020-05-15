@@ -3,13 +3,9 @@ package cobol.services.standmanager;
 import cobol.commons.BetterResponseModel;
 import cobol.commons.CommonStand;
 import cobol.commons.exception.DoesNotExistException;
-import cobol.commons.order.CommonOrder;
-import cobol.commons.order.CommonOrderItem;
-import cobol.commons.order.Recommendation;
-import cobol.commons.order.SuperOrder;
+import cobol.commons.order.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -116,10 +112,10 @@ public class StandManagerController {
      * recommendation field will be a JSONArray of Recommendation object
      */
     @PostMapping(value = "/getSuperRecommendation", consumes = "application/json", produces = "application/json")
-    public ResponseEntity<BetterResponseModel<JSONArray>> getSuperRecommendation(@RequestBody SuperOrder superOrder) {
+    public ResponseEntity<BetterResponseModel<List<SuperOrderRec>>> getSuperRecommendation(@RequestBody SuperOrder superOrder) {
 
         // initialize response
-        JSONArray completeResponse = new JSONArray();
+        List<SuperOrderRec> completeResponse = new ArrayList<>();
         try {
             /* -- Split superorder in smaller orders -- */
             List<HashSet<CommonOrderItem>> itemSplit = schedulerHandler.splitSuperOrder(superOrder);
@@ -127,7 +123,7 @@ public class StandManagerController {
 
             /* -- Get recommendations for seperate orders -- */
             for (HashSet<CommonOrderItem> commonOrderItems : itemSplit) {
-                JSONObject orderResponse = new JSONObject();
+                ObjectMapper mapper= new ObjectMapper();
 
                 // -- Construct a virtual order -- //
                 CommonOrder order = new CommonOrder();
@@ -145,10 +141,8 @@ public class StandManagerController {
                 List<Recommendation> recommendations = schedulerHandler.recommend(order);
 
                 // -- Add to response of this super order recommendation -- //
-                orderResponse.put("order", order);
-                orderResponse.put("recommendations", recommendations);
+                completeResponse.add(new SuperOrderRec(order, recommendations));
 
-                completeResponse.add(orderResponse);
             }
         } catch (Throwable e) {
             e.printStackTrace();

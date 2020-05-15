@@ -5,11 +5,11 @@ import cobol.commons.CommonFood;
 import cobol.commons.Event;
 import cobol.commons.order.CommonOrder;
 import cobol.commons.order.SuperOrder;
+import cobol.commons.order.SuperOrderRec;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
@@ -110,7 +110,7 @@ public class CommunicationHandler {
      * @return JSONArray of  JSONObject with field "recommendations" and a field "order" similar to return of placeOrder
      * recommendation field will be a JSONArray of Recommendation object
      */
-    public JSONArray getSuperRecommendationFromSM(SuperOrder superOrder) throws Throwable {
+    public List<SuperOrderRec> getSuperRecommendationFromSM(SuperOrder superOrder) throws Throwable {
 
         RestTemplate template = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
@@ -125,7 +125,7 @@ public class CommunicationHandler {
 
         String responseString= template.postForObject(builder.toUriString(), request, String.class);
         ObjectMapper mapper= new ObjectMapper();
-        BetterResponseModel<JSONArray> responseModel= mapper.readValue(responseString, new TypeReference<BetterResponseModel<JSONArray>>() {});
+        BetterResponseModel<List<SuperOrderRec>> responseModel= mapper.readValue(responseString, new TypeReference<BetterResponseModel<List<SuperOrderRec>>>() {});
         if(responseModel!=null){
             if(responseModel.isOk()){
                 return responseModel.getPayload();
