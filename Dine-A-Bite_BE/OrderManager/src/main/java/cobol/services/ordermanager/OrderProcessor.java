@@ -131,6 +131,7 @@ public class OrderProcessor {
             ZonedDateTime actualTime =  ZonedDateTime.now(ZoneId.of("Europe/Brussels"));
             updatedOrder.setStartTime(actualTime);
             updatedOrder.setExpectedTime(actualTime.plusSeconds(currentWaitingTime));
+            updatedOrder.setState(CommonOrder.State.CONFIRMED);
             orderRepository.save(updatedOrder);
         }
 
