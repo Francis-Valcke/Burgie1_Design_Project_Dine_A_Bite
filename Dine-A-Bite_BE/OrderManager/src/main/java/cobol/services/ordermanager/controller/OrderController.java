@@ -277,9 +277,15 @@ public class OrderController {
 
 
     @GetMapping(value = "/getUserOrders", produces = "application/json")
-    public ResponseEntity<List<CommonOrder>> getUserOrders(@AuthenticationPrincipal CommonUser userDetails) {
-        User user = userRepository.findById(userDetails.getUsername()).orElseThrow(() -> new UsernameNotFoundException("Can't find user to fetch orders from"));
-        return ResponseEntity.ok(user.getOrders().stream().map(Order::asCommonOrder).collect(Collectors.toList()));
+    public ResponseEntity<BetterResponseModel<List<CommonOrder>>> getUserOrders(@AuthenticationPrincipal CommonUser userDetails) {
+        try{
+            User user = userRepository.findById(userDetails.getUsername()).orElseThrow(() -> new UsernameNotFoundException("Can't find user to fetch orders from"));
+            return ResponseEntity.ok(BetterResponseModel.ok("Successfully retrieved orders of user",user.getOrders().stream().map(Order::asCommonOrder).collect(Collectors.toList())));
+        }
+        catch (Exception e){
+            e.printStackTrace();
+            return ResponseEntity.ok(BetterResponseModel.error("Server: Error while retrieving orders from db", e));
+        }
     }
 
 }
