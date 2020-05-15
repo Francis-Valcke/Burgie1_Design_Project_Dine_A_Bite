@@ -28,4 +28,9 @@ public interface FoodRepository extends JpaRepository<Food, Food.FoodId> {
     @Modifying
     @Query("Update Food f Set f.preparationTime=?4 where f.foodId.name=?1 and f.foodId.stand.standId.name=?2 and f.foodId.stand.standId.brand.name=?3")
     void updatePreparationTime(String name, String name1, String brandName, int updatedAverage);
+
+    @Transactional
+    @Modifying
+    @Query("Update Food f Set f.stock= (f.stock - ?4) where f.foodId.name=?1 and f.foodId.stand.standId.name=?2 and f.foodId.stand.standId.brand.name=?3")
+    void decreaseStock(String foodName, String standName, String brandName, int amountToDecrease);
 }

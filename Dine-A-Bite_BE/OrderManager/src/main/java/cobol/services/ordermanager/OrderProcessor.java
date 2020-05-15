@@ -9,6 +9,7 @@ import cobol.services.ordermanager.domain.entity.Order;
 import cobol.services.ordermanager.domain.entity.OrderItem;
 import cobol.services.ordermanager.domain.entity.Stand;
 import cobol.services.ordermanager.domain.repository.FoodRepository;
+import cobol.services.ordermanager.domain.repository.OrderItemRepository;
 import cobol.services.ordermanager.domain.repository.OrderRepository;
 import cobol.services.ordermanager.domain.repository.StandRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -45,6 +46,9 @@ public class OrderProcessor {
 
     @Autowired
     FoodRepository foodRepository;
+
+    @Autowired
+    OrderItemRepository orderItemRepository;
 
     @Autowired
     CommunicationHandler communicationHandler;
@@ -119,8 +123,11 @@ public class OrderProcessor {
                     .filter(r -> r.getStandName().equals(standName))
                     .findFirst();
 
-            //recomOptional.ifPresent(recommendation -> updatedOrder.setRemtime(recommendation.getTimeEstimate()));
-            //orderRepository.save(updatedOrder);
+
+            List<OrderItem> orderItems = updatedOrder.getOrderItems();
+            for (OrderItem o : orderItems) {
+                foodRepository.decreaseStock(o.getFoodName(), standName, brandName, o.getAmount());
+            }
 
             //send the updated order to stand to place it in the queue
             CommonOrder mappedOrder = updatedOrder.asCommonOrder();
@@ -128,14 +135,14 @@ public class OrderProcessor {
             mapper.registerModule(new JavaTimeModule());
             String jsonString = mapper.writeValueAsString(mappedOrder);
             int currentWaitingTime = Integer.parseInt(communicationHandler.sendRestCallToStandManager("/placeOrder", jsonString, null));
-            ZonedDateTime actualTime =  ZonedDateTime.now(ZoneId.of("Europe/Brussels"));
+            ZonedDateTime actualTime = ZonedDateTime.now(ZoneId.of("Europe/Brussels"));
             updatedOrder.setStartTime(actualTime);
             updatedOrder.setExpectedTime(actualTime.plusSeconds(currentWaitingTime));
             updatedOrder.setState(CommonOrder.State.CONFIRMED);
             orderRepository.save(updatedOrder);
+
+
         }
-
-
         return updatedOrder;
     }
 
@@ -175,6 +182,7 @@ public class OrderProcessor {
     public Optional<Order> getOrder(int orderId) {
         return orderRepository.findById(orderId);
     }
+    
 
     // ---- Scheduled Requests ---- //
 
