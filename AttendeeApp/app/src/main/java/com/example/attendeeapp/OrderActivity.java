@@ -60,7 +60,7 @@ public class OrderActivity extends ToolbarActivity {
             }
             if (orderStatusUpdate != null) {
                 // Update order status fields
-                adapter.updateOrder(orderStatusUpdate.getOrderId(), orderStatusUpdate.getNewStatus());
+                adapter.updateOrder(orderStatusUpdate.getOrderId(), orderStatusUpdate.getNewState());
                 adapter.notifyDataSetChanged();
             }
         }

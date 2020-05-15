@@ -59,6 +59,7 @@ public class DashboardFragment extends Fragment
     private ArrayList<CommonFood> items = new ArrayList<>();
     private DashboardListViewAdapter adapter;
     private MenuViewModel menuViewModel;
+    private RevenueViewModel revenueViewModel;
 
     // Stores the current stock of the menu items;
     // this way the stock send to the backend is calculated to be equal to the added stock
@@ -93,6 +94,8 @@ public class DashboardFragment extends Fragment
 
         menuViewModel = new ViewModelProvider(requireActivity())
                 .get(MenuViewModel.class);
+        revenueViewModel = new ViewModelProvider(requireActivity())
+                .get(RevenueViewModel.class);
         Observer<ArrayList<CommonFood>> observer = new Observer<ArrayList<CommonFood>>() {
             @Override
             public void onChanged(ArrayList<CommonFood> commonFoods) {
@@ -228,12 +231,14 @@ public class DashboardFragment extends Fragment
     @Override
     public void onMenuItemAdded(CommonFood item) {
         menuViewModel.addMenuItem(item);
+        revenueViewModel.addPrice(item.getName(), item.getPrice());
         addedStockMap.put(item.getName(), item.getStock());
     }
 
     @Override
     public void onMenuItemChanged(CommonFood item, int addedStock, int position) {
         menuViewModel.editMenuItem(item, position);
+        revenueViewModel.editPrice(item.getName(), item.getPrice());
         int curr = 0;
         if (addedStockMap.containsKey(item.getName())) {
             curr = Objects.requireNonNull(addedStockMap.get(item.getName()));
@@ -243,6 +248,11 @@ public class DashboardFragment extends Fragment
 
     @Override
     public void onMenuItemDeleted(int position) {
+        ArrayList<CommonFood> menu = menuViewModel.getMenuList().getValue();
+        if (menu != null) {
+            String foodName = menu.get(position).getName();
+            revenueViewModel.deletePrice(foodName);
+        }
         menuViewModel.deleteMenuItem(position);
     }
 
