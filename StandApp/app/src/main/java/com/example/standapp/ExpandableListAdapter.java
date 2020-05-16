@@ -164,9 +164,9 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
                     Toast.makeText(group.getContext(), headerTitle + ": Start",
                             Toast.LENGTH_SHORT).show();
                     if (listStatus.get(headerTitle) == CommonOrderStatusUpdate.State.PENDING) {
+                        listStatus.put(headerTitle, CommonOrderStatusUpdate.State.CONFIRMED);
                         sendOrderStatusUpdate(groupPosition, finalView.getContext());
                     }
-                    listStatus.put(headerTitle, CommonOrderStatusUpdate.State.CONFIRMED);
                     group.findViewById(R.id.button_done).setEnabled(true);
 
                 } else if (checkedId == R.id.button_done && isChecked) {
@@ -186,7 +186,7 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
                             Toast.LENGTH_SHORT).show();
                     listStatus.put(headerTitle, CommonOrderStatusUpdate.State.PICKED_UP);
                     group.check(R.id.button_picked_up);
-
+                    sendOrderStatusUpdate(groupPosition, finalView.getContext());
                     // TODO delete picked up, or put in other list (picked up orders list) ?
                     // TODO that can be shown in a history view for example ?
                     // TODO sent this change to server ?

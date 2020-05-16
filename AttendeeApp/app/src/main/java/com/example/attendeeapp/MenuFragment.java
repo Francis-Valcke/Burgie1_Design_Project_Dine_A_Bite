@@ -10,11 +10,12 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import com.android.volley.NoConnectionError;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
-import com.android.volley.toolbox.JsonArrayRequest;
+import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import com.example.attendeeapp.data.LoginDataSource;
 import com.example.attendeeapp.data.LoginRepository;
 import com.example.attendeeapp.data.model.LoggedInUser;
+import com.example.attendeeapp.json.BetterResponseModel;
 import com.example.attendeeapp.json.CommonFood;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -82,11 +83,18 @@ abstract class MenuFragment extends Fragment {
 
         // Request the global/stand menu in JSON from the order manager
         // Handle no network connection or server not reachable
-        JsonArrayRequest jsonRequest = new JsonArrayRequest(req, url, null,
+        JsonObjectRequest jsonRequest = new JsonObjectRequest(req, url, null,
                 response -> {
                     try {
                         ObjectMapper om = new ObjectMapper();
-                        List<CommonFood> foodList=om.readValue(response.toString(), new TypeReference<List<CommonFood>>() {});
+                        BetterResponseModel<List<CommonFood>> responseModel= om.readValue(response.toString(), new TypeReference<BetterResponseModel<List<CommonFood>>>() {});
+
+                        if(!responseModel.isOk()){
+                            showToast(responseModel.getException().getMessage());
+                            return;
+                        }
+
+                        List<CommonFood> foodList=responseModel.getPayload();
 
                         // For global menu, set stand names to ""
                         if (standName.equals("")) {
@@ -118,16 +126,10 @@ abstract class MenuFragment extends Fragment {
 
                     // NoConnectionError = no network connection
                     // other = server not reachable
-                    if (mToast != null) mToast.cancel();
                     if (error instanceof NoConnectionError) {
-                        mToast = Toast.makeText(getActivity(), "No network connection",
-                                                Toast.LENGTH_LONG);
-                        mToast.show();
-
+                        showToast("No network connection");
                     } else {
-                        mToast = Toast.makeText(getActivity(), "Server cannot be reached. No menu available.",
-                                                Toast.LENGTH_LONG);
-                        mToast.show();
+                        showToast("Server cannot be reached. No menu available.");
                     }
                     // Refreshing is done
                     pullToRefresh.setRefreshing(false);
@@ -144,5 +146,13 @@ abstract class MenuFragment extends Fragment {
 
         // Add the request to the RequestQueue
         queue.add(jsonRequest);
+    }
+
+
+    private void showToast(String message){
+        if (mToast != null) mToast.cancel();
+        mToast = Toast.makeText(getActivity(), message,
+                Toast.LENGTH_LONG);
+        mToast.show();
     }
 }

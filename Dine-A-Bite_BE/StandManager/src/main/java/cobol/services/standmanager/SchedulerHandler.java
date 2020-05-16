@@ -8,7 +8,6 @@ import cobol.commons.order.CommonOrder;
 import cobol.commons.order.CommonOrderItem;
 import cobol.commons.order.Recommendation;
 import cobol.commons.order.SuperOrder;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -142,7 +141,7 @@ public class SchedulerHandler {
      * @param order is the order for which the recommended stands are required
      * @return JSON with a certain amount of recommended stands (currently based on lowest queue time only)
      */
-    public List<Recommendation> recommend(CommonOrder order) throws JsonProcessingException {
+    public List<Recommendation> recommend(CommonOrder order) {
         // find stands (schedulers) which offer correct food for the order
         ArrayList<Scheduler> goodSchedulers = findCorrespondStands(order);
 
@@ -184,8 +183,7 @@ public class SchedulerHandler {
 
         //sort the recommendation list again based on added times (ONLY WHEN recommendation type is NOT distance)
         if (!order.getRecType().equals(CommonOrder.RecommendType.DISTANCE)) {
-            List<Recommendation> sortedRecommends = priorityQueues.sortAndRerank(recommendations);
-            return sortedRecommends;
+            return priorityQueues.sortAndRerank(recommendations);
         } else {
             return recommendations;
         }

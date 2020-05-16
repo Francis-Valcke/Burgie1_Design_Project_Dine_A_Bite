@@ -15,6 +15,7 @@ import com.android.volley.toolbox.Volley;
 import com.example.attendeeapp.data.LoginDataSource;
 import com.example.attendeeapp.data.LoginRepository;
 import com.example.attendeeapp.data.model.LoggedInUser;
+import com.example.attendeeapp.json.BetterResponseModel;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -75,7 +76,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         StringRequest request = new StringRequest(Request.Method.GET, uri, response -> {
             ObjectMapper mapper = new ObjectMapper();
             try {
-                standLocations = mapper.readValue(response, new TypeReference<Map<String, Map<String, Double>>>() {});
+                BetterResponseModel<Map<String, Map<String, Double>>> responseModel= mapper.readValue(response, new TypeReference<BetterResponseModel<Map<String, Map<String, Double>>>>() {});
+                if(!responseModel.isOk()){
+                    Toast toast = Toast.makeText(MapsActivity.this,responseModel.getException().getMessage() , Toast.LENGTH_SHORT);
+                    toast.show();
+                    return;
+                }
+
+                standLocations = responseModel.getPayload();
                 SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                         .findFragmentById(R.id.map);
                 mapFragment.getMapAsync(MapsActivity.this);
