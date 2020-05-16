@@ -51,12 +51,14 @@ public class CommunicationHandler {
 
     /**
      * This method will issue HTTP request to StandManager.
-     * Returns a String assuming the caller knows what to expect from the response.
-     * Ex. JSONArray or JSONObject
+     *      * Returns a String assuming the caller knows what to expect from the response.
+     *      * Ex. JSONArray or JSONObject
      *
      * @param path       Example: "/..."
      * @param jsonObject JSONObject or JSONArray format
+     * @param params Parameters to put in the http request
      * @return response as String
+     * @throws Throwable
      */
     public String sendRestCallToStandManager(String path, String jsonObject, Map<String, String> params) throws Throwable {
         if (configurationBean.isUnitTest()) {
@@ -105,10 +107,10 @@ public class CommunicationHandler {
 
     /**
      * This function will pass the superorder to the standmanager and return seperate orders
-     *
-     * @param superOrder SuperOrder Object
+     * @param superOrder Super order to get recommendations for
      * @return JSONArray of  JSONObject with field "recommendations" and a field "order" similar to return of placeOrder
-     * recommendation field will be a JSONArray of Recommendation object
+     *         recommendation field will be a JSONArray of Recommendation object
+     * @throws Throwable throw exception to frontend.
      */
     public List<SuperOrderRec> getSuperRecommendationFromSM(SuperOrder superOrder) throws Throwable {
 

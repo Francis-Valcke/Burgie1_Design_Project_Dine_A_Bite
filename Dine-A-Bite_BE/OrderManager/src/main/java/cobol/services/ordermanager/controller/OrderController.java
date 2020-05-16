@@ -235,7 +235,6 @@ public class OrderController {
      * @param orderId   integer id of order to be confirmed
      * @param standName name of stand
      * @param brandName name of brand
-     * @throws JsonProcessingException jsonexception
      */
     @GetMapping("/confirmStand")
     public ResponseEntity<BetterResponseModel<String>> confirmStand(@RequestParam(name = "orderId") int orderId, @RequestParam(name = "standName") String standName, @RequestParam(name = "brandName") String brandName, @AuthenticationPrincipal CommonUser userDetails) {
