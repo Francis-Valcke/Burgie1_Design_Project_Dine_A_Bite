@@ -88,19 +88,19 @@ public class StandManagerController {
 
     /**
      * @param order order which wants to be placed
-     *              TODO: really implement this
+     * TODO: returns a String for now because sendRestTemplate in OM is also String, but when that is fixed, this should become just a regular JSON object as return
      */
     @RequestMapping(value = "/placeOrder", consumes = "application/json")
     public ResponseEntity<BetterResponseModel<String>> placeOrder(@RequestBody() CommonOrder order) {
-
+        String waitingTime;
         try {
-            schedulerHandler.addOrderToScheduler(order);
+            waitingTime = schedulerHandler.addOrderToScheduler(order).get("waitingTime").toString();
         } catch (Throwable e) {
             e.printStackTrace();
             return ResponseEntity.ok(BetterResponseModel.error("Error while placing order in standmanager", e));
         }
 
-        return ResponseEntity.ok(BetterResponseModel.ok("Successfully placed order in standmanager", "success"));
+        return ResponseEntity.ok(BetterResponseModel.ok("Succesfully placed order in standmanager", waitingTime));
     }
 
 
