@@ -8,6 +8,9 @@ import org.threeten.bp.ZonedDateTime;
 
 import java.io.IOException;
 
+/**
+ * Class responsible for (de)serializing ZonedDateTime objects
+ */
 public class ZonedDateTimeDeserializer extends StdDeserializer<ZonedDateTime> {
 
     public ZonedDateTimeDeserializer() {

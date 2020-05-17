@@ -31,7 +31,7 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * Activity that show a map of all the stand locations
+ * Activity that shows a map of all the stand locations
  */
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
@@ -46,6 +46,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         setContentView(R.layout.activity_maps);
     }
 
+    /**
+     * Create map and set POI's on stand coordinates
+     *
+     * @param googleMap Google Maps object
+     */
     @Override
     public void onMapReady(GoogleMap googleMap) {
         for (String standName : standLocations.keySet()) {
