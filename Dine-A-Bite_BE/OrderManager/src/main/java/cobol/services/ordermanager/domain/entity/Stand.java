@@ -2,7 +2,8 @@ package cobol.services.ordermanager.domain.entity;
 
 import cobol.commons.CommonStand;
 import cobol.services.ordermanager.domain.SpringContext;
-import cobol.services.ordermanager.domain.repository.*;
+import cobol.services.ordermanager.domain.repository.BrandRepository;
+import cobol.services.ordermanager.domain.repository.UserRepository;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;

@@ -14,6 +14,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * This object specifies an order with time information, orderItems, location of where
+ * an attendee placed an order, which recommmendation type was chosen and which stand an attendee prefers
+ */
 @Entity
 @Table(name = "orders")
 public class Order implements Serializable {

@@ -108,8 +108,7 @@ public class StandManagerController {
      * This method will split a superorder and give a recommendation for all the orders
      *
      * @param superOrder List with orderitems and corresponding brand
-     * @return JSONArray each element containing a field "recommendations" and a field "order" similar to return of placeOrder
-     * recommendation field will be a JSONArray of Recommendation object
+     * @return List of SuperOrderRec for every splitted order
      */
     @PostMapping(value = "/getSuperRecommendation", consumes = "application/json", produces = "application/json")
     public ResponseEntity<BetterResponseModel<List<SuperOrderRec>>> getSuperRecommendation(@RequestBody SuperOrder superOrder) {
