@@ -57,11 +57,12 @@ public class Scheduler extends Thread {
     }
 
     /**
-     * update menuItem
+     * Update menuItem of the scheduler
      *
      *  @param mi  new item
      * @param mi2 old item
-     * @return
+     * @return true if the item to update was present in the menu
+     * false if the item to update was not present in the menu
      */
     static boolean updateItem(CommonFood mi, CommonFood mi2) {
         if (mi.getName().equals(mi2.getName())) {
@@ -181,6 +182,11 @@ public class Scheduler extends Thread {
         return -1;
     }
 
+    /**
+     * Removes an item from the menu
+     *
+     * @param mi the item to remove from the menu
+     */
     public void removeItem(CommonFood mi){
         this.menu.remove(mi);
     }

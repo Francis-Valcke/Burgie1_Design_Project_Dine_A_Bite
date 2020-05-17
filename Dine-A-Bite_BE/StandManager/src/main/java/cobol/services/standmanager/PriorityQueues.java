@@ -11,8 +11,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * this class will serve ass extra estimation for queue times (by calculating times for NOT confirmed orders)
- * a more correct name would be "load balancers" instead of priority queues
+ * This class will serve ass extra estimation for queue times (by calculating times for NOT confirmed orders)
+ * A more correct name would be "load balancers" instead of priority queues
  */
 
 @Component
@@ -33,8 +33,8 @@ public class PriorityQueues {
     }
 
     /**
-     * function which get called after initial recommendation calculation in the schedulerHandler
-     * it will add some extra time to the recommendations, based on the non confirmed orders in the priorityqueues
+     * Function which get called after initial recommendation calculation in the schedulerHandler
+     * It will add some extra time to the recommendations, based on the non confirmed orders in the priorityqueues
      *
      * @param recommends = the initial recommendation calculation list
      */
@@ -81,6 +81,8 @@ public class PriorityQueues {
     }
 
     /**
+     * Based on factors used, calculate the portion of the waiting time to be added to the specific virtual queue
+     *
      * @param prepTime preparation time of the order for the specific scheduler (this could be different for a different stand possibly at this point)
      * @param priority of the recommendation (so basically just the rank of that recommendation)
      */
@@ -97,8 +99,8 @@ public class PriorityQueues {
     }
 
     /**
-     * remove the added times this order had on the priority queues, and then remove the priority order object from the list
-     * this is done when order is confirmed or when time-out for non confirmed order occurs
+     * Remove the added times this order had on the priority queues, and then remove the priority order object from the list
+     * This is done when order is confirmed or when time-out for non confirmed order occurs
      *
      * @param orderId the id of the order (which is the key to get the priority order object)
      */
@@ -114,7 +116,7 @@ public class PriorityQueues {
     }
 
     /**
-     * calculate current queue time of priority queue and delete orders which are past their time window
+     * Calculate current queue time of priority queue and delete orders which are past their time window
      *
      * @param prioQueue the current priority queue
      * @param iD        the scheduler id of this priorityqueue
@@ -149,8 +151,8 @@ public class PriorityQueues {
     }
 
     /**
-     * functions for dynamic factoring, where each element of higher priority is double of the next one with lower priority (except for relation between 2nd to last and 3rd to last)
-     * this type of function for computing factors could be change if you use a different (statistical) model
+     * Functions for dynamic factoring, where each element of higher priority is double of the next one with lower priority (except for relation between 2nd to last and 3rd to last)
+     * This type of function for computing factors could be change if you use a different (statistical) model
      *
      * @param amount the amount of factors we need (which is the length of recommend list, or the amount of priorities)
      * @return the factor array for weighted extra times in priority queues
@@ -173,7 +175,7 @@ public class PriorityQueues {
     }
 
     /**
-     * recommendation times are changed, so we need to reorder the list, but also change the ranks of these recommends based on the new ordering
+     * Recommendation times are changed, so we need to reorder the list, but also change the ranks of these recommends based on the new ordering
      *
      * @param recommendations the recommendation list that needs to be resorted
      * @return resorted and reranked recommendation list

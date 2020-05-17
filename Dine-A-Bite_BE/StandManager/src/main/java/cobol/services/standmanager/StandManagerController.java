@@ -16,6 +16,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Class containing all API endpoints for stand manager module
+ */
 @RestController
 public class StandManagerController {
     @Autowired
