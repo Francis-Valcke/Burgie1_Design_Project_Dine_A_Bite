@@ -52,10 +52,11 @@ public class StandManagerController {
 
     }
     @PostMapping("updateScheduler")
-    public ResponseEntity<BetterResponseModel<String>> updateScheduler(@RequestParam(name="standName") String stand, @RequestParam(name="brandName") String brand,@RequestParam(name="orderId") int orderId) {
+    public ResponseEntity<BetterResponseModel<String>> updateScheduler(@RequestParam(name="standName") String stand, @RequestParam(name="brandName") String brand,@RequestParam(name="orderId") int orderId, @RequestParam(name="newState") CommonOrder.State newState) {
         try {
             for (Scheduler s : schedulerHandler.getSchedulers()){
                 if (s.getStandName().equals(stand)&&s.getBrand().equals(brand)){
+                    s.updateOrder(orderId, newState);
 
                 }
             }

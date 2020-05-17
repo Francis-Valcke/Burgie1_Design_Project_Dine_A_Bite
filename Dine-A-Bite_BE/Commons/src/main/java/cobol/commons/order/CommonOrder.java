@@ -80,14 +80,6 @@ public class CommonOrder {
             return (int) remaining.getSeconds();
         }
     }
-    public int getId(){
-        return this.id;
-    }
-    public CommonOrder.State getOrderState(){
-        return this.orderState;
-    }
-    public void setOrderState(CommonOrder.State state){
-        this.orderState=state;
-    }
+
 
 }

@@ -219,14 +219,17 @@ public class SchedulerHandler {
         return obj;
     }
 
-
-    //@Scheduled(fixedDelay = 5000)
+    /*
+    @Scheduled(fixedDelay = 5000)
     public void pollEvents() {
         if (schedulers.size() == 0) return;
         for (Scheduler s : schedulers) {
             s.pollEvents();
         }
     }
+    */
+
+
 
     public JSONObject updateSchedulers(CommonStand info) throws CommunicationException {
         boolean newScheduler = true;
@@ -272,7 +275,7 @@ public class SchedulerHandler {
         if (newScheduler) {
             Scheduler s = new Scheduler(info.getMenu(), info.getName(), info.getBrandName(), info.getLatitude(), info.getLongitude(), communicationHandler);
             addScheduler(s);
-            s.start();
+            //s.start();
             obj.put("added", true);
         }
 

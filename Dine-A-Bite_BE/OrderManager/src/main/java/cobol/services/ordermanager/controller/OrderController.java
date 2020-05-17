@@ -71,7 +71,8 @@ public class OrderController {
             return ResponseEntity.ok(BetterResponseModel.error("Error thrown while retrieving order info", e));
         }
     }
-
+    /*
+    For now this happens with events
     @PostMapping(value = "/updateOrder")
     public ResponseEntity<BetterResponseModel<JSONObject>> updateOrder(@RequestParam(name = "orderId") int orderId, @RequestParam(name = "newStatus") CommonOrder.State newStatus){
         JSONObject completeResponse = new JSONObject();
@@ -91,6 +92,7 @@ public class OrderController {
         }
         return ResponseEntity.ok(BetterResponseModel.ok("Successfully updated order status", completeResponse));
     }
+    */
 
     /**
      * This method will add the order to the order processor,

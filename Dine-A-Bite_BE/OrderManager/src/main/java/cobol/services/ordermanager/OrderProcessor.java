@@ -182,7 +182,7 @@ public class OrderProcessor {
      * Process events that were received.
      */
     @Scheduled(fixedDelay = 500)
-    public void processEvents() {
+    public void processEvents() throws Throwable {
         while (!eventQueue.isEmpty()) {
             Event e = eventQueue.poll();
             assert e != null;
@@ -205,6 +205,16 @@ public class OrderProcessor {
 
                         // deregister from order
                         communicationHandler.deregisterFromOrder(subscriberId, orderId);
+                    }
+                    if (newStatus.equals(CommonOrder.State.BEGUN)|| newStatus.equals(CommonOrder.State.READY)){
+                        Map<String, String> params = new HashMap<>();
+                        params.put("standName", localOrder.getStand().getName());
+                        params.put("brandName", localOrder.getStand().getBrandName());
+                        params.put("orderId", String.valueOf(localOrder.getId()));
+                        params.put("newState", newStatus.name());
+                        communicationHandler.sendRestCallToStandManager("/updateScheduler", null, params);
+
+
                     }
 
                     orderRepository.updateState(localOrder.getId(), localOrder.getOrderState());
