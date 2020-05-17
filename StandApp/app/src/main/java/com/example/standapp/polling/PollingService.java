@@ -16,7 +16,6 @@ import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import com.example.standapp.ServerConfig;
@@ -27,11 +26,8 @@ import com.example.standapp.json.BetterResponseModel;
 import com.example.standapp.order.Event;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.HashMap;
@@ -70,12 +66,14 @@ public class PollingService extends Service {
                 @Override
                 public void onResponse(JSONObject response) {
                     ObjectMapper mapper = new ObjectMapper();
-                    BetterResponseModel<List<Event>> responseModel= null;
+                    BetterResponseModel<List<Event>> responseModel = null;
                     try {
-                        responseModel= mapper.readValue(response.toString(), new TypeReference<BetterResponseModel<List<Event>>>() {});
+                        responseModel = mapper.readValue(response.toString(),
+                                new TypeReference<BetterResponseModel<List<Event>>>() {});
 
                     }catch (JsonProcessingException e){
-                        Toast.makeText(context, "Error while parsing response for orders", Toast.LENGTH_LONG).show();
+                        Toast.makeText(context, "Error while parsing response for orders",
+                                Toast.LENGTH_LONG).show();
                     }
 
                     if(responseModel!=null){
@@ -87,7 +85,8 @@ public class PollingService extends Service {
                            }
                        }
                        else{
-                           Toast.makeText(context, responseModel.getDetails(), Toast.LENGTH_LONG).show();
+                           Toast.makeText(context, responseModel.getDetails(),
+                                   Toast.LENGTH_LONG).show();
                        }
                     }
                 }

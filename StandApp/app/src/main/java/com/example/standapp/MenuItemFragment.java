@@ -29,7 +29,6 @@ import com.google.android.material.textfield.TextInputEditText;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Objects;
 
 public class MenuItemFragment extends DialogFragment {

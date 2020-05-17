@@ -472,9 +472,9 @@ public class ProfileFragment extends Fragment {
                 ObjectMapper mapper = new ObjectMapper();
                 BetterResponseModel<ArrayList<CommonFood>> responseModel=null;
                 try {
-                   responseModel = mapper
-                            .readValue(response.toString(), new TypeReference<BetterResponseModel<ArrayList<CommonFood>>>() {
-                            });
+                   responseModel
+                           = mapper.readValue(response.toString(),
+                           new TypeReference<BetterResponseModel<ArrayList<CommonFood>>>() {});
                 } catch (Exception e) {
                     Log.v("Exception fetch menu:", e.toString());
                     Toast.makeText(context, "Error parsing response while fetching menu",
@@ -555,7 +555,8 @@ public class ProfileFragment extends Fragment {
                 BetterResponseModel<BigDecimal> responseModel = null;
 
                 try {
-                    responseModel = mapper.readValue(response.toString(), new TypeReference<BetterResponseModel<BigDecimal>>() {
+                    responseModel = mapper.readValue(response.toString(),
+                            new TypeReference<BetterResponseModel<BigDecimal>>() {
                     });
                 } catch (JsonProcessingException e) {
                     Toast.makeText(context, "Error parsing revenue response",

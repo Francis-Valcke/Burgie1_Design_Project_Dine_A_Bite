@@ -24,9 +24,7 @@ import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.JsonRequest;
 import com.android.volley.toolbox.Volley;
 import com.example.standapp.data.LoginDataSource;
 import com.example.standapp.data.LoginRepository;
@@ -271,14 +269,15 @@ public class OrderFragment extends Fragment {
 
                         BetterResponseModel<List<CommonOrder>> responseModel = null;
                         try {
-                            responseModel = mapper
-                                    .readValue(response.toString(), new TypeReference<BetterResponseModel<List<CommonOrder>>>() {
-                                    });
+                            responseModel
+                                    = mapper.readValue(response.toString(),
+                                    new TypeReference<BetterResponseModel<List<CommonOrder>>>() {});
                         } catch (JsonProcessingException e) {
                             e.printStackTrace();
-                            Toast.makeText(context, "Error parsing response while fetching orders", Toast.LENGTH_LONG).show();
+                            Toast.makeText(context,
+                                    "Error parsing response while fetching orders",
+                                    Toast.LENGTH_LONG).show();
                         }
-
 
                         if (responseModel != null) {
                             if (responseModel.isOk()) {
@@ -291,9 +290,8 @@ public class OrderFragment extends Fragment {
                                         activeListOrders.add(0, order);
                                         activeListDataHeader.add(0, orderName);
                                     }
-                                    //listOrders.add(0, order);
-                                    //listDataHeader.add(0, orderName);
-                                    listStatus.put(orderName, CommonOrderStatusUpdate.convertStatus(order.getOrderState()));
+                                    listStatus.put(orderName,
+                                            CommonOrderStatusUpdate.convertStatus(order.getOrderState()));
                                     List<String> orderItems = new ArrayList<>();
                                     for (CommonOrderItem item : order.getOrderItems()) {
                                         orderItems.add(item.getAmount() + " : " + item.getFoodName());
@@ -303,10 +301,14 @@ public class OrderFragment extends Fragment {
                                 }
                                 listAdapter.notifyDataSetChanged();
                             } else {
-                                Toast.makeText(context, "Error while fetching stand orders", Toast.LENGTH_LONG).show();
+                                Toast.makeText(context,
+                                        "Error while fetching stand orders",
+                                        Toast.LENGTH_LONG).show();
                             }
                         } else {
-                            Toast.makeText(context, "Error while fetching stand orders", Toast.LENGTH_LONG).show();
+                            Toast.makeText(context,
+                                    "Error while fetching stand orders",
+                                    Toast.LENGTH_LONG).show();
                         }
                     }
                 }, new Response.ErrorListener() {
@@ -355,16 +357,18 @@ public class OrderFragment extends Fragment {
                 ObjectMapper mapper = new ObjectMapper();
                 ArrayList<CommonOrder> orders = new ArrayList<>();
 
-                // map to betterresponsemodel
-                BetterResponseModel<List<Event>> responseModel=null;
+                // Map to BetterResponseModel
+                BetterResponseModel<List<Event>> responseModel;
                 try {
-                    responseModel = mapper
-                            .readValue(response.toString(), new TypeReference<BetterResponseModel<List<Event>>>() {
-                            });
+                    responseModel
+                            = mapper.readValue(response.toString(),
+                            new TypeReference<BetterResponseModel<List<Event>>>() {});
                 }
                 catch (JsonProcessingException e){
                     e.printStackTrace();
-                    Toast.makeText(context,"Error while parsing response for getting orders", Toast.LENGTH_LONG).show();
+                    Toast.makeText(context,
+                            "Error while parsing response for getting orders",
+                            Toast.LENGTH_LONG).show();
                     return;
                 }
 
