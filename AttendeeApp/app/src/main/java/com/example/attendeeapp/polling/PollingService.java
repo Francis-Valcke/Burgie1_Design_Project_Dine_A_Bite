@@ -2,6 +2,7 @@ package com.example.attendeeapp.polling;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -58,6 +59,7 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 
 import org.jetbrains.annotations.NotNull;
@@ -69,6 +71,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.Executor;
 
 
 /**
@@ -102,7 +105,7 @@ public class PollingService extends Service {
             // Instantiate the RequestQueue
             RequestQueue queue = Volley.newRequestQueue(context);
             String url = ServerConfig.EC_ADDRESS + "/events?id=" + subscribeId;
-            checkLocationPermission();
+            //checkLocationPermission();
 
             // Request a string response from the provided URL
             JsonObjectRequest jsonObject = new JsonObjectRequest(Request.Method.GET, url, null,
@@ -184,6 +187,9 @@ public class PollingService extends Service {
                                             System.out.println("MY LOCATION: latitude: " + my_lat + "; longitude: " + my_lon);
                                             System.out.println("DISTANCE between both locations in meter: " + result[0] + " m and in km: " + result[0]/1000 + " km");
 
+                                        }
+                                        else {
+                                            System.out.println("Lastlocation is NULL!");
                                         }
 
                                             NotificationCompat.Builder notification = new NotificationCompat.Builder(context, CHANNEL_START_ID)
@@ -353,7 +359,16 @@ public class PollingService extends Service {
         } else {
             // Request the latest user location
             FusedLocationProviderClient fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
-            fusedLocationClient.getLastLocation()
+            fusedLocationClient.getLastLocation().
+                    addOnSuccessListener(new OnSuccessListener<Location>() {
+                        @Override
+                        public void onSuccess(Location location) {
+                            if (location != null) {
+                                lastLocation = location;
+                            }
+                        }
+                    });
+            /*fusedLocationClient.getLastLocation()
                     .addOnCompleteListener(new OnCompleteListener<Location>() {
                         @Override
                         public void onComplete(@NotNull Task<Location> task ) {
@@ -361,7 +376,7 @@ public class PollingService extends Service {
                                 lastLocation = task.getResult();
                             }
                         }
-                    });
+                    });*/
         }
     }
 
