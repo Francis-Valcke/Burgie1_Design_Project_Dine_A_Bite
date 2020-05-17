@@ -22,6 +22,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
+
+/**
+ * The schedulerhandler has a list of all schedulers.
+ * More information on schedulers in class Scheduler
+ */
+
 @Component
 @Scope(value = "singleton")
 public class SchedulerHandler {
@@ -33,10 +39,7 @@ public class SchedulerHandler {
     @Autowired
     PriorityQueues priorityQueues;
 
-    /**
-     * The schedulerhandler has a list of all schedulers.
-     * More information on schedulers in class Scheduler
-     */
+
     private List<Scheduler> schedulers;
 
     public SchedulerHandler() {

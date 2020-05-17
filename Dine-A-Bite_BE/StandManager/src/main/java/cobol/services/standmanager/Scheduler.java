@@ -15,8 +15,7 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 /**
- * schedulers all have:
- * TODO: change "inc" to proper schedule
+ * Schedulers are an image of the queue of corresponding stand
  */
 public class Scheduler extends Thread {
 
@@ -59,6 +58,7 @@ public class Scheduler extends Thread {
 
     /**
      * update menuItem
+     *
      *  @param mi  new item
      * @param mi2 old item
      * @return
@@ -97,16 +97,17 @@ public class Scheduler extends Thread {
     }
 
 
-
     /**
-     * schedules order: add new order to the end of schedule
+     * Adds order to the scheduler queue
+     *
+     * @param o the order to be added
      */
     public void addOrder(CommonOrder o) {
         inc.add(o);
     }
 
     /**
-     * removes first order from schedule
+     * Removes first order from schedule
      */
     public void orderDone() {
         inc.remove(0);
@@ -114,9 +115,9 @@ public class Scheduler extends Thread {
     }
 
     /**
-     * calculates total time to end of schedule
+     * Calculates scheduler queue time
      *
-     * @return this time
+     * @return the scheduler queue time
      */
     public int timeSum() {
         if (inc.size() == 0){
@@ -168,10 +169,10 @@ public class Scheduler extends Thread {
         }
     }
     /**
-     * gives preptime of item in scheduler
+     * Calculate preparation time of an item that is available on the menu of the scheduler
      *
      * @param foodname name of item
-     * @return preptime
+     * @return preparation time of that item
      */
     public int getPreptime(String foodname) {
         for (CommonFood m : menu) {
@@ -179,6 +180,7 @@ public class Scheduler extends Thread {
         }
         return -1;
     }
+
     public void removeItem(CommonFood mi){
         this.menu.remove(mi);
     }
