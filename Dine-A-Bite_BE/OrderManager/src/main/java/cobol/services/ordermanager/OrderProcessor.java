@@ -85,9 +85,6 @@ public class OrderProcessor {
      * @return Order: persisted Order object
      */
     public Order addNewOrder(Order newOrder) {
-        // update order and save to database
-        //newOrder.setRemtime(0);
-
         newOrder.setState(CommonOrder.State.PENDING);
 
         newOrder=orderRepository.save(newOrder);
@@ -118,9 +115,6 @@ public class OrderProcessor {
             Optional<Recommendation> recomOptional = orderRecommendations.get(orderId).stream()
                     .filter(r -> r.getStandName().equals(standName))
                     .findFirst();
-
-            //recomOptional.ifPresent(recommendation -> updatedOrder.setRemtime(recommendation.getTimeEstimate()));
-            //orderRepository.save(updatedOrder);
 
             //send the updated order to stand to place it in the queue
             CommonOrder mappedOrder = updatedOrder.asCommonOrder();
