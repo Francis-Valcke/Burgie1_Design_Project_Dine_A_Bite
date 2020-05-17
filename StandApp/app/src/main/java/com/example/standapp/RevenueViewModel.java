@@ -62,4 +62,8 @@ public class RevenueViewModel extends ViewModel {
             map.remove(foodName);
         }
     }
+
+    public void resetPrices() {
+        this.prices = new MutableLiveData<>();
+    }
 }

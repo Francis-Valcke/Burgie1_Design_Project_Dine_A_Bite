@@ -24,6 +24,11 @@ public class MenuViewModel extends ViewModel {
         this.menuList.setValue(menuList);
     }
 
+    public void resetMenuList() {
+        ArrayList<CommonFood> items = menuList.getValue();
+        if (items != null) items.clear();
+    }
+
     public void loadMenuList() {
         // see fetchMenu in ProfileFragment
         // could be copied to here
