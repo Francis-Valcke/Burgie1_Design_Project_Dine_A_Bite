@@ -28,14 +28,20 @@ import com.android.volley.ServerError;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.JsonRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.example.standapp.data.LoginDataSource;
 import com.example.standapp.data.LoginRepository;
 import com.example.standapp.data.model.LoggedInUser;
+import com.example.standapp.json.BetterResponseModel;
 import com.example.standapp.json.CommonFood;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.android.gms.common.internal.service.Common;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textfield.TextInputEditText;
 
@@ -49,6 +55,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -112,27 +119,27 @@ public class ProfileFragment extends Fragment {
                 = inputStandNameLayout.findViewById(R.id.edit_text_name);
         final MaterialAlertDialogBuilder dialogStandName =
                 new MaterialAlertDialogBuilder(mContext)
-                .setView(inputStandNameLayout)
-                .setPositiveButton("Save", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        standNameTextView.setText(editTextStandName.getText());
-                        standName = Objects.requireNonNull(editTextStandName.getText()).toString();
-                        editTextStandName.setText("");
+                        .setView(inputStandNameLayout)
+                        .setPositiveButton("Save", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                standNameTextView.setText(editTextStandName.getText());
+                                standName = Objects.requireNonNull(editTextStandName.getText()).toString();
+                                editTextStandName.setText("");
 
-                        ViewGroup parent = (ViewGroup) inputStandNameLayout.getParent();
-                        parent.removeView(inputStandNameLayout);
+                                ViewGroup parent = (ViewGroup) inputStandNameLayout.getParent();
+                                parent.removeView(inputStandNameLayout);
 
-                        // Keep verify button disabled when inputting same stand name
-                        // else enable verify button
-                        if (bundle != null
-                                && Objects.equals(bundle.getString("standName"), standName)) {
-                            verifyButton.setEnabled(false);
-                        } else if (!standName.isEmpty() && !brandName.isEmpty()) {
-                            verifyButton.setEnabled(true);
-                        }
-                    }
-                }).setOnDismissListener(new DialogInterface.OnDismissListener() {
+                                // Keep verify button disabled when inputting same stand name
+                                // else enable verify button
+                                if (bundle != null
+                                        && Objects.equals(bundle.getString("standName"), standName)) {
+                                    verifyButton.setEnabled(false);
+                                } else if (!standName.isEmpty() && !brandName.isEmpty()) {
+                                    verifyButton.setEnabled(true);
+                                }
+                            }
+                        }).setOnDismissListener(new DialogInterface.OnDismissListener() {
                     @Override
                     public void onDismiss(DialogInterface dialog) {
                         editTextStandName.setText("");
@@ -157,26 +164,26 @@ public class ProfileFragment extends Fragment {
                 = inputBrandNameLayout.findViewById(R.id.edit_text_name);
         final MaterialAlertDialogBuilder dialogBrandName =
                 new MaterialAlertDialogBuilder(mContext)
-                .setView(inputBrandNameLayout)
-                .setPositiveButton("Save", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        brandNameTextView.setText(editTextBrandName.getText());
-                        brandName = Objects.requireNonNull(editTextBrandName.getText()).toString();
-                        editTextBrandName.setText("");
-                        ViewGroup parent = (ViewGroup) inputBrandNameLayout.getParent();
-                        parent.removeView(inputBrandNameLayout);
+                        .setView(inputBrandNameLayout)
+                        .setPositiveButton("Save", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                brandNameTextView.setText(editTextBrandName.getText());
+                                brandName = Objects.requireNonNull(editTextBrandName.getText()).toString();
+                                editTextBrandName.setText("");
+                                ViewGroup parent = (ViewGroup) inputBrandNameLayout.getParent();
+                                parent.removeView(inputBrandNameLayout);
 
-                        // Keep verify button disabled when inputting same stand name
-                        // else enable verify button
-                        if (bundle != null
-                                && Objects.equals(bundle.getString("standName"), standName)) {
-                            verifyButton.setEnabled(false);
-                        } else if (!standName.isEmpty() && !brandName.isEmpty()) {
-                            verifyButton.setEnabled(true);
-                        }
-                    }
-                }).setOnDismissListener(new DialogInterface.OnDismissListener() {
+                                // Keep verify button disabled when inputting same stand name
+                                // else enable verify button
+                                if (bundle != null
+                                        && Objects.equals(bundle.getString("standName"), standName)) {
+                                    verifyButton.setEnabled(false);
+                                } else if (!standName.isEmpty() && !brandName.isEmpty()) {
+                                    verifyButton.setEnabled(true);
+                                }
+                            }
+                        }).setOnDismissListener(new DialogInterface.OnDismissListener() {
                     @Override
                     public void onDismiss(DialogInterface dialog) {
                         editTextBrandName.setText("");
@@ -314,7 +321,7 @@ public class ProfileFragment extends Fragment {
      *
      * @param standName name of the stand given by user
      * @param brandName name of the brand given by user
-     * @param bundle Bundle to be shared between the fragments
+     * @param bundle    Bundle to be shared between the fragments
      */
     private void handleVerify(final String standName, final String brandName, final Bundle bundle) {
         if (bundle != null) bundle.putString("standName", standName);
@@ -367,8 +374,8 @@ public class ProfileFragment extends Fragment {
      *
      * @param standName name of the stand given by user
      * @param brandName name of the brand given by user
-     * @param bundle bundle to store the retrieved subscriber ID
-     * @param callback callback that handles response of volley request
+     * @param bundle    bundle to store the retrieved subscriber ID
+     * @param callback  callback that handles response of volley request
      */
     private void subscribeEC(final String standName, final String brandName, final Bundle bundle,
                              final VolleyCallback callback) {
@@ -398,11 +405,11 @@ public class ProfileFragment extends Fragment {
                 final String finalUrl = url2;
                 StringRequest request2 = new StringRequest(Request.Method.GET, url2,
                         new Response.Listener<String>() {
-                    @Override
-                    public void onResponse(String response) {
-                        System.out.println("Response on GET request to " + finalUrl + ": " + response);
-                    }
-                }, new Response.ErrorListener() {
+                            @Override
+                            public void onResponse(String response) {
+                                System.out.println("Response on GET request to " + finalUrl + ": " + response);
+                            }
+                        }, new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
                         error.printStackTrace();
@@ -445,7 +452,7 @@ public class ProfileFragment extends Fragment {
      *
      * @param standName name of the stand
      * @param brandName name of the brand
-     * @param bundle bundle to store the fetched menu
+     * @param bundle    bundle to store the fetched menu
      */
     void fetchMenu(final Context context, String standName, String brandName, final Bundle bundle) {
 
@@ -461,31 +468,43 @@ public class ProfileFragment extends Fragment {
         if (bundle != null) bundle.putBoolean("newStand", false);
 
         // Request menu from order manager on server
-        JsonArrayRequest jsonRequest = new JsonArrayRequest(Request.Method.GET, url,
-                null, new Response.Listener<JSONArray>() {
+        JsonObjectRequest jsonRequest = new JsonObjectRequest(Request.Method.GET, url,
+                null, new Response.Listener<JSONObject>() {
             @Override
-            public void onResponse(JSONArray response) {
+            public void onResponse(JSONObject response) {
+                ObjectMapper mapper = new ObjectMapper();
+                BetterResponseModel<ArrayList<CommonFood>> responseModel=null;
                 try {
-                    System.out.println(response.toString());
-                    ObjectMapper mapper = new ObjectMapper();
-                    mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-                    CommonFood[] parsedItems = mapper.readValue(response.toString(), CommonFood[].class);
-                    Collections.addAll(items, parsedItems);
-
-                    MenuViewModel menuViewModel = new ViewModelProvider(requireActivity())
-                            .get(MenuViewModel.class);
-                    menuViewModel.setMenuList(items);
-
-                    RevenueViewModel revenueViewModel = new ViewModelProvider(requireActivity())
-                            .get(RevenueViewModel.class);
-                    for (CommonFood item : items) {
-                        revenueViewModel.addPrice(item.getName(), item.getPrice());
-                    }
+                   responseModel = mapper
+                            .readValue(response.toString(), new TypeReference<BetterResponseModel<ArrayList<CommonFood>>>() {
+                            });
                 } catch (Exception e) {
                     Log.v("Exception fetch menu:", e.toString());
-                    Toast.makeText(context, "Could not get menu from server!",
+                    Toast.makeText(context, "Error parsing response while fetching menu",
                             Toast.LENGTH_LONG).show();
                 }
+
+                if(responseModel!=null){
+                    if(responseModel.isOk()){
+                        List<CommonFood> parsedItems = responseModel.getPayload();
+                        items.addAll(parsedItems);
+
+                        MenuViewModel menuViewModel = new ViewModelProvider(requireActivity())
+                                .get(MenuViewModel.class);
+                        menuViewModel.setMenuList(items);
+
+                        RevenueViewModel revenueViewModel = new ViewModelProvider(requireActivity())
+                                .get(RevenueViewModel.class);
+                        for (CommonFood item : items) {
+                            revenueViewModel.addPrice(item.getName(), item.getPrice());
+                        }
+                    }
+                    else{
+                        Toast.makeText(context, responseModel.getDetails(),
+                                Toast.LENGTH_LONG).show();
+                    }
+                }
+
             }
         }, new Response.ErrorListener() {
             @Override
@@ -517,11 +536,11 @@ public class ProfileFragment extends Fragment {
     /**
      * This method will fetch the saved revenue of the logged in stand from the server
      *
-     * @param context context from which the method is called
+     * @param context   context from which the method is called
      * @param standName stand name of logged in stand
      * @param brandName brand name of logged in stand
      */
-    void fetchRevenue(Context context, String standName, String brandName) {
+    void fetchRevenue(final Context context, String standName, String brandName) {
 
         final LoggedInUser loggedInUser = LoginRepository.getInstance(new LoginDataSource())
                 .getLoggedInUser();
@@ -535,18 +554,29 @@ public class ProfileFragment extends Fragment {
                 null, new Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject response) {
-                BigDecimal revenue = null;
+                ObjectMapper mapper = new ObjectMapper();
+                BetterResponseModel<BigDecimal> responseModel = null;
+
                 try {
-                    revenue = BigDecimal.valueOf(response.getDouble("details"));
-                } catch (JSONException e) {
-                    Log.v("Json Error:", Objects.requireNonNull(e.getMessage()));
+                    responseModel = mapper.readValue(response.toString(), new TypeReference<BetterResponseModel<BigDecimal>>() {
+                    });
+                } catch (JsonProcessingException e) {
+                    Toast.makeText(context, "Error parsing revenue response",
+                            Toast.LENGTH_LONG).show();
                 }
-                RevenueViewModel model = new ViewModelProvider(requireActivity())
-                        .get(RevenueViewModel.class);
-                model.setRevenue(revenue);
+
+                if (responseModel != null) {
+                    if (responseModel.isOk()) {
+                        BigDecimal revenue = responseModel.getPayload();
+                        RevenueViewModel model = new ViewModelProvider(requireActivity())
+                                .get(RevenueViewModel.class);
+                        model.setRevenue(revenue);
+                    } else {
+                        Toast.makeText(context, responseModel.getDetails(), Toast.LENGTH_LONG).show();
+                    }
+                }
             }
         }, new Response.ErrorListener() {
-
             @Override
             public void onErrorResponse(VolleyError error) {
                 error.printStackTrace();

@@ -55,7 +55,8 @@ public class CommonOrder {
         PENDING,
         DECLINED,
         CONFIRMED,
-        READY
+        READY,
+        PICKED_UP
     }
     //type of recommendation wanted
     public enum RecommendType {

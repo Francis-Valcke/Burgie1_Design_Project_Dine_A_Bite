@@ -1,6 +1,7 @@
 package cobol.services.eventchannel.test;
 
 
+import cobol.commons.BetterResponseModel;
 import cobol.commons.Event;
 import cobol.services.eventchannel.EventBroker;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -131,9 +132,9 @@ public class EventChannelTest {
                 )
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
-        //JSONObject response = objectMapper.readValue(data, JSONObject.class);
-        //String details = (String) response.get("details");
-        List<Event> eventList = objectMapper.readValue(data, new TypeReference<List<Event>>() {});
+        BetterResponseModel<List<Event>> responseModel = objectMapper.readValue(data, new TypeReference<BetterResponseModel<List<Event>>>() {});
+
+        List<Event> eventList =responseModel.getPayload();
         assert (eventList.size() == 3); //event from channel 1,2 and 3;
         for (Event e : eventList) {
             assert (e.getMyId() == 0 || e.getMyId() == 1);

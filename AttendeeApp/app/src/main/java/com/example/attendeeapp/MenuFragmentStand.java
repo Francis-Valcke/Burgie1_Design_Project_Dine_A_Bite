@@ -19,10 +19,12 @@ import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
+import com.example.attendeeapp.json.BetterResponseModel;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
 
@@ -107,10 +109,19 @@ public class MenuFragmentStand extends MenuFragment implements AdapterView.OnIte
                         standListAdapter.clear();
                         brandList.clear();
                         standListAdapter.add("No stands available");
+                        ObjectMapper om=new ObjectMapper();
+                        BetterResponseModel<Map<String, String>> responseModel= om.readValue(response.toString(), new TypeReference<BetterResponseModel<Map<String, String>>>() {});
+                        if(!responseModel.isOk()){
+                            if (mToast != null) mToast.cancel();
+                            mToast = Toast.makeText(getActivity(), responseModel.getException().getMessage(),
+                                    Toast.LENGTH_LONG);
+                            mToast.show();
+                            return;
+                        }
 
-                        for (Iterator<String> iter = response.keys(); iter.hasNext(); ) {
-                            String standName = iter.next();
-                            String brandName = response.getString(standName);
+
+                        for (String standName : responseModel.getPayload().keySet()) {
+                            String brandName = responseModel.getPayload().get(standName);
                             brandList.add(brandName);
 
                             // Add stand to the spinner list

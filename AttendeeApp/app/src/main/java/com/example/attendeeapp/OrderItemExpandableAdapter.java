@@ -12,6 +12,7 @@ import android.widget.BaseExpandableListAdapter;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.attendeeapp.appDatabase.OrderDatabaseService;
 import com.example.attendeeapp.json.CommonOrder;
@@ -257,7 +258,13 @@ public class OrderItemExpandableAdapter extends BaseExpandableListAdapter {
                             order.setExpectedTime(expectedTime);
                         }
 
-                        orderDatabaseService.updateOrder(order);
+                        try{
+                            orderDatabaseService.updateOrder(order);
+                        }
+                        catch(Exception e){
+                            e.printStackTrace();
+                            Toast.makeText(context, "Error while updating an order in local db", Toast.LENGTH_LONG).show();
+                        }
                     }
 
                 }

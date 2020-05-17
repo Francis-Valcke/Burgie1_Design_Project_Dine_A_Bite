@@ -1,8 +1,8 @@
 package cobol.services.eventchannel;
 
+import cobol.commons.BetterResponseModel;
 import cobol.commons.Event;
 import cobol.commons.ResponseModel;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -105,11 +105,16 @@ public class EventController {
      * @return the events that were received by the stub since the last poll
      */
     @GetMapping("/events")
-    public ResponseEntity events(@RequestParam(value = "id") int id) throws JsonProcessingException {
+    public BetterResponseModel<List<Event>> events(@RequestParam(value = "id") int id) {
         EventBroker broker = EventBroker.getInstance();
-        EventSubscriber subscriber = broker.getSubscriberStub(id);
-        List<Event> response = subscriber.getUnhandledEvents();
-
-        return ResponseEntity.ok(response);
+        try{
+            EventSubscriber subscriber = broker.getSubscriberStub(id);
+            List<Event> response = subscriber.getUnhandledEvents();
+            return BetterResponseModel.ok("Successfully retrieved events", response);
+        }
+        catch(Exception e){
+            e.printStackTrace();
+            return BetterResponseModel.error("No such subscriber id, request a new id", e);
+        }
     }
 }

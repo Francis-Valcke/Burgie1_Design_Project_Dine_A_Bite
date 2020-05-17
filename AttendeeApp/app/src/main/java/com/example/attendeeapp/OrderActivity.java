@@ -15,13 +15,14 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
-import com.android.volley.toolbox.JsonArrayRequest;
+import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.example.attendeeapp.appDatabase.OrderDatabaseService;
 import com.example.attendeeapp.data.LoginDataSource;
 import com.example.attendeeapp.data.LoginRepository;
 import com.example.attendeeapp.data.model.LoggedInUser;
+import com.example.attendeeapp.json.BetterResponseModel;
 import com.example.attendeeapp.json.CommonOrder;
 import com.example.attendeeapp.json.CommonOrderStatusUpdate;
 import com.example.attendeeapp.polling.PollingService;
@@ -87,7 +88,7 @@ public class OrderActivity extends ToolbarActivity {
         upButtonToolbar();
 
         // order(s) passed by confirm order activity
-        ArrayList<CommonOrder> newOrderList= (ArrayList<CommonOrder>) getIntent().getSerializableExtra("orderList");
+        ArrayList<CommonOrder> newOrderList = (ArrayList<CommonOrder>) getIntent().getSerializableExtra("orderList");
 
         runningOrderSwitch = findViewById(R.id.running_order_switch);
         // add event listener to switch
@@ -146,7 +147,7 @@ public class OrderActivity extends ToolbarActivity {
     }
 
     /**
-     *  Check if polling service is running and if not request a new subscriberId for the current orders
+     * Check if polling service is running and if not request a new subscriberId for the current orders
      */
     private void subscribeToOrderUpdates() {
         // TODO: register to channel of new order non-confirmed orders are no longer present
@@ -218,18 +219,28 @@ public class OrderActivity extends ToolbarActivity {
         String url = ServerConfig.OM_ADDRESS;
         url = String.format("%1$s/getUserOrders", url);
 
-        JsonArrayRequest request = new JsonArrayRequest(Request.Method.GET, url, null,
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, url, null,
                 response -> {
                     ObjectMapper mapper = new ObjectMapper();
-                    try {
-                        List<CommonOrder> allUserOrders = mapper.readValue(response.toString(),
-                                new TypeReference<List<CommonOrder>>() {
-                                });
 
+                    BetterResponseModel<List<CommonOrder>> responseModel = null;
+                    try {
+                        responseModel = mapper.readValue(response.toString(), new TypeReference<BetterResponseModel<List<CommonOrder>>>() {
+                        });
+                    } catch (JsonProcessingException e) {
+                        showToast("Error while parsing orders");
+                        return;
+                    }
+
+                    if(responseModel.isOk()){
+                        List<CommonOrder> allUserOrders= responseModel.getPayload();
                         // TODO: Update local database better way @Nathan
                         orderDatabaseService.deleteAllOrders();
                         for (CommonOrder order : allUserOrders) {
-                            orderDatabaseService.insertOrder(order);
+                            // TODO solve this, unconfirmed orders give an error when placing in local db
+                            if (order.getRecType() != null) {
+                                orderDatabaseService.insertOrder(order);
+                            }
                         }
 
                         orders.clear();
@@ -238,7 +249,7 @@ public class OrderActivity extends ToolbarActivity {
                         ArrayList<CommonOrder> readyOrders = new ArrayList<CommonOrder>();
                         if (runningOrderSwitch.isChecked()) {
                             for (CommonOrder order : orders) {
-                                if (order.getOrderState() == CommonOrder.State.READY) {
+                                if (order.getOrderState() == CommonOrder.State.READY || order.getOrderState() == CommonOrder.State.PICKED_UP) {
                                     readyOrders.add(order);
                                 }
                             }
@@ -250,11 +261,11 @@ public class OrderActivity extends ToolbarActivity {
                         adapter.notifyDataSetChanged();
 
                         subscribeToOrderUpdates();
-
-                        showToast("Order updated");
-                    } catch (JsonProcessingException e) {
-                        e.printStackTrace();
                     }
+                    else{
+                        showToast(responseModel.getDetails());
+                    }
+
                 },
                 error -> {
                     showToast("Your orders could not be retrieved from the server");
@@ -279,7 +290,7 @@ public class OrderActivity extends ToolbarActivity {
      *
      * @param orderId : list of order id's that must be subscribed to
      *                TODO: unregister subscriber
-     *                 save subscriberId instead of asking new one every time
+     *                save subscriberId instead of asking new one every time
      */
     public void getSubscriberId(ArrayList<Integer> orderId) {
         // Instantiate the RequestQueue
