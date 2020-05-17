@@ -14,6 +14,8 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -196,8 +198,17 @@ public class SchedulerHandler {
         JSONObject obj = new JSONObject();
         for (Scheduler s : schedulers) {
             if (s.getStandName().equals(order.getStandName()) && s.getBrand().equals(order.getBrandName())) {
+                //we need to update the actual and expected time, based on current queue time (and the order preparation time
+                SchedulerComparatorTime timeComp = new SchedulerComparatorTime(new ArrayList<>(order.getOrderItems()));
+                int orderPrepTime = timeComp.getLongestFoodPrepTime(s);
+                int currentWaitingTime = s.timeSum();
+                int totalWaitingTime = currentWaitingTime + orderPrepTime;
+                ZonedDateTime actualTime =  ZonedDateTime.now(ZoneId.of("Europe/Brussels"));
+                ZonedDateTime expectedTime = actualTime.plusSeconds(totalWaitingTime);
+                order.setExpectedTime(expectedTime);
                 s.addOrder(order);
                 obj.put("added", true);
+                obj.put("waitingTime", totalWaitingTime);
                 break;
             }
         }
