@@ -46,7 +46,7 @@ import java.util.Map;
 
 
 /**
- * Service that polls the server for order updates
+ * Service that polls the server for order updates.
  */
 public class PollingService extends Service {
 
@@ -61,7 +61,9 @@ public class PollingService extends Service {
 
     public static final long DEFAULT_SYNC_INTERVAL = 5 * 1000;
 
-    // Runnable that contains the order polling method
+    /**
+     * Runnable that contains the order polling method.
+     */
     private Runnable runnableService = new Runnable() {
         private int notificationID = 0;
 
@@ -197,6 +199,7 @@ public class PollingService extends Service {
         }
     };
 
+
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         context = getBaseContext();
@@ -227,8 +230,9 @@ public class PollingService extends Service {
     }
 
     /**
-     * The notification settings here are just the default settings,
-     * but the user has ultimate control over these settings and can disable them whenever he wants
+     * Method to create the notification channels for android Oreo or more recent build versions.
+     * The notification settings here are the default settings,
+     * but the user has ultimate control over these settings and can disable them whenever he wants.
      */
     private void createNotificationChannels() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {

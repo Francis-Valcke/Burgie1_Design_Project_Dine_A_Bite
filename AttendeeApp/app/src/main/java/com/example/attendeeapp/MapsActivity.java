@@ -39,6 +39,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private LoggedInUser user = LoginRepository.getInstance(new LoginDataSource()).getLoggedInUser();
 
+    /**
+     * Method to setup the activity.
+     *
+     * @param savedInstanceState The previously saved activity state, if available.
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         requestStandLocations();
@@ -47,9 +52,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     /**
-     * Create map and set POI's on stand coordinates
+     * Called when the map is ready to be used.
      *
-     * @param googleMap Google Maps object
+     * @param googleMap The instance of the map.
      */
     @Override
     public void onMapReady(GoogleMap googleMap) {
@@ -73,7 +78,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     /**
-     * Get the stand locations from the server
+     * Method to request the stand locations from the server.
      */
     private void requestStandLocations() {
         RequestQueue queue = Volley.newRequestQueue(this);

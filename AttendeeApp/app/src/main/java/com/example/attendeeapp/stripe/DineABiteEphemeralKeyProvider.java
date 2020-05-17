@@ -1,9 +1,6 @@
 package com.example.attendeeapp.stripe;
 
-import android.app.Activity;
 import android.util.Log;
-import android.view.View;
-import android.widget.Toast;
 
 import com.example.attendeeapp.ServerConfig;
 import com.example.attendeeapp.data.LoginDataSource;
@@ -15,8 +12,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.stripe.android.EphemeralKeyProvider;
 import com.stripe.android.EphemeralKeyUpdateListener;
-import com.stripe.android.Stripe;
-import com.stripe.android.model.ConfirmPaymentIntentParams;
 
 import org.jetbrains.annotations.NotNull;
 

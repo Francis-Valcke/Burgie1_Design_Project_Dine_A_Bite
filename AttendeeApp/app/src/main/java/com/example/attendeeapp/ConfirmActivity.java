@@ -52,20 +52,21 @@ import java.util.Map;
 
 /**
  * Activity that handles the confirmation/choosing of the (recommended) stand of the placed order
+ * as well as the user interface for this.
  * <p>
  * The FLOW in this activity is as follows:
- * - The order from CartActivity is split up over the different brands
- * - For each brand, an order is placed at the server and recommendations are fetched
- * - If an order of one brand is ordered from the SAME specific stand, the order is placed with /placeOrder
- * If an order of one brand has no specific stand for all order items, the order is placed with /placeSuperOrder
- * If this SuperOrder cannot be made in one stand (although the brand is the same), the server can split it up
- * => if the order is split up, the user must be notified
- * - Next the user must confirm a stand for the returned order from the server and the confirmed order is saved locally
- * - The confirmation of stands must be done for each brand separately
+ * - The order from CartActivity is split up over the different brands.
+ * - For each brand, an order is placed at the server and recommendations are fetched.
+ * - If an order of one brand is ordered from the SAME specific stand, the order is placed with /placeOrder.
+ * If an order of one brand has no specific stand for all order items, the order is placed with /placeSuperOrder.
+ * If this SuperOrder cannot be made in one stand (although the brand is the same), the server can split it up.
+ * => if the order is split up, the user must be notified.
+ * - Next the user must confirm a stand for the returned order from the server and the confirmed order is saved locally.
+ * - The confirmation of stands must be done for each brand separately.
  * If the order (of one brand) was placed with /placeSuperOrder and split up,
- * the user must confirm all stands for the split up order
+ * the user must confirm all stands for the split up order.
  * - If all orders have a confirmed stand, the confirmedOrder list is sent over to orderActivity
- * to be sent to the server for confirmation
+ * to be sent to the server for confirmation.
  */
 public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnItemSelectedListener {
 
@@ -73,9 +74,13 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
     private ArrayList<CommonFood> ordered; // current ordered items
     private List<Recommendation> recommendations = null; // current stand recommendations
     private CommonOrder orderReceived = null; // current stand order
-    // index in the recommendation list of the currently chosen recommendation in the spinner
+    /**
+     * Index in the recommendation list of the currently chosen recommendation in the spinner.
+     */
     private int chosenRecommend = -1;
-    // if a recommendation of the recommendation list contains the specific chosen stand, it is saved here
+    /**
+     * If a recommendation of the recommendation list contains the specific chosen stand, it is saved here.
+     */
     private Recommendation specificRecommendation = null;
 
     private String specificStand;
@@ -84,12 +89,18 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
     private Iterator<Map.Entry<String, ArrayList<CommonFood>>> mapIterator;
     private ArrayList<CommonOrder> confirmedOrders = new ArrayList<>();
 
-    // current stand confirmation number for a certain brand
+    /**
+     * Current stand confirmation number for a certain brand.
+     */
     private int confirmNumber = 1;
-    // current stand confirmation number for a certain brand,
-    // when an order of the same brand is split up over multiple stands
+    /**
+     * Current stand confirmation number for a certain brand,
+     * when an order of the same brand is split up over multiple stands.
+     */
     private int confirmSplitOrderNumber = 0;
-    // the recommendations of a split order of the same brand
+    /**
+     * The recommendations of a split order of the same brand.
+     */
     private List<SuperOrderRec> splitOrderRecommendations = null;
 
     private Toast mToast = null;
@@ -98,6 +109,11 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
 
     private LoggedInUser user = LoginRepository.getInstance(new LoginDataSource()).getLoggedInUser();
 
+    /**
+     * Method to setup the activity.
+     *
+     * @param savedInstanceState The previously saved activity state, if available.
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -221,8 +237,8 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
     }
 
     /**
-     * Requests a recommendation for the items of the next brand available in the brandItemMap
-     * Method is called as much as there are different brands in the total order of the user
+     * Requests a recommendation for the items of the next brand available in the brandItemMap.
+     * Method is called as much as there are different brands in the total order of the user.
      */
     private void confirmNextStand() {
         // Get next brand - orderItems entry of the map
@@ -282,9 +298,9 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
     }
 
     /**
-     * Make distance and time of recommendation invisible until recommendation comes available
-     * Initializes a new spinner for the current stand recommendations
-     * Reset the current order items to be confirmed
+     * Make distance and time TextView of recommendation invisible until a recommendation comes available.
+     * Initializes a new spinner for the current stand recommendations.
+     * Reset the current order item list to be confirmed.
      */
     private void resetFields() {
         // Make distance and time of recommendation invisible until recommendation comes available
@@ -319,8 +335,8 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
     }
 
     /**
-     * Called when an order of the same brand has been split up over multiple stand by the server
-     * Used to display and handle the next stand confirmation of the split order
+     * Called when an order of the same brand has been split up over multiple stand by the server.
+     * Used to display and handle the next stand confirmation of the split order.
      */
     private void confirmNextSplitStand() {
 
@@ -345,6 +361,9 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
 
     }
 
+    /**
+     * This method will display an alert message if the server has split up the order.
+     */
     private void showSplitOrderAlert() {
         // Alert user that the server has split up his order
         AlertDialog.Builder builder = new AlertDialog.Builder(ConfirmActivity.this);
@@ -366,11 +385,11 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
 
     /**
      * Sends order of user of the same brand to the server in JSON to request a recommendation
-     * when ALL items are from the same specific stand (and brand)
+     * when ALL items are from the same specific stand (and brand).
      * <p>
-     * Send a JSON object with ordered items and user location
-     * Format: CommonOrder converted to JSON
-     * Location is (360, 360) when user location is unknown
+     * Sends a JSON object with ordered items and user location.
+     * Format: CommonOrder converted to JSON.
+     * Location is (360, 360) when the user location is unknown.
      */
     private void requestOrderRecommend() {
 
@@ -468,12 +487,12 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
 
 
     /**
-     * Sends order items of user of the same brand to the server in JSON to request a recommendation
-     * A SuperOrder is required when all ordered items may be from different stands (but the same brand)
+     * Sends ordered items of a user of the same brand to the server in JSON to request a recommendation.
+     * A SuperOrder is required when all ordered items may be from different stands (but the same brand).
      * <p>
-     * Send a JSON object with ordered items and user location
-     * Format: CommonOrder converted to JSON
-     * Location is (360, 360) when user location is unknown
+     * Send a JSON object with ordered items and user location.
+     * Format: CommonOrder converted to JSON.
+     * Location is (360, 360) when the user location is unknown.
      */
     private void requestSuperOrderRecommend() {
 
@@ -592,7 +611,8 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
 
     /**
      * Handles one recommendation/order pair to handle the confirmation of a stand for that order
-     * Called by the place(Super)Order http request response listeners and confirmNextSplitStand
+     * and sets the Views to display the current order/recommendation values.
+     * Called by the place(Super)Order volley-request responseListeners and confirmNextSplitStand.
      *
      * @param response: jsonNode containing the recommendation(s) and the order
      */
@@ -654,7 +674,7 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
     }
 
     /**
-     * Display the current items of the order being confirmed
+     * This method sets the Views to display the current items of the order being confirmed.
      */
     private void showOrderDetails() {
 
@@ -676,9 +696,9 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
     }
 
     /**
-     * Function that updates the textViews to show the received recommendation info
+     * Method that updates the TextViews to show the received recommendation info.
      *
-     * @param i the number of the recommendation in the recommendation list
+     * @param i The index of the recommendation in the recommendation list to be shown.
      */
     @SuppressLint("SetTextI18n")
     private void showRecommendation(int i) {
@@ -718,7 +738,7 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
 
     /**
      * Display the user specific chosen stand when a recommendation with this chosen stand
-     * is available for the order
+     * is available for the order.
      */
     private void showSpecificStand() {
         // Display the specific stand chosen by the user
@@ -745,6 +765,11 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
         recommend.setText(R.string.specific_stand_chosen);
     }
 
+    /**
+     * Method to display a toast with a specific message.
+     *
+     * @param message The message to show in the Toast.
+     */
     public void showToast(String message) {
         if (mToast != null) mToast.cancel();
         mToast = Toast.makeText(ConfirmActivity.this, message,
@@ -752,7 +777,9 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
         mToast.show();
     }
 
-
+    /**
+     * Method that sets the chosen stand when an item is selected from the stand spinner.
+     */
     @Override
     public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
         // An item was selected in the spinner

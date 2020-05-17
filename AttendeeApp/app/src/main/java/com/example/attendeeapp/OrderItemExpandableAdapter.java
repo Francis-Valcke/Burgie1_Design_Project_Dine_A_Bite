@@ -28,7 +28,7 @@ import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Handles all the order items in the order expandable list overview
+ * Handles all the order items in the order expandable list from OrderActivity.
  */
 public class OrderItemExpandableAdapter extends BaseExpandableListAdapter {
 
@@ -91,9 +91,11 @@ public class OrderItemExpandableAdapter extends BaseExpandableListAdapter {
     }
 
     /**
-     * Create the view for one group item in the expandable list, always visible
-     * @param i = the position of the group item
-     * @param b = if the group item is currently selected (and expanded)
+     * Create the view for one group item in the expandable list.
+     * Group items are always visible.
+     *
+     * @param i The position of the group item.
+     * @param b If the group item is currently and expanded.
      */
     @SuppressLint("SetTextI18n")
     @Override
@@ -141,9 +143,11 @@ public class OrderItemExpandableAdapter extends BaseExpandableListAdapter {
     }
 
     /**
-     * Create the view of 1 child items of 1 group, only visible if group item is expanded
-     * @param groupPos = the child's (parent) group item position
-     * @param childPos = the child position (of all children)
+     * Create the view of 1 child item of 1 group.
+     * Only visible if the group item is expanded.
+     *
+     * @param groupPos The child's (parent) group item position.
+     * @param childPos The child position (in all the children).
      */
     @SuppressLint("SetTextI18n")
     @Override
@@ -234,10 +238,11 @@ public class OrderItemExpandableAdapter extends BaseExpandableListAdapter {
     }
 
     /**
-     * Updates the order status for a given order id
-     * If the state is confirmed, initialize the expected order time to start the counting
-     * @param orderId : the order id for which the status update holds
-     * @param State : the new order status
+     * Updates the order status for a given order id.
+     * If the state is confirmed, initialize the expected order time and start the counting.
+     *
+     * @param orderId The order id for which the status update holds.
+     * @param State The new order status.
      */
     public void updateOrder(int orderId, CommonOrderStatusUpdate.State State) {
             for (CommonOrder order : orders) {

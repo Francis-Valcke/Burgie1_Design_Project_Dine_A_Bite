@@ -3,6 +3,9 @@ package com.example.attendeeapp.json;
 
 import java.util.List;
 
+/**
+ * Model for the server answer when placing a (super) order ad requesting recommendations.
+ */
 public class SuperOrderRec {
 
     private CommonOrder order;

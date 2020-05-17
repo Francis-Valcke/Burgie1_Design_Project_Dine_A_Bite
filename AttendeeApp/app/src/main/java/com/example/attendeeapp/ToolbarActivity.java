@@ -22,8 +22,8 @@ import com.google.android.gms.tasks.Task;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Contains the common toolbar settings for the app
- * Requests location permissions functions are available here
+ * Contains the common toolbar settings for the application activities.
+ * Request location and location permissions functions are available here.
  */
 public class ToolbarActivity extends AppCompatActivity {
 
@@ -36,6 +36,9 @@ public class ToolbarActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
     }
 
+    /**
+     * Method to enable the up button in the toolbar to let the user go back.
+     */
     public void upButtonToolbar() {
         // Get a support ActionBar corresponding to this toolbar
         ActionBar ab = getSupportActionBar();
@@ -45,6 +48,9 @@ public class ToolbarActivity extends AppCompatActivity {
         ab.setDisplayHomeAsUpEnabled(true);
     }
 
+    /**
+     * Method to setup the toolbar menu options.
+     */
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
@@ -55,6 +61,12 @@ public class ToolbarActivity extends AppCompatActivity {
     // TODO:
     //  -make toolbar generalized for all activities
     //  -make Toast messages cancalable for all activities
+    /**
+     * Method that handles the default toolbar selection options and takes the appropriate actions.
+     *
+     * @param item The selected item in the toolbar menu.
+     * @return If the click event should be consumed or forwarded.
+     */
     @Override
     public boolean onOptionsItemSelected(@NonNull android.view.MenuItem item) {
         switch (item.getItemId()) {
@@ -89,9 +101,9 @@ public class ToolbarActivity extends AppCompatActivity {
     }
 
     /**
-     * Check if location permission is granted
+     * Method to check if location permission was granted and update the user location.
      * It not: request the location permission
-     * else if permission was granted, renew user location
+     * else if permission was granted, renew the user location.
      */
     public void checkLocationPermission() {
         if (ContextCompat.checkSelfPermission(this,
@@ -118,11 +130,12 @@ public class ToolbarActivity extends AppCompatActivity {
     }
 
     /**
-     * Handle the requested permissions,
-     * here only the location permission is handled
-     * @param requestCode: 1 = location permission was requested
-     * @param permissions: the requested permission(s) names
-     * @param grantResults: if the permission is granted or not
+     * Method to handle the requested permissions.
+     * Here only the location permission is currently handled.
+     *
+     * @param requestCode 1 = location permission was requested.
+     * @param permissions List with the requested permission(s) names.
+     * @param grantResults Lists if the corresponding permission is granted or not.
      */
     @Override
     public void onRequestPermissionsResult(int requestCode, @NotNull String[] permissions,

@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * Handles the view for the category menu's
+ * Handles the view for the category menu's.
  */
 public class MenuFragmentCategory extends MenuFragment implements AdapterView.OnItemSelectedListener {
 
@@ -29,6 +29,9 @@ public class MenuFragmentCategory extends MenuFragment implements AdapterView.On
     // Map containing all items for a specific category, key = category, value = list of menu items
     private HashMap<String, ArrayList<CommonFood>> categoryItemMap = new HashMap<>();
 
+    /**
+     * Method to create the fragments View.
+     */
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
@@ -36,6 +39,9 @@ public class MenuFragmentCategory extends MenuFragment implements AdapterView.On
         return inflater.inflate(R.layout.fragment_menu_category, container, false);
     }
 
+    /**
+     * Method to setup the fragments View.
+     */
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
 
@@ -71,6 +77,9 @@ public class MenuFragmentCategory extends MenuFragment implements AdapterView.On
         // The spinner will initialize category items for the first selected spinner category
     }
 
+    /**
+     * Method that sets the chosen category when an item is selected from the category spinner.
+     */
     public void onItemSelected(AdapterView<?> parent, View view,
                                int pos, long id) {
         // An item was selected in the spinner, display the chosen category menu items
@@ -84,14 +93,16 @@ public class MenuFragmentCategory extends MenuFragment implements AdapterView.On
     }
 
     public void onNothingSelected(AdapterView<?> parent) {
-        // When a category gets removed from the spinner this method is called
+        // When a selected category gets removed from the spinner this method is called
     }
 
 
     /**
-     * This method overrides the superclass updateMenu method for categories
+     * This method sorts the global menu items received from the server according to their category
+     * and sets them to be used when a user selects a category.
+     * It overrides the MenuFragment superclass updateMenu method for this category fragment.
      *
-     * @param response: List of food items from the server
+     * @param response List of food items received from the server.
      */
     protected void updateMenu(List<CommonFood> response) {
         // Renew the list

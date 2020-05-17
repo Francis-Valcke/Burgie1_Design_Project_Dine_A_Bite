@@ -1,5 +1,8 @@
 package com.example.attendeeapp.json;
 
+/**
+ * Model for one recommendation of an order that is received from the server.
+ */
 public class Recommendation {
 
     // standId of recommendation

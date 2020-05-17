@@ -7,7 +7,7 @@ import androidx.viewpager2.adapter.FragmentStateAdapter;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Handles the viewpager slider to switch between global and stand menu views
+ * Handles the ViewPager slider to switch between global, stand or category menu views
  */
 public class MenuFragmentAdapter extends FragmentStateAdapter {
 
@@ -19,9 +19,10 @@ public class MenuFragmentAdapter extends FragmentStateAdapter {
     }
 
     /**
-     * Creates global or stand fragment depending on the slider position
-     * @param position: 0 = global fragment, 1 = stand fragment, 2 = category fragment
-     * @return the newly created fragment
+     * Creates global, stand or category fragment depending on the slider position.
+     *
+     * @param position 0 = global fragment, 1 = stand fragment, 2 = category fragment.
+     * @return The newly created fragment.
      */
     @NotNull
     @Override

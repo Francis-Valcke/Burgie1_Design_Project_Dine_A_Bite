@@ -14,9 +14,9 @@ import com.example.attendeeapp.json.CommonFood;
 import java.util.ArrayList;
 
 /**
- * Handles all the cart items in the cart list
+ * Handles all the different cart items in the cart list.
  */
-public class CartItemAdapter  extends BaseAdapter {
+public class CartItemAdapter extends BaseAdapter {
     private ArrayList<CommonFood> cartList;
     private int cartCount;
     private Context context;
@@ -54,6 +54,9 @@ public class CartItemAdapter  extends BaseAdapter {
         return 0;
     }
 
+    /**
+     * Method to get a View that displays a cart item at the specified position in the cart.
+     */
     @Override
     public View getView(final int position, View convertView, ViewGroup parent) {
         View view = convertView;
