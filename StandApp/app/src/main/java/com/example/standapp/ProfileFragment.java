@@ -26,9 +26,7 @@ import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.ServerError;
 import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.JsonRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.example.standapp.data.LoginDataSource;
@@ -38,22 +36,17 @@ import com.example.standapp.json.BetterResponseModel;
 import com.example.standapp.json.CommonFood;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.android.gms.common.internal.service.Common;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textfield.TextInputEditText;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
-import java.security.GeneralSecurityException;
 import java.math.BigDecimal;
+import java.security.GeneralSecurityException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -217,9 +210,10 @@ public class ProfileFragment extends Fragment {
 
                     RevenueViewModel revenueViewModel = new ViewModelProvider(requireActivity()).get(RevenueViewModel.class);
                     revenueViewModel.setRevenue(new BigDecimal(0));
+                    revenueViewModel.resetPrices();
 
                     MenuViewModel menuViewModel = new ViewModelProvider(requireActivity()).get(MenuViewModel.class);
-                    menuViewModel.setMenuList(new ArrayList<CommonFood>());
+                    menuViewModel.resetMenuList();
 
                     // POST request to /verify
                     RequestQueue queue = Volley.newRequestQueue(Objects.requireNonNull(getContext()));
@@ -237,6 +231,11 @@ public class ProfileFragment extends Fragment {
                                         response.get("details").toString(),
                                         Toast.LENGTH_LONG).show();
                                 if (response.get("status").equals("OK")) {
+                                    if (response.get("details").equals("The stand does not exist and is free to be created")) {
+                                        if (bundle != null) bundle.putBoolean("newStand", true);
+                                    } else {
+                                        if (bundle != null) bundle.putBoolean("newStand", false);
+                                    }
                                     // The stand-brand has been verified by the server
                                     // - The user is the owner, or
                                     // - The stand-brand is new and the user can become the owner
@@ -464,8 +463,6 @@ public class ProfileFragment extends Fragment {
         String url = ServerConfig.OM_ADDRESS + "/standMenu?brandName=" + brandName
                 + "&standName=" + standName;
         url = url.replace(' ', '+');
-
-        if (bundle != null) bundle.putBoolean("newStand", false);
 
         // Request menu from order manager on server
         JsonObjectRequest jsonRequest = new JsonObjectRequest(Request.Method.GET, url,

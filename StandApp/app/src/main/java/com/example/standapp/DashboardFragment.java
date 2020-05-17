@@ -334,9 +334,10 @@ public class DashboardFragment extends Fragment
             RequestQueue queue = Volley.newRequestQueue(context);
             String url;
             // Check if stand is new or not
-            if (items.isEmpty() || isNewStand) {
+            if (isNewStand) {
                 url = ServerConfig.OM_ADDRESS + "/addStand";
                 isNewStand = false;
+                bundle.putBoolean("newStand", false);
             } else {
                 url = ServerConfig.OM_ADDRESS + "/updateStand";
             }
