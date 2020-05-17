@@ -108,6 +108,9 @@ public class BetterResponseModel<T> {
 
     // ---- Implement DATA objects here ----
 
+    /**
+     * Data class to represent response when creating a payment intent.
+     */
     public static class CreatePaymentIntentResponse {
 
         private String clientSecret;
@@ -138,6 +141,9 @@ public class BetterResponseModel<T> {
         }
     }
 
+    /**
+     * Data class to represent response when balance is requested.
+     */
     public static class GetBalanceResponse {
 
         private BigDecimal balance;
