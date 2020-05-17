@@ -72,6 +72,26 @@ public class OrderController {
         }
     }
 
+    @PostMapping(value = "/updateOrder")
+    public ResponseEntity<BetterResponseModel<JSONObject>> updateOrder(@RequestParam(name = "orderId") int orderId, @RequestParam(name = "newStatus") CommonOrder.State newStatus){
+        JSONObject completeResponse = new JSONObject();
+        try {
+            Optional<Order> orderOptional = orderProcessor.getOrder(orderId);
+            if (orderOptional.isPresent()) {
+                orderOptional.get().setState(newStatus);
+                orderOptional.get().getStand();
+
+            }
+            else {
+                throw new Exception();
+            }
+        }catch (Throwable e) {
+            e.printStackTrace();
+            return ResponseEntity.ok(BetterResponseModel.error("Error while changing order status", e));
+        }
+        return ResponseEntity.ok(BetterResponseModel.ok("Successfully updated order status", completeResponse));
+    }
+
     /**
      * This method will add the order to the order processor,
      * gets a recommendation from the scheduler and forwards it to the attendee app.

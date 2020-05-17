@@ -51,6 +51,24 @@ public class StandManagerController {
         return ResponseEntity.ok(BetterResponseModel.ok("Successfully updated schedulers", "success"));
 
     }
+    @PostMapping("updateScheduler")
+    public ResponseEntity<BetterResponseModel<String>> updateScheduler(@RequestParam(name="standName") String stand, @RequestParam(name="brandName") String brand,@RequestParam(name="orderId") int orderId) {
+        try {
+            for (Scheduler s : schedulerHandler.getSchedulers()){
+                if (s.getStandName().equals(stand)&&s.getBrand().equals(brand)){
+
+                }
+            }
+
+        } catch (Throwable e) {
+            e.printStackTrace();
+            return ResponseEntity.ok(BetterResponseModel.error("Error while updating schedulers", e));
+        }
+
+        return ResponseEntity.ok(BetterResponseModel.ok("Successfully updated schedulers", "success"));
+
+    }
+
 
     @PostMapping("/deleteScheduler")
     public ResponseEntity<BetterResponseModel<String>> deleteScheduler(@RequestParam String standName, @RequestParam String brandName) {

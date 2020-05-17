@@ -190,6 +190,8 @@ public class SchedulerHandler {
     }
 
 
+
+
     public JSONObject addOrderToScheduler(CommonOrder order) {
         JSONObject obj = new JSONObject();
         for (Scheduler s : schedulers) {
@@ -207,7 +209,7 @@ public class SchedulerHandler {
     }
 
 
-    @Scheduled(fixedDelay = 5000)
+    //@Scheduled(fixedDelay = 5000)
     public void pollEvents() {
         if (schedulers.size() == 0) return;
         for (Scheduler s : schedulers) {

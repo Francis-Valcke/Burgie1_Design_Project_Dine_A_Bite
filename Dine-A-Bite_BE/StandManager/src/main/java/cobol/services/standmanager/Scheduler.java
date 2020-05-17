@@ -56,6 +56,13 @@ public class Scheduler extends Thread {
         communicationHandler.registerToOrdersFromBrand(subscriberId, brandName);
 
     }
+    public void updateOrder(int orderId, CommonOrder.State state){
+        for (CommonOrder o : inc){
+            if (o.getId()==orderId){
+                o.setOrderState(state);
+            }
+        }
+    }
 
     /**
      * update menuItem
