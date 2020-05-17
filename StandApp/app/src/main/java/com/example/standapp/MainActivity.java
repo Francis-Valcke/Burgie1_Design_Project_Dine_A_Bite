@@ -204,11 +204,4 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    public MenuItem getItem() {
-        return navigationView.getCheckedItem();
-    }
-
-    public void setItem(int ID) {
-        navigationView.setCheckedItem(ID);
-    }
 }
