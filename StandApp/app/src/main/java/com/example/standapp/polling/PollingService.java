@@ -71,20 +71,21 @@ public class PollingService extends Service {
                         responseModel = mapper.readValue(response.toString(),
                                 new TypeReference<BetterResponseModel<List<Event>>>() {});
 
-                    }catch (JsonProcessingException e){
+                    } catch (JsonProcessingException e) {
                         Toast.makeText(context, "Error while parsing response for orders",
                                 Toast.LENGTH_LONG).show();
                     }
 
-                    if(responseModel!=null){
-                       if(responseModel.isOk()){
+                    if (responseModel!=null) {
+                       if (responseModel.isOk()) {
                            for (Event event : responseModel.getPayload()) {
-                                   Intent intent = new Intent("eventUpdate");
-                                   intent.putExtra("eventUpdate", event);
-                                   LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
+                               System.out.println("New event: " + event.toString());
+                               Intent intent = new Intent("eventUpdate");
+                               intent.putExtra("eventUpdate", event);
+                               LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
                            }
                        }
-                       else{
+                       else {
                            Toast.makeText(context, responseModel.getDetails(),
                                    Toast.LENGTH_LONG).show();
                        }

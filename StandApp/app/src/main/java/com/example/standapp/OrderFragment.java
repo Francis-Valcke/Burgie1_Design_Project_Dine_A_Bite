@@ -98,7 +98,6 @@ public class OrderFragment extends Fragment {
         if (bundle != null && Utils.isLoggedIn(mContext, bundle)) {
             standName = bundle.getString("standName");
             brandName = bundle.getString("brandName");
-            subscriberId = bundle.getString("subscriberId");
 
             Log.d("Order fragment", "Logged in stand: " + standName); // DEBUG
             //Toast.makeText(mContext, standName, Toast.LENGTH_SHORT).show(); // DEBUG
@@ -107,16 +106,21 @@ public class OrderFragment extends Fragment {
             if ((Objects.requireNonNull(bundle.getString("subscriberId")).isEmpty()
                     || !Objects.equals(bundle.getString("subscriberId"), subscriberId))
                     && listAdapter != null) {
-                listDataHeader.clear();
+                activeListDataHeader.clear();
+                activeListOrders.clear();
                 listHash.clear();
-                listOrders.clear();
                 listStatus.clear();
                 oldListDataHeader.clear();
                 oldListOrders.clear();
+                listAdapter.setListDataHeader(activeListDataHeader);
+                listAdapter.setListOrders(activeListOrders);
                 listAdapter.setBrandName(brandName);
                 listAdapter.setStandName(standName);
                 listAdapter.notifyDataSetChanged();
             }
+
+            // Needs to be after the if-statement
+            subscriberId = bundle.getString("subscriberId");
         }
 
         // Get already existing orders from server when opening fragment for first time
@@ -212,9 +216,14 @@ public class OrderFragment extends Fragment {
                 JsonNode orderJson = eventData.get("order");
                 try {
                     CommonOrder orderUpdate = mapper.treeToValue(orderJson, CommonOrder.class);
-                    activeListOrders.add(0, orderUpdate);
-
                     String orderName = "#" + orderUpdate.getId();
+
+                    // When the fetching of the orders from the server already contains the order
+                    // received from the event (edge case)
+                    if (activeListDataHeader.contains(orderName)
+                            || oldListDataHeader.contains(orderName)) return;
+
+                    activeListOrders.add(0, orderUpdate);
                     activeListDataHeader.add(0, orderName);
                     listStatus.put(orderName, CommonOrderStatusUpdate.State.PENDING);
                     List<String> orderItems = new ArrayList<>();

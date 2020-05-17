@@ -532,6 +532,9 @@ public class ProfileFragment extends Fragment {
 
                     // The given stand and brand names do not exist in the server database
                     if (bundle != null) bundle.putBoolean("newStand", true);
+                    MenuViewModel menuViewModel = new ViewModelProvider(requireActivity())
+                            .get(MenuViewModel.class);
+                    menuViewModel.setMenuList(items);
                 } else {
                     Toast.makeText(context, error.toString(), Toast.LENGTH_LONG).show();
                 }
