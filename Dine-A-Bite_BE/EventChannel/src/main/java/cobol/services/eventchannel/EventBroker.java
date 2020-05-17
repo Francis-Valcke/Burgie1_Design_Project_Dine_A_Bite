@@ -9,6 +9,9 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 
+/**
+ * Class responsible for sending events to the proper channels
+ */
 public class EventBroker implements Runnable {
     private final HashMap<String, HashSet<EventSubscriber>> subscriberMap = new HashMap<>();
     private final HashMap<Integer, EventSubscriber> subscriberId = new HashMap<>();
@@ -28,10 +31,10 @@ public class EventBroker implements Runnable {
     }
 
     /**
-     * @param subscriber The entity that wants to subscribe to a channel
-     * @param typeArray  An array of strings, defining the channels to subscribe to
-     *
      * This function adds a subscriber to the event channels it wants to listen to.
+     *
+     * @param subscriber: The entity that wants to subscribe to a channel
+     * @param typeArray:  An array of strings, defining the channels to subscribe to
      */
     public void subscribe(EventSubscriber subscriber, List<String> typeArray) {
         for (String type : typeArray) {
