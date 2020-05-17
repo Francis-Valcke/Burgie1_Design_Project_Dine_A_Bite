@@ -137,6 +137,11 @@ public class StandController {
 
     }
 
+    /**
+     * Returns the locations of all the stands in the database
+     *
+     * @return HashMap of String: Map <string, double>. eg: {Stand 1: {latitude: 360, longitude: 360}}
+     */
     @GetMapping(value = "/standLocations")
     public ResponseEntity<BetterResponseModel<Map<String, Map<String, Double>>>> requestStandLocations() {
 
@@ -153,6 +158,13 @@ public class StandController {
 
     }
 
+    /**
+     * This method returns the revenue that is stored in the database for a certain stand
+     *
+     * @param standName: Stand for which the revenue is needee
+     * @param brandName: brandname of the stand
+     * @return BigDecimal: value of the revenue, wrapped in a BetterResponseModel
+     */
     @GetMapping(value = "/revenue")
     @ResponseBody
     public ResponseEntity<BetterResponseModel<BigDecimal>> requestRevenue(@RequestParam String standName, @RequestParam String brandName) {
@@ -168,6 +180,13 @@ public class StandController {
         }
     }
 
+    /**
+     * This method is used to retrieve orders from a specific stand that were persisted in the database.
+     *
+     * @param standName: Stand for which the orders are needed
+     * @param brandName: brandname of the stand
+     * @return List of CommonOrders
+     */
     @GetMapping(value = "/getStandOrders", produces = "application/json")
     public ResponseEntity<BetterResponseModel<List<CommonOrder>>> getUserOrders(@RequestParam(name = "standName") String standName,
                                                            @RequestParam(name = "brandName") String brandName) {
