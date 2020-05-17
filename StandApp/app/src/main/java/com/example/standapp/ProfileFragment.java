@@ -210,9 +210,10 @@ public class ProfileFragment extends Fragment {
 
                     RevenueViewModel revenueViewModel = new ViewModelProvider(requireActivity()).get(RevenueViewModel.class);
                     revenueViewModel.setRevenue(new BigDecimal(0));
+                    revenueViewModel.resetPrices();
 
                     MenuViewModel menuViewModel = new ViewModelProvider(requireActivity()).get(MenuViewModel.class);
-                    menuViewModel.setMenuList(new ArrayList<CommonFood>());
+                    menuViewModel.resetMenuList();
 
                     // POST request to /verify
                     RequestQueue queue = Volley.newRequestQueue(Objects.requireNonNull(getContext()));
@@ -462,7 +463,7 @@ public class ProfileFragment extends Fragment {
         String url = ServerConfig.OM_ADDRESS + "/standMenu?brandName=" + brandName
                 + "&standName=" + standName;
         url = url.replace(' ', '+');
-        
+
         // Request menu from order manager on server
         JsonObjectRequest jsonRequest = new JsonObjectRequest(Request.Method.GET, url,
                 null, new Response.Listener<JSONObject>() {
