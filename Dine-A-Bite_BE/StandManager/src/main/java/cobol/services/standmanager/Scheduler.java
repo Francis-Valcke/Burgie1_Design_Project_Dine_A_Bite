@@ -9,6 +9,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.json.simple.JSONObject;
 
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
@@ -132,6 +135,20 @@ public class Scheduler extends Thread {
         else {
             return inc.get(inc.size() - 1).computeRemainingTime();
         }
+    }
+    public void updateQueue(){
+        ZonedDateTime actualTime =  ZonedDateTime.now(ZoneId.of("Europe/Brussels"));
+        List<CommonOrder> pickedUp = new ArrayList<>();
+        for (CommonOrder o : inc){
+            if (o.getOrderState().equals(CommonOrder.State.BEGUN)){
+
+
+            }
+            else if (o.getOrderState().equals(CommonOrder.State.PICKED_UP)){
+                pickedUp.add(o);
+            }
+        }
+        inc.removeAll(pickedUp);
     }
 
     /**
