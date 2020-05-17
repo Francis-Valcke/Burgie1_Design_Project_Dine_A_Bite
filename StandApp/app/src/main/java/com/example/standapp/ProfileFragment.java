@@ -500,8 +500,8 @@ public class ProfileFragment extends Fragment {
                             Toast.LENGTH_LONG).show();
                 }
 
-                if(responseModel!=null){
-                    if(responseModel.isOk()){
+                if (responseModel!=null) {
+                    if (responseModel.isOk()) {
                         List<CommonFood> parsedItems = responseModel.getPayload();
                         items.addAll(parsedItems);
 
@@ -515,9 +515,12 @@ public class ProfileFragment extends Fragment {
                             revenueViewModel.addPrice(item.getName(), item.getPrice());
                         }
                     }
-                    else{
+                    else {
                         Toast.makeText(context, responseModel.getDetails(),
                                 Toast.LENGTH_LONG).show();
+                        MenuViewModel menuViewModel = new ViewModelProvider(requireActivity())
+                                .get(MenuViewModel.class);
+                        menuViewModel.setMenuList(items);
                     }
                 }
 
@@ -531,10 +534,7 @@ public class ProfileFragment extends Fragment {
                             Toast.LENGTH_LONG).show();
 
                     // The given stand and brand names do not exist in the server database
-                    if (bundle != null) bundle.putBoolean("newStand", true);
-                    MenuViewModel menuViewModel = new ViewModelProvider(requireActivity())
-                            .get(MenuViewModel.class);
-                    menuViewModel.setMenuList(items);
+                    //if (bundle != null) bundle.putBoolean("newStand", true);
                 } else {
                     Toast.makeText(context, error.toString(), Toast.LENGTH_LONG).show();
                 }

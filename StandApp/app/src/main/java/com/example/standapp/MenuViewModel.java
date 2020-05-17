@@ -23,11 +23,12 @@ public class MenuViewModel extends ViewModel {
     }
 
     public ArrayList<CommonFood> getMenuList() {
-        return menuList.getValue() == null? new ArrayList<CommonFood>() : menuList.getValue();
+        return menuList.getValue();
     }
 
     public void setMenuList(ArrayList<CommonFood> menuList) {
         this.menuList.setValue(menuList);
+        if (this.menuList.getValue() == null) System.out.println("Something wrong");
     }
 
     public void resetMenuList() {
