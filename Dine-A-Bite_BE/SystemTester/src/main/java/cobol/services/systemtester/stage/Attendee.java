@@ -209,6 +209,7 @@ public class Attendee {
                         .asJson()
                         .getBody()
                         .getObject();
+                if (responseBody.get("payload")==null) emitter.onSuccess(responseBody);
                 JSONObject object = (JSONObject) responseBody.get("payload");
                 recommendations = object.getJSONArray("recommendations");
                 orderid = object.getJSONObject("order").getInt("id");

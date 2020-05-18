@@ -220,10 +220,12 @@ public class OrderProcessor {
                     orderRepository.updateState(localOrder.getId(), localOrder.getOrderState());
                 }
             }
-            if (e.getDataType().equals("Order")) {
+            if (e.getDataType().equals("UpdateOrder")) {
                 JSONObject eventData = e.getEventData();
-                int orderId = (int) eventData.get("orderId");
-                ZonedDateTime expected = (ZonedDateTime) eventData.get("expectedTime");
+                int orderId = (int) eventData.get("id");
+                ObjectMapper objectMapper = new ObjectMapper();
+                objectMapper.registerModule(new JavaTimeModule());
+                ZonedDateTime expected = objectMapper.readValue(eventData.get("expectedTime").toString(), ZonedDateTime.class);//  (ZonedDateTime) eventData.get("expectedTime");
                 Optional<Order> localOrderOptional = orderRepository.findFullOrderById(orderId);
                 localOrderOptional.get().setExpectedTime(expected);
 

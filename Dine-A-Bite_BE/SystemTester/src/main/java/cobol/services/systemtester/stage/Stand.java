@@ -16,6 +16,7 @@ import com.mashape.unirest.http.exceptions.UnirestException;
 import io.reactivex.Single;
 import io.reactivex.SingleOnSubscribe;
 import io.reactivex.schedulers.Schedulers;
+import lombok.SneakyThrows;
 import org.apache.logging.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -35,7 +36,8 @@ public class Stand extends Thread {
     private String standName;
     private String brandName;
     private List<CommonFood> menu = new ArrayList<>();
-    private final List<CommonOrder> orders = new ArrayList<>();
+    private List<CommonOrder> orders = new ArrayList<>();
+    private List<CommonOrder> readyOrders = new ArrayList<>();
     private int subscriberId;
     private Logger log;
     private double timeToNext;
@@ -303,6 +305,7 @@ public class Stand extends Thread {
         }).observeOn(Schedulers.io());
     }
 
+    @SneakyThrows
     public void run() {
         int time = 0;
         int pollTime=0;
@@ -316,11 +319,22 @@ public class Stand extends Thread {
             }
 
             if (timeToNext<=0) {
-                if (inprogress){
-                    readyFirstOrder();
-                    orders.remove(0);
+                if (orders.size()>0) {
+                    if (inprogress) {
+                        readyFirstOrder().subscribe(
+                                o -> log.info("Item " + orders.get(0).getId() + " ready to pick up at stand " + this.standName),
+                                throwable -> log.error(throwable.getMessage())
+                        );
+                        readyOrders.add(orders.get(0));
+                        orders.remove(0);
+                    }
+
+                    prepareFirstOrder().subscribe(
+                            o -> log.info("Start preparing item " + orders.get(0).getId() + " on stand " + this.standName),
+                            throwable -> log.error(throwable.getMessage())
+                    );
+
                 }
-                if (orders.size()>0)prepareFirstOrder();
                 else inprogress=false;
 
             }
@@ -338,11 +352,11 @@ public class Stand extends Thread {
         }
     }
 
-    public Single<JSONObject> prepareFirstOrder()  {
+    public Single<JSONObject> prepareFirstOrder() {
         inprogress=true;
         org.json.simple.JSONObject eventData = new org.json.simple.JSONObject();
         eventData.put("orderId",orders.get(0).getId());
-        eventData.put("mNewState", CommonOrderStatusUpdate.State.BEGUN);
+        eventData.put("newState", CommonOrderStatusUpdate.State.BEGUN);
         ArrayList<String> types = new ArrayList<>();
         types.add("s_" + standName + "_" + brandName);
         types.add("o_" + orders.get(0).getId());
@@ -350,14 +364,18 @@ public class Stand extends Thread {
         timeToNext=orders.get(0).computeRemainingTime();
 
 
+
         //Create single from request
         return Single.create((SingleOnSubscribe<JSONObject>) emitter -> {
 
             try {
+                ObjectMapper objectMapper = new ObjectMapper();
+                objectMapper.registerModule(new JavaTimeModule());
+                String jsonString = objectMapper.writeValueAsString(event);
                 JSONObject responseBody = Unirest.post(ServerConfig.ECURL + "/publishEvent")
                         .header("Content-Type", "application/json")
                         .header("Authorization", "Bearer " + token)
-                        .body(event)
+                        .body(jsonString)
                         .asJson()
                         .getBody()
                         .getObject();
@@ -375,7 +393,7 @@ public class Stand extends Thread {
 
         org.json.simple.JSONObject eventData = new org.json.simple.JSONObject();
         eventData.put("orderId",orders.get(0).getId());
-        eventData.put("mNewState", CommonOrderStatusUpdate.State.READY);
+        eventData.put("newState", CommonOrderStatusUpdate.State.READY);
         ArrayList<String> types = new ArrayList<>();
         types.add("s_" + standName + "_" + brandName);
         types.add("o_" + orders.get(0).getId());
@@ -387,10 +405,13 @@ public class Stand extends Thread {
         return Single.create((SingleOnSubscribe<JSONObject>) emitter -> {
 
             try {
+                ObjectMapper objectMapper = new ObjectMapper();
+                objectMapper.registerModule(new JavaTimeModule());
+                String jsonString = objectMapper.writeValueAsString(event);
                 JSONObject responseBody = Unirest.post(ServerConfig.ECURL + "/publishEvent")
                         .header("Content-Type", "application/json")
                         .header("Authorization", "Bearer " + token)
-                        .body(event)
+                        .body(jsonString)
                         .asJson()
                         .getBody()
                         .getObject();
@@ -460,5 +481,8 @@ public class Stand extends Thread {
 
     public List<CommonOrder> getOrders() {
         return orders;
+    }
+    public List<CommonOrder> getReadyOrders() {
+        return readyOrders;
     }
 }

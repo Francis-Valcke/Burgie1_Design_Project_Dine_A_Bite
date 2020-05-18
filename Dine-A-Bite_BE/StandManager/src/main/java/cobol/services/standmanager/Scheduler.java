@@ -128,12 +128,17 @@ public class Scheduler {
         ObjectMapper mapper = new ObjectMapper();
         // Create event for eventchannel
         JSONObject orderJson = new JSONObject();
-        JSONParser parser = new JSONParser();
-        orderJson = (JSONObject) parser.parse(order.toString());
+        orderJson.put("startTime", order.getStartTime());
+        orderJson.put("expectedTime", order.getExpectedTime());
+        orderJson.put("brandName", order.getBrandName());
+        orderJson.put("standName", order.getStandName());
+        orderJson.put("orderState", order.getOrderState());
+        orderJson.put("id",order.getId());
+
         ArrayList<String> types = new ArrayList<>();
         types.add("s_" + standName + "_" + brandName);
         types.add("o_" + order.getId());
-        Event e = new Event(orderJson, types, "Order");
+        Event e = new Event(orderJson, types, "UpdateOrder");
 
         // Send Request
         ObjectMapper objectMapper = new ObjectMapper();

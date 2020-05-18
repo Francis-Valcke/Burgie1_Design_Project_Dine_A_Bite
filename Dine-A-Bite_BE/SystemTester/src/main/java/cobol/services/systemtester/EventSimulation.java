@@ -79,7 +79,7 @@ public class EventSimulation {
     }
 
     /**
-     * check if all orders made by attendees were received by stands
+     * check if all orders made by attendees were received and processed by stands
      */
     public void checkOrderIds() {
         ArrayList<Integer> orders = new ArrayList<>();
@@ -90,7 +90,7 @@ public class EventSimulation {
         }
         ArrayList<Integer> ordersDone = new ArrayList<>();
         for (Stand st : stands) {
-            for (CommonOrder o : st.getOrders()) {
+            for (CommonOrder o : st.getReadyOrders()) {
                 if (orders.contains(o.getId())) {
                     ordersDone.add(o.getId());
                 }
