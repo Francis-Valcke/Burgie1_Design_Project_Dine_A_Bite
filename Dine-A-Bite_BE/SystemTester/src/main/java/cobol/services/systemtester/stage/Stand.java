@@ -42,6 +42,7 @@ public class Stand extends Thread {
     private Logger log;
     private double timeToNext;
     private boolean inprogress;
+    private boolean ready;
 
 
     public Stand(double latitude, double longitude) {
@@ -49,6 +50,7 @@ public class Stand extends Thread {
         idCounter++;
         timeToNext=0;
         inprogress=false;
+        ready=false;
         this.longitude = longitude;
         this.latitude = latitude;
     }
@@ -59,6 +61,7 @@ public class Stand extends Thread {
         idCounter++;
         timeToNext=0;
         inprogress=false;
+        ready=false;
     }
 
     public Stand(String standName, String brandName, double latitude, double longitude, List<CommonFood> menu) {
@@ -71,6 +74,7 @@ public class Stand extends Thread {
         this.latitude = latitude;
         this.longitude = longitude;
         this.menu = menu;
+        ready=false;
     }
 
     public Stand(String standName, String brandName, double latitude, double longitude) {
@@ -78,10 +82,12 @@ public class Stand extends Thread {
         idCounter++;
         timeToNext=0;
         inprogress=false;
+        ready=false;
         this.standName = standName;
         this.brandName = brandName;
         this.latitude = latitude;
         this.longitude = longitude;
+
     }
 
 
@@ -262,7 +268,10 @@ public class Stand extends Thread {
                                 v -> subscribe().subscribe(
                                         sub -> subscribeToChannel().subscribe(
                                                 subto -> addstand().subscribe(
-                                                        add -> log.info("Stand " + this.getStandName() + " added and authenticated with token: " + auth.getJSONObject("details").getString("token")),
+                                                        add -> {
+                                                            log.info("Stand " + this.getStandName() + " added and authenticated with token: " + auth.getJSONObject("details").getString("token"));
+                                                            ready=true;
+                                                        },
                                                         throwable -> log.error(throwable.getMessage())
                                                 ),
                                                 throwable -> log.error(throwable.getMessage())
@@ -289,13 +298,17 @@ public class Stand extends Thread {
                         .getObject();
                 JSONArray events = (JSONArray) responseBody.get("payload");
                 for (int i = 0; i < events.length(); i++) {
-                     ObjectMapper om = new ObjectMapper();
-                     om.registerModule(new JavaTimeModule());
-                     JSONObject eventJSON = (JSONObject) events.get(i);
-                     JSONObject eventData = (JSONObject) eventJSON.get("eventData");
-                     JSONObject orderJSON = (JSONObject) eventData.get("order");
-                     CommonOrder order = om.readValue(orderJSON.toString(), CommonOrder.class);
-                     orders.add(order);
+                    ObjectMapper objectMapper = new ObjectMapper();
+                    objectMapper.registerModule(new JavaTimeModule());
+                    JSONObject eventJSON = (JSONObject) events.get(i);
+                    Event e = objectMapper.readValue(eventJSON.toString(),Event.class);
+                    if (e.getDataType().equals("Order")){
+                        JSONObject eventData = (JSONObject) eventJSON.get("eventData");
+                        JSONObject orderJSON = (JSONObject) eventData.get("order");
+                        CommonOrder order = objectMapper.readValue(orderJSON.toString(), CommonOrder.class);
+                        orders.add(order);
+                    }
+
                 }
                 emitter.onSuccess(responseBody);
 
@@ -309,7 +322,7 @@ public class Stand extends Thread {
     public void run() {
         int time = 0;
         int pollTime=0;
-        while (time < ServerConfig.totaltestseconds*2) {
+        while (time < ServerConfig.totaltestseconds*2||!orders.isEmpty()) {
             time++;
             pollTime++;
             try {
@@ -319,31 +332,43 @@ public class Stand extends Thread {
             }
 
             if (timeToNext<=0) {
-                if (orders.size()>0) {
+                if (!orders.isEmpty()) {
                     if (inprogress) {
                         readyFirstOrder().subscribe(
-                                o -> log.info("Item " + orders.get(0).getId() + " ready to pick up at stand " + this.standName),
+                                o -> {
+                                    log.info("Order " + orders.get(0).getId() + " ready to pick up at stand " + this.standName);
+                                    readyOrders.add(orders.get(0));
+                                    orders.remove(0);
+                                    inprogress=false;
+                                    if (!orders.isEmpty()){
+                                        prepareFirstOrder().subscribe(
+                                                o2 -> {
+                                                    log.info("Start preparing order " + orders.get(0).getId() + " on stand " + this.standName);
+                                                    inprogress=true;
+                                                },
+                                                throwable -> log.error(throwable.getMessage())
+                                        );
+                                    }
+                                },
                                 throwable -> log.error(throwable.getMessage())
                         );
-                        readyOrders.add(orders.get(0));
-                        orders.remove(0);
+
                     }
-
-                    prepareFirstOrder().subscribe(
-                            o -> log.info("Start preparing item " + orders.get(0).getId() + " on stand " + this.standName),
-                            throwable -> log.error(throwable.getMessage())
-                    );
-
+                    else{
+                        prepareFirstOrder().subscribe(
+                                o -> {
+                                    log.info("Start preparing order " + orders.get(0).getId() + " on stand " + this.standName);
+                                    inprogress=true;
+                                },
+                                throwable -> log.error(throwable.getMessage())
+                        );
+                    }
                 }
-                else inprogress=false;
 
             }
             timeToNext-=60;
             if (pollTime==10) {
-                pollEvents().subscribe(
-                        o -> log.info("Orders polled"),
-                        throwable -> log.error(throwable.getMessage())
-                );
+                pollEvents().subscribe();
                 pollTime=0;
             }
 
@@ -353,7 +378,6 @@ public class Stand extends Thread {
     }
 
     public Single<JSONObject> prepareFirstOrder() {
-        inprogress=true;
         org.json.simple.JSONObject eventData = new org.json.simple.JSONObject();
         eventData.put("orderId",orders.get(0).getId());
         eventData.put("newState", CommonOrderStatusUpdate.State.BEGUN);
@@ -447,6 +471,13 @@ public class Stand extends Thread {
         }).observeOn(Schedulers.io());
     }
 
+    public void reset(){
+        orders.clear();
+        readyOrders.clear();
+        timeToNext=0;
+        inprogress=false;
+    }
+
     public void addMenuItem(CommonFood mi) {
         menu.add(mi);
     }
@@ -484,5 +515,8 @@ public class Stand extends Thread {
     }
     public List<CommonOrder> getReadyOrders() {
         return readyOrders;
+    }
+    public boolean getReady(){
+        return ready;
     }
 }

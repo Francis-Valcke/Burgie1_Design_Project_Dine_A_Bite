@@ -34,7 +34,6 @@ import java.util.stream.Collectors;
  * -Request menu
  * -Place order
  */
-@Log4j2
 @Data
 public class Attendee {
 
@@ -45,14 +44,18 @@ public class Attendee {
     private final double latitude;
     private final double longitude;
     private double orderTime;
+    private double initialOrderTime;
     private double orderReadyTime;
     private double walkingStartTime;
     private JSONArray recommendations;
     private int orderid;
     private Logger log;
+    private JSONObject order;
+    private boolean walking;
 
 
     public Attendee(double latitude, double longitude) {
+        walking=false;
         this.id = idCounter;
         idCounter++;
         this.longitude = longitude;
@@ -164,9 +167,7 @@ public class Attendee {
         }).observeOn(Schedulers.io());
 
     }
-
-
-    public Single<JSONObject> placeRandomOrder(JSONObject response, int itemCount) {
+    public void chooseOrder(JSONObject response, int itemCount){
         //Prepare order
         Random random = new Random();
         JSONObject order = new JSONObject();
@@ -188,18 +189,19 @@ public class Attendee {
             orderItem.put("amount", itemCount);
             orderItems.put(orderItem);
         }
-
         //Complete the order
         order.put("latitude", this.latitude);
         order.put("longitude", this.longitude);
         order.put("orderStatus", "SEND");
         order.put("brandName", brandName);
         order.put("orderItems", orderItems);
-        order.put("recType", CommonOrder.RecommendType.DISTANCE_AND_TIME);
 
+        this.order=order;
+    }
 
+    public Single<JSONObject> placeOrder(CommonOrder.RecommendType recType) {
+        order.put("recType", recType);
         return Single.create((SingleOnSubscribe<JSONObject>) emitter -> {
-
             try {
                 //Send order
                 JSONObject responseBody =  Unirest.post(ServerConfig.OMURL + "/placeOrder")
@@ -218,24 +220,46 @@ public class Attendee {
             } catch (JSONException e) {
                 emitter.onError(e);
             }
-
         }).observeOn(Schedulers.io());
-
     }
 
-    public String getNearestStand() {
-        //look for closest recommendation
-        double distance = (double) ((JSONObject) recommendations.get(0)).get("distance");
-        int index = 0;
-        for (int i = 1; i < recommendations.length(); i++) {
-            if ((double) ((JSONObject) recommendations.get(i)).get("distance") < distance) {
-                index = i;
-                distance = (double) ((JSONObject) recommendations.get(i)).get("distance");
+    /**
+     * this method is just to finf the nearest stand, no followup is made on the actual order
+     * @return
+     */
+    public Single<JSONObject> orderForNearestStand() {
+        order.put("recType", CommonOrder.RecommendType.DISTANCE);
+        return Single.create((SingleOnSubscribe<JSONObject>) emitter -> {
+            try {
+                //Send order
+                JSONObject responseBody =  Unirest.post(ServerConfig.OMURL + "/placeOrder")
+                        .header("Content-Type", "application/json")
+                        .header("Authorization", "Bearer " + token)
+                        .body(order)
+                        .asJson()
+                        .getBody()
+                        .getObject();
+                if (responseBody.get("payload")==null) emitter.onSuccess(responseBody);
+                JSONObject object = (JSONObject) responseBody.get("payload");
+                walking=true;
+                recommendations = object.getJSONArray("recommendations");
+                emitter.onSuccess(responseBody);
 
+            } catch (JSONException e) {
+                emitter.onError(e);
             }
+        }).observeOn(Schedulers.io());
+    }
+
+    public String getRecommendedStand() {
+        //look for closest recommendation
+        int index = 0;
+        for (int i=0;i<recommendations.length();i++){
+            if ((Integer)((JSONObject)recommendations.get(0)).get("rank")==1) index=i;
         }
+        double distance = (double) ((JSONObject) recommendations.get(0)).get("distance");
+        orderReadyTime = ((double) ((Integer) ((JSONObject) recommendations.get(0)).get("timeEstimate"))) / 60;
         //calculate time to start walking to order (time in minutes after ordering)
-        orderReadyTime = ((double) ((Integer) ((JSONObject) recommendations.get(index)).get("timeEstimate"))) / 60;
         double orderDistance = (double) ((JSONObject) recommendations.get(index)).get("distance");
         walkingStartTime = orderReadyTime - orderDistance / walkingSpeed;
         if (walkingStartTime < 0) walkingStartTime = 0;
@@ -245,8 +269,8 @@ public class Attendee {
         return stand.concat("&brandName=").concat(brand);
     }
 
-    public Single<JSONObject> confirmNearestStand() {
-        String url = ServerConfig.OMURL + "/confirmStand?standName=" + getNearestStand() + "&orderId=" + orderid;
+    public Single<JSONObject> confirmStand() {
+        String url = ServerConfig.OMURL + "/confirmStand?standName=" + getRecommendedStand() + "&orderId=" + orderid;
         String finalUrl = url.replace(' ', '+');
         return Single.create((SingleOnSubscribe<JSONObject>) emitter -> {
             try {
@@ -268,6 +292,7 @@ public class Attendee {
         }).observeOn(Schedulers.io());
     }
 
+
     public void setup(Logger log) {
         this.log = log;
         this.orderid = 0;
@@ -281,22 +306,49 @@ public class Attendee {
 
 
     }
+    public void reset(){
+        walking=false;
+    }
 
     public void setOrdertime(double time) {
         if (time < 1) time = 1;
         else if (time > 119) time = 119;
         this.orderTime = time;
+        this.initialOrderTime=time;
+    }
+    public void setNewOrdertime(double time) {
+        this.orderTime = time;
     }
 
+    /**
+     * Returns queue time if attendee ordered at stand
+     * @return
+     */
+    public double getQueueTime(){
+        return orderReadyTime - orderTime;
+    }
     public double getOrderReadyTime(){
         return orderReadyTime;
+    }
+    public double getBetweenOrderTime(){
+        return orderTime-initialOrderTime;
+    }
+    public double getTotalTime(){
+        return orderReadyTime-initialOrderTime;
     }
 
     public double getWalkingTime() {
         return orderReadyTime - walkingStartTime;
     }
 
+    /**
+     * time before attendee walks to stand, only applicable if he orders before going to stand
+     * @return
+     */
     public double getWaitingTime() {
+        return walkingStartTime-orderTime;
+    }
+    public double getWalkingStartTime(){
         return walkingStartTime;
     }
 
@@ -310,5 +362,8 @@ public class Attendee {
 
     public int getId() {
         return this.id;
+    }
+    public boolean getWalking(){
+        return walking;
     }
 }

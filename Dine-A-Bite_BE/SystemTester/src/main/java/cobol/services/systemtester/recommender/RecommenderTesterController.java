@@ -43,11 +43,24 @@ public class RecommenderTesterController {
     public void run() throws IOException, InterruptedException {
         es = new EventSimulation();
         es.setup(ServerConfig.attendeeCount);
+        es.setSystemOn(true);
         es.start();
         es.checkOrderIds();
-        es.getTotalWaitingTime();
-        es.getTotalWalkingTime();
+        double waitingTime= es.getTotalWaitingTime();
+        double walkingTime=es.getTotalWalkingTime();
+        double totalTime=es.getTotalOrderTime();
+        es.resetOrders();
+        es.setSystemOn(false);
+        es.start();
+        es.checkOrderIds();
+        System.out.println("without system times:");
+        es.getTotalBetweenOrderTime();
+        es.getTotalQueueTime();
         es.getTotalOrderTime();
+        System.out.println("with system times:");
+        System.out.println("waiting time: "+waitingTime);
+        System.out.println("walking time: "+walkingTime);
+        System.out.println("total time: "+totalTime);
         es.end();
     }
 

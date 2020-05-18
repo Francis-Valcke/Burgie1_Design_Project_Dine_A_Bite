@@ -61,6 +61,30 @@ public class EventSimulation {
         for (Stand s : stands) {
             s.setup(log);
         }
+        for (Stand s : stands) {
+            boolean inProcess=true;
+            while(inProcess){
+                inProcess=!s.getReady();
+            }
+        }
+        for (Stage s : stages) {
+            s.chooseOrders();
+        }
+    }
+    public void resetOrders(){
+        for (Stage s : stages) {
+            for (Attendee a : s.getAttendees()) {
+                a.reset();
+            }
+        }
+        for (Stand s : stands) {
+            s.reset();
+        }
+    }
+    public void setSystemOn(boolean systemOn){
+        for (Stage s : stages) {
+            s.setSystemOn(systemOn);
+        }
     }
 
     public void start() throws InterruptedException {
@@ -110,6 +134,26 @@ public class EventSimulation {
         log.info("Total time walked to stands: " + walkingTime);
         return walkingTime;
     }
+    public double getTotalQueueTime(){
+        double queueTime = 0;
+        for (Stage s : stages) {
+            for (Attendee a : s.getAttendees()) {
+                queueTime += a.getQueueTime();
+            }
+        }
+        log.info("Total time waited in front of stand: " + queueTime);
+        return queueTime;
+    }
+    public double getTotalBetweenOrderTime(){
+        double betweenOrderTime = 0;
+        for (Stage s : stages) {
+            for (Attendee a : s.getAttendees()) {
+                betweenOrderTime += a.getBetweenOrderTime();
+            }
+        }
+        log.info("Total time walked to stand: " + betweenOrderTime);
+        return betweenOrderTime;
+    }
 
     public double getTotalWaitingTime() {
         double waitingTime = 0;
@@ -125,7 +169,7 @@ public class EventSimulation {
         double orderTime = 0;
         for (Stage s : stages) {
             for (Attendee a : s.getAttendees()) {
-                orderTime += a.getOrderReadyTime();
+                orderTime += a.getTotalTime();
             }
         }
         log.info("Total time between and getting order: " + orderTime);
