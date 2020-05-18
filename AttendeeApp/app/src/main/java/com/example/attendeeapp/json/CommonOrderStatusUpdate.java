@@ -16,7 +16,8 @@ public class CommonOrderStatusUpdate implements Serializable {
         DECLINED,
         CONFIRMED, // START
         READY, // DONE
-        PICKED_UP
+        PICKED_UP,
+        BEGUN
     }
 
     public CommonOrderStatusUpdate() {}
