@@ -140,7 +140,7 @@ public class PollingService extends Service {
 
                                 Intent intent = new Intent("orderUpdate");
                                 switch (eventClass) {
-                                    case "Order":
+                                    case "UpdateOrder":
                                         try{
                                             JsonNode orderJson = eventData.get(eventClass.toLowerCase());
                                             CommonOrder order = mapper.readValue(orderJson.toString(), CommonOrder.class);

@@ -71,11 +71,12 @@ public class OrderActivity extends ToolbarActivity {
             CommonOrderStatusUpdate orderStatusUpdate = (CommonOrderStatusUpdate) intent.getSerializableExtra("orderStatusUpdate");
             if (orderUpdate != null) {
                 // Update all order fields
-                //adapter.notifyDataSetChanged();
+                adapter.updateOrder(orderUpdate);
+                adapter.notifyDataSetChanged();
             }
             if (orderStatusUpdate != null) {
                 // Update order status fields
-                adapter.updateOrder(orderStatusUpdate.getOrderId(), orderStatusUpdate.getNewState());
+                adapter.updateOrderState(orderStatusUpdate.getOrderId(), orderStatusUpdate.getNewState());
                 adapter.notifyDataSetChanged();
             }
         }

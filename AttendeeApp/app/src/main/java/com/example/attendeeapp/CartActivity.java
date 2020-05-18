@@ -106,6 +106,7 @@ public class CartActivity extends ToolbarActivity implements AdapterView.OnItemS
                         intent.putExtra("totalPrice", totalPrice);
                         intent.putExtra("cartCount", cartAdapter.getCartCount());
                         intent.putExtra("recType", recommendType);
+                        intent.putExtra("location", lastLocation);
                         startActivity(intent);
                     }
 
@@ -125,13 +126,6 @@ public class CartActivity extends ToolbarActivity implements AdapterView.OnItemS
                 }
         });
 
-    }
-
-    @Override
-    public void onStart() {
-        super.onStart();
-        // Get most recent location
-        checkLocationPermission();
     }
 
     @Override
@@ -156,6 +150,7 @@ public class CartActivity extends ToolbarActivity implements AdapterView.OnItemS
                 intent.putExtra("totalPrice", totalPrice);
                 intent.putExtra("cartCount", cartAdapter.getCartCount());
                 intent.putExtra("recType", recommendType);
+                intent.putExtra("location", lastLocation);
                 startActivity(intent);
 
             }
