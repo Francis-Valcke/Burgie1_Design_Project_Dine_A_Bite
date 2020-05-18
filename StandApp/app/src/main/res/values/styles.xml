@@ -29,7 +29,7 @@
         <item name="android:windowBackground">@android:color/white</item>
         <item name="actionMenuTextColor">@color/colorAccent</item>
 
-        <!-- Set this to true if you want Full Screen without status bar -->
+        <!-- Set this to true if you want Full Screen without State bar -->
         <item name="android:windowFullscreen">false</item>
     </style>
 

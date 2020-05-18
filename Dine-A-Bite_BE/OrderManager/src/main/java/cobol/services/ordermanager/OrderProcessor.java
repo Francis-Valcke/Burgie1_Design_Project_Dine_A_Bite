@@ -85,15 +85,9 @@ public class OrderProcessor {
      * @return Order: persisted Order object
      */
     public Order addNewOrder(Order newOrder) {
-        // update order and save to database
-        newOrder.setRemtime(0);
-
         newOrder.setState(CommonOrder.State.PENDING);
-        //orderRepository.saveAndFlush(newOrder);
 
         newOrder=orderRepository.save(newOrder);
-
-        Optional<Order> testOrder = this.getOrder(newOrder.getId());
 
         // subscribe to the channel of the order
         communicationHandler.registerOnOrder(subscriberId, newOrder.getId());
@@ -101,12 +95,12 @@ public class OrderProcessor {
         return newOrder;
     }
 
-    public Order confirmStand(int orderId, String standName, String brandName) throws DoesNotExistException, JsonProcessingException {
+    public Order confirmStand(int orderId, String standName, String brandName) throws Throwable {
         Optional<Order> orderOptional = this.getOrder(orderId);
         Stand stand = standRepository.findStandById(standName, brandName).orElseThrow(() -> new DoesNotExistException("Stand does not exist"));
 
         if (!orderOptional.isPresent()) {
-            throw new DoesNotExistException("Order is does not exist, please make an order first before confirming a stand");
+            throw new DoesNotExistException("Order does not exist, please make an order first before confirming a stand");
         }
 
         if (stand == null) {
@@ -122,15 +116,17 @@ public class OrderProcessor {
                     .filter(r -> r.getStandName().equals(standName))
                     .findFirst();
 
-            recomOptional.ifPresent(recommendation -> updatedOrder.setRemtime(recommendation.getTimeEstimate()));
-            orderRepository.save(updatedOrder);
-
             //send the updated order to stand to place it in the queue
             CommonOrder mappedOrder = updatedOrder.asCommonOrder();
             ObjectMapper mapper = new ObjectMapper();
             mapper.registerModule(new JavaTimeModule());
             String jsonString = mapper.writeValueAsString(mappedOrder);
-            communicationHandler.sendRestCallToStandManager("/placeOrder", jsonString, null);
+            int currentWaitingTime = Integer.parseInt(communicationHandler.sendRestCallToStandManager("/placeOrder", jsonString, null));
+            ZonedDateTime actualTime =  ZonedDateTime.now(ZoneId.of("Europe/Brussels"));
+            updatedOrder.setStartTime(actualTime);
+            updatedOrder.setExpectedTime(actualTime.plusSeconds(currentWaitingTime));
+            updatedOrder.setState(CommonOrder.State.CONFIRMED);
+            orderRepository.save(updatedOrder);
         }
 
 
@@ -158,7 +154,9 @@ public class OrderProcessor {
         int updatedAverage = (int) (((1-this.learningRate) * largestPreptime) + (learningRate * actualPrepTime));
         if(foodToUpdate!=null){
             foodToUpdate.setPreparationTime(updatedAverage);
+            foodRepository.updatePreparationTime(foodToUpdate.getFoodId().getName(), order.getStand().getName(), brandName, updatedAverage);
         }
+
     }
 
     public void addRecommendations(int id, List<Recommendation> recommendations) {
@@ -184,34 +182,57 @@ public class OrderProcessor {
      * Process events that were received.
      */
     @Scheduled(fixedDelay = 500)
-    public void processEvents() {
+    public void processEvents() throws Throwable {
         while (!eventQueue.isEmpty()) {
             Event e = eventQueue.poll();
             assert e != null;
             if (e.getDataType().equals("OrderStatusUpdate")) {
                 JSONObject eventData = e.getEventData();
-                String newStatusString = (String) eventData.get("newStatus");
+                String newStatusString = (String) eventData.get("newState");
                 CommonOrder.State newStatus = CommonOrder.State.valueOf(newStatusString);
                 int orderId = (int) eventData.get("orderId");
-                Order localOrder = orderRepository.findById(orderId).orElse(null);
-                if(localOrder!=null){
+                Optional<Order> localOrderOptional = orderRepository.findFullOrderById(orderId);
+                if(localOrderOptional.isPresent()){
 
                     // update to new state
+                    Order localOrder= localOrderOptional.get();
                     localOrder.setState(newStatus);
                     if (newStatus.equals(CommonOrder.State.DECLINED) || newStatus.equals(CommonOrder.State.READY)) {
                         if (newStatus.equals(CommonOrder.State.READY)) {
                             updatePreparationEstimate(localOrder);
                         }
 
-                        orderRepository.delete(localOrder);
 
                         // deregister from order
                         communicationHandler.deregisterFromOrder(subscriberId, orderId);
+                    }
+                    if (newStatus.equals(CommonOrder.State.DECLINED) || newStatus.equals(CommonOrder.State.BEGUN)|| newStatus.equals(CommonOrder.State.READY)){
+                        Map<String, String> params = new HashMap<>();
+                        params.put("standName", localOrder.getStand().getName());
+                        params.put("brandName", localOrder.getStand().getBrandName());
+                        params.put("orderId", String.valueOf(localOrder.getId()));
+                        params.put("newState", newStatus.name());
+                        communicationHandler.sendRestCallToStandManager("/updateScheduler", null, params);
+
 
                     }
+
+                    orderRepository.updateState(localOrder.getId(), localOrder.getOrderState());
                 }
             }
+            if (e.getDataType().equals("Order")) {
+                JSONObject eventData = e.getEventData();
+                CommonOrder order = (CommonOrder)eventData.get("order");
+                int orderId = order.getId();
+                ZonedDateTime expected = order.getExpectedTime();
+                Optional<Order> localOrderOptional = orderRepository.findFullOrderById(orderId);
+                localOrderOptional.get().setExpectedTime(expected);
+
+
+            }
         }
+
     }
+
 }
 

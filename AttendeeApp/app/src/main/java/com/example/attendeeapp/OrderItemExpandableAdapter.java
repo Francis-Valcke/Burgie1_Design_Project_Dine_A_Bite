@@ -12,6 +12,7 @@ import android.widget.BaseExpandableListAdapter;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.attendeeapp.appDatabase.OrderDatabaseService;
 import com.example.attendeeapp.json.CommonOrder;
@@ -236,13 +237,13 @@ public class OrderItemExpandableAdapter extends BaseExpandableListAdapter {
      * Updates the order status for a given order id
      * If the state is confirmed, initialize the expected order time to start the counting
      * @param orderId : the order id for which the status update holds
-     * @param status : the new order status
+     * @param State : the new order status
      */
-    public void updateOrder(int orderId, CommonOrderStatusUpdate.status status) {
+    public void updateOrder(int orderId, CommonOrderStatusUpdate.State State) {
             for (CommonOrder order : orders) {
                 if (order.getId() == orderId) {
                     CommonOrder.State oldState = order.getOrderState();
-                    CommonOrder.State newState = CommonOrder.State.values()[status.ordinal()];
+                    CommonOrder.State newState = CommonOrder.State.values()[State.ordinal()];
                     if (oldState != newState) {
                         order.setOrderState(newState);
                         order.setUpdateSeen(false);
@@ -257,7 +258,13 @@ public class OrderItemExpandableAdapter extends BaseExpandableListAdapter {
                             order.setExpectedTime(expectedTime);
                         }
 
-                        orderDatabaseService.updateOrder(order);
+                        try{
+                            orderDatabaseService.updateOrder(order);
+                        }
+                        catch(Exception e){
+                            e.printStackTrace();
+                            Toast.makeText(context, "Error while updating an order in local db", Toast.LENGTH_LONG).show();
+                        }
                     }
 
                 }

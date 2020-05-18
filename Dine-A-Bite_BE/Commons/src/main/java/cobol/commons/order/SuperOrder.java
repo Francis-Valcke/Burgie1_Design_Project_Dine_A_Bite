@@ -13,6 +13,7 @@ public class SuperOrder {
     // Coordinates attendee on moment that order was made
     private double latitude;
     private double longitude;
+    private CommonOrder.RecommendType recType;
 
     public SuperOrder(){
 
@@ -48,5 +49,13 @@ public class SuperOrder {
 
     public void setOrderItems(List<CommonOrderItem> orderItems) {
         this.orderItems = orderItems;
+    }
+
+    public CommonOrder.RecommendType getRecType() {
+        return recType;
+    }
+
+    public void setRecType(CommonOrder.RecommendType recType) {
+        this.recType = recType;
     }
 }

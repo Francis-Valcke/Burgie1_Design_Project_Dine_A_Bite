@@ -26,11 +26,14 @@
     <string name="stand_recommend">Choose your stand</string>
     <string name="stand_recommendation">Your recommended stand: </string>
     <string name="stand_spinner_recommend">Pick your favorite recommendation: </string>
+    <string name="brand_recommend">Brand:</string>
     <string name="confirm_stand">Confirm your stand</string>
     <string name="specific_stand_chosen">Your own chosen stand: </string>
     <string name="no_recommendation">No recommendation available.</string>
     <string name="recommend_time">You will have to wait: </string>
     <string name="recommend_distance">You will have to walk: </string>
+    <string name="confirm_stand_order">Items you are confirming</string>
+    <string name="confirm_item_text">Not available yet.</string>
     <string name="event_map">Stand locations: </string>
     <string name="chosen_brand">(By: </string>
     <string name="chosen_stand">Your pickup point: </string>
@@ -64,4 +67,12 @@
     <string name="button_select_payment_method">Payment Method</string>
     <string name="euro_sign">€</string>
     <string name="string_amount">Amount</string>
+    <string name="recommend_type">Choose recommendation type:</string>
+
+    <string-array name="recommender_types_list">
+        <item>Distance</item>
+        <item>Time</item>
+        <item>Time and distance</item>
+    </string-array>
+    <string name="running_order_switch">Only Running Orders</string>
 </resources>

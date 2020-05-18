@@ -8,17 +8,22 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.json.simple.JSONObject;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.web.client.RestTemplate;
 
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 
 /**
  * schedulers all have:
  * TODO: change "inc" to proper schedule
  */
-public class Scheduler extends Thread {
+public class Scheduler {
 
 
     private CommunicationHandler communicationHandler;
@@ -58,6 +63,92 @@ public class Scheduler extends Thread {
     }
 
     /**
+     * Updates order in queue with new state
+     * @param orderId
+     * @param state
+     * @throws JsonProcessingException
+     */
+    public void updateOrder(int orderId, CommonOrder.State state) throws JsonProcessingException {
+        CommonOrder order=null;
+
+        //look for order
+        for (CommonOrder or : inc){
+            if (or.getId()==orderId) order=or;
+        }
+        if (order==null) {
+            //should not be possible
+            System.out.println("Order not in scheduler");
+            return;
+        }
+        boolean alreadyBegun=false; //if somehow standapp starts order twice, it wont restart timer
+        if (order.getOrderState().equals(CommonOrder.State.BEGUN)){alreadyBegun=true;}
+        order.setOrderState(state);
+        //if order is ready or canceled, the order has to be removed. Queue isnt updated until another order starts preparing
+        if (order.getOrderState().equals(CommonOrder.State.READY)||order.getOrderState().equals(CommonOrder.State.DECLINED) ){
+            inc.remove(order);
+            return;
+        }
+        //if order is under preparation, all other orders are affected
+        if (order.getOrderState().equals(CommonOrder.State.BEGUN)&&(!alreadyBegun)) {
+            SchedulerComparatorTime st = new SchedulerComparatorTime(new ArrayList<>(order.getOrderItems()));
+            ZonedDateTime actualTime = ZonedDateTime.now(ZoneId.of("Europe/Brussels"));
+            int queueTime = st.getLongestFoodPrepTime(this);
+            order.setExpectedTime(actualTime.plusSeconds(queueTime));
+            sendOrderStatusUpdate(order);
+            updateQueue(queueTime);
+        }
+    }
+    /**
+     * updates expected times for orders depending on their positions in queue
+     * @param queueTime time after orders under preparation are estimated to be ready
+     */
+    public void updateQueue(int queueTime) throws JsonProcessingException {
+        ZonedDateTime actualTime = ZonedDateTime.now(ZoneId.of("Europe/Brussels"));
+        for (CommonOrder o : inc){
+            if (o.getOrderState().equals(CommonOrder.State.BEGUN)) continue;
+            SchedulerComparatorTime st2 = new SchedulerComparatorTime(new ArrayList<>(o.getOrderItems()));
+            // queueTime of an order is sum of all previous queuetimes
+            queueTime+=st2.getLongestFoodPrepTime(this);
+            o.setExpectedTime(actualTime.plusSeconds(queueTime));
+            sendOrderStatusUpdate(o);
+
+        }
+
+    }
+
+    /**
+     * send new expected times to EventChannel for attendee app and OrderManager to fetch
+     * @param order CommonOrder
+     * @return response
+     * @throws JsonProcessingException
+     */
+    public String sendOrderStatusUpdate(CommonOrder order) throws JsonProcessingException {
+        ObjectMapper mapper = new ObjectMapper();
+        // Create event for eventchannel
+        JSONObject orderJson = new JSONObject();
+        orderJson.put("order", order);
+        ArrayList<String> types = new ArrayList<>();
+        types.add("s_" + standName + "_" + brandName);
+        types.add("o_" + order.getId());
+        Event e = new Event(orderJson, types, "Order");
+
+        // Send Request
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+        String jsonString = objectMapper.writeValueAsString(e);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.add("Authorization", StandManager.authToken);
+        RestTemplate restTemplate = new RestTemplate();
+        String uri = StandManager.ECURL + "/publishEvent";
+
+        System.out.println("Send order status update: " + jsonString);
+        HttpEntity<String> entity = new HttpEntity<>(jsonString, headers);
+        return restTemplate.postForObject(uri, entity, String.class);
+
+
+    }
+    /**
      * update menuItem
      *  @param mi  new item
      * @param mi2 old item
@@ -72,7 +163,7 @@ public class Scheduler extends Thread {
         }
         else return false;
     }
-
+    /*
     public void pollEvents() {
 
         try {
@@ -95,6 +186,7 @@ public class Scheduler extends Thread {
             e.printStackTrace();
         }
     }
+     */
 
 
 
@@ -105,13 +197,15 @@ public class Scheduler extends Thread {
         inc.add(o);
     }
 
-    /**
+    /*
      * removes first order from schedule
      */
+    /*
     public void orderDone() {
         inc.remove(0);
         System.out.println("Order done");
     }
+    */
 
     /**
      * calculates total time to end of schedule
@@ -126,6 +220,8 @@ public class Scheduler extends Thread {
             return inc.get(inc.size() - 1).computeRemainingTime();
         }
     }
+
+
 
     /**
      * checks if a food item is present in the stand menu
@@ -142,10 +238,11 @@ public class Scheduler extends Thread {
         return false;
     }
 
-    /**
+    /*
      * Removes 1 (second) from the remaining time of the first scheduled order: the order that should be under preparation
-     * TODO: remove 1 (second) from all orders that are flagged as "under preparation" (+ add flag for "preparation")
+     *
      */
+    /*
     public void prepClock() {
         if (inc.size() == 0) {
             return;
@@ -167,6 +264,7 @@ public class Scheduler extends Thread {
             prepClock();
         }
     }
+     */
     /**
      * gives preptime of item in scheduler
      *
@@ -211,6 +309,7 @@ public class Scheduler extends Thread {
         return this.brandName;
     }
 
-
-
+    public int getSubscriberId() {
+        return subscriberId;
+    }
 }

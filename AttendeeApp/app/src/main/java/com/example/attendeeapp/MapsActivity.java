@@ -1,5 +1,6 @@
 package com.example.attendeeapp;
 
+import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Toast;
@@ -14,6 +15,7 @@ import com.android.volley.toolbox.Volley;
 import com.example.attendeeapp.data.LoginDataSource;
 import com.example.attendeeapp.data.LoginRepository;
 import com.example.attendeeapp.data.model.LoggedInUser;
+import com.example.attendeeapp.json.BetterResponseModel;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -28,7 +30,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-
+/**
+ * Activity that show a map of all the stand locations
+ */
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
     protected Map<String, Map<String, Double>> standLocations = new HashMap<>();
@@ -48,14 +52,19 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             Map<String, Double> coordinates = standLocations.get(standName);
             double lat = coordinates.get("latitude");
             double lon = coordinates.get("longitude");
-            LatLng newStand = new LatLng(lat, lon);
-            googleMap.addMarker(new MarkerOptions().position(newStand).title(standName));
-            googleMap.moveCamera(CameraUpdateFactory.newLatLng(newStand));
+            if (lat != 360 && lon != 360) {
+                LatLng newStand = new LatLng(lat, lon);
+                googleMap.addMarker(new MarkerOptions().position(newStand).title(standName));
+                googleMap.moveCamera(CameraUpdateFactory.newLatLng(newStand));
+            }
+        }
+        googleMap.getUiSettings().setZoomControlsEnabled(true);
+        Location lastLocation = (Location) getIntent().getParcelableExtra("locationClient");
+        if (lastLocation != null) {
+            googleMap.setMyLocationEnabled(true);
+            googleMap.getUiSettings().setMyLocationButtonEnabled(true);
         }
 
-        googleMap.setMyLocationEnabled(true);
-        googleMap.getUiSettings().setZoomControlsEnabled(true);
-        googleMap.getUiSettings().setMyLocationButtonEnabled(true);
     }
 
     /**
@@ -67,7 +76,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         StringRequest request = new StringRequest(Request.Method.GET, uri, response -> {
             ObjectMapper mapper = new ObjectMapper();
             try {
-                standLocations = mapper.readValue(response, new TypeReference<Map<String, Map<String, Double>>>() {});
+                BetterResponseModel<Map<String, Map<String, Double>>> responseModel= mapper.readValue(response, new TypeReference<BetterResponseModel<Map<String, Map<String, Double>>>>() {});
+                if(!responseModel.isOk()){
+                    Toast toast = Toast.makeText(MapsActivity.this,responseModel.getException().getMessage() , Toast.LENGTH_SHORT);
+                    toast.show();
+                    return;
+                }
+
+                standLocations = responseModel.getPayload();
                 SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                         .findFragmentById(R.id.map);
                 mapFragment.getMapAsync(MapsActivity.this);

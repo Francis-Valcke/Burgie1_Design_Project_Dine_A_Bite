@@ -2,12 +2,14 @@ package cobol.commons.order;
 
 import lombok.Data;
 
-//import java.util.Calendar;
+import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.TimeZone;
+
+//import java.util.Calendar;
 
 @Data
 public class CommonOrder {
@@ -19,6 +21,9 @@ public class CommonOrder {
     private State orderState;
     private String brandName;
     private String standName;
+    private RecommendType recType;
+    private int totalCount;
+    private BigDecimal totalPrice;
 
     private List<CommonOrderItem> orderItems;
 
@@ -26,9 +31,10 @@ public class CommonOrder {
     private double latitude;
     private double longitude;
 
+
     public CommonOrder(){}
 
-    public CommonOrder(int id, ZonedDateTime startTime, ZonedDateTime expectedTime, State orderState, String brandName, String standName, List<CommonOrderItem> orderItems, double latitude, double longitude) {
+    public CommonOrder(int id, ZonedDateTime startTime, ZonedDateTime expectedTime, State orderState, String brandName, String standName, List<CommonOrderItem> orderItems, double latitude, double longitude, RecommendType recType, int totalCount, BigDecimal totalPrice) {
         TimeZone.setDefault(TimeZone.getTimeZone("Europe/Brussels"));
         this.id = id;
         this.startTime = startTime;
@@ -39,6 +45,9 @@ public class CommonOrder {
         this.orderItems = orderItems;
         this.latitude = latitude;
         this.longitude = longitude;
+        this.recType = recType;
+        this.totalCount = totalCount;
+        this.totalPrice=totalPrice;
     }
 
     public enum State {
@@ -46,7 +55,15 @@ public class CommonOrder {
         PENDING,
         DECLINED,
         CONFIRMED,
-        READY
+        READY,
+        PICKED_UP,
+        BEGUN
+    }
+    //type of recommendation wanted
+    public enum RecommendType {
+        DISTANCE,
+        TIME,
+        DISTANCE_AND_TIME
     }
 
     /**
@@ -63,7 +80,6 @@ public class CommonOrder {
             return (int) remaining.getSeconds();
         }
     }
-    public int getId(){
-        return this.id;
-    }
+
+
 }

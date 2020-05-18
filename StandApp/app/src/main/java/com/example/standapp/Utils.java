@@ -11,12 +11,24 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+import com.example.standapp.data.model.LoggedInUser;
+
+import org.jetbrains.annotations.NotNull;
+
+import java.io.IOException;
+
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.OkHttpClient;
 
 
 class Utils {
 
     private static boolean isConnected = false;
-    private static String subscriberId;
+
+    // only one client, singleton,
+    // multiple instances will create more memory.
+    private static final OkHttpClient httpClient = new OkHttpClient();
 
     /**
      * Show if internet connection and server connection are online
@@ -75,6 +87,40 @@ class Utils {
         }
 
         return isLoggedIn;
+    }
+
+    /**
+     * Unsubscribe from channels of Event Channel
+     *
+     * @param subscriberId subscriber ID
+     * @param standName stand name
+     * @param brandName brand name
+     * @param user logged in user
+     */
+    static void unsubscribeEC(String subscriberId, String standName, String brandName,
+                              LoggedInUser user) {
+
+        String url = ServerConfig.EC_ADDRESS + "/deregisterSubscriber" + "?id=" + subscriberId
+                + "&type=s_" + standName + "_" + brandName;
+        url = url.replace(' ', '+');
+        System.out.println("Request to: " + url); // DEBUG
+
+        okhttp3.Request request = new okhttp3.Request.Builder()
+                .url(url)
+                .addHeader("Authorization", user.getAuthorizationToken())
+                .build();
+
+        httpClient.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(@NotNull Call call, @NotNull IOException e) {
+                e.printStackTrace();
+            }
+
+            @Override
+            public void onResponse(@NotNull Call call, @NotNull okhttp3.Response response) {
+                // Nothing will be received
+            }
+        });
     }
 
 }
