@@ -89,9 +89,6 @@ public class OrderProcessor {
      * @return Order: persisted Order object
      */
     public Order addNewOrder(Order newOrder) {
-        // update order and save to database
-        //newOrder.setRemtime(0);
-
         newOrder.setState(CommonOrder.State.PENDING);
 
         newOrder=orderRepository.save(newOrder);
@@ -102,7 +99,7 @@ public class OrderProcessor {
         return newOrder;
     }
 
-    public Order confirmStand(int orderId, String standName, String brandName) throws DoesNotExistException, JsonProcessingException {
+    public Order confirmStand(int orderId, String standName, String brandName) throws Throwable {
         Optional<Order> orderOptional = this.getOrder(orderId);
         Stand stand = standRepository.findStandById(standName, brandName).orElseThrow(() -> new DoesNotExistException("Stand does not exist"));
 
@@ -202,7 +199,7 @@ public class OrderProcessor {
             assert e != null;
             if (e.getDataType().equals("OrderStatusUpdate")) {
                 JSONObject eventData = e.getEventData();
-                String newStatusString = (String) eventData.get("newStatus");
+                String newStatusString = (String) eventData.get("newState");
                 CommonOrder.State newStatus = CommonOrder.State.valueOf(newStatusString);
                 int orderId = (int) eventData.get("orderId");
                 Optional<Order> localOrderOptional = orderRepository.findFullOrderById(orderId);

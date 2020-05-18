@@ -139,19 +139,7 @@ public class Order implements Serializable {
 
 
     }
-
-
-    // ---- Update / Compute ---- //
-
-    /**
-     * Will update the expected time based on remainingTime
-     *
-     * @param remainingTime time in seconds
-     */
-    //TODO: I think this function is obsolete?
-    public void setRemtime(int remainingTime) {
-        expectedTime = expectedTime.plusSeconds(remainingTime);
-    }
+    
 
 
     /**

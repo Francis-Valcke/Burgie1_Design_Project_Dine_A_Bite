@@ -1,6 +1,4 @@
-package cobol.commons;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
+package com.example.standapp.json;
 
 import java.math.BigDecimal;
 
@@ -43,7 +41,6 @@ public class BetterResponseModel<T> {
         this.payload = payload;
     }
 
-    @JsonIgnore
     public boolean isOk(){
         return status.equals(Status.OK);
     }
@@ -136,5 +133,6 @@ public class BetterResponseModel<T> {
             this.balance = balance;
         }
     }
+
 }
 

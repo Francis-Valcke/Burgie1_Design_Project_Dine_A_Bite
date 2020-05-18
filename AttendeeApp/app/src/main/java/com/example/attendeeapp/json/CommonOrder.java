@@ -61,7 +61,8 @@ public class CommonOrder implements Serializable {
         PENDING,
         DECLINED,
         CONFIRMED,
-        READY
+        READY,
+        PICKED_UP
     }
 
     //type of recommendation wanted
