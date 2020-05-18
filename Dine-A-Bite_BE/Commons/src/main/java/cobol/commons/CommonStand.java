@@ -5,6 +5,10 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Class to represent a stand between the different components
+ */
+
 public class CommonStand implements Serializable {
     private List<CommonFood> menu = new ArrayList<>();
 

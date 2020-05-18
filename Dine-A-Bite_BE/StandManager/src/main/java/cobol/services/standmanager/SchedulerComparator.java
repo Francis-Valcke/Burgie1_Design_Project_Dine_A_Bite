@@ -34,7 +34,7 @@ public class SchedulerComparator implements Comparator<Scheduler> {
     }
 
     /**
-     * Alternative class constructor, used to acces functions in other classes
+     * Alternative class constructor, used to access functions in other classes
      */
     public SchedulerComparator() {
 

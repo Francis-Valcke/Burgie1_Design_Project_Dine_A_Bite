@@ -110,10 +110,12 @@ public class SchedulerHandler {
     }
 
     /**
+     * Splits a superorder (order that can't be prepared by single stand) into multiple normal orders
+     * The split up orders can be prepared each by single stand (and recommendations can be calculated)
      *
-     * @param superOrder
-     * @return
-     * @throws OrderException
+     * @param superOrder the superorder to split up
+     * @return list of HashSets where every set consists of CommonOrderItems which can be prepared by single stand
+     * @throws OrderException if the superorder contains items from other brands
      */
     public List<HashSet<CommonOrderItem>> splitSuperOrder(SuperOrder superOrder) throws OrderException {
 
@@ -244,7 +246,9 @@ public class SchedulerHandler {
         return obj;
     }
 
-
+    /**
+     * Polls events for schedulers
+     */
     @Scheduled(fixedDelay = 5000)
     public void pollEvents() {
         if (schedulers.size() == 0) return;

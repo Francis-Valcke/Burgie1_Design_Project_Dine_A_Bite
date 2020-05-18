@@ -74,6 +74,9 @@ public class Scheduler extends Thread {
         else return false;
     }
 
+    /**
+     * Polls events from event channel
+     */
     public void pollEvents() {
 
         try {
@@ -146,7 +149,6 @@ public class Scheduler extends Thread {
 
     /**
      * Removes 1 (second) from the remaining time of the first scheduled order: the order that should be under preparation
-     * TODO: remove 1 (second) from all orders that are flagged as "under preparation" (+ add flag for "preparation")
      */
     public void prepClock() {
         if (inc.size() == 0) {
