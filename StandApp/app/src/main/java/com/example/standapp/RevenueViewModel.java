@@ -23,7 +23,7 @@ public class RevenueViewModel extends ViewModel {
     /**
      * Updates the total revenue
      *
-     * @param items: list of orderitems that were ordered
+     * @param items: list of order items that were ordered
      */
     public void updateRevenue(List<CommonOrderItem> items) {
         BigDecimal totalRevenue = revenue.getValue();

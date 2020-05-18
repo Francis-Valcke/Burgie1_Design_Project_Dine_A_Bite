@@ -6,9 +6,9 @@ import androidx.annotation.NonNull;
  * A generic class that holds a result success w/ data or an error exception.
  */
 public class Result<T> {
+
     // hide the private constructor to limit subclass types (Success, Error)
-    private Result() {
-    }
+    private Result() { }
 
     @NonNull
     @Override
@@ -23,7 +23,10 @@ public class Result<T> {
         return "";
     }
 
-    // Success sub-class
+    /**
+     * Success sub-class
+     * @param <T>
+     */
     public final static class Success<T> extends Result {
         private T data;
 
@@ -36,7 +39,9 @@ public class Result<T> {
         }
     }
 
-    // Error sub-class
+    /**
+     * Error sub-class
+     */
     public final static class Error extends Result {
         private Exception error;
 

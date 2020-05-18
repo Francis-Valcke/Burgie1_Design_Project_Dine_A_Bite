@@ -165,12 +165,22 @@ public class LoginActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * UI changes when successful login
+     *
+     * @param model LoggedInUserView of class
+     */
     private void updateUiWithUser(LoggedInUserView model) {
         String welcome = getString(R.string.welcome_back) + " " + model.getDisplayName();
         // initiate successful logged in experience
         Toast.makeText(getApplicationContext(), welcome, Toast.LENGTH_LONG).show();
     }
 
+    /**
+     * Action that happens when log in fails
+     *
+     * @param errorString Error to show
+     */
     private void showLoginFailed(@StringRes Integer errorString) {
         Snackbar.make(findViewById(R.id.login), errorString, Snackbar.LENGTH_SHORT)
                 .show();
