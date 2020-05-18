@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.ExpandableListView;
 import android.widget.Switch;
 import android.widget.Toast;
@@ -187,15 +188,34 @@ public class OrderActivity extends ToolbarActivity {
                 chosenBrand.replace("&", "%26"));
         url = url.replace(' ', '+');
 
-        // Request a string response from the provided URL
-        StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
+        // Request a JsonObjectRequest response from the provided URL
+        JsonObjectRequest jsonRequest = new JsonObjectRequest(Request.Method.GET, url, null,
                 response -> {
-                    updateUserOrdersFromDB();
-                    showToast("Your order was successfull");
-                },
-                error -> {
-                    showToast("Your final order could not be received");
-                }) {
+                    BetterResponseModel<String> responseModel = null;
+                    try {
+                        ObjectMapper mapper = new ObjectMapper();
+                        responseModel = mapper
+                                .readValue(response.toString(), new TypeReference<BetterResponseModel<String>>() {
+                                });
+                    } catch (JsonProcessingException e) {
+                        Log.v("JSON exception", "JSON exception in confirmActivity");
+                        e.printStackTrace();
+                        showToast("Exception while parsing response for confirming order");
+                        return;
+                    }
+                    if (responseModel != null) {
+                        if (responseModel.isOk()) {
+                            updateUserOrdersFromDB();
+                            showToast("Your order was successful");
+                        } else {
+                            showToast(responseModel.getException().getMessage());
+                        }
+                    } else {
+                        showToast("Exception while receiving response from confirming order");
+                    }
+                }, error -> {
+            showToast("Order could not be confirmed");
+        }) {
             // Add JSON headers
             @Override
             public @NonNull
@@ -207,7 +227,7 @@ public class OrderActivity extends ToolbarActivity {
         };
 
         // Add the request to the RequestQueue
-        queue.add(stringRequest);
+        queue.add(jsonRequest);
     }
 
     /**
@@ -232,8 +252,8 @@ public class OrderActivity extends ToolbarActivity {
                         return;
                     }
 
-                    if(responseModel.isOk()){
-                        List<CommonOrder> allUserOrders= responseModel.getPayload();
+                    if (responseModel.isOk()) {
+                        List<CommonOrder> allUserOrders = responseModel.getPayload();
                         // TODO: Update local database better way @Nathan
                         orderDatabaseService.deleteAllOrders();
                         for (CommonOrder order : allUserOrders) {
@@ -261,8 +281,7 @@ public class OrderActivity extends ToolbarActivity {
                         adapter.notifyDataSetChanged();
 
                         subscribeToOrderUpdates();
-                    }
-                    else{
+                    } else {
                         showToast(responseModel.getDetails());
                     }
 
