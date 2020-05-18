@@ -239,7 +239,7 @@ public class OrderItemExpandableAdapter extends BaseExpandableListAdapter {
      * @param orderId : the order id for which the status update holds
      * @param State : the new order status
      */
-    public void updateOrder(int orderId, CommonOrderStatusUpdate.State State) {
+    public void updateOrderState(int orderId, CommonOrderStatusUpdate.State State) {
             for (CommonOrder order : orders) {
                 if (order.getId() == orderId) {
                     CommonOrder.State oldState = order.getOrderState();
@@ -265,10 +265,36 @@ public class OrderItemExpandableAdapter extends BaseExpandableListAdapter {
                             e.printStackTrace();
                             Toast.makeText(context, "Error while updating an order in local db", Toast.LENGTH_LONG).show();
                         }
+
+                        break; // id is unique
                     }
 
                 }
             }
+    }
+
+    /**
+     * Updates the order attributes for a given order.
+     *
+     * @param order The order to update.
+     */
+    public void updateOrder(CommonOrder order) {
+        for (CommonOrder i : orders) {
+            if (i.getId() == order.getId()) {
+                i.setUpdateSeen(false);
+                i.setExpectedTime(order.getExpectedTime());
+
+                try{
+                    orderDatabaseService.updateOrder(order);
+                }
+                catch(Exception e){
+                    e.printStackTrace();
+                    Toast.makeText(context, "Error while updating an order in local db", Toast.LENGTH_LONG).show();
+                }
+
+                break;
+            }
+        }
     }
 
 
