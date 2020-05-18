@@ -28,7 +28,11 @@ public class MenuViewModel extends ViewModel {
 
     public void resetMenuList() {
         ArrayList<CommonFood> items = menuList.getValue();
-        if (items != null) items.clear();
+        if (items != null) {
+            items.clear();
+        } else {
+            menuList.setValue(new ArrayList<CommonFood>());
+        }
     }
 
     public void loadMenuList() {
