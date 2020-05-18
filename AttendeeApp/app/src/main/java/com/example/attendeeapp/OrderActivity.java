@@ -5,7 +5,10 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.location.Location;
 import android.os.Bundle;
+import android.util.Log;
+import android.os.Looper;
 import android.widget.ExpandableListView;
 import android.widget.Switch;
 import android.widget.Toast;
@@ -29,6 +32,12 @@ import com.example.attendeeapp.polling.PollingService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationCallback;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationResult;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.model.LatLng;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -48,6 +57,11 @@ public class OrderActivity extends ToolbarActivity {
     private OrderDatabaseService orderDatabaseService;
     private OrderItemExpandableAdapter adapter;
     private LoggedInUser user = LoginRepository.getInstance(new LoginDataSource()).getLoggedInUser();
+
+    private Location lastLocation;
+    private FusedLocationProviderClient fusedLocationClient;
+    private LocationRequest locationRequest;
+    private LocationCallback locationCallback;
 
     // Receives the order updates from the polling service
     private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
@@ -87,6 +101,28 @@ public class OrderActivity extends ToolbarActivity {
         initToolbar();
         upButtonToolbar();
 
+        // Initialize variables to enable location update requests
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+        locationRequest = LocationRequest.create();
+        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        locationRequest.setInterval(100); // set the interval in which you want to receive locations
+        locationRequest.setFastestInterval(10); // if a location is available sooner you can get it faster
+
+        locationCallback = new LocationCallback() {
+            @Override
+            public void onLocationResult(LocationResult locationResult) {
+                if (locationResult == null) {
+                    System.out.println("Location is NULL!");
+                    return;
+                }
+                for (Location location : locationResult.getLocations()) {
+                    lastLocation = location;
+                    System.out.println("MY LOCATION: latitude: " + location.getLatitude() + "; longitude: " + location.getLongitude());
+                }
+            }
+        };
+        startLocationUpdates();
+
         // order(s) passed by confirm order activity
         ArrayList<CommonOrder> newOrderList = (ArrayList<CommonOrder>) getIntent().getSerializableExtra("orderList");
 
@@ -118,17 +154,21 @@ public class OrderActivity extends ToolbarActivity {
                 confirmNewOrderStand(commonOrder);
             }
         }
-
-
     }
 
     @Override
     public void onResume() {
         super.onResume();
+        // Start the location updates
+        startLocationUpdates();
         // Start polling service
         if (subscribeId != -1) {
             Intent intent = new Intent(getApplicationContext(), PollingService.class);
             intent.putExtra("subscribeId", subscribeId);
+            intent.putExtra("locations", getMapIdLocation());
+            intent.putExtra("remainingTime", getMapIdRemainingTime());
+            intent.putExtra("myLocationLat", lastLocation.getLatitude());
+            intent.putExtra("myLocationLon", lastLocation.getLongitude());
             startService(intent);
         }
         // Register the listener for polling updates
@@ -139,11 +179,23 @@ public class OrderActivity extends ToolbarActivity {
     @Override
     public void onPause() {
         super.onPause();
+        // Stop the location updates
+        stopLocationUpdates();
         // Stop the polling service
         stopService(new Intent(getApplicationContext(), PollingService.class));
 
         // Unregister the listener
         LocalBroadcastManager.getInstance(this).unregisterReceiver(mMessageReceiver);
+    }
+
+    private void startLocationUpdates() {
+        fusedLocationClient.requestLocationUpdates(locationRequest,
+                locationCallback,
+                Looper.getMainLooper());
+    }
+
+    private void stopLocationUpdates() {
+        fusedLocationClient.removeLocationUpdates(locationCallback);
     }
 
     /**
@@ -187,15 +239,34 @@ public class OrderActivity extends ToolbarActivity {
                 chosenBrand.replace("&", "%26"));
         url = url.replace(' ', '+');
 
-        // Request a string response from the provided URL
-        StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
+        // Request a JsonObjectRequest response from the provided URL
+        JsonObjectRequest jsonRequest = new JsonObjectRequest(Request.Method.GET, url, null,
                 response -> {
-                    updateUserOrdersFromDB();
-                    showToast("Your order was successfull");
-                },
-                error -> {
-                    showToast("Your final order could not be received");
-                }) {
+                    BetterResponseModel<String> responseModel = null;
+                    try {
+                        ObjectMapper mapper = new ObjectMapper();
+                        responseModel = mapper
+                                .readValue(response.toString(), new TypeReference<BetterResponseModel<String>>() {
+                                });
+                    } catch (JsonProcessingException e) {
+                        Log.v("JSON exception", "JSON exception in confirmActivity");
+                        e.printStackTrace();
+                        showToast("Exception while parsing response for confirming order");
+                        return;
+                    }
+                    if (responseModel != null) {
+                        if (responseModel.isOk()) {
+                            updateUserOrdersFromDB();
+                            showToast("Your order was successful");
+                        } else {
+                            showToast(responseModel.getException().getMessage());
+                        }
+                    } else {
+                        showToast("Exception while receiving response from confirming order");
+                    }
+                }, error -> {
+            showToast("Order could not be confirmed");
+        }) {
             // Add JSON headers
             @Override
             public @NonNull
@@ -207,7 +278,7 @@ public class OrderActivity extends ToolbarActivity {
         };
 
         // Add the request to the RequestQueue
-        queue.add(stringRequest);
+        queue.add(jsonRequest);
     }
 
     /**
@@ -232,8 +303,8 @@ public class OrderActivity extends ToolbarActivity {
                         return;
                     }
 
-                    if(responseModel.isOk()){
-                        List<CommonOrder> allUserOrders= responseModel.getPayload();
+                    if (responseModel.isOk()) {
+                        List<CommonOrder> allUserOrders = responseModel.getPayload();
                         // TODO: Update local database better way @Nathan
                         orderDatabaseService.deleteAllOrders();
                         for (CommonOrder order : allUserOrders) {
@@ -261,8 +332,7 @@ public class OrderActivity extends ToolbarActivity {
                         adapter.notifyDataSetChanged();
 
                         subscribeToOrderUpdates();
-                    }
-                    else{
+                    } else {
                         showToast(responseModel.getDetails());
                     }
 
@@ -306,6 +376,11 @@ public class OrderActivity extends ToolbarActivity {
             // Start the polling service
             Intent intent = new Intent(getApplicationContext(), PollingService.class);
             intent.putExtra("subscribeId", subscribeId);
+            intent.putExtra("locations", getMapIdLocation());
+            intent.putExtra("remainingTime", getMapIdRemainingTime());
+            assert lastLocation != null;
+            intent.putExtra("myLocationLat", lastLocation.getLatitude());
+            intent.putExtra("myLocationLon", lastLocation.getLongitude());
             startService(intent);
         }, error -> {
             showToast("Could not subscribe to order updates");
@@ -327,6 +402,31 @@ public class OrderActivity extends ToolbarActivity {
     private void showToast(String message) {
         Toast.makeText(OrderActivity.this, message,
                 Toast.LENGTH_SHORT).show();
+    }
+
+    /**
+     * This function will return a hashmap, mapping the ID of the order to its location
+     * @return hashmap mapping the ID of the order to its location
+     */
+    private HashMap<Integer, LatLng> getMapIdLocation() {
+        HashMap<Integer, LatLng> result = new HashMap<>();
+        for (CommonOrder order : orders) {
+            LatLng loc = new LatLng(order.getLatitude(), order.getLongitude());
+            result.put(order.getId(), loc);
+        }
+        return result;
+    }
+
+    /**
+     * This function will return a hashmap, mapping the ID of the order to its remaining time
+     * @return hashmap mapping the ID of the order to its remaining time
+     */
+    private HashMap<Integer, Integer> getMapIdRemainingTime() {
+        HashMap<Integer, Integer> result = new HashMap<>();
+        for (CommonOrder order : orders) {
+            result.put(order.getId(), order.computeRemainingTime()/1000);
+        }
+        return result;
     }
 
 

@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.Objects;
 
 public class RevenueViewModel extends ViewModel {
+
     private MutableLiveData<BigDecimal> revenue = new MutableLiveData<>();
     private MutableLiveData<Map<String, BigDecimal>> prices = new MutableLiveData<>();
 

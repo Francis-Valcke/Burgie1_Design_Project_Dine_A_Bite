@@ -56,7 +56,7 @@ public class DashboardFragment extends Fragment
     private String brandName = "";
 
     // Menu items of the stand
-    private ArrayList<CommonFood> items = new ArrayList<>();
+    private ArrayList<CommonFood> items;
     private DashboardListViewAdapter adapter;
     private MenuViewModel menuViewModel;
     private RevenueViewModel revenueViewModel;
@@ -99,11 +99,11 @@ public class DashboardFragment extends Fragment
         Observer<ArrayList<CommonFood>> observer = new Observer<ArrayList<CommonFood>>() {
             @Override
             public void onChanged(ArrayList<CommonFood> commonFoods) {
-                items = menuViewModel.getMenuList().getValue();
+                items = menuViewModel.getMenuList();
                 adapter.notifyDataSetChanged();
             }
         };
-        menuViewModel.getMenuList().observe(getViewLifecycleOwner(), observer);
+        menuViewModel.getLiveDataMenuList().observe(getViewLifecycleOwner(), observer);
 
         // Getting the log in information from profile fragment
         final Bundle bundle = getArguments();
@@ -117,7 +117,7 @@ public class DashboardFragment extends Fragment
             // Ask for permission to get location data and set lastLocation variable
             checkLocationPermission();
 
-            items = menuViewModel.getMenuList().getValue();
+            items = menuViewModel.getMenuList();
             if (adapter == null) {
                 adapter = new DashboardListViewAdapter(Objects.requireNonNull(getActivity()), items,
                         this);
@@ -248,7 +248,7 @@ public class DashboardFragment extends Fragment
 
     @Override
     public void onMenuItemDeleted(int position) {
-        ArrayList<CommonFood> menu = menuViewModel.getMenuList().getValue();
+        ArrayList<CommonFood> menu = menuViewModel.getMenuList();
         if (menu != null) {
             String foodName = menu.get(position).getName();
             revenueViewModel.deletePrice(foodName);
@@ -395,4 +395,5 @@ public class DashboardFragment extends Fragment
             addedStockMap.clear();
         }
     }
+
 }

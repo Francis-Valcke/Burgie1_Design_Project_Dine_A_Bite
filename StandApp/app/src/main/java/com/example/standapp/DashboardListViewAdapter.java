@@ -82,4 +82,5 @@ public class DashboardListViewAdapter extends BaseAdapter {
 
         return view;
     }
+
 }

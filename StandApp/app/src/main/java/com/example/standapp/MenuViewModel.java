@@ -1,6 +1,5 @@
 package com.example.standapp;
 
-
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
@@ -12,21 +11,33 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * ViewModel for the list of menu items of the logged in stand
+ */
 public class MenuViewModel extends ViewModel {
 
     private MutableLiveData<ArrayList<CommonFood>> menuList = new MutableLiveData<>();
 
-    public LiveData<ArrayList<CommonFood>> getMenuList() {
+    public LiveData<ArrayList<CommonFood>> getLiveDataMenuList() {
         return menuList;
+    }
+
+    public ArrayList<CommonFood> getMenuList() {
+        return menuList.getValue();
     }
 
     public void setMenuList(ArrayList<CommonFood> menuList) {
         this.menuList.setValue(menuList);
+        if (this.menuList.getValue() == null) System.out.println("Something wrong");
     }
 
     public void resetMenuList() {
         ArrayList<CommonFood> items = menuList.getValue();
-        if (items != null) items.clear();
+        if (items != null) {
+            items.clear();
+        } else {
+            menuList.setValue(new ArrayList<CommonFood>());
+        }
     }
 
     public void loadMenuList() {

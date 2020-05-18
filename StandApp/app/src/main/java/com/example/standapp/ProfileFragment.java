@@ -62,6 +62,7 @@ public class ProfileFragment extends Fragment {
     private String subscriberId = null;
 
     private Context mContext;
+    private Toast mToast;
 
     @Override
     public void onAttach(@NonNull Context context) {
@@ -208,11 +209,13 @@ public class ProfileFragment extends Fragment {
                     if (bundle != null) bundle.putString("brandName", null);
                     if (bundle != null) bundle.putString("subscriberId", null);
 
-                    RevenueViewModel revenueViewModel = new ViewModelProvider(requireActivity()).get(RevenueViewModel.class);
+                    RevenueViewModel revenueViewModel = new ViewModelProvider(requireActivity())
+                            .get(RevenueViewModel.class);
                     revenueViewModel.setRevenue(new BigDecimal(0));
                     revenueViewModel.resetPrices();
 
-                    MenuViewModel menuViewModel = new ViewModelProvider(requireActivity()).get(MenuViewModel.class);
+                    MenuViewModel menuViewModel = new ViewModelProvider(requireActivity())
+                            .get(MenuViewModel.class);
                     menuViewModel.resetMenuList();
 
                     // POST request to /verify
@@ -254,8 +257,10 @@ public class ProfileFragment extends Fragment {
                         @Override
                         public void onErrorResponse(VolleyError error) {
                             error.printStackTrace();
-                            Toast.makeText(getContext(), "Verify: " + error.toString(),
-                                    Toast.LENGTH_LONG).show();
+                            if (mToast != null) mToast.cancel();
+                            mToast = Toast.makeText(getContext(), "Verify: " + error.toString(),
+                                    Toast.LENGTH_LONG);
+                            mToast.show();
                         }
                     }) {
                         @Override
@@ -306,9 +311,18 @@ public class ProfileFragment extends Fragment {
 
         // Checks
         Utils.isConnected(mContext);
-        if (bundle != null) Utils.isLoggedIn(mContext, bundle);
+        if (bundle != null) {
+            if (mToast != null) mToast.cancel();
+            Utils.isLoggedIn(mContext, bundle);
+        }
 
         return view;
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        if (mToast != null) mToast.cancel();
     }
 
     /**
@@ -388,8 +402,9 @@ public class ProfileFragment extends Fragment {
         StringRequest request = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
-                Toast.makeText(getContext(), "SubscriberId: " + response, Toast.LENGTH_SHORT)
-                        .show();
+                if (mToast != null) mToast.cancel();
+                mToast = Toast.makeText(getContext(), "SubscriberId: " + response, Toast.LENGTH_SHORT);
+                mToast.show();
                 subscriberId = response;
                 callback.onSuccess(response);
                 if (bundle != null) bundle.putString("subscriberId", subscriberId);
@@ -412,7 +427,9 @@ public class ProfileFragment extends Fragment {
                     @Override
                     public void onErrorResponse(VolleyError error) {
                         error.printStackTrace();
-                        Toast.makeText(getContext(), error.toString(), Toast.LENGTH_SHORT).show();
+                        if (mToast != null) mToast.cancel();
+                        mToast = Toast.makeText(getContext(), error.toString(), Toast.LENGTH_SHORT);
+                        mToast.show();
                     }
                 }) {
                     @Override
@@ -430,7 +447,9 @@ public class ProfileFragment extends Fragment {
             @Override
             public void onErrorResponse(VolleyError error) {
                 error.printStackTrace();
-                Toast.makeText(getContext(), error.toString(), Toast.LENGTH_SHORT).show();
+                if (mToast != null) mToast.cancel();
+                mToast = Toast.makeText(getContext(), error.toString(), Toast.LENGTH_SHORT);
+                mToast.show();
             }
         }) {
             @Override
@@ -472,17 +491,17 @@ public class ProfileFragment extends Fragment {
                 ObjectMapper mapper = new ObjectMapper();
                 BetterResponseModel<ArrayList<CommonFood>> responseModel=null;
                 try {
-                   responseModel = mapper
-                            .readValue(response.toString(), new TypeReference<BetterResponseModel<ArrayList<CommonFood>>>() {
-                            });
+                   responseModel
+                           = mapper.readValue(response.toString(),
+                           new TypeReference<BetterResponseModel<ArrayList<CommonFood>>>() {});
                 } catch (Exception e) {
                     Log.v("Exception fetch menu:", e.toString());
                     Toast.makeText(context, "Error parsing response while fetching menu",
                             Toast.LENGTH_LONG).show();
                 }
 
-                if(responseModel!=null){
-                    if(responseModel.isOk()){
+                if (responseModel!=null) {
+                    if (responseModel.isOk()) {
                         List<CommonFood> parsedItems = responseModel.getPayload();
                         items.addAll(parsedItems);
 
@@ -496,9 +515,12 @@ public class ProfileFragment extends Fragment {
                             revenueViewModel.addPrice(item.getName(), item.getPrice());
                         }
                     }
-                    else{
+                    else {
                         Toast.makeText(context, responseModel.getDetails(),
                                 Toast.LENGTH_LONG).show();
+                        MenuViewModel menuViewModel = new ViewModelProvider(requireActivity())
+                                .get(MenuViewModel.class);
+                        menuViewModel.setMenuList(items);
                     }
                 }
 
@@ -512,7 +534,7 @@ public class ProfileFragment extends Fragment {
                             Toast.LENGTH_LONG).show();
 
                     // The given stand and brand names do not exist in the server database
-                    if (bundle != null) bundle.putBoolean("newStand", true);
+                    //if (bundle != null) bundle.putBoolean("newStand", true);
                 } else {
                     Toast.makeText(context, error.toString(), Toast.LENGTH_LONG).show();
                 }
@@ -555,7 +577,8 @@ public class ProfileFragment extends Fragment {
                 BetterResponseModel<BigDecimal> responseModel = null;
 
                 try {
-                    responseModel = mapper.readValue(response.toString(), new TypeReference<BetterResponseModel<BigDecimal>>() {
+                    responseModel = mapper.readValue(response.toString(),
+                            new TypeReference<BetterResponseModel<BigDecimal>>() {
                     });
                 } catch (JsonProcessingException e) {
                     Toast.makeText(context, "Error parsing revenue response",
@@ -569,7 +592,9 @@ public class ProfileFragment extends Fragment {
                                 .get(RevenueViewModel.class);
                         model.setRevenue(revenue);
                     } else {
-                        Toast.makeText(context, responseModel.getDetails(), Toast.LENGTH_LONG).show();
+                        if (mToast != null) mToast.cancel();
+                        mToast = Toast.makeText(context, responseModel.getDetails(), Toast.LENGTH_LONG);
+                        mToast.show();
                     }
                 }
             }
