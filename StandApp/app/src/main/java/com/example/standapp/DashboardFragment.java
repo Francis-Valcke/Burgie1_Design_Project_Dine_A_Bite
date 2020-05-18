@@ -395,4 +395,5 @@ public class DashboardFragment extends Fragment
             addedStockMap.clear();
         }
     }
+
 }

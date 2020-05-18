@@ -26,15 +26,16 @@ class Utils {
 
     private static boolean isConnected = false;
 
-    // only one client, singleton,
+    // Only one client, singleton,
     // multiple instances will create more memory.
     private static final OkHttpClient httpClient = new OkHttpClient();
 
     /**
      * Show if internet connection and server connection are online
      * and show in a toast message to user
-     * @param context : the context from where the test connection is called
-     * @return boolean is connected or not
+     *
+     * @param context the context from where the test connection is called
+     * @return        boolean is connected or not
      */
     static boolean isConnected(final Context context) {
 
@@ -71,9 +72,10 @@ class Utils {
 
     /**
      * Show if user is logged in to the system or not
-     * @param context : from where the method is called
-     * @param bundle : the bundle that contains the log in information
-     * @return boolean user is logged in or not
+     *
+     * @param context from where the method is called
+     * @param bundle  the bundle that contains the log in information
+     * @return        boolean user is logged in or not
      */
     static boolean isLoggedIn(Context context, Bundle bundle) {
         boolean isLoggedIn = false;
@@ -93,9 +95,9 @@ class Utils {
      * Unsubscribe from channels of Event Channel
      *
      * @param subscriberId subscriber ID
-     * @param standName stand name
-     * @param brandName brand name
-     * @param user logged in user
+     * @param standName    stand name
+     * @param brandName    brand name
+     * @param user         logged in user
      */
     static void unsubscribeEC(String subscriberId, String standName, String brandName,
                               LoggedInUser user) {
