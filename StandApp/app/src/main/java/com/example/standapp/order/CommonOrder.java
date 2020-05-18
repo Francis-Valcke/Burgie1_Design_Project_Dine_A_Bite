@@ -39,12 +39,12 @@ public class CommonOrder implements Serializable {
         SEND,
         PENDING,
         DECLINED,
-        CONFIRMED,
-        READY,
+        CONFIRMED, // START
+        READY, // DONE
         PICKED_UP
     }
 
-    //type of recommendation wanted
+    // Type of recommendation wanted (not used in Stand app)
     public enum RecommendType {
         DISTANCE,
         TIME,

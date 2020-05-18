@@ -45,6 +45,7 @@ public class CommonOrderStatusUpdate {
             case READY:
                 return CommonOrderStatusUpdate.State.READY;
             default:
+                // includes CommonOrder.State.PICKED_UP
                 return CommonOrderStatusUpdate.State.PICKED_UP;
         }
     }

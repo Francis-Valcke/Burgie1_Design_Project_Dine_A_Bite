@@ -13,7 +13,6 @@ import org.junit.Test;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -46,7 +45,7 @@ public class MenuViewModelTest {
                 "testBrand");
         mMenuViewModel.addMenuItem(testFood);
 
-        assertEquals(Objects.requireNonNull(mMenuViewModel.getMenuList().getValue()).get(0),
+        assertEquals(mMenuViewModel.getMenuList().get(0),
                 testFood);
     }
 
@@ -59,7 +58,7 @@ public class MenuViewModelTest {
         mMenuViewModel.addMenuItem(testFood);
         mMenuViewModel.editMenuItem(editTestFood, 0);
 
-        assertEquals(Objects.requireNonNull(mMenuViewModel.getMenuList().getValue()).get(0),
+        assertEquals(mMenuViewModel.getMenuList().get(0),
                 editTestFood);
     }
 
@@ -70,7 +69,7 @@ public class MenuViewModelTest {
         mMenuViewModel.addMenuItem(testFood);
         mMenuViewModel.deleteMenuItem(0);
 
-        assertTrue(Objects.requireNonNull(mMenuViewModel.getMenuList().getValue()).isEmpty());
+        assertTrue(mMenuViewModel.getMenuList().isEmpty());
     }
 
     @Test
@@ -84,7 +83,7 @@ public class MenuViewModelTest {
         order.add(new CommonOrderItem("testFood", 5, new BigDecimal(10)));
         mMenuViewModel.decreaseStock(order);
 
-        assertEquals(Objects.requireNonNull(mMenuViewModel.getMenuList().getValue()).get(0).getStock(),
+        assertEquals(mMenuViewModel.getMenuList().get(0).getStock(),
                 5);
     }
 }

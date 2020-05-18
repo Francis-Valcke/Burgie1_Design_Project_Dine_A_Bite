@@ -161,55 +161,43 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
                     // User clicks on START button (and checks it)
                     // - enable DONE button
 
-                    Toast.makeText(group.getContext(), headerTitle + ": Start",
-                            Toast.LENGTH_SHORT).show();
                     if (listStatus.get(headerTitle) == CommonOrderStatusUpdate.State.PENDING) {
+                        // The current state is PENDING (not START/CONFIRMED)
+                        // - change state to START/CONFIRMED
+
+                        Toast.makeText(group.getContext(), headerTitle + ": Start",
+                                Toast.LENGTH_SHORT).show();
                         listStatus.put(headerTitle, CommonOrderStatusUpdate.State.CONFIRMED);
                         sendOrderStatusUpdate(groupPosition, finalView.getContext());
+
                     }
+
                     group.findViewById(R.id.button_done).setEnabled(true);
 
                 } else if (checkedId == R.id.button_done && isChecked) {
                     // User clicks on DONE button (and checks it)
                     // - enable PICKED UP button
 
-                    Toast.makeText(group.getContext(), headerTitle + ": Done",
-                            Toast.LENGTH_SHORT).show();
-                    listStatus.put(headerTitle, CommonOrderStatusUpdate.State.READY);
-                    //sendOrderStatusUpdate(finalGroupPosition, finalView.getContext());
                     group.findViewById(R.id.button_picked_up).setEnabled(true);
 
                 } else if (checkedId == R.id.button_picked_up && isChecked) {
                     // User clicks on PICKED UP button (and checks it)
 
-                    Toast.makeText(group.getContext(), headerTitle + ": Picked up",
-                            Toast.LENGTH_SHORT).show();
-                    listStatus.put(headerTitle, CommonOrderStatusUpdate.State.PICKED_UP);
                     group.check(R.id.button_picked_up);
-                    sendOrderStatusUpdate(groupPosition, finalView.getContext());
-                    // TODO delete picked up, or put in other list (picked up orders list) ?
-                    // TODO that can be shown in a history view for example ?
-                    // TODO sent this change to server ?
-                    // TODO Remove order when picked up
-
-                    oldListOrders.add(listOrders.get(groupPosition));
-                    oldListDataHeader.add(listDataHeader.get(groupPosition));
-                    if (listDataHeader.size() == activeListDataHeader.size()) {
-                        listOrders.remove(groupPosition);
-                        listDataHeader.remove(groupPosition);
-                        notifyDataSetChanged();
-                    } else {
-                        activeListOrders.remove(groupPosition);
-                        activeListDataHeader.remove(groupPosition);
-                    }
 
                 } else if (checkedId == R.id.button_start)  {
                     // Is activated when changing from START button
 
                     if (group.getCheckedButtonId() == R.id.button_done) {
                         // User clicks on DONE button
+                        // - Set state to DONE and send event
+
+                        Toast.makeText(group.getContext(), headerTitle + ": Done",
+                                Toast.LENGTH_SHORT).show();
                         group.findViewById(R.id.button_start).setEnabled(false);
+                        listStatus.put(headerTitle, CommonOrderStatusUpdate.State.READY);
                         sendOrderStatusUpdate(groupPosition, finalView.getContext());
+
                     } else {
                         // User clicks on START button
                         group.check(R.id.button_start);
@@ -220,8 +208,23 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
 
                     if (group.getCheckedButtonId() == R.id.button_picked_up) {
                         // User clicks on PICKED UP button
+                        // - Set state to PICKED UP and send event
+
+                        Toast.makeText(group.getContext(), headerTitle + ": Picked up",
+                                Toast.LENGTH_SHORT).show();
                         group.findViewById(R.id.button_done).setEnabled(false);
-                        //sendOrderStatusUpdate(finalGroupPosition, finalView.getContext());
+                        listStatus.put(headerTitle, CommonOrderStatusUpdate.State.PICKED_UP);
+                        sendOrderStatusUpdate(groupPosition, finalView.getContext());
+
+                        // Add to picked up orders list
+                        oldListOrders.add(0, listOrders.get(groupPosition));
+                        oldListDataHeader.add(0, listDataHeader.get(groupPosition));
+
+                        // Remove from active orders list
+                        activeListOrders.remove(groupPosition);
+                        activeListDataHeader.remove(groupPosition);
+                        notifyDataSetChanged();
+
                     } else {
                         // User clicks on DONE button
                         group.check(R.id.button_done);
