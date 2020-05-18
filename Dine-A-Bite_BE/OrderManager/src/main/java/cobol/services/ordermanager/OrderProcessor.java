@@ -2,6 +2,7 @@ package cobol.services.ordermanager;
 
 import cobol.commons.Event;
 import cobol.commons.exception.DoesNotExistException;
+import cobol.commons.exception.OrderException;
 import cobol.commons.order.CommonOrder;
 import cobol.commons.order.Recommendation;
 import cobol.services.ordermanager.domain.entity.Food;
@@ -61,11 +62,8 @@ public class OrderProcessor {
     private volatile LinkedList<Event> eventQueue = new LinkedList<>();
 
 
-
     // key order id
     ListMultimap<Integer, Recommendation> orderRecommendations = ArrayListMultimap.create();
-
-
 
 
     private OrderProcessor() throws CommunicationException {
@@ -77,7 +75,7 @@ public class OrderProcessor {
 
     @PostConstruct
     private void run() throws CommunicationException {
-        this.subscriberId= communicationHandler.getSubscriberIdFromEC();
+        this.subscriberId = communicationHandler.getSubscriberIdFromEC();
     }
 
     // ---- Incoming Requests ---- //
@@ -91,7 +89,7 @@ public class OrderProcessor {
     public Order addNewOrder(Order newOrder) {
         newOrder.setState(CommonOrder.State.PENDING);
 
-        newOrder=orderRepository.save(newOrder);
+        newOrder = orderRepository.save(newOrder);
 
         // subscribe to the channel of the order
         communicationHandler.registerOnOrder(subscriberId, newOrder.getId());
@@ -122,10 +120,18 @@ public class OrderProcessor {
 
 
             List<OrderItem> orderItems = updatedOrder.getOrderItems();
-            for (OrderItem o : orderItems) {
-                foodRepository.decreaseStock(o.getFoodName(), standName, brandName, o.getAmount());
-            }
 
+            //Check if enough stock for every item in the order
+            for (OrderItem o : orderItems) {
+                Optional<Food> food = foodRepository.findFoodById(o.getFoodName(), standName, brandName);
+                if (food.isPresent()) {
+                    if (food.get().getStock() < o.getAmount()) {
+                        throw new OrderException("There is not enough stock for this order");
+                    }
+                } else {
+                    throw new OrderException("An item is missing from the menu to complete this order");
+                }
+            }
             //send the updated order to stand to place it in the queue
             CommonOrder mappedOrder = updatedOrder.asCommonOrder();
             ObjectMapper mapper = new ObjectMapper();
@@ -136,9 +142,13 @@ public class OrderProcessor {
             updatedOrder.setStartTime(actualTime);
             updatedOrder.setExpectedTime(actualTime.plusSeconds(currentWaitingTime));
             updatedOrder.setState(CommonOrder.State.CONFIRMED);
+
+            //Decrease stock
+            for (OrderItem o : orderItems) {
+                foodRepository.decreaseStock(o.getFoodName(), standName, brandName, o.getAmount());
+            }
+
             orderRepository.save(updatedOrder);
-
-
         }
         return updatedOrder;
     }
@@ -146,7 +156,7 @@ public class OrderProcessor {
     // ---- Update or Process existing orders ---- //
 
     private void updatePreparationEstimate(Order order) {
-        ZonedDateTime actualTime =  ZonedDateTime.now(ZoneId.of("Europe/Brussels"));
+        ZonedDateTime actualTime = ZonedDateTime.now(ZoneId.of("Europe/Brussels"));
         // Compute how long the stand has been working on this order
         int actualPrepTime = (int) Duration.between(actualTime, order.getStartTime()).getSeconds();
 
@@ -161,8 +171,8 @@ public class OrderProcessor {
                 largestPreptime = food.getPreparationTime();
             }
         }
-        int updatedAverage = (int) (((1-this.learningRate) * largestPreptime) + (learningRate * actualPrepTime));
-        if(foodToUpdate!=null){
+        int updatedAverage = (int) (((1 - this.learningRate) * largestPreptime) + (learningRate * actualPrepTime));
+        if (foodToUpdate != null) {
             foodToUpdate.setPreparationTime(updatedAverage);
             foodRepository.updatePreparationTime(foodToUpdate.getFoodId().getName(), order.getStand().getName(), brandName, updatedAverage);
         }
@@ -179,13 +189,13 @@ public class OrderProcessor {
     public Optional<Order> getOrder(int orderId) {
         return orderRepository.findById(orderId);
     }
-    
+
 
     // ---- Scheduled Requests ---- //
 
     @Scheduled(fixedDelay = 500)
     public void pollEvents() throws CommunicationException, JsonProcessingException, ParseException {
-        List<Event> newEvents= communicationHandler.pollEventsFromEC(subscriberId);
+        List<Event> newEvents = communicationHandler.pollEventsFromEC(subscriberId);
         eventQueue.addAll(newEvents);
     }
 
@@ -203,10 +213,10 @@ public class OrderProcessor {
                 CommonOrder.State newStatus = CommonOrder.State.valueOf(newStatusString);
                 int orderId = (int) eventData.get("orderId");
                 Optional<Order> localOrderOptional = orderRepository.findFullOrderById(orderId);
-                if(localOrderOptional.isPresent()){
+                if (localOrderOptional.isPresent()) {
 
                     // update to new state
-                    Order localOrder= localOrderOptional.get();
+                    Order localOrder = localOrderOptional.get();
                     localOrder.setState(newStatus);
                     if (newStatus.equals(CommonOrder.State.DECLINED) || newStatus.equals(CommonOrder.State.READY)) {
                         if (newStatus.equals(CommonOrder.State.READY)) {
