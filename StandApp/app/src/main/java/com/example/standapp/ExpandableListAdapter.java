@@ -139,7 +139,7 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
             toggleGroup.findViewById(R.id.button_start).setEnabled(true);
             toggleGroup.findViewById(R.id.button_done).setEnabled(false);
             toggleGroup.findViewById(R.id.button_picked_up).setEnabled(false);
-        } else if (State == CommonOrderStatusUpdate.State.CONFIRMED) {
+        } else if (State == CommonOrderStatusUpdate.State.BEGUN) {
             toggleGroup.check(R.id.button_start);
             toggleGroup.findViewById(R.id.button_done).setEnabled(true);
             toggleGroup.findViewById(R.id.button_picked_up).setEnabled(false);

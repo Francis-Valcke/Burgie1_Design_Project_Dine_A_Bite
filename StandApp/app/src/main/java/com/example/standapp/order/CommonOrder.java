@@ -39,9 +39,10 @@ public class CommonOrder implements Serializable {
         SEND,
         PENDING,
         DECLINED,
-        CONFIRMED, // START
+        CONFIRMED,
         READY, // DONE
-        PICKED_UP
+        BEGUN,// START
+        PICKED_UP;
     }
 
     // Type of recommendation wanted (not used in Stand app)
