@@ -183,4 +183,9 @@ public class LoginActivity extends AppCompatActivity {
         // Complete and destroy login activity once successfully creating an account
         finish();
     }
+
+    @Override
+    public void onBackPressed() {
+        // Do nothing (Android back button is disabled for this activity)
+    }
 }

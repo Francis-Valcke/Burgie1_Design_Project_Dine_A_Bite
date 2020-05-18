@@ -40,11 +40,12 @@ class Utils {
     static boolean isConnected(final Context context) {
 
         // Instantiate the RequestQueue
-        RequestQueue queue = Volley.newRequestQueue(context);
+        final RequestQueue queue = Volley.newRequestQueue(context);
         String om_url = ServerConfig.OM_ADDRESS + "/pingOM";
 
         // Request a string response (ping message) from the provided URL
-        StringRequest stringRequest = new StringRequest(Request.Method.GET, om_url, new Response.Listener<String>() {
+        final StringRequest stringRequest = new StringRequest(Request.Method.GET, om_url,
+                new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
                 isConnected = true;

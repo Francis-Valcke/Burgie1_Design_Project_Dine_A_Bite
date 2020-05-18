@@ -24,9 +24,7 @@ import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.JsonRequest;
 import com.android.volley.toolbox.Volley;
 import com.example.standapp.data.LoginDataSource;
 import com.example.standapp.data.LoginRepository;
@@ -100,7 +98,6 @@ public class OrderFragment extends Fragment {
         if (bundle != null && Utils.isLoggedIn(mContext, bundle)) {
             standName = bundle.getString("standName");
             brandName = bundle.getString("brandName");
-            subscriberId = bundle.getString("subscriberId");
 
             Log.d("Order fragment", "Logged in stand: " + standName); // DEBUG
             //Toast.makeText(mContext, standName, Toast.LENGTH_SHORT).show(); // DEBUG
@@ -109,16 +106,21 @@ public class OrderFragment extends Fragment {
             if ((Objects.requireNonNull(bundle.getString("subscriberId")).isEmpty()
                     || !Objects.equals(bundle.getString("subscriberId"), subscriberId))
                     && listAdapter != null) {
-                listDataHeader.clear();
+                activeListDataHeader.clear();
+                activeListOrders.clear();
                 listHash.clear();
-                listOrders.clear();
                 listStatus.clear();
                 oldListDataHeader.clear();
                 oldListOrders.clear();
+                listAdapter.setListDataHeader(activeListDataHeader);
+                listAdapter.setListOrders(activeListOrders);
                 listAdapter.setBrandName(brandName);
                 listAdapter.setStandName(standName);
                 listAdapter.notifyDataSetChanged();
             }
+
+            // Needs to be after the if-statement
+            subscriberId = bundle.getString("subscriberId");
         }
 
         // Get already existing orders from server when opening fragment for first time
@@ -198,7 +200,6 @@ public class OrderFragment extends Fragment {
         }
     }
 
-    // TODO fix reversing of orders list (graphical glitch?)
     // Receives the order updates from the polling service
     private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
         @Override
@@ -207,7 +208,7 @@ public class OrderFragment extends Fragment {
             Event eventUpdate = (Event) intent.getSerializableExtra("eventUpdate");
 
             if (eventUpdate != null && eventUpdate.getDataType().equals("Order")) {
-                // Add objects to the beginning of the ArrayLists -> TODO DOES NOT WORK
+                // Add objects to the beginning of the ArrayLists
                 // -> most recent order at the top of the list on screen
 
                 ObjectMapper mapper = new ObjectMapper();
@@ -215,11 +216,14 @@ public class OrderFragment extends Fragment {
                 JsonNode orderJson = eventData.get("order");
                 try {
                     CommonOrder orderUpdate = mapper.treeToValue(orderJson, CommonOrder.class);
-                    //listOrders.add(0, orderUpdate);
-                    activeListOrders.add(0, orderUpdate);
-
                     String orderName = "#" + orderUpdate.getId();
-                    //listDataHeader.add(0, orderName);
+
+                    // When the fetching of the orders from the server already contains the order
+                    // received from the event (edge case)
+                    if (activeListDataHeader.contains(orderName)
+                            || oldListDataHeader.contains(orderName)) return;
+
+                    activeListOrders.add(0, orderUpdate);
                     activeListDataHeader.add(0, orderName);
                     listStatus.put(orderName, CommonOrderStatusUpdate.State.PENDING);
                     List<String> orderItems = new ArrayList<>();
@@ -274,14 +278,15 @@ public class OrderFragment extends Fragment {
 
                         BetterResponseModel<List<CommonOrder>> responseModel = null;
                         try {
-                            responseModel = mapper
-                                    .readValue(response.toString(), new TypeReference<BetterResponseModel<List<CommonOrder>>>() {
-                                    });
+                            responseModel
+                                    = mapper.readValue(response.toString(),
+                                    new TypeReference<BetterResponseModel<List<CommonOrder>>>() {});
                         } catch (JsonProcessingException e) {
                             e.printStackTrace();
-                            Toast.makeText(context, "Error parsing response while fetching orders", Toast.LENGTH_LONG).show();
+                            Toast.makeText(context,
+                                    "Error parsing response while fetching orders",
+                                    Toast.LENGTH_LONG).show();
                         }
-
 
                         if (responseModel != null) {
                             if (responseModel.isOk()) {
@@ -294,9 +299,8 @@ public class OrderFragment extends Fragment {
                                         activeListOrders.add(0, order);
                                         activeListDataHeader.add(0, orderName);
                                     }
-                                    //listOrders.add(0, order);
-                                    //listDataHeader.add(0, orderName);
-                                    listStatus.put(orderName, CommonOrderStatusUpdate.convertStatus(order.getOrderState()));
+                                    listStatus.put(orderName,
+                                            CommonOrderStatusUpdate.convertStatus(order.getOrderState()));
                                     List<String> orderItems = new ArrayList<>();
                                     for (CommonOrderItem item : order.getOrderItems()) {
                                         orderItems.add(item.getAmount() + " : " + item.getFoodName());
@@ -306,10 +310,14 @@ public class OrderFragment extends Fragment {
                                 }
                                 listAdapter.notifyDataSetChanged();
                             } else {
-                                Toast.makeText(context, "Error while fetching stand orders", Toast.LENGTH_LONG).show();
+                                Toast.makeText(context,
+                                        "Error while fetching stand orders",
+                                        Toast.LENGTH_LONG).show();
                             }
                         } else {
-                            Toast.makeText(context, "Error while fetching stand orders", Toast.LENGTH_LONG).show();
+                            Toast.makeText(context,
+                                    "Error while fetching stand orders",
+                                    Toast.LENGTH_LONG).show();
                         }
                     }
                 }, new Response.ErrorListener() {
@@ -358,16 +366,18 @@ public class OrderFragment extends Fragment {
                 ObjectMapper mapper = new ObjectMapper();
                 ArrayList<CommonOrder> orders = new ArrayList<>();
 
-                // map to betterresponsemodel
-                BetterResponseModel<List<Event>> responseModel=null;
+                // Map to BetterResponseModel
+                BetterResponseModel<List<Event>> responseModel;
                 try {
-                    responseModel = mapper
-                            .readValue(response.toString(), new TypeReference<BetterResponseModel<List<Event>>>() {
-                            });
+                    responseModel
+                            = mapper.readValue(response.toString(),
+                            new TypeReference<BetterResponseModel<List<Event>>>() {});
                 }
                 catch (JsonProcessingException e){
                     e.printStackTrace();
-                    Toast.makeText(context,"Error while parsing response for getting orders", Toast.LENGTH_LONG).show();
+                    Toast.makeText(context,
+                            "Error while parsing response for getting orders",
+                            Toast.LENGTH_LONG).show();
                     return;
                 }
 
@@ -378,7 +388,6 @@ public class OrderFragment extends Fragment {
                         JsonNode eventData = event.getEventData();
                         JsonNode order = eventData.get("order");
                         orders.add(mapper.readValue(order.toString(), CommonOrder.class));
-                        //listOrders.add(0, mapper.readValue(order.toString(), CommonOrder.class));
                         activeListOrders.add(0, mapper.readValue(order.toString(), CommonOrder.class));
                     } catch (JsonProcessingException e) {
                         e.printStackTrace();
@@ -387,7 +396,6 @@ public class OrderFragment extends Fragment {
 
                 for (CommonOrder order : orders) {
                     String orderName = "#" + order.getId();
-                    //listDataHeader.add(0, orderName);
                     activeListDataHeader.add(0, orderName);
                     listStatus.put(orderName, CommonOrderStatusUpdate.State.PENDING);
                     List<String> orderItems = new ArrayList<>();

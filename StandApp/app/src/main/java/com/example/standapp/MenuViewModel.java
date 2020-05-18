@@ -18,12 +18,17 @@ public class MenuViewModel extends ViewModel {
 
     private MutableLiveData<ArrayList<CommonFood>> menuList = new MutableLiveData<>();
 
-    public LiveData<ArrayList<CommonFood>> getMenuList() {
+    public LiveData<ArrayList<CommonFood>> getLiveDataMenuList() {
         return menuList;
+    }
+
+    public ArrayList<CommonFood> getMenuList() {
+        return menuList.getValue();
     }
 
     public void setMenuList(ArrayList<CommonFood> menuList) {
         this.menuList.setValue(menuList);
+        if (this.menuList.getValue() == null) System.out.println("Something wrong");
     }
 
     public void resetMenuList() {

@@ -169,4 +169,9 @@ public class RegisterActivity extends AppCompatActivity {
         Snackbar.make(findViewById(R.id.register), errorString, Snackbar.LENGTH_SHORT)
                 .show();
     }
+
+    @Override
+    public void onBackPressed() {
+        // Do nothing (Android back button is disabled for this activity)
+    }
 }
