@@ -161,13 +161,13 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
                     // User clicks on START button (and checks it)
                     // - enable DONE button
 
-                    if (listStatus.get(headerTitle) == CommonOrderStatusUpdate.State.PENDING) {
+                    if (listStatus.get(headerTitle) == CommonOrderStatusUpdate.State.PENDING||listStatus.get(headerTitle) ==CommonOrderStatusUpdate.State.CONFIRMED) {
                         // The current state is PENDING (not START/CONFIRMED)
                         // - change state to START/CONFIRMED
 
                         Toast.makeText(group.getContext(), headerTitle + ": Start",
                                 Toast.LENGTH_SHORT).show();
-                        listStatus.put(headerTitle, CommonOrderStatusUpdate.State.CONFIRMED);
+                        listStatus.put(headerTitle, CommonOrderStatusUpdate.State.BEGUN);
                         sendOrderStatusUpdate(groupPosition, finalView.getContext());
 
                     }
