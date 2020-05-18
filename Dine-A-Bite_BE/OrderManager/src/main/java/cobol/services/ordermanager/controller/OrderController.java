@@ -27,6 +27,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -215,8 +217,8 @@ public class OrderController {
                 // add all seperate orders to orderprocessor, this will give them an orderId and initial values
                 if (firstSplit){
                     order = orderTemp;
-                    order.setStartTime(commonOrder.getStartTime());
-                    order.setExpectedTime(commonOrder.getExpectedTime());
+                    order.setStartTime(ZonedDateTime.now(ZoneId.of("Europe/Brussels")));
+                    order.setExpectedTime(ZonedDateTime.now(ZoneId.of("Europe/Brussels")));
                     order.setOrderState(commonOrder.getOrderState());
                     order.setOrderItems(new ArrayList<>());
                     for (CommonOrderItem commonOrderItem : commonOrder.getOrderItems()) {
