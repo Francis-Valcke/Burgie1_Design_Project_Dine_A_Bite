@@ -46,6 +46,7 @@ public class NotificationChannelSetup extends Application {
             NotificationManager manager = getSystemService(NotificationManager.class);
             manager.createNotificationChannel(orderStart);
             manager.createNotificationChannel(orderDone);
+            manager.createNotificationChannel(orderDepart);
         }
     }
 }

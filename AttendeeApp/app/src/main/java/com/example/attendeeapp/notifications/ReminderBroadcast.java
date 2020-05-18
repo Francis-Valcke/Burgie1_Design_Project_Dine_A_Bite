@@ -18,16 +18,19 @@ public class ReminderBroadcast extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        int notificationID = 1000; //intent.getIntExtra("notificationID", 1);
+        int notificationID = intent.getIntExtra("notificationID", 1);
+        int orderID = intent.getIntExtra("orderID", -1);
+        intent.removeExtra("orderID");
         Bitmap largeIcon = BitmapFactory.decodeResource(context.getResources(), R.mipmap.ic_launcher_foreground);
 
         NotificationCompat.Builder notification = new NotificationCompat.Builder(context, CHANNEL_DEPART_ID)
                 .setSmallIcon(R.mipmap.ic_launcher_foreground)
-                .setContentTitle("Time to fetch order")
-                .setContentText("Depart now to your destination to fetch your order in time!")
+                .setContentTitle("Time to fetch order #" + orderID)
+                .setContentText("Please depart now to your destination!")
                 .setLargeIcon(largeIcon)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
-                .setColor(Color.BLUE);
+                .setCategory(NotificationCompat.CATEGORY_STATUS)
+                .setColor(Color.RED);
 
         NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
         // notificationId is a unique int for each notification that you must define

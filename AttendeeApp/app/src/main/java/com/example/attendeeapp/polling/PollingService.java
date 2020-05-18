@@ -196,54 +196,34 @@ public class PollingService extends Service {
                                                 System.out.println("DISTANCE between both locations in meter: " + result[0] + " m and in km: " + result[0]/1000 + " km");
                                                 double timeToDestination = result[0]/(5/3.6); // The time (in s) the attendee will need to walk to his destination
                                                 double remainingTimeDepart = remainingTimeOrder - result[0]/(5/3.6);
-                                                notificationText = "Your order will be ready in approximately " + Math.round(remainingTimeOrder/60) + " minutes.\n" +
-                                                        "Distance to your order: " + result[0]/1000 + " km\n" +
-                                                        "Approximate time needed to walk to your destination: " + Math.round(timeToDestination/60) + " minutes.";
+                                                notificationText = "Your order will be ready in approximately " + Math.round(remainingTimeOrder/60.0) + " minute(s).\n" +
+                                                        "Distance to your order: " + result[0] + " m\n" +
+                                                        "Approximate time needed to walk to your destination: " + Math.round(timeToDestination/60.0) + " minute(s).";
 
                                                 if (remainingTimeDepart <= 0) {
-                                                    Intent intentReminderBroadcast = new Intent(PollingService.this, ReminderBroadcast.class);
-                                                    intentReminderBroadcast.putExtra("notificationID", notificationID);
-                                                    PendingIntent pendingIntent = PendingIntent.getBroadcast(PollingService.this, 0, intentReminderBroadcast, 0);
-
-                                                    AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
-                                                    long currentTime = System.currentTimeMillis();
-                                                    long remainingTimeDepartMillis = 10 * 1000; //Math.round(remainingTimeDepart) * 1000;
-                                                    alarmManager.set(AlarmManager.RTC_WAKEUP,
-                                                            currentTime + remainingTimeDepartMillis,
-                                                            pendingIntent);
-                                                    notificationID++;
                                                     notificationText += "\nPlease depart now to your destination to fetch your order on time.";
                                                 }
                                                 else {
                                                     Intent intentReminderBroadcast = new Intent(PollingService.this, ReminderBroadcast.class);
                                                     intentReminderBroadcast.putExtra("notificationID", notificationID);
-                                                    PendingIntent pendingIntent = PendingIntent.getBroadcast(PollingService.this, 0, intent, 0);
+                                                    intentReminderBroadcast.putExtra("orderID", orderStatusUpdate.getOrderId());
+                                                    PendingIntent pendingIntent = PendingIntent.getBroadcast(PollingService.this, 0, intentReminderBroadcast, PendingIntent.FLAG_UPDATE_CURRENT);
 
                                                     AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
                                                     long currentTime = System.currentTimeMillis();
-                                                    long remainingTimeDepartMillis = 10 * 1000; //Math.round(remainingTimeDepart) * 1000;
+                                                    long remainingTimeDepartMillis = Math.round(remainingTimeDepart * 1000);
                                                     alarmManager.set(AlarmManager.RTC_WAKEUP,
                                                             currentTime + remainingTimeDepartMillis,
                                                             pendingIntent);
                                                     notificationID++;
-                                                    notificationText += "\nYou will receive a reminder within " + Math.round(remainingTimeDepartMillis/(1000*60)) + " minutes to leave for your order on time.";
+                                                    long periodDepart = Math.round(remainingTimeDepartMillis/(1000.0*60));
+                                                    notificationText += "\nYou will be reminded within " + Math.round(remainingTimeDepartMillis/(1000.0*60)) + " minute(s) to leave for your order on time.";
                                                 }
                                             }
+                                            // in case the location of the attendee is null:
                                             else {
                                                 System.out.println("Lastlocation is NULL!");
-                                                //notificationText = "Your order will be ready in approximately " + Math.round(remainingTimeOrder/60) + " minutes.";
-                                                Intent intentReminderBroadcast = new Intent(PollingService.this, ReminderBroadcast.class);
-                                                intentReminderBroadcast.putExtra("notificationID", notificationID);
-                                                PendingIntent pendingIntent = PendingIntent.getBroadcast(PollingService.this, 0, intent, 0);
-
-                                                AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
-                                                long currentTime = System.currentTimeMillis();
-                                                long remainingTimeDepartMillis = 10 * 1000; //Math.round(remainingTimeDepart) * 1000;
-                                                alarmManager.set(AlarmManager.RTC_WAKEUP,
-                                                        currentTime + remainingTimeDepartMillis,
-                                                        pendingIntent);
-                                                notificationID++;
-                                                notificationText += "\nYou will receive a reminder within " + Math.round(remainingTimeDepartMillis/(1000*60)) + " minutes to leave for your order on time.";
+                                                notificationText += "Your order will be ready in approximately " + Math.round(remainingTimeOrder/60.0) + " minute(s).";
                                             }
 
                                             NotificationCompat.Builder notification = new NotificationCompat.Builder(context, CHANNEL_START_ID)
