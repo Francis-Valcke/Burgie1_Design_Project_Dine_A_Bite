@@ -14,8 +14,9 @@ public class ServerConfig {
 
     public static final double latStart = 51.031652;
     public static final double lonStart = 3.782850;
-    public static final int attendeeCount = 100;
-    public static final int standCount=13;
+    public static final int attendeeCount = 20;
+    //public static final int standCount=13; //constant for now
+    public static final double totaltestseconds=25.0;//minutes irl
     
 
 }

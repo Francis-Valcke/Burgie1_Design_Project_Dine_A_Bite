@@ -222,9 +222,8 @@ public class OrderProcessor {
             }
             if (e.getDataType().equals("Order")) {
                 JSONObject eventData = e.getEventData();
-                CommonOrder order = (CommonOrder)eventData.get("order");
-                int orderId = order.getId();
-                ZonedDateTime expected = order.getExpectedTime();
+                int orderId = (int) eventData.get("orderId");
+                ZonedDateTime expected = (ZonedDateTime) eventData.get("expectedTime");
                 Optional<Order> localOrderOptional = orderRepository.findFullOrderById(orderId);
                 localOrderOptional.get().setExpectedTime(expected);
 

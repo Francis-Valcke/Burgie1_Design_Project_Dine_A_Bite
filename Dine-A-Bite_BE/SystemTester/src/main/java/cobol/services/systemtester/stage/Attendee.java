@@ -1,8 +1,19 @@
 package cobol.services.systemtester.stage;
 
+import cobol.commons.BetterResponseModel;
+import cobol.commons.Event;
+import cobol.commons.order.CommonOrder;
+import cobol.commons.order.Recommendation;
 import cobol.services.systemtester.ServerConfig;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
+import com.mashape.unirest.request.body.RequestBodyEntity;
 import io.reactivex.Single;
 import io.reactivex.SingleOnSubscribe;
 import io.reactivex.schedulers.Schedulers;
@@ -132,17 +143,17 @@ public class Attendee {
     }
 
 
-    public Single<JSONArray> getGlobalMenu() {
+    public Single<JSONObject> getGlobalMenu() {
 
-        return Single.create((SingleOnSubscribe<JSONArray>) emitter -> {
+        return Single.create((SingleOnSubscribe<JSONObject>) emitter -> {
 
             try {
-                JSONArray responseBody = Unirest.get(ServerConfig.OMURL + "/menu")
+                JSONObject responseBody = Unirest.get(ServerConfig.OMURL + "/menu")
                         .header("Content-Type", "application/json")
                         .header("Authorization", "Bearer " + token)
                         .asJson()
                         .getBody()
-                        .getArray();
+                        .getObject();
 
                 emitter.onSuccess(responseBody);
 
@@ -155,12 +166,12 @@ public class Attendee {
     }
 
 
-    public Single<JSONObject> placeRandomOrder(JSONArray items, int itemCount) {
+    public Single<JSONObject> placeRandomOrder(JSONObject response, int itemCount) {
         //Prepare order
         Random random = new Random();
         JSONObject order = new JSONObject();
         JSONArray orderItems = new JSONArray();
-
+        JSONArray items = (JSONArray) response.get("payload");
         //Random brandname to choose items from
         String brandName = items.getJSONObject(random.nextInt(items.length())).getString("brandName");
         while (!brandName.contains("_test"))
@@ -184,24 +195,26 @@ public class Attendee {
         order.put("orderStatus", "SEND");
         order.put("brandName", brandName);
         order.put("orderItems", orderItems);
+        order.put("recType", CommonOrder.RecommendType.DISTANCE_AND_TIME);
 
 
         return Single.create((SingleOnSubscribe<JSONObject>) emitter -> {
 
             try {
                 //Send order
-                JSONObject responseBody = Unirest.post(ServerConfig.OMURL + "/placeOrder")
+                JSONObject responseBody =  Unirest.post(ServerConfig.OMURL + "/placeOrder")
                         .header("Content-Type", "application/json")
                         .header("Authorization", "Bearer " + token)
                         .body(order)
                         .asJson()
                         .getBody()
                         .getObject();
-                recommendations = responseBody.getJSONArray("recommendations");
-                orderid = responseBody.getJSONObject("order").getInt("id");
+                JSONObject object = (JSONObject) responseBody.get("payload");
+                recommendations = object.getJSONArray("recommendations");
+                orderid = object.getJSONObject("order").getInt("id");
                 emitter.onSuccess(responseBody);
 
-            } catch (UnirestException | JSONException e) {
+            } catch (JSONException e) {
                 emitter.onError(e);
             }
 

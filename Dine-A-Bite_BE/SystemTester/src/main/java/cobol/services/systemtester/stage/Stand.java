@@ -1,11 +1,16 @@
 package cobol.services.systemtester.stage;
 
+import cobol.commons.BetterResponseModel;
 import cobol.commons.CommonFood;
+import cobol.commons.Event;
 import cobol.commons.order.CommonOrder;
+import cobol.commons.order.CommonOrderStatusUpdate;
 import cobol.services.systemtester.ServerConfig;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.mashape.unirest.http.JsonNode;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
 import io.reactivex.Single;
@@ -33,11 +38,15 @@ public class Stand extends Thread {
     private final List<CommonOrder> orders = new ArrayList<>();
     private int subscriberId;
     private Logger log;
+    private double timeToNext;
+    private boolean inprogress;
 
 
     public Stand(double latitude, double longitude) {
         this.id = idCounter;
         idCounter++;
+        timeToNext=0;
+        inprogress=false;
         this.longitude = longitude;
         this.latitude = latitude;
     }
@@ -46,11 +55,15 @@ public class Stand extends Thread {
     public Stand() {
         this.id = idCounter;
         idCounter++;
+        timeToNext=0;
+        inprogress=false;
     }
 
     public Stand(String standName, String brandName, double latitude, double longitude, List<CommonFood> menu) {
         this.id = idCounter;
         idCounter++;
+        timeToNext=0;
+        inprogress=false;
         this.standName = standName;
         this.brandName = brandName;
         this.latitude = latitude;
@@ -61,6 +74,8 @@ public class Stand extends Thread {
     public Stand(String standName, String brandName, double latitude, double longitude) {
         this.id = idCounter;
         idCounter++;
+        timeToNext=0;
+        inprogress=false;
         this.standName = standName;
         this.brandName = brandName;
         this.latitude = latitude;
@@ -260,28 +275,28 @@ public class Stand extends Thread {
         );
     }
 
-    public Single<JSONArray> pollEvents() {
-        return Single.create((SingleOnSubscribe<JSONArray>) emitter -> {
+    public Single<JSONObject> pollEvents() {
+        return Single.create((SingleOnSubscribe<JSONObject>) emitter -> {
 
             try {
-                JsonNode responseBody = Unirest.get(ServerConfig.ECURL + "/events?id=" + subscriberId)
+                JSONObject responseBody = Unirest.get(ServerConfig.ECURL + "/events?id=" + subscriberId)
                         .header("Content-Type", "application/json")
                         .header("Authorization", "Bearer " + token)
                         .asJson()
-                        .getBody();
-                if (responseBody.getArray().length() == 0) emitter.onSuccess(new JSONArray().put("no orders"));
-                else {
-                    for (int i = 0; i < responseBody.getArray().length(); i++) {
-                        ObjectMapper om = new ObjectMapper();
-                        om.registerModule(new JavaTimeModule());
-                        JSONObject eventJSON = (JSONObject) responseBody.getArray().get(i);
-                        JSONObject eventData = (JSONObject) eventJSON.get("eventData");
-                        JSONObject orderJSON = (JSONObject) eventData.get("order");
-                        CommonOrder order = om.readValue(orderJSON.toString(), CommonOrder.class);
-                        orders.add(order);
-                    }
-                    emitter.onSuccess(responseBody.getArray());
+                        .getBody()
+                        .getObject();
+                JSONArray events = (JSONArray) responseBody.get("payload");
+                for (int i = 0; i < events.length(); i++) {
+                     ObjectMapper om = new ObjectMapper();
+                     om.registerModule(new JavaTimeModule());
+                     JSONObject eventJSON = (JSONObject) events.get(i);
+                     JSONObject eventData = (JSONObject) eventJSON.get("eventData");
+                     JSONObject orderJSON = (JSONObject) eventData.get("order");
+                     CommonOrder order = om.readValue(orderJSON.toString(), CommonOrder.class);
+                     orders.add(order);
                 }
+                emitter.onSuccess(responseBody);
+
             } catch (UnirestException | JSONException e) {
                 emitter.onError(e);
             }
@@ -290,20 +305,103 @@ public class Stand extends Thread {
 
     public void run() {
         int time = 0;
-        while (time < 30) {
+        int pollTime=0;
+        while (time < ServerConfig.totaltestseconds*2) {
             time++;
+            pollTime++;
             try {
-                Thread.sleep(10000);
+                Thread.sleep(1000);//1 seconds
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            pollEvents().subscribe(
-                    o -> log.info("Orders polled"),
-                    throwable -> log.error(throwable.getMessage())
-            );
+
+            if (timeToNext<=0) {
+                if (inprogress){
+                    readyFirstOrder();
+                    orders.remove(0);
+                }
+                if (orders.size()>0)prepareFirstOrder();
+                else inprogress=false;
+
+            }
+            timeToNext-=60;
+            if (pollTime==10) {
+                pollEvents().subscribe(
+                        o -> log.info("Orders polled"),
+                        throwable -> log.error(throwable.getMessage())
+                );
+                pollTime=0;
+            }
+
+
+
         }
-        //receive orders
-        //prepare orders
+    }
+
+    public Single<JSONObject> prepareFirstOrder()  {
+        inprogress=true;
+        org.json.simple.JSONObject eventData = new org.json.simple.JSONObject();
+        eventData.put("orderId",orders.get(0).getId());
+        eventData.put("mNewState", CommonOrderStatusUpdate.State.BEGUN);
+        ArrayList<String> types = new ArrayList<>();
+        types.add("s_" + standName + "_" + brandName);
+        types.add("o_" + orders.get(0).getId());
+        Event event = new Event(eventData, types, "OrderStatusUpdate");
+        timeToNext=orders.get(0).computeRemainingTime();
+
+
+        //Create single from request
+        return Single.create((SingleOnSubscribe<JSONObject>) emitter -> {
+
+            try {
+                JSONObject responseBody = Unirest.post(ServerConfig.ECURL + "/publishEvent")
+                        .header("Content-Type", "application/json")
+                        .header("Authorization", "Bearer " + token)
+                        .body(event)
+                        .asJson()
+                        .getBody()
+                        .getObject();
+                emitter.onSuccess(responseBody);
+
+
+            } catch (UnirestException | JSONException e) {
+                emitter.onError(e);
+            }
+
+        }).observeOn(Schedulers.io());
+    }
+
+    public Single<JSONObject> readyFirstOrder()  {
+
+        org.json.simple.JSONObject eventData = new org.json.simple.JSONObject();
+        eventData.put("orderId",orders.get(0).getId());
+        eventData.put("mNewState", CommonOrderStatusUpdate.State.READY);
+        ArrayList<String> types = new ArrayList<>();
+        types.add("s_" + standName + "_" + brandName);
+        types.add("o_" + orders.get(0).getId());
+        Event event = new Event(eventData, types, "OrderStatusUpdate");
+        timeToNext=orders.get(0).computeRemainingTime();
+
+
+        //Create single from request
+        return Single.create((SingleOnSubscribe<JSONObject>) emitter -> {
+
+            try {
+                JSONObject responseBody = Unirest.post(ServerConfig.ECURL + "/publishEvent")
+                        .header("Content-Type", "application/json")
+                        .header("Authorization", "Bearer " + token)
+                        .body(event)
+                        .asJson()
+                        .getBody()
+                        .getObject();
+                emitter.onSuccess(responseBody);
+
+
+            } catch (UnirestException | JSONException e) {
+                emitter.onError(e);
+            }
+
+        }).observeOn(Schedulers.io());
     }
 
     public Single<JSONObject> delete() {

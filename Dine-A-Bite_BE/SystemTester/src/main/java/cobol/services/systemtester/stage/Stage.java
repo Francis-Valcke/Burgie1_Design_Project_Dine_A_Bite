@@ -1,5 +1,6 @@
 package cobol.services.systemtester.stage;
 
+import cobol.services.systemtester.ServerConfig;
 import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
@@ -35,9 +36,9 @@ public class Stage extends Thread {
     }
 
     public void run() {
-        while (time < 120) {
+        while (time < ServerConfig.totaltestseconds) {
             try {
-                Thread.sleep(1000);
+                Thread.sleep(1000);//1 second
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }

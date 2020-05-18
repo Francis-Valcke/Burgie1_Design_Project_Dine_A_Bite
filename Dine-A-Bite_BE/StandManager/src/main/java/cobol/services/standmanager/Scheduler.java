@@ -8,6 +8,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -68,7 +70,7 @@ public class Scheduler {
      * @param state
      * @throws JsonProcessingException
      */
-    public void updateOrder(int orderId, CommonOrder.State state) throws JsonProcessingException {
+    public void updateOrder(int orderId, CommonOrder.State state) throws JsonProcessingException, ParseException {
         CommonOrder order=null;
 
         //look for order
@@ -102,7 +104,7 @@ public class Scheduler {
      * updates expected times for orders depending on their positions in queue
      * @param queueTime time after orders under preparation are estimated to be ready
      */
-    public void updateQueue(int queueTime) throws JsonProcessingException {
+    public void updateQueue(int queueTime) throws JsonProcessingException, ParseException {
         ZonedDateTime actualTime = ZonedDateTime.now(ZoneId.of("Europe/Brussels"));
         for (CommonOrder o : inc){
             if (o.getOrderState().equals(CommonOrder.State.BEGUN)) continue;
@@ -122,11 +124,12 @@ public class Scheduler {
      * @return response
      * @throws JsonProcessingException
      */
-    public String sendOrderStatusUpdate(CommonOrder order) throws JsonProcessingException {
+    public String sendOrderStatusUpdate(CommonOrder order) throws JsonProcessingException, ParseException {
         ObjectMapper mapper = new ObjectMapper();
         // Create event for eventchannel
         JSONObject orderJson = new JSONObject();
-        orderJson.put("order", order);
+        JSONParser parser = new JSONParser();
+        orderJson = (JSONObject) parser.parse(order.toString());
         ArrayList<String> types = new ArrayList<>();
         types.add("s_" + standName + "_" + brandName);
         types.add("o_" + order.getId());

@@ -42,13 +42,13 @@ public class EventSimulation {
             // Each degree of latitude is approximately 111 kilometers apart
             // At 40 degrees north or south, the distance between a degree of longitude is 85 kilometers
             // distribute the stages around event with a mean of approximately 1 km
-            Stage s = new Stage(0, 0, 1.0 / 111, 1.0 / 85, size / stageCount, log);
+            Stage s = new Stage(ServerConfig.latStart, ServerConfig.lonStart, 1.0 / 111, 1.0 / 85, size / stageCount, log);
             if (j < stands.size()) s.addStand(stands.get(j));
             j++;
             if (j < stands.size()) s.addStand(stands.get(j));
             stages.add(s);
             for (Attendee a : s.getAttendees()) {
-                a.setOrdertime(ran.nextGaussian() * 30 + 60);
+                a.setOrdertime(ran.nextGaussian() * ServerConfig.totaltestseconds/4 + ServerConfig.totaltestseconds/2);
                 a.setup(log);
             }
 

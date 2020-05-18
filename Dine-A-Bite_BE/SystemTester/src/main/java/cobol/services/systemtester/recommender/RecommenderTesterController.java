@@ -1,6 +1,7 @@
 package cobol.services.systemtester.recommender;
 
 import cobol.services.systemtester.EventSimulation;
+import cobol.services.systemtester.ServerConfig;
 import cobol.services.systemtester.stage.Attendee;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,7 +25,7 @@ public class RecommenderTesterController {
     @GetMapping("/setup")
     public void setup() throws IOException {
         es = new EventSimulation();
-        es.setup(10);
+        es.setup(ServerConfig.attendeeCount);
     }
 
     @GetMapping("/test")
@@ -41,7 +42,7 @@ public class RecommenderTesterController {
     @PostConstruct
     public void run() throws IOException, InterruptedException {
         es = new EventSimulation();
-        es.setup(100);
+        es.setup(ServerConfig.attendeeCount);
         es.start();
         es.checkOrderIds();
         es.getTotalWaitingTime();
