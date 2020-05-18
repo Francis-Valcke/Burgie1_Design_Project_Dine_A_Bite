@@ -76,16 +76,6 @@ public class MenuActivity extends ToolbarActivity implements OnCartChangeListene
         });
     }
 
-    /**
-     * Called after onCreate()
-     */
-    @Override
-    public void onStart() {
-        super.onStart();
-        // Ask for location permission
-        checkLocationPermission();
-    }
-
     @SuppressLint("SetTextI18n")
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
