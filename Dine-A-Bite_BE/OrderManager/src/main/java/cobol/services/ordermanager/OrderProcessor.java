@@ -85,7 +85,7 @@ public class OrderProcessor {
      * @return Order: persisted Order object
      */
     public Order addNewOrder(Order newOrder) {
-        newOrder.setState(CommonOrder.State.PENDING);
+        newOrder.setOrderState(CommonOrder.State.PENDING);
 
         newOrder=orderRepository.save(newOrder);
 
@@ -125,7 +125,7 @@ public class OrderProcessor {
             ZonedDateTime actualTime =  ZonedDateTime.now(ZoneId.of("Europe/Brussels"));
             updatedOrder.setStartTime(actualTime);
             updatedOrder.setExpectedTime(actualTime.plusSeconds(currentWaitingTime));
-            updatedOrder.setState(CommonOrder.State.CONFIRMED);
+            updatedOrder.setOrderState(CommonOrder.State.CONFIRMED);
             orderRepository.save(updatedOrder);
         }
 
@@ -196,7 +196,7 @@ public class OrderProcessor {
 
                     // update to new state
                     Order localOrder= localOrderOptional.get();
-                    localOrder.setState(newStatus);
+                    localOrder.setOrderState(newStatus);
                     if (newStatus.equals(CommonOrder.State.DECLINED) || newStatus.equals(CommonOrder.State.READY)) {
                         if (newStatus.equals(CommonOrder.State.READY)) {
                             updatePreparationEstimate(localOrder);

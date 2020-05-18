@@ -27,6 +27,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -194,17 +195,41 @@ public class OrderController {
         JSONArray completeResponse = new JSONArray();
 
         try {
+            //Temporary "fix" for superorder issue with priorityqueues
+            //Will be a useless (empty) order in db if superorder really does need to be split
+            //Only necessary to "reserve" an id in db for if superorder doesn't need to be split at all
+            Order orderTemp = new Order();
+            orderProcessor.addNewOrder(orderTemp);
             // ask StandManger to split these orderItems in Orders and give A recommendation
+            superOrder.setTempId(orderTemp.getId());
             List<SuperOrderRec> ordersRecommendations = communicationHandler.getSuperRecommendationFromSM(superOrder);
 
+            boolean firstSplit = true;
             for (SuperOrderRec ordersRecommendation : ordersRecommendations) {
                 CommonOrder commonOrder= ordersRecommendation.getOrder();
                 List<Recommendation> recommendations= ordersRecommendation.getRecommendations();
 
                 orderTransaction(commonOrder, userDetails);
 
+                Order order;
                 // add all seperate orders to orderprocessor, this will give them an orderId and initial values
-                Order order = new Order(commonOrder);
+                if (firstSplit){
+                    order = orderTemp;
+                    order.setStartTime(commonOrder.getStartTime());
+                    order.setExpectedTime(commonOrder.getExpectedTime());
+                    order.setOrderState(commonOrder.getOrderState());
+                    order.setOrderItems(new ArrayList<>());
+                    for (CommonOrderItem commonOrderItem : commonOrder.getOrderItems()) {
+                        order.addOrderItem(new OrderItem(commonOrderItem, order));
+                    }
+                    order.setLatitude(commonOrder.getLatitude());
+                    order.setLongitude(commonOrder.getLongitude());
+                    order.setRecType(commonOrder.getRecType());
+                    firstSplit = false;
+                }
+                else {
+                    order = new Order(commonOrder);
+                }
                 User user = userRepository.findById(userDetails.getUsername()).orElse(userRepository.save(new User(userDetails)));
                 order.setUser(user);
                 orderProcessor.addNewOrder(order);
