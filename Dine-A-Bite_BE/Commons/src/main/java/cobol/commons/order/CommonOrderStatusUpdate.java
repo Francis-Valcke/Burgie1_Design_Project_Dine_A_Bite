@@ -1,4 +1,4 @@
-package com.example.standapp.order;
+package cobol.commons.order;
 
 /**
  * Class for sending an order status update of an order to the Event Channel
@@ -12,9 +12,10 @@ public class CommonOrderStatusUpdate {
         SEND,
         PENDING,
         DECLINED,
-        CONFIRMED, // START
+        CONFIRMED,
         READY, // DONE
-        PICKED_UP
+        PICKED_UP,
+        BEGUN // START
     }
 
     public CommonOrderStatusUpdate() {}
@@ -44,6 +45,8 @@ public class CommonOrderStatusUpdate {
                 return CommonOrderStatusUpdate.State.CONFIRMED;
             case READY:
                 return CommonOrderStatusUpdate.State.READY;
+            case BEGUN:
+                return CommonOrderStatusUpdate.State.BEGUN;
             default:
                 return CommonOrderStatusUpdate.State.PICKED_UP;
         }
