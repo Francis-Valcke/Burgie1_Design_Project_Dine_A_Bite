@@ -83,8 +83,8 @@ public class Scheduler {
         boolean alreadyBegun=false; //if somehow standapp starts order twice, it wont restart timer
         if (order.getOrderState().equals(CommonOrder.State.BEGUN)){alreadyBegun=true;}
         order.setOrderState(state);
-        //if order is picked up, this has no effect on queue, so no other orders are affected
-        if (order.getOrderState().equals(CommonOrder.State.READY)){
+        //if order is ready or canceled, the order has to be removed. Queue isnt updated until another order starts preparing
+        if (order.getOrderState().equals(CommonOrder.State.READY)||order.getOrderState().equals(CommonOrder.State.DECLINED) ){
             inc.remove(order);
             return;
         }

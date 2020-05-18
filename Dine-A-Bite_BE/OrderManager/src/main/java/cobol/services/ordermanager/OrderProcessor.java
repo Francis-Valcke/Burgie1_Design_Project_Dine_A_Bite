@@ -206,7 +206,7 @@ public class OrderProcessor {
                         // deregister from order
                         communicationHandler.deregisterFromOrder(subscriberId, orderId);
                     }
-                    if (newStatus.equals(CommonOrder.State.BEGUN)|| newStatus.equals(CommonOrder.State.READY)){
+                    if (newStatus.equals(CommonOrder.State.DECLINED) || newStatus.equals(CommonOrder.State.BEGUN)|| newStatus.equals(CommonOrder.State.READY)){
                         Map<String, String> params = new HashMap<>();
                         params.put("standName", localOrder.getStand().getName());
                         params.put("brandName", localOrder.getStand().getBrandName());
@@ -220,7 +220,18 @@ public class OrderProcessor {
                     orderRepository.updateState(localOrder.getId(), localOrder.getOrderState());
                 }
             }
+            if (e.getDataType().equals("Order")) {
+                JSONObject eventData = e.getEventData();
+                CommonOrder order = (CommonOrder)eventData.get("order");
+                int orderId = order.getId();
+                ZonedDateTime expected = order.getExpectedTime();
+                Optional<Order> localOrderOptional = orderRepository.findFullOrderById(orderId);
+                localOrderOptional.get().setExpectedTime(expected);
+
+
+            }
         }
+
     }
 
 }
