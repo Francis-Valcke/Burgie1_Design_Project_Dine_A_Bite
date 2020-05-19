@@ -5,7 +5,10 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.location.Location;
 import android.os.Bundle;
+import android.util.Log;
+import android.os.Looper;
 import android.widget.ExpandableListView;
 import android.widget.Switch;
 import android.widget.Toast;
@@ -15,19 +18,26 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
-import com.android.volley.toolbox.JsonArrayRequest;
+import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.example.attendeeapp.appDatabase.OrderDatabaseService;
 import com.example.attendeeapp.data.LoginDataSource;
 import com.example.attendeeapp.data.LoginRepository;
 import com.example.attendeeapp.data.model.LoggedInUser;
+import com.example.attendeeapp.json.BetterResponseModel;
 import com.example.attendeeapp.json.CommonOrder;
 import com.example.attendeeapp.json.CommonOrderStatusUpdate;
 import com.example.attendeeapp.polling.PollingService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationCallback;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationResult;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.model.LatLng;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -36,8 +46,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Activity to handle the show order overview
- * Loads previous orders from the internal database stored on the divide
+ * Activity to handle the order user interface.
  */
 public class OrderActivity extends ToolbarActivity {
 
@@ -48,7 +57,14 @@ public class OrderActivity extends ToolbarActivity {
     private OrderItemExpandableAdapter adapter;
     private LoggedInUser user = LoginRepository.getInstance(new LoginDataSource()).getLoggedInUser();
 
-    // Receives the order updates from the polling service
+    private Location lastLocation;
+    private FusedLocationProviderClient fusedLocationClient;
+    private LocationRequest locationRequest;
+    private LocationCallback locationCallback;
+
+    /**
+     * Receives the order updates from the polling service.
+     */
     private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -56,17 +72,20 @@ public class OrderActivity extends ToolbarActivity {
             CommonOrderStatusUpdate orderStatusUpdate = (CommonOrderStatusUpdate) intent.getSerializableExtra("orderStatusUpdate");
             if (orderUpdate != null) {
                 // Update all order fields
-                //adapter.notifyDataSetChanged();
+                adapter.updateOrder(orderUpdate);
+                adapter.notifyDataSetChanged();
             }
             if (orderStatusUpdate != null) {
                 // Update order status fields
-                adapter.updateOrder(orderStatusUpdate.getOrderId(), orderStatusUpdate.getNewState());
+                adapter.updateOrderState(orderStatusUpdate.getOrderId(), orderStatusUpdate.getNewState());
                 adapter.notifyDataSetChanged();
             }
         }
     };
 
-    // If the service polling for order updates is running or not
+    /**
+     * If the service polling for order updates is currently running or not
+     */
     private boolean isPollingServiceRunning(Class<?> serviceClass) {
         ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
         for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
@@ -77,7 +96,11 @@ public class OrderActivity extends ToolbarActivity {
         return false;
     }
 
-
+    /**
+     * Method to setup the activity.
+     *
+     * @param savedInstanceState The previously saved activity state, if available.
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -86,8 +109,30 @@ public class OrderActivity extends ToolbarActivity {
         initToolbar();
         upButtonToolbar();
 
+        // Initialize variables to enable location update requests
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+        locationRequest = LocationRequest.create();
+        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        locationRequest.setInterval(100); // set the interval in which you want to receive locations
+        locationRequest.setFastestInterval(10); // if a location is available sooner you can get it faster
+
+        locationCallback = new LocationCallback() {
+            @Override
+            public void onLocationResult(LocationResult locationResult) {
+                if (locationResult == null) {
+                    System.out.println("Location is NULL!");
+                    return;
+                }
+                for (Location location : locationResult.getLocations()) {
+                    lastLocation = location;
+                    System.out.println("MY LOCATION: latitude: " + location.getLatitude() + "; longitude: " + location.getLongitude());
+                }
+            }
+        };
+        startLocationUpdates();
+
         // order(s) passed by confirm order activity
-        ArrayList<CommonOrder> newOrderList= (ArrayList<CommonOrder>) getIntent().getSerializableExtra("orderList");
+        ArrayList<CommonOrder> newOrderList = (ArrayList<CommonOrder>) getIntent().getSerializableExtra("orderList");
 
         runningOrderSwitch = findViewById(R.id.running_order_switch);
         // add event listener to switch
@@ -117,17 +162,21 @@ public class OrderActivity extends ToolbarActivity {
                 confirmNewOrderStand(commonOrder);
             }
         }
-
-
     }
 
     @Override
     public void onResume() {
         super.onResume();
+        // Start the location updates
+        startLocationUpdates();
         // Start polling service
         if (subscribeId != -1) {
             Intent intent = new Intent(getApplicationContext(), PollingService.class);
             intent.putExtra("subscribeId", subscribeId);
+            intent.putExtra("locations", getMapIdLocation());
+            intent.putExtra("remainingTime", getMapIdRemainingTime());
+            intent.putExtra("myLocationLat", lastLocation.getLatitude());
+            intent.putExtra("myLocationLon", lastLocation.getLongitude());
             startService(intent);
         }
         // Register the listener for polling updates
@@ -138,6 +187,8 @@ public class OrderActivity extends ToolbarActivity {
     @Override
     public void onPause() {
         super.onPause();
+        // Stop the location updates
+        stopLocationUpdates();
         // Stop the polling service
         stopService(new Intent(getApplicationContext(), PollingService.class));
 
@@ -145,8 +196,19 @@ public class OrderActivity extends ToolbarActivity {
         LocalBroadcastManager.getInstance(this).unregisterReceiver(mMessageReceiver);
     }
 
+    private void startLocationUpdates() {
+        fusedLocationClient.requestLocationUpdates(locationRequest,
+                locationCallback,
+                Looper.getMainLooper());
+    }
+
+    private void stopLocationUpdates() {
+        fusedLocationClient.removeLocationUpdates(locationCallback);
+    }
+
     /**
-     *  Check if polling service is running and if not request a new subscriberId for the current orders
+     * Method to check if the polling service is running
+     * and if not request a new subscriberId from the server for the current orders.
      */
     private void subscribeToOrderUpdates() {
         // TODO: register to channel of new order non-confirmed orders are no longer present
@@ -169,9 +231,9 @@ public class OrderActivity extends ToolbarActivity {
     }
 
     /**
-     * Confirm the chosen stand and brand when a new order is made
+     * This method will confirm the chosen stand and brand for an order at the server.
      *
-     * @param newOrder new order
+     * @param newOrder The new order that must be confirmed.
      */
     public void confirmNewOrderStand(CommonOrder newOrder) {
         // Instantiate the RequestQueue
@@ -186,15 +248,34 @@ public class OrderActivity extends ToolbarActivity {
                 chosenBrand.replace("&", "%26"));
         url = url.replace(' ', '+');
 
-        // Request a string response from the provided URL
-        StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
+        // Request a JsonObjectRequest response from the provided URL
+        JsonObjectRequest jsonRequest = new JsonObjectRequest(Request.Method.GET, url, null,
                 response -> {
-                    updateUserOrdersFromDB();
-                    showToast("Your order was successfull");
-                },
-                error -> {
-                    showToast("Your final order could not be received");
-                }) {
+                    BetterResponseModel<String> responseModel = null;
+                    try {
+                        ObjectMapper mapper = new ObjectMapper();
+                        responseModel = mapper
+                                .readValue(response.toString(), new TypeReference<BetterResponseModel<String>>() {
+                                });
+                    } catch (JsonProcessingException e) {
+                        Log.v("JSON exception", "JSON exception in confirmActivity");
+                        e.printStackTrace();
+                        showToast("Exception while parsing response for confirming order");
+                        return;
+                    }
+                    if (responseModel != null) {
+                        if (responseModel.isOk()) {
+                            updateUserOrdersFromDB();
+                            showToast("Your order was successful");
+                        } else {
+                            showToast(responseModel.getException().getMessage());
+                        }
+                    } else {
+                        showToast("Exception while receiving response from confirming order");
+                    }
+                }, error -> {
+            showToast("Order could not be confirmed");
+        }) {
             // Add JSON headers
             @Override
             public @NonNull
@@ -206,43 +287,58 @@ public class OrderActivity extends ToolbarActivity {
         };
 
         // Add the request to the RequestQueue
-        queue.add(stringRequest);
+        queue.add(jsonRequest);
     }
 
     /**
-     * This method will request orders from the database and update the according dataset for the
-     * adapter in the UI
+     * This method will request orders from the server's database and update the according dataset for the
+     * adapter in the UI.
      */
     public void updateUserOrdersFromDB() {
         RequestQueue queue = Volley.newRequestQueue(this);
         String url = ServerConfig.OM_ADDRESS;
         url = String.format("%1$s/getUserOrders", url);
 
-        JsonArrayRequest request = new JsonArrayRequest(Request.Method.GET, url, null,
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, url, null,
                 response -> {
                     ObjectMapper mapper = new ObjectMapper();
-                    try {
-                        List<CommonOrder> allUserOrders = mapper.readValue(response.toString(),
-                                new TypeReference<List<CommonOrder>>() {
-                                });
 
+                    BetterResponseModel<List<CommonOrder>> responseModel = null;
+                    try {
+                        responseModel = mapper.readValue(response.toString(), new TypeReference<BetterResponseModel<List<CommonOrder>>>() {
+                        });
+                    } catch (JsonProcessingException e) {
+                        showToast("Error while parsing orders");
+                        return;
+                    }
+
+                    if (responseModel.isOk()) {
+                        List<CommonOrder> allUserOrders = responseModel.getPayload();
+                        // List to keep track of orders with stand and brand != ""
+                        ArrayList<CommonOrder> nonEmptyOrders = new ArrayList<>();
                         // TODO: Update local database better way @Nathan
+                        // TODO: Loads previous orders from the internal database stored on the device
                         orderDatabaseService.deleteAllOrders();
                         for (CommonOrder order : allUserOrders) {
-                            orderDatabaseService.insertOrder(order);
+                            // TODO solve this, unconfirmed orders give an error when placing in local db
+                            if (order.getRecType() != null && !order.getBrandName().equals("")
+                                    && !order.getStandName().equals("")) {
+                                nonEmptyOrders.add(order);
+                                orderDatabaseService.insertOrder(order);
+                            }
                         }
 
                         orders.clear();
-                        orders.addAll(allUserOrders);
+                        orders.addAll(nonEmptyOrders);
 
-                        ArrayList<CommonOrder> readyOrders = new ArrayList<CommonOrder>();
+                        ArrayList<CommonOrder> pickedUpOrders = new ArrayList<>();
                         if (runningOrderSwitch.isChecked()) {
                             for (CommonOrder order : orders) {
-                                if (order.getOrderState() == CommonOrder.State.READY) {
-                                    readyOrders.add(order);
+                                if (order.getOrderState() == CommonOrder.State.PICKED_UP) {
+                                    pickedUpOrders.add(order);
                                 }
                             }
-                            orders.removeAll(readyOrders);
+                            orders.removeAll(pickedUpOrders);
                         }
 
 
@@ -250,11 +346,10 @@ public class OrderActivity extends ToolbarActivity {
                         adapter.notifyDataSetChanged();
 
                         subscribeToOrderUpdates();
-
-                        showToast("Order updated");
-                    } catch (JsonProcessingException e) {
-                        e.printStackTrace();
+                    } else {
+                        showToast(responseModel.getDetails());
                     }
+
                 },
                 error -> {
                     showToast("Your orders could not be retrieved from the server");
@@ -272,14 +367,13 @@ public class OrderActivity extends ToolbarActivity {
         queue.add(request);
     }
 
-
+    // TODO: unregister subscriber
+    // TODO: save subscriberId instead of asking new one every time
     /**
-     * Subscribes to the server eventChannel for the given order
-     * and launch the polling service to poll for events (order updates) from the server
+     * Method to subscribe to the server EventChannel for the given orders of the list
+     * and launch the polling service to poll for events (order updates for these orders) from the server.
      *
-     * @param orderId : list of order id's that must be subscribed to
-     *                TODO: unregister subscriber
-     *                 save subscriberId instead of asking new one every time
+     * @param orderId List of order id's that must be subscribed to.
      */
     public void getSubscriberId(ArrayList<Integer> orderId) {
         // Instantiate the RequestQueue
@@ -295,6 +389,11 @@ public class OrderActivity extends ToolbarActivity {
             // Start the polling service
             Intent intent = new Intent(getApplicationContext(), PollingService.class);
             intent.putExtra("subscribeId", subscribeId);
+            intent.putExtra("locations", getMapIdLocation());
+            intent.putExtra("remainingTime", getMapIdRemainingTime());
+            assert lastLocation != null;
+            intent.putExtra("myLocationLat", lastLocation.getLatitude());
+            intent.putExtra("myLocationLon", lastLocation.getLongitude());
             startService(intent);
         }, error -> {
             showToast("Could not subscribe to order updates");
@@ -313,18 +412,58 @@ public class OrderActivity extends ToolbarActivity {
         queue.add(stringRequest);
     }
 
+    /**
+     * Method to display a toast with a specific message.
+     *
+     * @param message The message to show in the Toast.
+     */
     private void showToast(String message) {
         Toast.makeText(OrderActivity.this, message,
                 Toast.LENGTH_SHORT).show();
     }
 
+    /**
+     * This function will return a hashmap, mapping the ID of the order to its location
+     * @return hashmap mapping the ID of the order to its location
+     */
+    private HashMap<Integer, LatLng> getMapIdLocation() {
+        HashMap<Integer, LatLng> result = new HashMap<>();
+        for (CommonOrder order : orders) {
+            LatLng loc = new LatLng(order.getLatitude(), order.getLongitude());
+            result.put(order.getId(), loc);
+        }
+        return result;
+    }
 
+    /**
+     * This function will return a hashmap, mapping the ID of the order to its remaining time
+     * @return hashmap mapping the ID of the order to its remaining time
+     */
+    private HashMap<Integer, Integer> getMapIdRemainingTime() {
+        HashMap<Integer, Integer> result = new HashMap<>();
+        for (CommonOrder order : orders) {
+            result.put(order.getId(), order.computeRemainingTime()/1000);
+        }
+        return result;
+    }
+
+
+    /**
+     * Method that overrides pressing the back button to return to the MenuActivity
+     * instead of the ConfirmActivity.
+     */
     @Override
     public void onBackPressed() {
         Intent intent = new Intent(OrderActivity.this, MenuActivity.class);
         startActivity(intent);
     }
 
+    /**
+     * Extends the toolbar option selection to exclude the my order selection button.
+     *
+     * @param item The selected item in the toolbar menu.
+     * @return If the click event should be consumed or forwarded.
+     */
     @Override
     public boolean onOptionsItemSelected(@NonNull android.view.MenuItem item) {
         if (item.getItemId() == R.id.orders_action) {

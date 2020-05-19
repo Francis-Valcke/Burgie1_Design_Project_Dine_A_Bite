@@ -12,10 +12,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+/**
+ * Class for communicating revenue updates between ProfileFragment and OrderFragment
+ */
 public class RevenueViewModel extends ViewModel {
-    private MutableLiveData<BigDecimal> revenue;
-    private MutableLiveData<Map<String, BigDecimal>> prices;
 
+    private MutableLiveData<BigDecimal> revenue = new MutableLiveData<>();
+    private MutableLiveData<Map<String, BigDecimal>> prices = new MutableLiveData<>();
+
+    /**
+     * Updates the total revenue
+     *
+     * @param items: list of order items that were ordered
+     */
     public void updateRevenue(List<CommonOrderItem> items) {
         BigDecimal totalRevenue = revenue.getValue();
         for (CommonOrderItem item : items) {
@@ -26,9 +35,10 @@ public class RevenueViewModel extends ViewModel {
         revenue.setValue(totalRevenue);
     }
 
+    //-- Getters and Setters --//
+
     public LiveData<BigDecimal> getRevenue() {
-        if (revenue == null) {
-            revenue = new MutableLiveData<>();
+        if (revenue.getValue() == null) {
             revenue.setValue(BigDecimal.ZERO);
         }
         return revenue;
@@ -40,13 +50,31 @@ public class RevenueViewModel extends ViewModel {
 
     public void addPrice(String foodName, BigDecimal price) {
         Map<String, BigDecimal> map;
-        if (prices == null) {
+        if (prices.getValue() == null) {
             map = new HashMap<>();
-            prices = new MutableLiveData<>();
         } else {
              map = prices.getValue();
         }
         if (map != null) map.put(foodName, price);
         prices.setValue(map);
+    }
+
+    public void editPrice(String foodName, BigDecimal price) {
+        Map<String, BigDecimal> map = prices.getValue();
+        if (map != null) {
+            map.remove(foodName);
+            map.put(foodName, price);
+        }
+    }
+
+    public void deletePrice(String foodName) {
+        Map<String, BigDecimal> map = prices.getValue();
+        if (map != null) {
+            map.remove(foodName);
+        }
+    }
+
+    public void resetPrices() {
+        this.prices = new MutableLiveData<>();
     }
 }

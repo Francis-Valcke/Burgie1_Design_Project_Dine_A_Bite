@@ -18,11 +18,9 @@ import androidx.security.crypto.MasterKeys;
 
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
@@ -167,12 +165,22 @@ public class LoginActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * UI changes when successful login
+     *
+     * @param model LoggedInUserView of class
+     */
     private void updateUiWithUser(LoggedInUserView model) {
         String welcome = getString(R.string.welcome_back) + " " + model.getDisplayName();
         // initiate successful logged in experience
         Toast.makeText(getApplicationContext(), welcome, Toast.LENGTH_LONG).show();
     }
 
+    /**
+     * Action that happens when log in fails
+     *
+     * @param errorString Error to show
+     */
     private void showLoginFailed(@StringRes Integer errorString) {
         Snackbar.make(findViewById(R.id.login), errorString, Snackbar.LENGTH_SHORT)
                 .show();
@@ -184,5 +192,10 @@ public class LoginActivity extends AppCompatActivity {
 
         // Complete and destroy login activity once successfully creating an account
         finish();
+    }
+
+    @Override
+    public void onBackPressed() {
+        // Do nothing (Android back button is disabled for this activity)
     }
 }

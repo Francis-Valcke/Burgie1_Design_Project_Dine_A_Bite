@@ -18,7 +18,8 @@ import com.google.android.material.tabs.TabLayoutMediator;
 import java.util.ArrayList;
 
 /**
- * Activity for handling the global/stand menu view page
+ * Activity for handling the global/stand menu user interface.
+ * This activity listens for updates when food items are added or deleted from the cart.
  */
 public class MenuActivity extends ToolbarActivity implements OnCartChangeListener {
 
@@ -29,10 +30,13 @@ public class MenuActivity extends ToolbarActivity implements OnCartChangeListene
     private AlertDialog mDialog = null;
 
     /**
-     * Called after splash-screen is shown
-     * Creates menu items view consisting of
-     * toolbar, fragment for global menu, fragment for stand menu
-     * and cart button with total count
+     * Called after splash-screen is shown.
+     * <p>
+     * Creates the menu view consisting of
+     * a toolbar, fragment for global menu, fragment for stand menu, fragment for category menu
+     * and a cart button with the total cart count.
+     *
+     * @param savedInstanceState The previously saved activity state, if available.
      */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,15 +81,8 @@ public class MenuActivity extends ToolbarActivity implements OnCartChangeListene
     }
 
     /**
-     * Called after onCreate()
+     * Called when the result from CartActivity is available to update the current cart for this activity.
      */
-    @Override
-    public void onStart() {
-        super.onStart();
-        // Ask for location permission
-        checkLocationPermission();
-    }
-
     @SuppressLint("SetTextI18n")
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -102,6 +99,12 @@ public class MenuActivity extends ToolbarActivity implements OnCartChangeListene
         }
     }
 
+    /**
+     * Method to alert the user when he tries to add items to his cart from a different brand
+     * than the ones he already has.
+     *
+     * @param cartItem The food item the user wishes to add to his cart.
+     */
     public void showBrandAlertMessage(final CommonFood cartItem) {
         // Alert user if he not better like the recommended stand
         AlertDialog.Builder builder = new AlertDialog.Builder(MenuActivity.this);
@@ -137,15 +140,17 @@ public class MenuActivity extends ToolbarActivity implements OnCartChangeListene
         mDialog.show();
     }
 
+    // TODO: enforce unique name when creating menu items
     /**
-     * Updates the cart when a menu item is added
-     * If the cart contains the item, increase the count
-     * else add the item to the cart
+     * Updates the cart when a menu item is added.
+     * <p>
+     * If the cart contains the food item, increase the count
+     * else add the item to the cart.
      * If the cart is full (>= MAX_CART_ITEM) or the item has reached it maximum,
-     * the item is not added or counted
-     * @param cartItem: item to add to the cart with a unique item name
-     * @return the (updated) cartCount
-     * TODO: enforce unique name when creating menu items
+     * the item is not added or counted.
+     *
+     * @param cartItem Food item to add to the cart.
+     * @return The (updated) cartCount.
      */
     public int onCartChangedAdd(CommonFood cartItem) {
         if (cartCount < MAX_CART_ITEM) {
@@ -202,14 +207,16 @@ public class MenuActivity extends ToolbarActivity implements OnCartChangeListene
         return cartCount;
     }
 
+    // TODO: enforce unique name when creating menu items
     /**
-     * Updates the cart when a menu item is removed
-     * If the cart contains the item multiple times, decrease the count
-     * else if the cart contains it one time, remove the item
-     * If the cart is empty the item is not removed and a toast message is shown
-     * @param cartItem: item to remove from the cart with a unique item name
-     * @return the (updated) cartCount
-     * TODO: enforce unique name when creating menu items
+     * Updates the cart when a menu item is removed.
+     * <p>
+     * If the cart contains the food item multiple times, decrease the count
+     * else if the cart contains it one time, remove the item.
+     * If the cart is empty the item is not removed and a toast message is shown.
+     *
+     * @param cartItem Food item to remove from the cart.
+     * @return The (updated) cartCount.
      */
     public int onCartChangedRemove(CommonFood cartItem) {
         if (cartCount > 0) {

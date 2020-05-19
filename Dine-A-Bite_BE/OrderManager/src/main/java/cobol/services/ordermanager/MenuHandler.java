@@ -3,6 +3,8 @@ package cobol.services.ordermanager;
 import cobol.commons.CommonFood;
 import cobol.commons.CommonStand;
 import cobol.commons.exception.CommunicationException;
+import cobol.commons.exception.DoesNotExistException;
+import cobol.commons.exception.DuplicateStandException;
 import cobol.commons.security.CommonUser;
 import cobol.services.ordermanager.domain.entity.Brand;
 import cobol.services.ordermanager.domain.entity.Food;
@@ -11,8 +13,6 @@ import cobol.services.ordermanager.domain.entity.User;
 import cobol.services.ordermanager.domain.repository.BrandRepository;
 import cobol.services.ordermanager.domain.repository.FoodRepository;
 import cobol.services.ordermanager.domain.repository.StandRepository;
-import cobol.commons.exception.DoesNotExistException;
-import cobol.commons.exception.DuplicateStandException;
 import cobol.services.ordermanager.domain.repository.UserRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -21,7 +21,6 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.Getter;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -58,11 +57,8 @@ public class MenuHandler {
      * - Clear database
      * - Clear OrderManager cache
      * - Request StandManager to clear cache
-     *
-     * @throws ParseException          Json parsing error
-     * @throws JsonProcessingException Json processing error
      */
-    public void deleteAll() throws ParseException, JsonProcessingException {
+    public void deleteAll() throws Throwable {
 
         // Clear database
         brandRepository.deleteAll();
@@ -80,10 +76,8 @@ public class MenuHandler {
 
     /**
      * This method will refresh the cache of the StandManager based on the local cache
-     *
-     * @throws JsonProcessingException Json processing error
      */
-    public void updateStandManager() throws JsonProcessingException {
+    public void updateStandManager() throws Throwable {
         ObjectMapper mapper = new ObjectMapper();
         mapper.registerModule(new JavaTimeModule());
         String json = mapper.writeValueAsString(standRepository.findAll()
@@ -104,16 +98,17 @@ public class MenuHandler {
      * Refresh the global menu cache based on the database contents.
      *
      */
-    public List<CommonFood> getGlobalMenu() {
+    public List<CommonFood> getGlobalMenu() throws DoesNotExistException {
 
-        List<CommonFood> food = standRepository.findAll().stream()
+        List<CommonFood> globalMenu= standRepository.findAll().stream()
                 .map(Stand::getFoodList)
                 .flatMap(Collection::stream)
                 .map(Food::asCommonFood)
                 .distinct()
                 .collect(Collectors.toList());
 
-        return food;
+        if(globalMenu.isEmpty()) throw new DoesNotExistException("Global menu does not contain any food items");
+        else return globalMenu;
     }
 
 
@@ -121,9 +116,8 @@ public class MenuHandler {
      * This method will update a existing stand in the database with updated information.
      *
      * @param commonStand CommonStand with CommonFood Objects that need to be updated
-     * @throws DoesNotExistException Stand does not exist
      */
-    public void updateStand(CommonStand commonStand) throws DoesNotExistException, JsonProcessingException {
+    public void updateStand(CommonStand commonStand) throws Throwable {
 
         // Check if the stand exists and if so retrieve it
         Stand originalStand = standRepository.findStandById(commonStand.getName(), commonStand.getBrandName())
@@ -178,11 +172,8 @@ public class MenuHandler {
      * This stand will be saved to the database, saved in the cache and sent to the StandManager.
      *
      * @param newCommonStand The stand that needs to be created
-     * @throws JsonProcessingException A json processing error
-     * @throws ParseException          A json parsing error
-     * @throws DuplicateStandException Duplicate stand detected
      */
-    public void addStand(CommonStand newCommonStand, CommonUser user) throws JsonProcessingException, ParseException, DuplicateStandException, CommunicationException {
+    public void addStand(CommonStand newCommonStand, CommonUser user) throws Throwable {
 
         // look if stands already exists
         Stand stand = standRepository.findStandById(newCommonStand.getName(), newCommonStand.getBrandName()).orElse(null);
@@ -234,7 +225,7 @@ public class MenuHandler {
      * @param brandName Name of the stand's brand
      * @throws JsonProcessingException Json processing error
      */
-    public void deleteStandById(String standName, String brandName) throws JsonProcessingException, DoesNotExistException {
+    public void deleteStandById(String standName, String brandName) throws Throwable {
 
         Stand stand = standRepository.findStandById(standName, brandName).orElse(null);
         if (stand != null) {

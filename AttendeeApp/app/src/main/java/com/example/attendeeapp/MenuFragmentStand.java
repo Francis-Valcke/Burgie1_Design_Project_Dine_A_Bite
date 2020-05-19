@@ -19,15 +19,17 @@ import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
+import com.example.attendeeapp.json.BetterResponseModel;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
 
 /**
- * Handles the view for the stand menu's
+ * Handles the view for the stand menu's.
  */
 public class MenuFragmentStand extends MenuFragment implements AdapterView.OnItemSelectedListener {
 
@@ -36,6 +38,9 @@ public class MenuFragmentStand extends MenuFragment implements AdapterView.OnIte
     // List of brands belonging to a stand (in sequence!)
     private ArrayList<String> brandList = new ArrayList<>();
 
+    /**
+     * Method to create the fragments View.
+     */
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
@@ -43,6 +48,9 @@ public class MenuFragmentStand extends MenuFragment implements AdapterView.OnIte
         return inflater.inflate(R.layout.fragment_menu_stand, container, false);
     }
 
+    /**
+     * Method to setup the fragments View.
+     */
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
 
@@ -77,6 +85,9 @@ public class MenuFragmentStand extends MenuFragment implements AdapterView.OnIte
         // The spinner will call fetchMenu for the first stand item
     }
 
+    /**
+     * Method that sets the chosen stand when an item is selected from the stand spinner.
+     */
     public void onItemSelected(AdapterView<?> parent, View view,
                                int pos, long id) {
         // An item was selected in the spinner, fetch the menu of the selected stand
@@ -87,11 +98,11 @@ public class MenuFragmentStand extends MenuFragment implements AdapterView.OnIte
     }
 
     public void onNothingSelected(AdapterView<?> parent) {
-        // When a stand gets removed from the spinner this method is called
+        // When a selected stand gets removed from the spinner this method is called
     }
 
     /**
-     * Function to fetch the stand names from the server
+     * Method to fetch the stand names from the server.
      */
     private void fetchStandNames() {
         // Instantiate the RequestQueue
@@ -107,10 +118,19 @@ public class MenuFragmentStand extends MenuFragment implements AdapterView.OnIte
                         standListAdapter.clear();
                         brandList.clear();
                         standListAdapter.add("No stands available");
+                        ObjectMapper om=new ObjectMapper();
+                        BetterResponseModel<Map<String, String>> responseModel= om.readValue(response.toString(), new TypeReference<BetterResponseModel<Map<String, String>>>() {});
+                        if(!responseModel.isOk()){
+                            if (mToast != null) mToast.cancel();
+                            mToast = Toast.makeText(getActivity(), responseModel.getException().getMessage(),
+                                    Toast.LENGTH_LONG);
+                            mToast.show();
+                            return;
+                        }
 
-                        for (Iterator<String> iter = response.keys(); iter.hasNext(); ) {
-                            String standName = iter.next();
-                            String brandName = response.getString(standName);
+
+                        for (String standName : responseModel.getPayload().keySet()) {
+                            String brandName = responseModel.getPayload().get(standName);
                             brandList.add(brandName);
 
                             // Add stand to the spinner list

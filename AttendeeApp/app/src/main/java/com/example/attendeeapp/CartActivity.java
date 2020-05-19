@@ -26,7 +26,8 @@ import java.util.Locale;
 import java.util.Objects;
 
 /**
- * Activity to handle the view cart page
+ * Activity to handle the cart view user interface.
+ * This activity listens for cart updates when food items are added or deleted from the cart.
  */
 public class CartActivity extends ToolbarActivity implements AdapterView.OnItemSelectedListener {
 
@@ -37,6 +38,11 @@ public class CartActivity extends ToolbarActivity implements AdapterView.OnItemS
     private AlertDialog mDialog = null;
     private CommonOrder.RecommendType recommendType;
 
+    /**
+     * Method to setup the activity.
+     *
+     * @param savedInstanceState The previously saved activity state, if available.
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -106,6 +112,7 @@ public class CartActivity extends ToolbarActivity implements AdapterView.OnItemS
                         intent.putExtra("totalPrice", totalPrice);
                         intent.putExtra("cartCount", cartAdapter.getCartCount());
                         intent.putExtra("recType", recommendType);
+                        intent.putExtra("location", lastLocation);
                         startActivity(intent);
                     }
 
@@ -127,13 +134,9 @@ public class CartActivity extends ToolbarActivity implements AdapterView.OnItemS
 
     }
 
-    @Override
-    public void onStart() {
-        super.onStart();
-        // Get most recent location
-        checkLocationPermission();
-    }
-
+    /**
+     * Method that overrides pressing the back button to return the current cart list and count.
+     */
     @Override
     public void onBackPressed() {
         returnIntent.putExtra("cartList", cartAdapter.getCartList());
@@ -141,6 +144,12 @@ public class CartActivity extends ToolbarActivity implements AdapterView.OnItemS
         super.onBackPressed();
     }
 
+    /**
+     * Method to show an alert message when items from different brands are inside the cart,
+     * when a user wishes to continue and confirm his cart.
+     *
+     * @param ordered A list of the current food items in the cart to pass to ConfirmActivity.
+     */
     public void showBrandAlertMessage(final ArrayList<CommonFood> ordered) {
         // Alert user if he not better like the recommended stand
         AlertDialog.Builder builder = new AlertDialog.Builder(CartActivity.this);
@@ -156,6 +165,7 @@ public class CartActivity extends ToolbarActivity implements AdapterView.OnItemS
                 intent.putExtra("totalPrice", totalPrice);
                 intent.putExtra("cartCount", cartAdapter.getCartCount());
                 intent.putExtra("recType", recommendType);
+                intent.putExtra("location", lastLocation);
                 startActivity(intent);
 
             }
@@ -176,8 +186,9 @@ public class CartActivity extends ToolbarActivity implements AdapterView.OnItemS
     }
 
     /**
-     * Function to handle price updates when the cart updates its items
-     * @param amount: amount to be added, can be positive or negative
+     * Method to handle price updates when the food items in the cart are updated.
+     *
+     * @param amount Amount to be added to the current cart price, can be positive or negative.
      */
     @SuppressLint("SetTextI18n")
     public void updatePrice(BigDecimal amount) {
@@ -189,6 +200,9 @@ public class CartActivity extends ToolbarActivity implements AdapterView.OnItemS
         total.setText(symbol + totalPrice);
     }
 
+    /**
+     * Method that sets the recommendation type when an item is selected from the spinner.
+     */
     @Override
     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
         String requestedRecType = (String) parent.getItemAtPosition(position);
@@ -201,6 +215,10 @@ public class CartActivity extends ToolbarActivity implements AdapterView.OnItemS
         recommendType = CommonOrder.RecommendType.valueOf(requestedRecType);
     }
 
+    /**
+     * When the selection disappears from the spinner, this method sets a default recommendation type
+     * to DISTANCE_AND_TIME.
+     */
     @Override
     public void onNothingSelected(AdapterView<?> parent) {
         recommendType = CommonOrder.RecommendType.DISTANCE_AND_TIME;

@@ -1,5 +1,9 @@
 package cobol.commons.order;
 
+/**
+ * Class used to represent a recommendation for an order
+ */
+
 public class Recommendation {
 
     // standId of recommendation

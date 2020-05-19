@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 
 /**
- * class for weighted sorting of schedulers
+ * Class used to compare schedulers based on time and the distance to the attendee who requested the recommendation/order
  */
 public class SchedulerComparator implements Comparator<Scheduler> {
     private double lat;
@@ -16,8 +16,13 @@ public class SchedulerComparator implements Comparator<Scheduler> {
     private SchedulerComparatorTime schedulerTime;
     private SchedulerComparatorDistance schedulerDistance;
 
-    /*
-    constructor where the arguments are the coordinates for the order (so the place where the person is when he orders) and the weight of how much distance is in time (for combination of time and distance scheduling)
+    /**
+     * Class constructor
+     *
+     * @param lat        latitiude coordinates of location attendee
+     * @param lon        longitude coordinates of location attendee
+     * @param weight     weight used to convert distance to time, distance X weight will be the added time
+     * @param orderItems list of all the orderitems for that order
      */
     public SchedulerComparator(double lat, double lon, double weight, ArrayList<CommonOrderItem> orderItems) {
         this.lat = lat;
@@ -28,14 +33,23 @@ public class SchedulerComparator implements Comparator<Scheduler> {
         schedulerDistance = new SchedulerComparatorDistance(lat, lon);
     }
 
+    /**
+     * Alternative class constructor, used to access functions in other classes
+     */
     public SchedulerComparator() {
 
     }
 
-    @Override
     /**
-     * compares the time between 2 schedulers where there is time added as distance*weight
+     * Compares queue time + distance (to order) X weight for 2 different schedulers
+     *
+     * @param o1 scheduler 1
+     * @param o2 scheduler 2
+     * @return 0 if both schedulers have the same queue time (+ weighted distance)
+     * -1 if scheduler 1 has lowest queue time (+ weighted distance)
+     * 1 if scheduler 2 has lowest queue time (+ weighted distance)
      */
+    @Override
     public int compare(Scheduler o1, Scheduler o2) {
         double time1 = schedulerTime.getLongestFoodPrepTime(o1);
         double time2 = schedulerTime.getLongestFoodPrepTime(o2);

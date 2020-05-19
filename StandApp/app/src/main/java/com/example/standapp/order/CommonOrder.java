@@ -3,6 +3,11 @@ package com.example.standapp.order;
 import androidx.annotation.NonNull;
 
 import com.example.standapp.json.CommonFood;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+
+import org.threeten.bp.Duration;
+import org.threeten.bp.ZoneId;
+import org.threeten.bp.ZonedDateTime;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -15,8 +20,10 @@ public class CommonOrder implements Serializable {
     // unique id for this order
     private int id;
 
-    private Calendar startTime;
-    private Calendar expectedTime;
+    @JsonDeserialize(using= ZonedDateTimeDeserializer.class)
+    private ZonedDateTime startTime;
+    @JsonDeserialize(using= ZonedDateTimeDeserializer.class)
+    private ZonedDateTime expectedTime;
 
     private State orderState;
 
@@ -40,11 +47,12 @@ public class CommonOrder implements Serializable {
         PENDING,
         DECLINED,
         CONFIRMED,
-        READY,
-        PICKED_UP
+        READY, // DONE
+        PICKED_UP,
+        BEGUN;// START
     }
 
-    //type of recommendation wanted
+    // Type of recommendation wanted (not used in Stand app)
     public enum RecommendType {
         DISTANCE,
         TIME,
@@ -61,9 +69,8 @@ public class CommonOrder implements Serializable {
 
         this.standName=standName;
         this.brandName=brandName;
-
-        this.startTime=Calendar.getInstance();
-        this.expectedTime=Calendar.getInstance();
+        this.startTime=ZonedDateTime.now(ZoneId.of("Europe/Brussels"));
+        this.expectedTime=ZonedDateTime.now(ZoneId.of("Europe/Brussels"));
 
         this.orderState = State.SEND;
         this.recType = recType;
@@ -79,7 +86,7 @@ public class CommonOrder implements Serializable {
     }
 
     public int computeRemainingTime(){
-        return (int) (expectedTime.getTimeInMillis()-startTime.getTimeInMillis());
+        return (int) Duration.between(startTime, expectedTime).toMillis();
     }
 
     public BigDecimal getTotalPrice() {
@@ -126,19 +133,19 @@ public class CommonOrder implements Serializable {
         return longitude;
     }
 
-    public Calendar getStartTime() {
+    public ZonedDateTime getStartTime() {
         return startTime;
     }
 
-    public void setStartTime(Calendar startTime) {
+    public void setStartTime(ZonedDateTime startTime) {
         this.startTime = startTime;
     }
 
-    public Calendar getExpectedTime() {
+    public ZonedDateTime getExpectedTime() {
         return expectedTime;
     }
 
-    public void setExpectedTime(Calendar expectedTime) {
+    public void setExpectedTime(ZonedDateTime expectedTime) {
         this.expectedTime = expectedTime;
     }
 

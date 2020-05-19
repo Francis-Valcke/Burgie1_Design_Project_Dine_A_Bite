@@ -1,5 +1,6 @@
 package cobol.services.ordermanager.test;
 
+import cobol.commons.BetterResponseModel;
 import cobol.commons.CommonFood;
 import cobol.commons.CommonStand;
 import cobol.services.ordermanager.domain.entity.Brand;
@@ -104,8 +105,10 @@ public class MenuHandlerTest {
                 .andExpect(status().isOk())
                 .andReturn();
         String json = result.getResponse().getContentAsString();
-        List<CommonFood> retrievedFoodItems = mapper.readValue(json, new TypeReference<List<CommonFood>>() {
-        });
+        BetterResponseModel<List<CommonFood>> responseModel= mapper.readValue(json, new TypeReference<BetterResponseModel<List<CommonFood>>>() {});
+
+
+        List<CommonFood> retrievedFoodItems = responseModel.getPayload();
 
         // What the result should be
         URL url2 = Thread.currentThread().getContextClassLoader().getResource("globalmenu.json");
@@ -136,8 +139,9 @@ public class MenuHandlerTest {
                         .andReturn();
 
                 String standMenuJson = result.getResponse().getContentAsString();
-                List<CommonFood> standMenu = objectMapper.readValue(standMenuJson, new TypeReference<List<CommonFood>>() {
-                });
+                BetterResponseModel<List<CommonFood>> responseModel = objectMapper.readValue(standMenuJson, new TypeReference<BetterResponseModel<List<CommonFood>>>() {});
+
+                List<CommonFood> standMenu = responseModel.getPayload();
 
 
                 CommonStand cStand = stand.asCommonStand();
@@ -191,8 +195,8 @@ public class MenuHandlerTest {
                 .andReturn();
 
         String updatedIncomingStand = result.getResponse().getContentAsString();
-        List<CommonFood> updatedIncomingStandMenu = objectMapper.readValue(updatedIncomingStand, new TypeReference<List<CommonFood>>() {
-        });
+        BetterResponseModel<List<CommonFood>> responseModel1= objectMapper.readValue(updatedIncomingStand, new TypeReference<BetterResponseModel<List<CommonFood>>>() {});
+        List<CommonFood> updatedIncomingStandMenu= responseModel1.getPayload();
 
         System.out.println();
         assert (incomingStand.getMenu().containsAll(updatedIncomingStandMenu) && updatedIncomingStandMenu.containsAll(incomingStand.getMenu()));
@@ -210,8 +214,8 @@ public class MenuHandlerTest {
                     .andReturn();
 
             String updatedStandFromBrand = result.getResponse().getContentAsString();
-            List<CommonFood> updatedStandFoodFromBrand = objectMapper.readValue(updatedStandFromBrand, new TypeReference<List<CommonFood>>() {
-            });
+            BetterResponseModel<List<CommonFood>> responseModel2= objectMapper.readValue(updatedStandFromBrand, new TypeReference<BetterResponseModel<List<CommonFood>>>() {});
+            List<CommonFood> updatedStandFoodFromBrand= responseModel2.getPayload();
 
             for (CommonFood possibleUpdatedFood : updatedStandFoodFromBrand) {
                 // search in requested change list and compare with retrieved menu

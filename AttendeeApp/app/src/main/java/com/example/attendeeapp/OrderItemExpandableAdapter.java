@@ -12,6 +12,7 @@ import android.widget.BaseExpandableListAdapter;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.attendeeapp.appDatabase.OrderDatabaseService;
 import com.example.attendeeapp.json.CommonOrder;
@@ -27,7 +28,7 @@ import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Handles all the order items in the order expandable list overview
+ * Handles all the order items in the order expandable list from OrderActivity.
  */
 public class OrderItemExpandableAdapter extends BaseExpandableListAdapter {
 
@@ -90,9 +91,11 @@ public class OrderItemExpandableAdapter extends BaseExpandableListAdapter {
     }
 
     /**
-     * Create the view for one group item in the expandable list, always visible
-     * @param i = the position of the group item
-     * @param b = if the group item is currently selected (and expanded)
+     * Create the view for one group item in the expandable list.
+     * Group items are always visible.
+     *
+     * @param i The position of the group item.
+     * @param b If the group item is currently and expanded.
      */
     @SuppressLint("SetTextI18n")
     @Override
@@ -140,9 +143,11 @@ public class OrderItemExpandableAdapter extends BaseExpandableListAdapter {
     }
 
     /**
-     * Create the view of 1 child items of 1 group, only visible if group item is expanded
-     * @param groupPos = the child's (parent) group item position
-     * @param childPos = the child position (of all children)
+     * Create the view of 1 child item of 1 group.
+     * Only visible if the group item is expanded.
+     *
+     * @param groupPos The child's (parent) group item position.
+     * @param childPos The child position (in all the children).
      */
     @SuppressLint("SetTextI18n")
     @Override
@@ -191,8 +196,9 @@ public class OrderItemExpandableAdapter extends BaseExpandableListAdapter {
             LinearLayout timeLayout = view.findViewById(R.id.order_footer_timer_layout);
             final TextView remainingTime = view.findViewById(R.id.order_footer_time);
 
-            // Handle timing counter, only visible when order is confirmed and thus being prepared
-            if (currentOrder.getOrderState() == CommonOrder.State.CONFIRMED) {
+            // Handle timing counter, only visible when order is confirmed or begun
+            if (currentOrder.getOrderState() == CommonOrder.State.CONFIRMED
+                    || currentOrder.getOrderState() == CommonOrder.State.BEGUN) {
                 remainingTimeText.setVisibility(View.VISIBLE);
                 remainingTime.setVisibility(View.VISIBLE);
                 timeLayout.setVisibility(View.VISIBLE);
@@ -233,12 +239,13 @@ public class OrderItemExpandableAdapter extends BaseExpandableListAdapter {
     }
 
     /**
-     * Updates the order status for a given order id
-     * If the state is confirmed, initialize the expected order time to start the counting
-     * @param orderId : the order id for which the status update holds
-     * @param State : the new order status
+     * Updates the order status for a given order id.
+     * If the state is confirmed, initialize the expected order time and start the counting.
+     *
+     * @param orderId The order id for which the status update holds.
+     * @param State The new order status.
      */
-    public void updateOrder(int orderId, CommonOrderStatusUpdate.State State) {
+    public void updateOrderState(int orderId, CommonOrderStatusUpdate.State State) {
             for (CommonOrder order : orders) {
                 if (order.getId() == orderId) {
                     CommonOrder.State oldState = order.getOrderState();
@@ -257,11 +264,43 @@ public class OrderItemExpandableAdapter extends BaseExpandableListAdapter {
                             order.setExpectedTime(expectedTime);
                         }
 
-                        orderDatabaseService.updateOrder(order);
+                        try{
+                            orderDatabaseService.updateOrder(order);
+                        }
+                        catch(Exception e){
+                            e.printStackTrace();
+                            Toast.makeText(context, "Error while updating an order in local db", Toast.LENGTH_LONG).show();
+                        }
+
+                        break; // id is unique
                     }
 
                 }
             }
+    }
+
+    /**
+     * Updates the order attributes for a given order.
+     *
+     * @param order The order to update.
+     */
+    public void updateOrder(CommonOrder order) {
+        for (CommonOrder i : orders) {
+            if (i.getId() == order.getId()) {
+                i.setUpdateSeen(false);
+                i.setExpectedTime(order.getExpectedTime());
+
+                try{
+                    orderDatabaseService.updateOrder(order);
+                }
+                catch(Exception e){
+                    e.printStackTrace();
+                    Toast.makeText(context, "Error while updating an order in local db", Toast.LENGTH_LONG).show();
+                }
+
+                break;
+            }
+        }
     }
 
 

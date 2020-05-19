@@ -6,7 +6,6 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
@@ -34,8 +33,6 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 
 public class RegisterActivity extends AppCompatActivity {
-
-    // TODO Do something with the received email
 
     private LoginViewModel loginViewModel;
 
@@ -160,14 +157,29 @@ public class RegisterActivity extends AppCompatActivity {
 
     }
 
+    /**
+     * UI changes when successful login
+     *
+     * @param model LoggedInUserView of class
+     */
     private void updateUiWithUser(LoggedInUserView model) {
         String welcome = getString(R.string.welcome) + " " + model.getDisplayName();
         // initiate successful logged in experience
         Toast.makeText(getApplicationContext(), welcome, Toast.LENGTH_LONG).show();
     }
 
+    /**
+     * Action that happens when log in fails
+     *
+     * @param errorString Error to show
+     */
     private void showLoginFailed(@StringRes Integer errorString) {
         Snackbar.make(findViewById(R.id.register), errorString, Snackbar.LENGTH_SHORT)
                 .show();
+    }
+
+    @Override
+    public void onBackPressed() {
+        // Do nothing (Android back button is disabled for this activity)
     }
 }

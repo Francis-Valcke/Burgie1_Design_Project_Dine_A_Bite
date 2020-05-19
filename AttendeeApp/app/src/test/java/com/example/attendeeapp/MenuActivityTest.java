@@ -29,6 +29,9 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.robolectric.Shadows.shadowOf;
 
+/**
+ * Test written to unit test the MenuActivity functionality.
+ */
 @RunWith(RobolectricTestRunner.class)
 public class MenuActivityTest {
 
@@ -42,7 +45,7 @@ public class MenuActivityTest {
     }
 
     /**
-     * Tests if menuActivity launch is successful
+     * Tests if MenuActivity launch is successful.
      */
     @Test
     public void testLaunch() {
@@ -52,8 +55,8 @@ public class MenuActivityTest {
     }
 
     /**
-     * Tests if viewPager has 2 tabs, is showing the first one
-     * and the FragmentAdapter is linked correctly
+     * Tests if the ViewPager has 2 tabs, is showing the first one
+     * and the if FragmentAdapter is linked correctly.
      */
     @Test
     public void testViewPager() {
@@ -69,8 +72,8 @@ public class MenuActivityTest {
     }
 
     /**
-     * Tests if tabLayout has 2 tabs, with the appropriate display text
-     * and is showing the first one
+     * Tests if the TabLayout has 2 tabs, with the appropriate display text
+     * and is showing the first one.
      */
     @Test
     public void testTabLayout() {
@@ -86,8 +89,8 @@ public class MenuActivityTest {
     }
 
     /**
-     * Tests if cartLayout is clickable
-     * and if the initial cartCount = 0
+     * Tests if CartLayout is clickable
+     * and if the initial cartCount = 0.
      * TODO: check updated cartText
      */
     @Test
@@ -103,7 +106,7 @@ public class MenuActivityTest {
     }
 
     /**
-     * Tests if the toolbar is initialized correctly
+     * Tests if the Toolbar is initialized correctly.
      */
     @Test
     public void testToolbar() {
@@ -115,8 +118,8 @@ public class MenuActivityTest {
     }
 
     /**
-     * Test if cartActivity is launched correctly
-     * and if cartList is successfully passed when clicked
+     * Tests if CartActivity is launched correctly
+     * and if the CartList is successfully passed when clicking the cart button.
      */
     @Test
     public void LaunchingNextActivity() {
@@ -152,11 +155,12 @@ public class MenuActivityTest {
      */
 
     /**
-     * Testing behavior when adding and removing items from the cart
+     * Testing behavior when adding and removing items from the cart.
+     * <p>
      * Test 1:
-     * Adding 30 items: 2 different item 15 times, (same food, same brand, and different stand name)
-     * Removing some items that were not in the cart (different food/stand/brand names)
-     * Removing the same items in reserved order
+     * Adding 30 items: 2 different item 15 times, (same food, same brand, and different stand name).
+     * Removing some items that were not in the cart (different food/stand/brand names).
+     * Removing the same items in reserved order.
      */
     @Test
     public void testOnCartChanged_1() {
@@ -217,12 +221,13 @@ public class MenuActivityTest {
     }
 
     /**
-     * Testing behavior when adding and removing items from the cart
+     * Testing behavior when adding and removing items from the cart.
+     * <p>
      * Test 2:
-     * Adding 30 items: 3 different item 10 times, (same food, different brand, and same stand name)
-     * Removing the same items
+     * Adding 30 items: 3 different item 10 times, (same food, different brand, and same stand name).
+     * Removing the same items.
      */
-    @Ignore("Test not possible with alert dialog")
+    @Ignore("Test not possible with alert dialog!")
     @Test
     public void testOnCartChanged_2() {
         TextView cartCountText = menuActivity.findViewById(R.id.cart_count);
@@ -259,10 +264,11 @@ public class MenuActivityTest {
     }
 
     /**
-     * Testing behavior when adding and removing items from the cart
+     * Testing behavior when adding and removing items from the cart.
+     * <p>
      * Test 3:
-     * Adding 30 items: 3 different item 10 times, (different food, same brand, and same stand name)
-     * Removing the same items
+     * Adding 30 items: 3 different item 10 times, (different food, same brand, and same stand name).
+     * Removing the same items.
      */
     @Test
     public void testOnCartChanged_3() {

@@ -1,7 +1,16 @@
 package cobol.commons;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import java.math.BigDecimal;
 
+/**
+ * This class is used for wrapping responses with other information.
+ * When the status of the response is OK, it will contain a payload of type T together with details about the payload.
+ * When the status of the response is ERROR, the payload can be empty but a exception is expected together with details
+ * about what happened.
+ * @param <T> The type of the payload in case of status OK.
+ */
 public class BetterResponseModel<T> {
 
     private String status;
@@ -9,10 +18,24 @@ public class BetterResponseModel<T> {
     private T payload;
     private Throwable exception;
 
+    /**
+     * Convenience method for creating BetterResponseModel with status OK.
+     * @param details Details about the payload.
+     * @param payload The actual payload object.
+     * @param <T> The type of the payload object.
+     * @return Instance of BetterResponseModel with payload of type T
+     */
     public static <T> BetterResponseModel<T> ok(String details, T payload){
         return new BetterResponseModel<T>(details, payload);
     }
 
+    /**
+     * Convenience method for creating BetterResponseModel with status OK.
+     * @param details Details the exception that was thrown.
+     * @param e The exception that was thrown.
+     * @param <T> The type of the payload object.
+     * @return Instance of BetterResponseModel with payload of type T
+     */
     public static <T> BetterResponseModel<T> error(String details, Throwable e){
         return new BetterResponseModel<T>(details, e);
     }
@@ -39,6 +62,11 @@ public class BetterResponseModel<T> {
         this.details = details;
         this.exception = null;
         this.payload = payload;
+    }
+
+    @JsonIgnore
+    public boolean isOk(){
+        return status.equals(Status.OK);
     }
 
     public String getStatus() {
@@ -80,6 +108,9 @@ public class BetterResponseModel<T> {
 
     // ---- Implement DATA objects here ----
 
+    /**
+     * Data class to represent response when creating a payment intent.
+     */
     public static class CreatePaymentIntentResponse {
 
         private String clientSecret;
@@ -110,6 +141,9 @@ public class BetterResponseModel<T> {
         }
     }
 
+    /**
+     * Data class to represent response when balance is requested.
+     */
     public static class GetBalanceResponse {
 
         private BigDecimal balance;

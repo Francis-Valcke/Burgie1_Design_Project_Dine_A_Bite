@@ -17,6 +17,14 @@ import java.util.Objects;
 @Service
 public class ASCommunicationHandler {
 
+    /**
+     * This method sends a HTTP request to the Authentication Service module to create a transaction for a given amount
+     * and a given user. This transaction will be held until confirmed.
+     * @param username Username of the user to create the transaction for.
+     * @param amount Amount to add or subtract to the balance of the user.
+     * @return GetBalanceResponse
+     * @throws IOException Exception thrown while parsing HTTP response
+     */
     public BetterResponseModel<BetterResponseModel.GetBalanceResponse> callCreateTransaction(String username, BigDecimal amount) throws IOException {
 
         String url = OrderManager.ACURL + "/stripe/createTransaction";
@@ -43,6 +51,13 @@ public class ASCommunicationHandler {
         return om.readValue(Objects.requireNonNull(response.body()).string(), new TypeReference<BetterResponseModel<GetBalanceResponse>>() {});
     }
 
+    /**
+     * This method sends a HTTP request to the Authentication Service module to confirm a transaction for a given user.
+     *
+     * @param username Username of the user to confirm the transaction for.
+     * @return GetBalanceResponse
+     * @throws IOException Exception thrown while parsing HTTP response
+     */
     public BetterResponseModel<GetBalanceResponse> callConfirmTransaction(String username) throws IOException {
         String url = OrderManager.ACURL + "/stripe/confirmTransaction";
 
@@ -64,6 +79,13 @@ public class ASCommunicationHandler {
         return om.readValue(Objects.requireNonNull(response.body()).string(), new TypeReference<BetterResponseModel<GetBalanceResponse>>() {});
     }
 
+    /**
+     * Helper method to add parameters to a given URL.
+     *
+     * @param baseUrl baseURL.
+     * @param params parameters for the http request.
+     * @return url.
+     */
     public String buildUrl(String baseUrl, HashMap<String, String> params) {
 
         if (params != null && !params.isEmpty()) {

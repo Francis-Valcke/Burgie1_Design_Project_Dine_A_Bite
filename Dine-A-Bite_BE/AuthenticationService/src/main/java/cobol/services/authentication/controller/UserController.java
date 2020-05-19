@@ -44,6 +44,12 @@ public class UserController {
         return ResponseEntity.ok(user.asCommonUser());
     }
 
+    /**
+     * This endpoint allows authenticated user with the right roles to request all information of a given user.
+     * @param username Id of the user.
+     * @return Info about the user.
+     * @throws DoesNotExistException The user does not exist in the database.
+     */
     @GetMapping("getUser")
     public ResponseEntity<CommonUser> getUser(@RequestParam String username) throws DoesNotExistException {
         return ResponseEntity.ok(userRepository.findById(username).orElseThrow(() -> new DoesNotExistException("The user does not exist.")).asCommonUser());
@@ -79,10 +85,15 @@ public class UserController {
 
     }
 
+    /**
+     * API endpoint for requesting the balance of the currently authenticated user.
+     * @param authenticatedUser The currently authenticated user
+     * @return The balance of the user.
+     */
     @GetMapping("/balance")
-    public ResponseEntity<BetterResponseModel<?>> getBalance(@AuthenticationPrincipal CommonUser ap){
+    public ResponseEntity<BetterResponseModel<?>> getBalance(@AuthenticationPrincipal CommonUser authenticatedUser){
         try {
-            User user = userRepository.findById(ap.getUsername()).orElseThrow(() -> new DoesNotExistException("The user does not exist, this is not possible"));
+            User user = userRepository.findById(authenticatedUser.getUsername()).orElseThrow(() -> new DoesNotExistException("The user does not exist, this is not possible"));
 
             return ResponseEntity.ok(
                     BetterResponseModel.ok(

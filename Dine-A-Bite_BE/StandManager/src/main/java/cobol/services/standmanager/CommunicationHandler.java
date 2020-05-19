@@ -1,14 +1,13 @@
 package cobol.services.standmanager;
 
 
+import cobol.commons.BetterResponseModel;
 import cobol.commons.Event;
 import cobol.commons.exception.CommunicationException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.ParseException;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -51,13 +50,18 @@ public class CommunicationHandler {
         }
     }
 
-
+    /**
+     * Register to event channel of certain brand
+     *
+     * @param subscriberId your id with which you subscribe
+     * @param brandName    brand name where you want to subscribe on
+     */
     public void registerToOrdersFromBrand(int subscriberId, String brandName) {
 
-        RestTemplate restTemplate= new RestTemplate();
+        RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.add("Authorization", StandManager.authToken);
-        HttpEntity httpEntity= new HttpEntity(headers);
+        HttpEntity httpEntity = new HttpEntity(headers);
 
         String uri = StandManager.ECURL + "/registerSubscriber/toChannel";
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(uri)
@@ -68,27 +72,42 @@ public class CommunicationHandler {
 
     }
 
+    /**
+     * Polls events from the event channel
+     *
+     * @param subscriberId your id for which you want to poll events
+     * @return list of events
+     * @throws CommunicationException when event channel can not be reached
+     * @throws JsonProcessingException when error with Json processing
+     */
     public List<Event> pollEventsFromEC(int subscriberId) throws CommunicationException, JsonProcessingException {
-        RestTemplate restTemplate= new RestTemplate();
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Authorization", StandManager.authToken);
-        HttpEntity httpEntity= new HttpEntity(headers);
+
         String uri = StandManager.ECURL + "/events";
+
+        // Headers and URL
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(uri)
                 .queryParam("id", subscriberId);
+        RestTemplate restTemplate = new RestTemplate();
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Authorization", StandManager.authToken);
+        HttpEntity httpEntity = new HttpEntity(headers);
+
+        // Send Request
         ResponseEntity<String> response = restTemplate.exchange(builder.toUriString(), HttpMethod.GET, httpEntity, String.class);
 
-        // Handle Response
+
+        // parse BetterResponseModel from stringresponse
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
+        BetterResponseModel<List<Event>> responseModel = objectMapper.readValue(response.getBody(), new TypeReference<BetterResponseModel<List<Event>>>() {
+        });
 
-        if (response.getBody() != null) {
-
-            List<Event> events= objectMapper.readValue(response.getBody(), new TypeReference<List<Event>>() {});
-            return events;
-        } else {
-            throw new CommunicationException("EventChannel cannot be reached while polling events in ordermanager");
+        if (responseModel != null) {
+            if (responseModel.isOk()) {
+                return responseModel.getPayload();
+            }
         }
+        throw new CommunicationException("EventChannel cannot be reached while polling events in ordermanager");
 
 
     }

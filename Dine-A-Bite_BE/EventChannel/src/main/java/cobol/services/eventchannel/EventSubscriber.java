@@ -6,7 +6,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-
+/**
+ * Stub class that represents EventSubscribers from different modules
+ */
 public class EventSubscriber {
     private static int numSubscribers = 0;
     private int id;
@@ -36,6 +38,7 @@ public class EventSubscriber {
     void handleEvent(Event e) {
         unhandledEvents.add(e);
     }
+    //-- Getters and Setters --//
 
     public void addType(String type) {
         this.types.add(type);

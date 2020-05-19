@@ -2,6 +2,9 @@ package cobol.services.eventchannel;
 
 import cobol.commons.Event;
 
+/**
+ * Stub class for publishing events to the broker
+ */
 public class EventPublisher {
 
     private EventPublisher() {}

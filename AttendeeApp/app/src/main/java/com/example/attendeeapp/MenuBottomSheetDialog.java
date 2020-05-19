@@ -13,9 +13,9 @@ import androidx.annotation.Nullable;
 import com.example.attendeeapp.json.CommonFood;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 
+// TODO: handle runtime changes like rotating
 /**
- * Handles the bottomSheet for a given menuItem that contains more details about the item
- * TODO: handle runtime changes like rotating
+ * The bottomSheet for a given menu food item that contains more details about this item.
  */
 public class MenuBottomSheetDialog extends BottomSheetDialogFragment {
 
@@ -26,6 +26,9 @@ public class MenuBottomSheetDialog extends BottomSheetDialogFragment {
         item = menuItem;
     }
 
+    /**
+     * Method to get a View that displays the bottomSheet of a food item.
+     */
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,

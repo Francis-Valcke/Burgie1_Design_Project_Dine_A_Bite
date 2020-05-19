@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * Model for one menu item
+ * Model for one food item.
  */
 public class CommonFood implements Serializable {
 
@@ -81,12 +81,6 @@ public class CommonFood implements Serializable {
         return category;
     }
 
-    /**
-     * Will only add distinct categories (set)
-     *
-     * @param cat: Category to add
-     * @return if the add was successful
-     */
     public boolean addCategory(String cat) {
         return category.add(cat);
     }
@@ -112,9 +106,9 @@ public class CommonFood implements Serializable {
     }
 
     /**
-     * Return the price of a menu item with the euro symbol
+     * Return the price of the food item with the euro symbol.
      *
-     * @return String of euro symbol with price
+     * @return String of euro symbol and the item price.
      */
     @JsonIgnore
     public String getPriceEuro() {
@@ -129,8 +123,8 @@ public class CommonFood implements Serializable {
     }
 
     /**
-     * Increases the number of times the item is added to the cart
-     * Throws ArithmeticException when the maximum number of this item is reached
+     * Increases the number of times the food item has to be counted.
+     * @throws ArithmeticException Thrown when the maximum number of this item is reached.
      */
     public void increaseCount() throws ArithmeticException {
         if (this.count < MAX_ITEM) {
@@ -141,8 +135,8 @@ public class CommonFood implements Serializable {
     }
 
     /**
-     * Decreases the number of times the item is in the cart
-     * Throws ArithmeticException when this item has reached 0
+     * Decrease the number of times the food item has to be counted.
+     * @throws ArithmeticException Thrown when the food item count has reached 0.
      */
     public void decreaseCount() throws ArithmeticException {
         if (count == 0) throw new ArithmeticException("This menuItem cannot be decreased!");

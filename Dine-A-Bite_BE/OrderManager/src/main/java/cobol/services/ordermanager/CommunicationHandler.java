@@ -1,14 +1,15 @@
 package cobol.services.ordermanager;
 
+import cobol.commons.BetterResponseModel;
 import cobol.commons.CommonFood;
 import cobol.commons.Event;
 import cobol.commons.order.CommonOrder;
 import cobol.commons.order.SuperOrder;
+import cobol.commons.order.SuperOrderRec;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -52,19 +53,23 @@ public class CommunicationHandler {
 
     /**
      * This method will issue HTTP request to StandManager.
-     * Returns a String assuming the caller knows what to expect from the response.
-     * Ex. JSONArray or JSONObject
+     *      * Returns a String assuming the caller knows what to expect from the response.
+     *      * Ex. JSONArray or JSONObject
      *
      * @param path       Example: "/..."
      * @param jsonObject JSONObject or JSONArray format
+     * @param params Parameters to put in the http request
      * @return response as String
+     * @throws Throwable
      */
-    public String sendRestCallToStandManager(String path, String jsonObject, Map<String, String> params) throws JsonProcessingException {
+    public String sendRestCallToStandManager(String path, String jsonObject, Map<String, String> params) throws Throwable {
         if (configurationBean.isUnitTest()) {
             if (path.equals("/newStand")) return "{\"added\": true}";
             if(path.equals("/deleteScheduler")) return "{\"del\": true}";
             else return "";
         }
+
+
         RestTemplate template = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -84,17 +89,32 @@ public class CommunicationHandler {
             }
         }
 
-        return template.postForObject(builder.toUriString(), request, String.class);
+        String response= template.postForObject(builder.toUriString(), request, String.class);
+        BetterResponseModel<String> responseModel=null;
+        if(response!=null){
+            ObjectMapper om = new ObjectMapper();
+            responseModel= om.readValue(response, new TypeReference<BetterResponseModel<String>>() {});
+            if(responseModel.getStatus().equals(BetterResponseModel.Status.OK)){
+                return responseModel.getPayload();
+            }
+            else{
+                throw responseModel.getException();
+            }
+        }
+        else{
+            return "";
+        }
+
     }
 
     /**
      * This function will pass the superorder to the standmanager and return seperate orders
-     *
-     * @param superOrder SuperOrder Object
+     * @param superOrder Super order to get recommendations for
      * @return JSONArray of  JSONObject with field "recommendations" and a field "order" similar to return of placeOrder
-     * recommendation field will be a JSONArray of Recommendation object
+     *         recommendation field will be a JSONArray of Recommendation object
+     * @throws Throwable throw exception to frontend.
      */
-    public JSONArray getSuperRecommendationFromSM(SuperOrder superOrder) throws ParseException {
+    public List<SuperOrderRec> getSuperRecommendationFromSM(SuperOrder superOrder) throws Throwable {
 
         RestTemplate template = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
@@ -108,10 +128,19 @@ public class CommunicationHandler {
 
 
         String responseString= template.postForObject(builder.toUriString(), request, String.class);
-        JSONParser parser= new JSONParser();
-
-
-        return (JSONArray) parser.parse(responseString);
+        ObjectMapper mapper= new ObjectMapper();
+        BetterResponseModel<List<SuperOrderRec>> responseModel= mapper.readValue(responseString, new TypeReference<BetterResponseModel<List<SuperOrderRec>>>() {});
+        if(responseModel!=null){
+            if(responseModel.isOk()){
+                return responseModel.getPayload();
+            }
+            else{
+                throw responseModel.getException();
+            }
+        }
+        else{
+            throw new NullPointerException("empty response from standmanager for superorder recommendations");
+        }
     }
 
 
@@ -140,7 +169,15 @@ public class CommunicationHandler {
         }
     }
 
-    public List<Event> pollEventsFromEC(int subscriberId) throws CommunicationException, JsonProcessingException, ParseException {
+    /**
+     * HTTP request to get all events for this subscriber from the Event Channel.
+     *
+     * @param subscriberId The subscriber ID of this module.
+     * @return List of events
+     * @throws CommunicationException Error while sending the http request.
+     * @throws JsonProcessingException Error while deserializing the http response.
+     */
+    public List<Event> pollEventsFromEC(int subscriberId) throws JsonProcessingException, CommunicationException {
         if (configurationBean.isUnitTest()) return new ArrayList<>();
 
         String uri = OrderManager.ECURL + "/events";
@@ -157,16 +194,17 @@ public class CommunicationHandler {
         ResponseEntity<String> response = restTemplate.exchange(builder.toUriString(), HttpMethod.GET, httpEntity, String.class);
 
 
-        // Handle Response
+        // parse BetterResponseModel from stringresponse
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
-        if (response.getBody() != null) {
+        BetterResponseModel<List<Event>> responseModel= objectMapper.readValue(response.getBody(), new TypeReference<BetterResponseModel<List<Event>>>() {});
 
-            List<Event> events= objectMapper.readValue(response.getBody(), new TypeReference<List<Event>>() {});
-            return events;
-        } else {
-            throw new CommunicationException("EventChannel cannot be reached while polling events in ordermanager");
+        if(responseModel!=null){
+            if(responseModel.isOk()){
+                return responseModel.getPayload();
+            }
         }
+        throw new CommunicationException("EventChannel cannot be reached while polling events in ordermanager");
     }
 
     /**
@@ -212,12 +250,26 @@ public class CommunicationHandler {
         ResponseEntity<String> responseEntity = restTemplate.exchange(builder.toUriString(), HttpMethod.GET, httpEntity, String.class);
     }
 
-    public String publishConfirmedStand(CommonOrder updatedOrder, String standName, String brandName) throws JsonProcessingException {
+    /**
+     * Publish to the EventChannel that a certain stand has been selected for a given Order and thus that the
+     * order has been confirmed.
+     *
+     * @param updatedOrder Order that will be confirmed.
+     * @param standName StandName (part of the id of the stand)
+     * @param brandName BrandName (part of the id of the brand)
+     * @return Return success String
+     * @throws JsonProcessingException Error while deserializing the http response.
+     */
+    public String publishConfirmedStand(CommonOrder updatedOrder, String standName, String brandName) throws JsonProcessingException, ParseException {
         if (configurationBean.isUnitTest()) return "";
 
         // Create event for eventchannel
         JSONObject orderJson = new JSONObject();
-        orderJson.put("order", updatedOrder);
+        JSONParser parser= new JSONParser();
+
+        ObjectMapper mapper= new ObjectMapper();
+        JSONObject updateOrderJSON= (JSONObject) parser.parse(mapper.writeValueAsString(updatedOrder));
+        orderJson.put("order", updateOrderJSON);
         List<String> types = new ArrayList<>();
         types.add("o_" + updatedOrder.getId());
         types.add("s_" + standName + "_" + brandName);
@@ -237,37 +289,4 @@ public class CommunicationHandler {
         return restTemplate.postForObject(uri, entity, String.class);
 
     }
-
-
-
-    // ---- TODO te verwijderen? ----//
-
-    /**
-     * Waarom zouden de ordermanager en de standmanager communiceren via de eventchannel?
-     * <p>
-     * publish changed menuItem Event for schedulers
-     *
-     * @param mi    MenuItem
-     * @param brand brandname
-     * @throws JsonProcessingException
-     */
-    public void publishMenuChange(CommonFood mi, String brand) throws JsonProcessingException {
-        JSONObject itemJson = new JSONObject();
-        itemJson.put("menuItem", mi);
-        List<String> types = new ArrayList<>();
-        types.add(brand);
-        Event e = new Event(itemJson, types, "MenuItem");
-
-
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.registerModule(new JavaTimeModule());
-        String jsonString = objectMapper.writeValueAsString(e);
-        String uri = OrderManager.ECURL + "/publishEvent";
-        HttpEntity<String> entity = new HttpEntity<>(jsonString, headers);
-        String response = template.postForObject(uri, entity, String.class);
-        System.out.println(response);
-    }
-
-
-
 }

@@ -1,0 +1,996 @@
+[
+  {
+    "brandName": "Balls and Glory_test",
+    "longitude": 0.0,
+    "latitude": 0.0,
+    "menu": [
+      {
+        "stock": 25,
+        "description": "A ball of delicious pork",
+        "price": 0.00,
+        "preparationTime": 300,
+        "category": [
+          "SNACK"
+        ],
+        "name": "test_Classic Pork"
+      },
+      {
+        "stock": 25,
+        "description": "Veggie ball",
+        "price": 0.00,
+        "preparationTime": 300,
+        "category": [
+          "SNACK",
+          "VEGGIE"
+        ],
+        "name": "test_Delicious Veggie"
+      },
+      {
+        "stock": 25,
+        "description": "Stoemp like grandma used to make",
+        "price": 0.00,
+        "preparationTime": 1200,
+        "category": [
+          "SNACK",
+          "PREPARATION"
+        ],
+        "name": "test_Original Stoemp"
+      },
+      {
+        "stock": 25,
+        "description": "Delicious cake",
+        "price": 0.00,
+        "preparationTime": 300,
+        "category": [
+          "SNACK"
+        ],
+        "name": "test_Sweet Cake"
+      },
+      {
+        "stock": 25,
+        "description": "Healthy green salad",
+        "price": 0.00,
+        "preparationTime": 600,
+        "category": [
+          "SNACK"
+        ],
+        "name": "test_Tasty Salad"
+      }
+    ],
+    "standName": "Balls and Glory 1_test"
+  },
+  {
+    "brandName": "Balls and Glory_test",
+    "longitude": 0.0,
+    "latitude": 0.0,
+    "menu": [
+      {
+        "stock": 25,
+        "description": "A ball of delicious pork",
+        "price": 0.00,
+        "preparationTime": 300,
+        "category": [
+          "SNACK"
+        ],
+        "name": "test_Classic Pork"
+      },
+      {
+        "stock": 25,
+        "description": "Veggie ball",
+        "price": 0.00,
+        "preparationTime": 300,
+        "category": [
+          "SNACK",
+          "VEGGIE"
+        ],
+        "name": "test_Delicious Veggie"
+      },
+      {
+        "stock": 25,
+        "description": "Stoemp like grandma used to make",
+        "price": 0.00,
+        "preparationTime": 1200,
+        "category": [
+          "SNACK",
+          "PREPARATION"
+        ],
+        "name": "test_Original Stoemp"
+      },
+      {
+        "stock": 25,
+        "description": "Delicious cake",
+        "price": 0.00,
+        "preparationTime": 300,
+        "category": [
+          "SNACK"
+        ],
+        "name": "test_Sweet Cake"
+      },
+      {
+        "stock": 25,
+        "description": "Healthy green salad",
+        "price": 0.00,
+        "preparationTime": 600,
+        "category": [
+          "SNACK"
+        ],
+        "name": "test_Tasty Salad"
+      }
+    ],
+    "standName": "Balls and Glory 2_test"
+  },
+  {
+    "brandName": "Balls and Glory_test",
+    "longitude": 0.0,
+    "latitude": 0.0,
+    "menu": [
+      {
+        "stock": 25,
+        "description": "A ball of delicious pork",
+        "price": 0.00,
+        "preparationTime": 300,
+        "category": [
+          "SNACK"
+        ],
+        "name": "test_Classic Pork"
+      },
+      {
+        "stock": 25,
+        "description": "Veggie ball",
+        "price": 0.00,
+        "preparationTime": 300,
+        "category": [
+          "SNACK",
+          "VEGGIE"
+        ],
+        "name": "test_Delicious Veggie"
+      },
+      {
+        "stock": 25,
+        "description": "Stoemp like grandma used to make",
+        "price": 0.00,
+        "preparationTime": 1200,
+        "category": [
+          "SNACK",
+          "PREPARATION"
+        ],
+        "name": "test_Original Stoemp"
+      },
+      {
+        "stock": 25,
+        "description": "Delicious cake",
+        "price": 0.00,
+        "preparationTime": 300,
+        "category": [
+          "SNACK"
+        ],
+        "name": "test_Sweet Cake"
+      },
+      {
+        "stock": 25,
+        "description": "Healthy green salad",
+        "price": 0.00,
+        "preparationTime": 600,
+        "category": [
+          "SNACK"
+        ],
+        "name": "test_Tasty Salad"
+      }
+    ],
+    "standName": "Balls and Glory 3_test"
+  },
+  {
+    "brandName": "BurgerKing_test",
+    "longitude": 0.0,
+    "latitude": 0.0,
+    "menu": [
+      {
+        "stock": 25,
+        "description": "Pepper king with chicken",
+        "price": 0.00,
+        "preparationTime": 500,
+        "category": [
+          "SNACK",
+          "BURGER"
+        ],
+        "name": "test_Chicken Pepper King"
+      },
+      {
+        "stock": 25,
+        "description": "Large fries",
+        "price": 0.00,
+        "preparationTime": 300,
+        "category": [
+          "FRIES"
+        ],
+        "name": "test_Large fries"
+      },
+      {
+        "stock": 25,
+        "description": "Medium fries",
+        "price": 0.00,
+        "preparationTime": 300,
+        "category": [
+          "FRIES"
+        ],
+        "name": "test_Medium fries"
+      },
+      {
+        "stock": 25,
+        "description": "Delicious patty with peppered cheese",
+        "price": 0.00,
+        "preparationTime": 400,
+        "category": [
+          "SNACK",
+          "BURGER"
+        ],
+        "name": "test_Pepper King"
+      },
+      {
+        "stock": 25,
+        "description": "Veggie burger",
+        "price": 0.00,
+        "preparationTime": 400,
+        "category": [
+          "SNACK",
+          "BURGER"
+        ],
+        "name": "test_Rebel Whopper"
+      },
+      {
+        "stock": 25,
+        "description": "Small fries",
+        "price": 0.00,
+        "preparationTime": 300,
+        "category": [
+          "FRIES"
+        ],
+        "name": "test_Small fries"
+      },
+      {
+        "stock": 25,
+        "description": "The final evolution of the the Chicken Pepper King burger!",
+        "price": 0.00,
+        "preparationTime": 700,
+        "category": [
+          "SNACK",
+          "BURGER"
+        ],
+        "name": "test_Ultimate Chicken Bacon King"
+      }
+    ],
+    "standName": "BurgerKing 1_test"
+  },
+  {
+    "brandName": "BurgerKing_test",
+    "longitude": 0.0,
+    "latitude": 0.0,
+    "menu": [
+      {
+        "stock": 25,
+        "description": "Pepper king with chicken",
+        "price": 0.00,
+        "preparationTime": 500,
+        "category": [
+          "SNACK",
+          "BURGER"
+        ],
+        "name": "test_Chicken Pepper King"
+      },
+      {
+        "stock": 25,
+        "description": "Large fries",
+        "price": 0.00,
+        "preparationTime": 300,
+        "category": [
+          "FRIES"
+        ],
+        "name": "test_Large fries"
+      },
+      {
+        "stock": 25,
+        "description": "Medium fries",
+        "price": 0.00,
+        "preparationTime": 300,
+        "category": [
+          "FRIES"
+        ],
+        "name": "test_Medium fries"
+      },
+      {
+        "stock": 25,
+        "description": "Delicious patty with peppered cheese",
+        "price": 0.00,
+        "preparationTime": 400,
+        "category": [
+          "SNACK",
+          "BURGER"
+        ],
+        "name": "test_Pepper King"
+      },
+      {
+        "stock": 25,
+        "description": "Veggie burger",
+        "price": 0.00,
+        "preparationTime": 400,
+        "category": [
+          "SNACK",
+          "BURGER"
+        ],
+        "name": "test_Rebel Whopper"
+      },
+      {
+        "stock": 25,
+        "description": "Small fries",
+        "price": 0.00,
+        "preparationTime": 300,
+        "category": [
+          "FRIES"
+        ],
+        "name": "test_Small fries"
+      },
+      {
+        "stock": 25,
+        "description": "The final evolution of the the Chicken Pepper King burger!",
+        "price": 0.00,
+        "preparationTime": 700,
+        "category": [
+          "SNACK",
+          "BURGER"
+        ],
+        "name": "test_Ultimate Chicken Bacon King"
+      }
+    ],
+    "standName": "BurgerKing 2_test"
+  },
+  {
+    "brandName": "BurgerKing_test",
+    "longitude": 0.0,
+    "latitude": 0.0,
+    "menu": [
+      {
+        "stock": 25,
+        "description": "Pepper king with chicken",
+        "price": 0.00,
+        "preparationTime": 500,
+        "category": [
+          "SNACK",
+          "BURGER"
+        ],
+        "name": "test_Chicken Pepper King"
+      },
+      {
+        "stock": 25,
+        "description": "Large fries",
+        "price": 0.00,
+        "preparationTime": 300,
+        "category": [
+          "FRIES"
+        ],
+        "name": "test_Large fries"
+      },
+      {
+        "stock": 25,
+        "description": "Medium fries",
+        "price": 0.00,
+        "preparationTime": 300,
+        "category": [
+          "FRIES"
+        ],
+        "name": "test_Medium fries"
+      },
+      {
+        "stock": 25,
+        "description": "Delicious patty with peppered cheese",
+        "price": 0.00,
+        "preparationTime": 400,
+        "category": [
+          "SNACK",
+          "BURGER"
+        ],
+        "name": "test_Pepper King"
+      },
+      {
+        "stock": 25,
+        "description": "Veggie burger",
+        "price": 0.00,
+        "preparationTime": 400,
+        "category": [
+          "SNACK",
+          "BURGER"
+        ],
+        "name": "test_Rebel Whopper"
+      },
+      {
+        "stock": 25,
+        "description": "Small fries",
+        "price": 0.00,
+        "preparationTime": 300,
+        "category": [
+          "FRIES"
+        ],
+        "name": "test_Small fries"
+      },
+      {
+        "stock": 25,
+        "description": "The final evolution of the the Chicken Pepper King burger!",
+        "price": 0.00,
+        "preparationTime": 700,
+        "category": [
+          "SNACK",
+          "BURGER"
+        ],
+        "name": "test_Ultimate Chicken Bacon King"
+      }
+    ],
+    "standName": "BurgerKing 3_test"
+  },
+  {
+    "brandName": "BurgerKing_test",
+    "longitude": 0.0,
+    "latitude": 0.0,
+    "menu": [
+      {
+        "stock": 25,
+        "description": "Pepper king with chicken",
+        "price": 0.00,
+        "preparationTime": 500,
+        "category": [
+          "SNACK",
+          "BURGER"
+        ],
+        "name": "test_Chicken Pepper King"
+      },
+      {
+        "stock": 25,
+        "description": "Large fries",
+        "price": 0.00,
+        "preparationTime": 300,
+        "category": [
+          "FRIES"
+        ],
+        "name": "test_Large fries"
+      },
+      {
+        "stock": 25,
+        "description": "Medium fries",
+        "price": 0.00,
+        "preparationTime": 300,
+        "category": [
+          "FRIES"
+        ],
+        "name": "test_Medium fries"
+      },
+      {
+        "stock": 25,
+        "description": "Delicious patty with peppered cheese",
+        "price": 0.00,
+        "preparationTime": 400,
+        "category": [
+          "SNACK",
+          "BURGER"
+        ],
+        "name": "test_Pepper King"
+      },
+      {
+        "stock": 25,
+        "description": "Veggie burger",
+        "price": 0.00,
+        "preparationTime": 400,
+        "category": [
+          "SNACK",
+          "BURGER"
+        ],
+        "name": "test_Rebel Whopper"
+      },
+      {
+        "stock": 25,
+        "description": "Small fries",
+        "price": 0.00,
+        "preparationTime": 300,
+        "category": [
+          "FRIES"
+        ],
+        "name": "test_Small fries"
+      },
+      {
+        "stock": 25,
+        "description": "The final evolution of the the Chicken Pepper King burger!",
+        "price": 0.00,
+        "preparationTime": 700,
+        "category": [
+          "SNACK",
+          "BURGER"
+        ],
+        "name": "test_Ultimate Chicken Bacon King"
+      }
+    ],
+    "standName": "BurgerKing 4_test"
+  },
+  {
+    "brandName": "McDonalds_test",
+    "longitude": 0.0,
+    "latitude": 0.0,
+    "menu": [
+      {
+        "stock": 25,
+        "description": "The classic big mac!",
+        "price": 0.00,
+        "preparationTime": 600,
+        "category": [
+          "SNACK",
+          "BURGER"
+        ],
+        "name": "test_Big Mac"
+      },
+      {
+        "stock": 25,
+        "description": "Chicken bacon onion",
+        "price": 0.00,
+        "preparationTime": 600,
+        "category": [
+          "SNACK",
+          "BURGER"
+        ],
+        "name": "test_CBO burger"
+      },
+      {
+        "stock": 25,
+        "description": "A delicious cheeseburger.",
+        "price": 0.00,
+        "preparationTime": 600,
+        "category": [
+          "SNACK",
+          "BURGER"
+        ],
+        "name": "test_Cheeseburger"
+      },
+      {
+        "stock": 25,
+        "description": "Large fries",
+        "price": 0.00,
+        "preparationTime": 300,
+        "category": [
+          "FRIES"
+        ],
+        "name": "test_Large fries"
+      },
+      {
+        "stock": 25,
+        "description": "Big burger with 3 patties.",
+        "price": 0.00,
+        "preparationTime": 600,
+        "category": [
+          "SNACK",
+          "BURGER"
+        ],
+        "name": "test_Maestro Generous Jack"
+      },
+      {
+        "stock": 25,
+        "description": "Medium fries",
+        "price": 0.00,
+        "preparationTime": 300,
+        "category": [
+          "FRIES"
+        ],
+        "name": "test_Medium fries"
+      },
+      {
+        "stock": 25,
+        "description": "Small fries",
+        "price": 0.00,
+        "preparationTime": 300,
+        "category": [
+          "FRIES"
+        ],
+        "name": "test_Small fries"
+      }
+    ],
+    "standName": "McDonalds 1_test"
+  },
+  {
+    "brandName": "McDonalds_test",
+    "longitude": 0.0,
+    "latitude": 0.0,
+    "menu": [
+      {
+        "stock": 25,
+        "description": "The classic big mac!",
+        "price": 0.00,
+        "preparationTime": 600,
+        "category": [
+          "SNACK",
+          "BURGER"
+        ],
+        "name": "test_Big Mac"
+      },
+      {
+        "stock": 25,
+        "description": "Chicken bacon onion",
+        "price": 0.00,
+        "preparationTime": 600,
+        "category": [
+          "SNACK",
+          "BURGER"
+        ],
+        "name": "test_CBO burger"
+      },
+      {
+        "stock": 25,
+        "description": "A delicious cheeseburger.",
+        "price": 0.00,
+        "preparationTime": 600,
+        "category": [
+          "SNACK",
+          "BURGER"
+        ],
+        "name": "test_Cheeseburger"
+      },
+      {
+        "stock": 25,
+        "description": "Large fries",
+        "price": 0.00,
+        "preparationTime": 300,
+        "category": [
+          "FRIES"
+        ],
+        "name": "test_Large fries"
+      },
+      {
+        "stock": 25,
+        "description": "Big burger with 3 patties.",
+        "price": 0.00,
+        "preparationTime": 600,
+        "category": [
+          "SNACK",
+          "BURGER"
+        ],
+        "name": "test_Maestro Generous Jack"
+      },
+      {
+        "stock": 25,
+        "description": "Medium fries",
+        "price": 0.00,
+        "preparationTime": 300,
+        "category": [
+          "FRIES"
+        ],
+        "name": "test_Medium fries"
+      },
+      {
+        "stock": 25,
+        "description": "Small fries",
+        "price": 0.00,
+        "preparationTime": 300,
+        "category": [
+          "FRIES"
+        ],
+        "name": "test_Small fries"
+      }
+    ],
+    "standName": "McDonalds 2_test"
+  },
+  {
+    "brandName": "McDonalds_test",
+    "longitude": 0.0,
+    "latitude": 0.0,
+    "menu": [
+      {
+        "stock": 25,
+        "description": "The classic big mac!",
+        "price": 0.00,
+        "preparationTime": 600,
+        "category": [
+          "SNACK",
+          "BURGER"
+        ],
+        "name": "test_Big Mac"
+      },
+      {
+        "stock": 25,
+        "description": "Chicken bacon onion",
+        "price": 0.00,
+        "preparationTime": 600,
+        "category": [
+          "SNACK",
+          "BURGER"
+        ],
+        "name": "test_CBO burger"
+      },
+      {
+        "stock": 25,
+        "description": "A delicious cheeseburger.",
+        "price": 0.00,
+        "preparationTime": 600,
+        "category": [
+          "SNACK",
+          "BURGER"
+        ],
+        "name": "test_Cheeseburger"
+      },
+      {
+        "stock": 25,
+        "description": "Large fries",
+        "price": 0.00,
+        "preparationTime": 300,
+        "category": [
+          "FRIES"
+        ],
+        "name": "test_Large fries"
+      },
+      {
+        "stock": 25,
+        "description": "Big burger with 3 patties.",
+        "price": 0.00,
+        "preparationTime": 600,
+        "category": [
+          "SNACK",
+          "BURGER"
+        ],
+        "name": "test_Maestro Generous Jack"
+      },
+      {
+        "stock": 25,
+        "description": "Medium fries",
+        "price": 0.00,
+        "preparationTime": 300,
+        "category": [
+          "FRIES"
+        ],
+        "name": "test_Medium fries"
+      },
+      {
+        "stock": 25,
+        "description": "Small fries",
+        "price": 0.00,
+        "preparationTime": 300,
+        "category": [
+          "FRIES"
+        ],
+        "name": "test_Small fries"
+      }
+    ],
+    "standName": "McDonalds 3_test"
+  },
+  {
+    "brandName": "McDonalds_test",
+    "longitude": 0.0,
+    "latitude": 0.0,
+    "menu": [
+      {
+        "stock": 25,
+        "description": "The classic big mac!",
+        "price": 0.00,
+        "preparationTime": 600,
+        "category": [
+          "SNACK",
+          "BURGER"
+        ],
+        "name": "test_Big Mac"
+      },
+      {
+        "stock": 25,
+        "description": "Chicken bacon onion",
+        "price": 0.00,
+        "preparationTime": 600,
+        "category": [
+          "SNACK",
+          "BURGER"
+        ],
+        "name": "test_CBO burger"
+      },
+      {
+        "stock": 25,
+        "description": "A delicious cheeseburger.",
+        "price": 0.00,
+        "preparationTime": 600,
+        "category": [
+          "SNACK",
+          "BURGER"
+        ],
+        "name": "test_Cheeseburger"
+      },
+      {
+        "stock": 25,
+        "description": "Large fries",
+        "price": 0.00,
+        "preparationTime": 300,
+        "category": [
+          "FRIES"
+        ],
+        "name": "test_Large fries"
+      },
+      {
+        "stock": 25,
+        "description": "Big burger with 3 patties.",
+        "price": 0.00,
+        "preparationTime": 600,
+        "category": [
+          "SNACK",
+          "BURGER"
+        ],
+        "name": "test_Maestro Generous Jack"
+      },
+      {
+        "stock": 25,
+        "description": "Medium fries",
+        "price": 0.00,
+        "preparationTime": 300,
+        "category": [
+          "FRIES"
+        ],
+        "name": "test_Medium fries"
+      },
+      {
+        "stock": 25,
+        "description": "Small fries",
+        "price": 0.00,
+        "preparationTime": 300,
+        "category": [
+          "FRIES"
+        ],
+        "name": "test_Small fries"
+      }
+    ],
+    "standName": "McDonalds 4_test"
+  },
+  {
+    "brandName": "PizzaHut_test",
+    "longitude": 0.0,
+    "latitude": 0.0,
+    "menu": [
+      {
+        "stock": 25,
+        "description": "Smoked bacon cubes, red onion, mushrooms, mild garlic sauce, tomato sauce and mozzarella",
+        "price": 0.00,
+        "preparationTime": 1200,
+        "category": [
+          "PIZZA"
+        ],
+        "name": "test_alcace"
+      },
+      {
+        "stock": 25,
+        "description": "Pieces of grilled chicken, mushrooms, red onion, green pepper, mozzarella and barbecue sauce",
+        "price": 0.00,
+        "preparationTime": 1200,
+        "category": [
+          "PIZZA"
+        ],
+        "name": "test_Barbecue chicken"
+      },
+      {
+        "stock": 25,
+        "description": "With extra mozzarella, thin strips of ham and tomato sauce",
+        "price": 0.00,
+        "preparationTime": 1200,
+        "category": [
+          "PIZZA"
+        ],
+        "name": "test_Cheesam"
+      },
+      {
+        "stock": 25,
+        "description": "Strips of ham, mushrooms, tomato cubes, tomato sauce and mozzarella",
+        "price": 0.00,
+        "preparationTime": 1200,
+        "category": [
+          "PIZZA",
+          "VEGGIE"
+        ],
+        "name": "test_Forestiere"
+      },
+      {
+        "stock": 25,
+        "description": "Spicy beef, chili peppers, red onion, diced tomatoes, tomato sauce and mozzarella",
+        "price": 0.00,
+        "preparationTime": 1200,
+        "category": [
+          "PIZZA"
+        ],
+        "name": "test_Hot n spicy"
+      },
+      {
+        "stock": 25,
+        "description": "The original, oven-fresh basic pizza with tomato sauce and mozzarella.",
+        "price": 0.00,
+        "preparationTime": 1200,
+        "category": [
+          "PIZZA"
+        ],
+        "name": "test_Margharita"
+      },
+      {
+        "stock": 25,
+        "description": "Double portion of beef, diced tomatoes, red onion, pepper sauce, tomato sauce and mozzarella",
+        "price": 0.00,
+        "preparationTime": 1200,
+        "category": [
+          "PIZZA"
+        ],
+        "name": "test_Pepper"
+      }
+    ],
+    "standName": "PizzaHut 1_test"
+  },
+  {
+    "brandName": "PizzaHut_test",
+    "longitude": 0.0,
+    "latitude": 0.0,
+    "menu": [
+      {
+        "stock": 25,
+        "description": "Smoked bacon cubes, red onion, mushrooms, mild garlic sauce, tomato sauce and mozzarella",
+        "price": 0.00,
+        "preparationTime": 1200,
+        "category": [
+          "PIZZA"
+        ],
+        "name": "test_alcace"
+      },
+      {
+        "stock": 25,
+        "description": "Pieces of grilled chicken, mushrooms, red onion, green pepper, mozzarella and barbecue sauce",
+        "price": 0.00,
+        "preparationTime": 1200,
+        "category": [
+          "PIZZA"
+        ],
+        "name": "test_Barbecue chicken"
+      },
+      {
+        "stock": 25,
+        "description": "With extra mozzarella, thin strips of ham and tomato sauce",
+        "price": 0.00,
+        "preparationTime": 1200,
+        "category": [
+          "PIZZA"
+        ],
+        "name": "test_Cheesam"
+      },
+      {
+        "stock": 25,
+        "description": "Strips of ham, mushrooms, tomato cubes, tomato sauce and mozzarella",
+        "price": 0.00,
+        "preparationTime": 1200,
+        "category": [
+          "PIZZA",
+          "VEGGIE"
+        ],
+        "name": "test_Forestiere"
+      },
+      {
+        "stock": 25,
+        "description": "Spicy beef, chili peppers, red onion, diced tomatoes, tomato sauce and mozzarella",
+        "price": 0.00,
+        "preparationTime": 1200,
+        "category": [
+          "PIZZA"
+        ],
+        "name": "test_Hot n spicy"
+      },
+      {
+        "stock": 25,
+        "description": "The original, oven-fresh basic pizza with tomato sauce and mozzarella.",
+        "price": 0.00,
+        "preparationTime": 1200,
+        "category": [
+          "PIZZA"
+        ],
+        "name": "test_Margharita"
+      },
+      {
+        "stock": 25,
+        "description": "Double portion of beef, diced tomatoes, red onion, pepper sauce, tomato sauce and mozzarella",
+        "price": 0.00,
+        "preparationTime": 1200,
+        "category": [
+          "PIZZA"
+        ],
+        "name": "test_Pepper"
+      }
+    ],
+    "standName": "PizzaHut 2_test"
+  }
+]

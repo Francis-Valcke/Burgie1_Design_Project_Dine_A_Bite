@@ -30,6 +30,9 @@ import java.security.GeneralSecurityException;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
 import okhttp3.Request;
 
+/**
+ * Activity that handles the account user interface.
+ */
 public class AccountActivity extends ToolbarActivity {
 
     private static final String TAG = AccountActivity.class.getSimpleName();
@@ -40,6 +43,11 @@ public class AccountActivity extends ToolbarActivity {
     private TextView balance;
     CompositeDisposable disposables;
 
+    /**
+     * Method to setup the activity.
+     *
+     * @param savedInstanceState The previously saved activity state, if available.
+     */
     @SuppressLint("ApplySharedPref")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -104,6 +112,9 @@ public class AccountActivity extends ToolbarActivity {
 
     }
 
+    /**
+     * Method that requests and displays the user balance from the server.
+     */
     private void updateBalance() {
 
         String url = ServerConfig.AS_ADDRESS + "/user/balance";
@@ -138,6 +149,12 @@ public class AccountActivity extends ToolbarActivity {
 
     }
 
+    /**
+     * Extends the toolbar option selection to exclude the account selection button.
+     *
+     * @param item The selected item in the toolbar menu.
+     * @return If the click event should be consumed or forwarded.
+     */
     @Override
     public boolean onOptionsItemSelected(@NonNull android.view.MenuItem item) {
         if (item.getItemId() == R.id.account_action) {
@@ -147,6 +164,9 @@ public class AccountActivity extends ToolbarActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    /**
+     * Called when the result from TopUpActivity is available to update the current user balance.
+     */
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);

@@ -3,6 +3,7 @@ package com.example.attendeeapp;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.graphics.Typeface;
+import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -19,22 +20,22 @@ import androidx.appcompat.app.AlertDialog;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
-import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import com.example.attendeeapp.data.LoginDataSource;
 import com.example.attendeeapp.data.LoginRepository;
 import com.example.attendeeapp.data.model.LoggedInUser;
+import com.example.attendeeapp.json.BetterResponseModel;
 import com.example.attendeeapp.json.CommonFood;
 import com.example.attendeeapp.json.CommonOrder;
 import com.example.attendeeapp.json.CommonOrderItem;
 import com.example.attendeeapp.json.Recommendation;
+import com.example.attendeeapp.json.SuperOrderRec;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.android.gms.common.internal.service.Common;
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Multimap;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -52,20 +53,21 @@ import java.util.Map;
 
 /**
  * Activity that handles the confirmation/choosing of the (recommended) stand of the placed order
- *
+ * as well as the user interface for this.
+ * <p>
  * The FLOW in this activity is as follows:
- * - The order from CartActivity is split up over the different brands
- * - For each brand, an order is placed at the server and recommendations are fetched
- * - If an order of one brand is ordered from the SAME specific stand, the order is placed with /placeOrder
- *   If an order of one brand has no specific stand for all order items, the order is placed with /placeSuperOrder
- *      If this SuperOrder cannot be made in one stand (although the brand is the same), the server can split it up
- *      => if the order is split up, the user must be notified
- * - Next the user must confirm a stand for the returned order from the server and the confirmed order is saved locally
- * - The confirmation of stands must be done for each brand separately
- *      If the order (of one brand) was placed with /placeSuperOrder and split up,
- *      the user must confirm all stands for the split up order
+ * - The order from CartActivity is split up over the different brands.
+ * - For each brand, an order is placed at the server and recommendations are fetched.
+ * - If an order of one brand is ordered from the SAME specific stand, the order is placed with /placeOrder.
+ * If an order of one brand has no specific stand for all order items, the order is placed with /placeSuperOrder.
+ * If this SuperOrder cannot be made in one stand (although the brand is the same), the server can split it up.
+ * => if the order is split up, the user must be notified.
+ * - Next the user must confirm a stand for the returned order from the server and the confirmed order is saved locally.
+ * - The confirmation of stands must be done for each brand separately.
+ * If the order (of one brand) was placed with /placeSuperOrder and split up,
+ * the user must confirm all stands for the split up order.
  * - If all orders have a confirmed stand, the confirmedOrder list is sent over to orderActivity
- *  to be sent to the server for confirmation
+ * to be sent to the server for confirmation.
  */
 public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnItemSelectedListener {
 
@@ -73,9 +75,13 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
     private ArrayList<CommonFood> ordered; // current ordered items
     private List<Recommendation> recommendations = null; // current stand recommendations
     private CommonOrder orderReceived = null; // current stand order
-    // index in the recommendation list of the currently chosen recommendation in the spinner
+    /**
+     * Index in the recommendation list of the currently chosen recommendation in the spinner.
+     */
     private int chosenRecommend = -1;
-    // if a recommendation of the recommendation list contains the specific chosen stand, it is saved here
+    /**
+     * If a recommendation of the recommendation list contains the specific chosen stand, it is saved here.
+     */
     private Recommendation specificRecommendation = null;
 
     private String specificStand;
@@ -84,13 +90,19 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
     private Iterator<Map.Entry<String, ArrayList<CommonFood>>> mapIterator;
     private ArrayList<CommonOrder> confirmedOrders = new ArrayList<>();
 
-    // current stand confirmation number for a certain brand
+    /**
+     * Current stand confirmation number for a certain brand.
+     */
     private int confirmNumber = 1;
-    // current stand confirmation number for a certain brand,
-    // when an order of the same brand is split up over multiple stands
+    /**
+     * Current stand confirmation number for a certain brand,
+     * when an order of the same brand is split up over multiple stands.
+     */
     private int confirmSplitOrderNumber = 0;
-    // the recommendations of a split order of the same brand
-    private JSONArray splitOrderRecommendations = null;
+    /**
+     * The recommendations of a split order of the same brand.
+     */
+    private List<SuperOrderRec> splitOrderRecommendations = null;
 
     private Toast mToast = null;
     private AlertDialog mDialog = null;
@@ -98,6 +110,11 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
 
     private LoggedInUser user = LoginRepository.getInstance(new LoginDataSource()).getLoggedInUser();
 
+    /**
+     * Method to setup the activity.
+     *
+     * @param savedInstanceState The previously saved activity state, if available.
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -110,6 +127,7 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
         // Ignore warning
         ordered = (ArrayList<CommonFood>) getIntent().getSerializableExtra("order");
         recommendType = (CommonOrder.RecommendType) getIntent().getSerializableExtra("recType");
+        lastLocation = getIntent().getParcelableExtra("location");
 
         // Divide items into different brands
         for (CommonFood item : ordered) {
@@ -147,13 +165,13 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
                     confirmedOrders.add(orderReceived);
 
                     if (confirmNumber - 1 == brandItemMap.keySet().size() &&
-                            confirmSplitOrderNumber == splitOrderRecommendations.length()) {
+                            confirmSplitOrderNumber == splitOrderRecommendations.size()) {
                         // Continue to overview with confirmed stands for the orders
                         Intent listIntent = new Intent(ConfirmActivity.this, OrderActivity.class);
                         listIntent.putExtra("orderList", confirmedOrders);
                         startActivity(listIntent);
                     } else {
-                        if (splitOrderRecommendations.length() > confirmSplitOrderNumber) {
+                        if (splitOrderRecommendations.size() > confirmSplitOrderNumber) {
                             // Continue confirming next stand for split order
                             confirmNextSplitStand();
                         } else {
@@ -162,6 +180,7 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
                         }
                     }
                 } else if (recommendations.size() > 0) {
+                    // TODO: change: check for rank 1 of recommendation (since complete list is returned)
                     // specificRecommendation is not part of the returned recommendations
                     noRecommend = false;
 
@@ -180,14 +199,14 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
                         confirmedOrders.add(orderReceived);
 
                         if (confirmNumber - 1 == brandItemMap.keySet().size() &&
-                                confirmSplitOrderNumber == splitOrderRecommendations.length()) {
+                                confirmSplitOrderNumber == splitOrderRecommendations.size()) {
                             // Continue to overview with confirmed stands for the orders
                             Intent listIntent = new Intent(ConfirmActivity.this, OrderActivity.class);
                             listIntent.putExtra("orderList", confirmedOrders);
                             startActivity(listIntent);
                         } else {
                             // Continue confirming stands for the next brand
-                            if (splitOrderRecommendations.length() > confirmSplitOrderNumber) {
+                            if (splitOrderRecommendations.size() > confirmSplitOrderNumber) {
                                 // Continue confirming next stand for split order
                                 confirmNextSplitStand();
                             } else {
@@ -211,19 +230,18 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
                 }
             }
             if (noRecommend) {
-                String text = "No stands available";
-                if (!specificStand.equals(""))
-                    text = "Your order could not be received, you cannot continue";
-                if (mToast != null) mToast.cancel();
-                mToast = Toast.makeText(ConfirmActivity.this, text, Toast.LENGTH_SHORT);
-                mToast.show();
+                if (!specificStand.equals("")) {
+                    showToast("You cannot continue, if there are recommendations, check your balance");
+                } else {
+                    showToast("No stand available");
+                }
             }
         });
     }
 
     /**
-     * Requests a recommendation for the items of the next brand available in the brandItemMap
-     * Method is called as much as there are different brands in the total order of the user
+     * Requests a recommendation for the items of the next brand available in the brandItemMap.
+     * Method is called as much as there are different brands in the total order of the user.
      */
     private void confirmNextStand() {
         // Get next brand - orderItems entry of the map
@@ -268,24 +286,24 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
         orderReceived = null;
         chosenRecommend = -1;
         confirmSplitOrderNumber = 0;
-        splitOrderRecommendations = new JSONArray();
+        splitOrderRecommendations = new ArrayList<>();
         specificRecommendation = null;
 
         if (specificStand.equals("")) {
             // If order items may come from different stands, request a superOrder
-            Log.d("OrderMessage","Requesting super order");
+            Log.d("OrderMessage", "Requesting super order");
             requestSuperOrderRecommend();
         } else {
             // If all items of the order are chosen from the same stand, no superOrder is required
-            Log.d("OrderMessage","Requesting normal order");
+            Log.d("OrderMessage", "Requesting normal order");
             requestOrderRecommend();
         }
     }
 
     /**
-     * Make distance and time of recommendation invisible until recommendation comes available
-     * Initializes a new spinner for the current stand recommendations
-     * Reset the current order items to be confirmed
+     * Make distance and time TextView of recommendation invisible until a recommendation comes available.
+     * Initializes a new spinner for the current stand recommendations.
+     * Reset the current order item list to be confirmed.
      */
     private void resetFields() {
         // Make distance and time of recommendation invisible until recommendation comes available
@@ -320,8 +338,8 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
     }
 
     /**
-     * Called when an order of the same brand has been split up over multiple stand by the server
-     * Used to display and handle the next stand confirmation of the split order
+     * Called when an order of the same brand has been split up over multiple stand by the server.
+     * Used to display and handle the next stand confirmation of the split order.
      */
     private void confirmNextSplitStand() {
 
@@ -332,11 +350,7 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
         orderReceived = null;
         chosenRecommend = -1;
         specificRecommendation = null;
-        try {
-            handleReceivedRecommendation(splitOrderRecommendations.getJSONObject(confirmSplitOrderNumber));
-        } catch (JSONException | JsonProcessingException e) {
-            Log.v("JSON exception", "JSON exception in confirmActivity");
-        }
+        handleReceivedRecommendation(splitOrderRecommendations.get(confirmSplitOrderNumber));
 
         confirmSplitOrderNumber++;
 
@@ -344,12 +358,15 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
         // Display which split stand number is currently being confirmed
         TextView confirmBrandNumberTxt = findViewById(R.id.confirm_brand_number);
         confirmBrandNumberTxt.setVisibility(View.VISIBLE);
-        confirmBrandNumberTxt.setText("(" + confirmSplitOrderNumber + "/" + splitOrderRecommendations.length() + ")");
+        confirmBrandNumberTxt.setText("(" + confirmSplitOrderNumber + "/" + splitOrderRecommendations.size() + ")");
 
         showSplitOrderAlert();
 
     }
 
+    /**
+     * This method will display an alert message if the server has split up the order.
+     */
     private void showSplitOrderAlert() {
         // Alert user that the server has split up his order
         AlertDialog.Builder builder = new AlertDialog.Builder(ConfirmActivity.this);
@@ -371,11 +388,11 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
 
     /**
      * Sends order of user of the same brand to the server in JSON to request a recommendation
-     * when ALL items are from the same specific stand (and brand)
-     *
-     * Send a JSON object with ordered items and user location
-     * Format: CommonOrder converted to JSON
-     * Location is (360, 360) when user location is unknown
+     * when ALL items are from the same specific stand (and brand).
+     * <p>
+     * Sends a JSON object with ordered items and user location.
+     * Format: CommonOrder converted to JSON.
+     * Location is (360, 360) when the user location is unknown.
      */
     private void requestOrderRecommend() {
 
@@ -422,17 +439,41 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
         // Request recommendation from server for sent order (both in JSON)
         JsonObjectRequest jsonRequest = new JsonObjectRequest(Request.Method.POST, url, jsonOrder,
                 response -> {
+                    ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+                    BetterResponseModel<JsonNode> responseModel = null;
                     try {
-                        handleReceivedRecommendation(response);
-                    } catch (JsonProcessingException | JSONException e) {
-                        Log.v("JSON exception", "JSON exception in confirmActivity");
+                        responseModel = mapper.readValue(response.toString(), new TypeReference<BetterResponseModel<JsonNode>>() {
+                        });
+                    } catch (JsonProcessingException e) {
+                        showToast("Exception parsing response from server");
+                        return;
                     }
+                    assert responseModel != null;
+
+                    // Exception from server
+                    if (!responseModel.isOk()) {
+                        showToast(responseModel.getException().getMessage());
+                        return;
+                    }
+
+
+                    SuperOrderRec orderRec=null;
+                    try {
+                        orderRec = mapper.readValue(responseModel.getPayload().toString(), SuperOrderRec.class);
+                    } catch (JsonProcessingException e) {
+                        e.printStackTrace();
+                        showToast("Error while parsing response from server");
+                        return;
+                    }
+
+                    // Response is ok, no exception on server
+                    handleReceivedRecommendation(orderRec);
                 }, error -> {
-                    if (mToast != null) mToast.cancel();
-                    mToast = Toast.makeText(ConfirmActivity.this, "Recommendation could not be fetched.",
-                            Toast.LENGTH_SHORT);
-                    mToast.show();
-                }) { // Add JSON headers
+            if (mToast != null) mToast.cancel();
+            mToast = Toast.makeText(ConfirmActivity.this, "Recommendation could not be fetched.",
+                    Toast.LENGTH_SHORT);
+            mToast.show();
+        }) { // Add JSON headers
             @Override
             public @NonNull
             Map<String, String> getHeaders() {
@@ -449,12 +490,12 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
 
 
     /**
-     * Sends order items of user of the same brand to the server in JSON to request a recommendation
-     * A SuperOrder is required when all ordered items may be from different stands (but the same brand)
-     *
-     * Send a JSON object with ordered items and user location
-     * Format: CommonOrder converted to JSON
-     * Location is (360, 360) when user location is unknown
+     * Sends ordered items of a user of the same brand to the server in JSON to request a recommendation.
+     * A SuperOrder is required when all ordered items may be from different stands (but the same brand).
+     * <p>
+     * Send a JSON object with ordered items and user location.
+     * Format: CommonOrder converted to JSON.
+     * Location is (360, 360) when the user location is unknown.
      */
     private void requestSuperOrderRecommend() {
 
@@ -499,37 +540,59 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
         final JSONObject body = jsonOrder;
 
         // Request recommendation from server for sent order (both in JSON)
-        JsonArrayRequest jsonRequest = new JsonArrayRequest(Request.Method.POST, url, null,
+        JsonObjectRequest jsonRequest = new JsonObjectRequest(Request.Method.POST, url, null,
                 response -> {
+
+                    BetterResponseModel<List<SuperOrderRec>> responseModel=null;
                     try {
-                        splitOrderRecommendations = response;
-                        if (response.length() > 1) {
-                            confirmNextSplitStand();
-                        } else {
-                            // Order has not been split up
-                            confirmSplitOrderNumber = 1;
-                            handleReceivedRecommendation(splitOrderRecommendations.getJSONObject(0));
+                        ObjectMapper mapper = new ObjectMapper();
+                        responseModel = mapper
+                                .readValue(response.toString(), new TypeReference<BetterResponseModel<List<SuperOrderRec>>>() {
+                                });
+                    } catch (JsonProcessingException e) {
+                        Log.v("JSON exception", "JSON exception in confirmActivity");
+                        e.printStackTrace();
+                        showToast("Exception while parsing response for superorder");
+                        return;
+                    }
+
+                    if(responseModel!=null){
+                        if(responseModel.isOk()){
+
+                            splitOrderRecommendations.addAll(responseModel.getPayload());
+
+                            if (responseModel.getPayload().size() > 1) {
+                                confirmNextSplitStand();
+                            } else {
+                                // Order has not been split up
+                                confirmSplitOrderNumber = 1;
+                                handleReceivedRecommendation(splitOrderRecommendations.get(0));
+                            }
+
+                            // If no specific stand was chosen, update the view
+                            if (specificStand.equals("")) {
+                                chosenRecommend = 0;
+                                showRecommendation(0);
+                            }
+                            // If specific stand is part of recommendations, updates its view
+                            else if (specificRecommendation != null) {
+                                chosenRecommend = recommendations.indexOf(specificRecommendation);
+                                showSpecificStand();
+                            }
+                        }
+                        else{
+                            showToast(responseModel.getException().getMessage());
                         }
 
-                    } catch (JsonProcessingException | JSONException e) {
-                        Log.v("JSON exception", "JSON exception in confirmActivity");
                     }
-                    // If no specific stand was chosen, update the view
-                    if (specificStand.equals("")) {
-                        chosenRecommend = 0;
-                        showRecommendation(0);
+                    else{
+                        showToast("Exception while receiving response from superorder");
                     }
-                    // If specific stand is part of recommendations, updates its view
-                    else if (specificRecommendation != null) {
-                        chosenRecommend = recommendations.indexOf(specificRecommendation);
-                        showSpecificStand();
-                    }
+
+
                 }, error -> {
-                    if (mToast != null) mToast.cancel();
-                    mToast = Toast.makeText(ConfirmActivity.this, "Recommendation could not be fetched.",
-                            Toast.LENGTH_SHORT);
-                    mToast.show();
-                }) { // Add JSON headers
+            showToast("Recommendation could not be fetched.");
+        }) { // Add JSON headers
             @Override
             public @NonNull
             Map<String, String> getHeaders() {
@@ -538,6 +601,7 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
                 headers.put("Authorization", user.getAuthorizationToken());
                 return headers;
             }
+
             @Override
             public byte[] getBody() {
                 return body.toString().getBytes();
@@ -550,18 +614,14 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
 
     /**
      * Handles one recommendation/order pair to handle the confirmation of a stand for that order
-     * Called by the place(Super)Order http request response listeners and confirmNextSplitStand
-     * @param response: jsonObject containing the recommendation(s) and the order
-     * @throws JSONException
-     * @throws JsonProcessingException
+     * and sets the Views to display the current order/recommendation values.
+     * Called by the place(Super)Order volley-request responseListeners and confirmNextSplitStand.
+     *
+     * @param response: jsonNode containing the recommendation(s) and the order
      */
-    private void handleReceivedRecommendation(JSONObject response) throws JSONException, JsonProcessingException {
-        ObjectMapper mapper = new ObjectMapper();
-        //mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        recommendations = mapper.readValue(response.get("recommendations").toString(),
-                new TypeReference<List<Recommendation>>() {});
-        //orderReceived= mapper.readValue(response.get("order").toString(), CommonOrder.class);
-        orderReceived = mapper.readerFor(CommonOrder.class).readValue(response.get("order").toString());
+    private void handleReceivedRecommendation(SuperOrderRec response) {
+        recommendations = new ArrayList<>(response.getRecommendations());
+        orderReceived = response.getOrder();
 
         //TODO: remove when checked that setting prices/cartCount/totalPrice is redundant
         orderReceived.setPrices(ordered);
@@ -617,7 +677,7 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
     }
 
     /**
-     * Display the current items of the order being confirmed
+     * This method sets the Views to display the current items of the order being confirmed.
      */
     private void showOrderDetails() {
 
@@ -626,7 +686,7 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
 
         LinearLayout listView = findViewById(R.id.confirm_list);
 
-        for (CommonOrderItem i : orderReceived.getOrderItems()){
+        for (CommonOrderItem i : orderReceived.getOrderItems()) {
             View view = getLayoutInflater().inflate(R.layout.confirm_item_material, null);
             TextView textName = view.findViewById(R.id.confirm_item_name);
             TextView textCount = view.findViewById(R.id.confirm_item_count);
@@ -639,12 +699,13 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
     }
 
     /**
-     * Function that updates the textViews to show the received recommendation info
-     * @param i the number of the recommendation in the recommendation list
+     * Method that updates the TextViews to show the received recommendation info.
+     *
+     * @param i The index of the recommendation in the recommendation list to be shown.
      */
     @SuppressLint("SetTextI18n")
     private void showRecommendation(int i) {
-        if(recommendations != null) {
+        if (recommendations != null) {
             if (recommendations.size() > 0) {
                 // Set expected time for order
                 // timestamp in seconds, calendar in milliseconds
@@ -672,7 +733,7 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
                 remainingTimeText.setVisibility(View.VISIBLE);
 
                 TextView remainingTime = findViewById(R.id.recommend_time);
-                remainingTime.setText(recommendations.get(i).getTimeEstimate()/60 + " minute(s)");
+                remainingTime.setText(recommendations.get(i).getTimeEstimate() / 60 + " minute(s)");
                 remainingTime.setVisibility(View.VISIBLE);
             }
         }
@@ -680,7 +741,7 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
 
     /**
      * Display the user specific chosen stand when a recommendation with this chosen stand
-     * is available for the order
+     * is available for the order.
      */
     private void showSpecificStand() {
         // Display the specific stand chosen by the user
@@ -707,6 +768,21 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
         recommend.setText(R.string.specific_stand_chosen);
     }
 
+    /**
+     * Method to display a toast with a specific message.
+     *
+     * @param message The message to show in the Toast.
+     */
+    public void showToast(String message) {
+        if (mToast != null) mToast.cancel();
+        mToast = Toast.makeText(ConfirmActivity.this, message,
+                Toast.LENGTH_SHORT);
+        mToast.show();
+    }
+
+    /**
+     * Method that sets the chosen stand when an item is selected from the stand spinner.
+     */
     @Override
     public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
         // An item was selected in the spinner

@@ -10,10 +10,13 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 /**
- * Handles the view for the global menu
+ * Handles the view for the global menu.
  */
 public class MenuFragmentGlobal extends MenuFragment {
 
+    /**
+     * Method to create the fragments View.
+     */
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
@@ -21,6 +24,9 @@ public class MenuFragmentGlobal extends MenuFragment {
         return inflater.inflate(R.layout.fragment_menu_global, container, false);
     }
 
+    /**
+     * Method to setup the fragments View.
+     */
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         // Instantiates menu item list

@@ -86,6 +86,7 @@ public class MainActivity extends AppCompatActivity
     /**
      * This function is called when an item is clicked in the navigation drawer,
      * and depending on the item clicked, the corresponding switch case will be selected
+     *
      * @param item the item in navigation drawer that was selected by the user
      */
     @Override
@@ -95,16 +96,19 @@ public class MainActivity extends AppCompatActivity
             case R.id.nav_profile:
                 getSupportFragmentManager().beginTransaction()
                         .replace(R.id.fragment_container, profile)
+                        .addToBackStack(null)
                         .commit();
                 break;
             case R.id.nav_orders:
                 getSupportFragmentManager().beginTransaction()
                         .replace(R.id.fragment_container, order)
+                        .addToBackStack(null)
                         .commit();
                 break;
             case R.id.nav_dashboard:
                 getSupportFragmentManager().beginTransaction()
                         .replace(R.id.fragment_container, dashboard)
+                        .addToBackStack(null)
                         .commit();
                 break;
         }
@@ -118,7 +122,8 @@ public class MainActivity extends AppCompatActivity
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         } else {
-            super.onBackPressed();
+            //super.onBackPressed();
+            getSupportFragmentManager().popBackStack();
         }
     }
 
@@ -140,8 +145,8 @@ public class MainActivity extends AppCompatActivity
      * - brand name
      * - subscriber ID for the Event Channel
      *
-     * @param context context from which this method is called
-     * @param bundle bundle to store the retrieved credentials in
+     * @param context         context from which this method is called
+     * @param bundle          bundle to store the retrieved credentials in
      * @param loginRepository stores the logged in user
      */
     private void fetchCredentials(Context context, Bundle bundle, LoginRepository loginRepository) {
@@ -203,4 +208,5 @@ public class MainActivity extends AppCompatActivity
             e.printStackTrace();
         }
     }
+
 }

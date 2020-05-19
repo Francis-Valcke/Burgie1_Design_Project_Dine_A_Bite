@@ -6,6 +6,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+/**
+ * The Authentication Service is responsible for authenticating users and handling user related requestes.
+ */
 @SpringBootApplication
 public class AuthenticationService {
 

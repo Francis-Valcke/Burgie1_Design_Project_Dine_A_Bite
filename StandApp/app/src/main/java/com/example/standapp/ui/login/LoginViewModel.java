@@ -101,8 +101,6 @@ public class LoginViewModel extends ViewModel {
         }
     }
 
-    // A placeholder username validation check
-
     /**
      * Method for checking valid username format
      *
@@ -121,8 +119,6 @@ public class LoginViewModel extends ViewModel {
         }
     }
 
-    // A placeholder password validation check
-
     /**
      * Method for checking valid password format
      *
@@ -134,7 +130,6 @@ public class LoginViewModel extends ViewModel {
         return password != null && password.trim().length() > 5;
     }
 
-    // A placeholder for email validation check
     /**
      * Method for checking valid email format
      *

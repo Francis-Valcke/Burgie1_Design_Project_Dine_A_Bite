@@ -56,9 +56,10 @@ public class DashboardFragment extends Fragment
     private String brandName = "";
 
     // Menu items of the stand
-    private ArrayList<CommonFood> items = new ArrayList<>();
+    private ArrayList<CommonFood> items;
     private DashboardListViewAdapter adapter;
     private MenuViewModel menuViewModel;
+    private RevenueViewModel revenueViewModel;
 
     // Stores the current stock of the menu items;
     // this way the stock send to the backend is calculated to be equal to the added stock
@@ -93,14 +94,16 @@ public class DashboardFragment extends Fragment
 
         menuViewModel = new ViewModelProvider(requireActivity())
                 .get(MenuViewModel.class);
+        revenueViewModel = new ViewModelProvider(requireActivity())
+                .get(RevenueViewModel.class);
         Observer<ArrayList<CommonFood>> observer = new Observer<ArrayList<CommonFood>>() {
             @Override
             public void onChanged(ArrayList<CommonFood> commonFoods) {
-                items = menuViewModel.getMenuList().getValue();
+                items = menuViewModel.getMenuList();
                 adapter.notifyDataSetChanged();
             }
         };
-        menuViewModel.getMenuList().observe(getViewLifecycleOwner(), observer);
+        menuViewModel.getLiveDataMenuList().observe(getViewLifecycleOwner(), observer);
 
         // Getting the log in information from profile fragment
         final Bundle bundle = getArguments();
@@ -114,7 +117,7 @@ public class DashboardFragment extends Fragment
             // Ask for permission to get location data and set lastLocation variable
             checkLocationPermission();
 
-            items = menuViewModel.getMenuList().getValue();
+            items = menuViewModel.getMenuList();
             if (adapter == null) {
                 adapter = new DashboardListViewAdapter(Objects.requireNonNull(getActivity()), items,
                         this);
@@ -185,9 +188,9 @@ public class DashboardFragment extends Fragment
      * Handle the requested permissions,
      * here only the location permission is handled
      *
-     * @param requestCode: 1 = location permission was requested
-     * @param permissions: the requested permission(s) names
-     * @param grantResults: if the permission is granted or not
+     * @param requestCode  1 = location permission was requested
+     * @param permissions  the requested permission(s) names
+     * @param grantResults if the permission is granted or not
      */
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
@@ -228,12 +231,14 @@ public class DashboardFragment extends Fragment
     @Override
     public void onMenuItemAdded(CommonFood item) {
         menuViewModel.addMenuItem(item);
+        revenueViewModel.addPrice(item.getName(), item.getPrice());
         addedStockMap.put(item.getName(), item.getStock());
     }
 
     @Override
     public void onMenuItemChanged(CommonFood item, int addedStock, int position) {
         menuViewModel.editMenuItem(item, position);
+        revenueViewModel.editPrice(item.getName(), item.getPrice());
         int curr = 0;
         if (addedStockMap.containsKey(item.getName())) {
             curr = Objects.requireNonNull(addedStockMap.get(item.getName()));
@@ -243,6 +248,11 @@ public class DashboardFragment extends Fragment
 
     @Override
     public void onMenuItemDeleted(int position) {
+        ArrayList<CommonFood> menu = menuViewModel.getMenuList();
+        if (menu != null) {
+            String foodName = menu.get(position).getName();
+            revenueViewModel.deletePrice(foodName);
+        }
         menuViewModel.deleteMenuItem(position);
     }
 
@@ -259,8 +269,8 @@ public class DashboardFragment extends Fragment
      * Submit menu to server using VolleyRequest
      * to OM /addStand or /updateStand
      *
-     * @param context context from which method is called
-     * @param bundle bundle containing info
+     * @param context   context from which method is called
+     * @param bundle    bundle containing info
      * @param standName stand name
      * @param brandName brand name
      */
@@ -324,9 +334,10 @@ public class DashboardFragment extends Fragment
             RequestQueue queue = Volley.newRequestQueue(context);
             String url;
             // Check if stand is new or not
-            if (items.isEmpty() || isNewStand) {
+            if (isNewStand) {
                 url = ServerConfig.OM_ADDRESS + "/addStand";
                 isNewStand = false;
+                bundle.putBoolean("newStand", false);
             } else {
                 url = ServerConfig.OM_ADDRESS + "/updateStand";
             }
@@ -384,4 +395,5 @@ public class DashboardFragment extends Fragment
             addedStockMap.clear();
         }
     }
+
 }

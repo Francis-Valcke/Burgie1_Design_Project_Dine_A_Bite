@@ -47,7 +47,7 @@ public class AuthenticationController {
 
     /**
      * API endpoint to test if the server is still alive.
-     *
+     * @param request HTTP request details.
      * @return "AuthenticationService is alive!"
      */
     @GetMapping("/pingAS")
@@ -156,6 +156,7 @@ public class AuthenticationController {
             );
         }
     }
+
 
     @Autowired
     public void setUsers(UserRepository users) {

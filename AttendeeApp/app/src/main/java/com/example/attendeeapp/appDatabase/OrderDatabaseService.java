@@ -11,6 +11,9 @@ import com.example.attendeeapp.json.CommonOrder;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
+/**
+ * The local database service that is used to access and store orders in the local order database.
+ */
 public class OrderDatabaseService {
 
     private String DB_NAME = "order_db";
@@ -48,7 +51,10 @@ public class OrderDatabaseService {
         return null;
     }
 
-
+    /**
+     * A task that is used to insert a given CommonOrder in the local order database.
+     * It is executed on a different thread to prevent locking of the UI thread.
+     */
     private static class InsertOrderTask extends AsyncTask<Void, Void, Void> {
         private AppDatabase orderDatabase;
         private CommonOrder order;
@@ -65,6 +71,10 @@ public class OrderDatabaseService {
         }
     }
 
+    /**
+     * A task that is used to update a given CommonOrder in the local order database.
+     * It is executed on a different thread to prevent locking of the UI thread.
+     */
     private static class UpdateOrderTask extends AsyncTask<Void, Void, Void> {
         private AppDatabase orderDatabase;
         private CommonOrder order;
@@ -81,6 +91,10 @@ public class OrderDatabaseService {
         }
     }
 
+    /**
+     * A task that is used to delete a given orders from the local order database.
+     * It is executed on a different thread to prevent locking of the UI thread.
+     */
     private static class DeleteOrderTask extends AsyncTask<Void, Void, Void> {
         private AppDatabase orderDatabase;
         private CommonOrder order;
@@ -98,6 +112,10 @@ public class OrderDatabaseService {
         }
     }
 
+    /**
+     * A task that is used to delete all orders from the local order database.
+     * It is executed on a different thread to prevent locking of the UI thread.
+     */
     private static class DeleteAllOrdersTask extends AsyncTask<Void, Void, Void> {
         private AppDatabase orderDatabase;
 
@@ -112,6 +130,10 @@ public class OrderDatabaseService {
         }
     }
 
+    /**
+     * A task that is used to get all orders from the local order database.
+     * It is executed on a different thread to prevent locking of the UI thread.
+     */
     private static class GetOrdersTask extends AsyncTask<Void, Void, List<CommonOrder>> {
         private AppDatabase orderDatabase;
 

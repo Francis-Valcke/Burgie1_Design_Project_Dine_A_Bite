@@ -10,11 +10,12 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import com.android.volley.NoConnectionError;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
-import com.android.volley.toolbox.JsonArrayRequest;
+import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import com.example.attendeeapp.data.LoginDataSource;
 import com.example.attendeeapp.data.LoginRepository;
 import com.example.attendeeapp.data.model.LoggedInUser;
+import com.example.attendeeapp.json.BetterResponseModel;
 import com.example.attendeeapp.json.CommonFood;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -26,8 +27,8 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * Abstract parent class of global and stand menuFragments
- * Contains the common variables and functions
+ * Abstract parent class of global, stand and category menuFragments.
+ * Contains the common variables and functions.
  */
 abstract class MenuFragment extends Fragment {
 
@@ -39,9 +40,10 @@ abstract class MenuFragment extends Fragment {
     protected LoggedInUser user = LoginRepository.getInstance(new LoginDataSource()).getLoggedInUser();
 
     /**
-     * Updates the current global/stand menu with the updated version returned from the server
-     * Error are handled in the fetchMenu function
-     * @param response: List of food items from the server
+     * Method to update the current global or stand menu with the updated version returned from the server.
+     * Errors are handled in the fetchMenu function.
+     *
+     * @param response List of food items received from the server.
      */
     protected void updateMenu(List<CommonFood> response) {
         // Renew the list
@@ -54,14 +56,15 @@ abstract class MenuFragment extends Fragment {
         menuAdapter.notifyDataSetChanged();
     }
 
+    // TODO: store menu in cache / fetch menu at splash screen /
+    // TODO: do not update when menu has not changed
+    // TODO: notify user when cart item no long available
     /**
-     * Function to fetch the global or stand menu from the server in JSON
-     * Handles no network connection or server not reachable
-     * TODO: store menu in cache / fetch menu at splash screen /
-     * TODO: do not update when menu has not changed
-     * TODO: notify user when cart item no long available
-     * @param standName: the name of the stand to request the menu of,
-     *                "" if the global menu is required
+     * Function to fetch the global or stand menu from the server in JSON.
+     * Handles no network connection or server not reachable.
+     *
+     * @param standName The name of the stand to request the menu of,
+     *                  "" if the global menu is requested.
      */
     void fetchMenu(final String standName, final String brandName){
         // Instantiate the RequestQueue
@@ -82,11 +85,18 @@ abstract class MenuFragment extends Fragment {
 
         // Request the global/stand menu in JSON from the order manager
         // Handle no network connection or server not reachable
-        JsonArrayRequest jsonRequest = new JsonArrayRequest(req, url, null,
+        JsonObjectRequest jsonRequest = new JsonObjectRequest(req, url, null,
                 response -> {
                     try {
                         ObjectMapper om = new ObjectMapper();
-                        List<CommonFood> foodList=om.readValue(response.toString(), new TypeReference<List<CommonFood>>() {});
+                        BetterResponseModel<List<CommonFood>> responseModel= om.readValue(response.toString(), new TypeReference<BetterResponseModel<List<CommonFood>>>() {});
+
+                        if(!responseModel.isOk()){
+                            showToast(responseModel.getException().getMessage());
+                            return;
+                        }
+
+                        List<CommonFood> foodList=responseModel.getPayload();
 
                         // For global menu, set stand names to ""
                         if (standName.equals("")) {
@@ -118,16 +128,10 @@ abstract class MenuFragment extends Fragment {
 
                     // NoConnectionError = no network connection
                     // other = server not reachable
-                    if (mToast != null) mToast.cancel();
                     if (error instanceof NoConnectionError) {
-                        mToast = Toast.makeText(getActivity(), "No network connection",
-                                                Toast.LENGTH_LONG);
-                        mToast.show();
-
+                        showToast("No network connection");
                     } else {
-                        mToast = Toast.makeText(getActivity(), "Server cannot be reached. No menu available.",
-                                                Toast.LENGTH_LONG);
-                        mToast.show();
+                        showToast("Server cannot be reached. No menu available.");
                     }
                     // Refreshing is done
                     pullToRefresh.setRefreshing(false);
@@ -144,5 +148,17 @@ abstract class MenuFragment extends Fragment {
 
         // Add the request to the RequestQueue
         queue.add(jsonRequest);
+    }
+
+    /**
+     * Method to display a Toast message.
+     *
+     * @param message The message to be shown.
+     */
+    private void showToast(String message){
+        if (mToast != null) mToast.cancel();
+        mToast = Toast.makeText(getActivity(), message,
+                Toast.LENGTH_LONG);
+        mToast.show();
     }
 }

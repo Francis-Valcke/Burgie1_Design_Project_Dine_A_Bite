@@ -12,9 +12,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+
+/**
+ * This class specifies which stands are part of a certain Brand
+ */
 @Entity
 @Data
-//@JsonDeserialize(using = BrandDeserializer.class)
 public class Brand implements Serializable {
 
     @Id
