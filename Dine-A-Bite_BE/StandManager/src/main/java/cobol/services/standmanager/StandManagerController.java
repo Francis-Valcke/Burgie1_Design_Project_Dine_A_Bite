@@ -153,6 +153,11 @@ public class StandManagerController {
             /* -- Split superorder in smaller orders -- */
             List<HashSet<CommonOrderItem>> itemSplit = schedulerHandler.splitSuperOrder(superOrder);
 
+            //Following functionality is to (temporary) fix issue between priorityqueue system and superorders
+            int tempOrderId = 0;
+            if (itemSplit.size() == 1){
+                tempOrderId = superOrder.getTempId();
+            }
 
             /* -- Get recommendations for seperate orders -- */
             for (HashSet<CommonOrderItem> commonOrderItems : itemSplit) {
@@ -168,6 +173,7 @@ public class StandManagerController {
                 order.setLatitude(superOrder.getLatitude());
                 order.setLongitude(superOrder.getLongitude());
                 order.setRecType(superOrder.getRecType());
+                order.setId(tempOrderId);
 
 
                 // -- Ask recommendation for newly created order -- //
