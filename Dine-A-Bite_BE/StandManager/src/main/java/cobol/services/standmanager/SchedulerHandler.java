@@ -230,7 +230,12 @@ public class SchedulerHandler {
     */
 
 
-
+    /**
+     * update schedulers with new information from OM
+     * @param info new Stand information
+     * @return
+     * @throws CommunicationException
+     */
     public JSONObject updateSchedulers(CommonStand info) throws CommunicationException {
         boolean newScheduler = true;
         JSONObject obj = new JSONObject();

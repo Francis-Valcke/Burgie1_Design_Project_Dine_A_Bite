@@ -59,7 +59,7 @@ public class ModuleHandler {
     }
 
     /**
-     * checks if all backend modules are alive
+     * This method will check if all backend modules are alive
      * @return
      */
     public boolean allAlive()  {

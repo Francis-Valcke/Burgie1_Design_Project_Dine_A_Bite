@@ -65,7 +65,7 @@ public class Scheduler {
     }
 
     /**
-     * Updates order in queue with new state
+     * This method will update order in queue with new state
      * @param orderId
      * @param state
      * @throws JsonProcessingException
@@ -101,7 +101,7 @@ public class Scheduler {
         }
     }
     /**
-     * updates expected times for orders depending on their positions in queue
+     * This method will update expected times for orders depending on their positions in queue
      * @param queueTime time after orders under preparation are estimated to be ready
      */
     public void updateQueue(int queueTime) throws JsonProcessingException, ParseException {
@@ -119,7 +119,7 @@ public class Scheduler {
     }
 
     /**
-     * send new expected times to EventChannel for attendee app and OrderManager to fetch
+     * This method will send new expected times to EventChannel for attendee app and OrderManager to fetch
      * @param order CommonOrder
      * @return response
      * @throws JsonProcessingException

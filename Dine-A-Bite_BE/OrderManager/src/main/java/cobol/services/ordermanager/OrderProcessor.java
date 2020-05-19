@@ -241,6 +241,7 @@ public class OrderProcessor {
                     orderRepository.updateState(localOrder.getId(), localOrder.getOrderState());
                 }
             }
+            //receive statusupdates and add to database
             if (e.getDataType().equals("UpdateOrder")) {
                 JSONObject eventData = e.getEventData();
                 int orderId = (int) eventData.get("id");

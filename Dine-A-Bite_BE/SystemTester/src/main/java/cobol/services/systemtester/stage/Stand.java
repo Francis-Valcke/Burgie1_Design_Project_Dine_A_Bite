@@ -91,7 +91,7 @@ public class Stand implements Runnable {
     }
 
     /**
-     * create stand user
+     * This method will create stand user
      * @return single
      */
     public Single<JSONObject> create() {
@@ -121,7 +121,7 @@ public class Stand implements Runnable {
     }
 
     /**
-     * authenticate stand user
+     * This method will authenticate stand user
      * @return single
      */
     public Single<JSONObject> authenticate() {
@@ -156,7 +156,7 @@ public class Stand implements Runnable {
     }
 
     /**
-     * verify stand
+     * This method will verify stand
      * @return single
      */
     public Single<JSONObject> verify() {
@@ -188,7 +188,7 @@ public class Stand implements Runnable {
     }
 
     /**
-     * subscribe to EC
+     * This method will subscribe stand to EC
      * @return single
      */
     public Single<Integer> subscribe() {
@@ -216,7 +216,7 @@ public class Stand implements Runnable {
     }
 
     /**
-     * subscribe to stand channel
+     * This method will subscribe to stand channel
      * @return single
      */
     public Single<String> subscribeToChannel() {
@@ -238,7 +238,7 @@ public class Stand implements Runnable {
     }
 
     /**
-     * add stand to ordermanager
+     * This method will add stand to ordermanager
      * @return single
      */
     public Single<JSONObject> addstand() {
@@ -284,7 +284,7 @@ public class Stand implements Runnable {
     }
 
     /**
-     * emulate stand applications first setup
+     * This method will emulate stand applications first setup
      * @param log logger
      */
     public void setup(Logger log) {
@@ -314,7 +314,7 @@ public class Stand implements Runnable {
     }
 
     /**
-     * poll orders from EC
+     * This method will poll orders from EC
      * @return single
      */
     public Single<JSONObject> pollEvents() {
@@ -350,7 +350,7 @@ public class Stand implements Runnable {
     }
 
     /**
-     * run stand:
+     * This method will run stand:
      * -poll orders every 10 seconds
      * -if there are incoming orders and no orders are under preparation, start preparing first order and send statusupdate
      * -if an order is under preparation for its expected time, remove it from queue and update its status to "ready"
@@ -417,7 +417,7 @@ public class Stand implements Runnable {
     }
 
     /**
-     * sent BEGUN status update
+     * This method will sent BEGUN status update
      * @return single
      */
     public Single<JSONObject> prepareFirstOrder() {
@@ -457,7 +457,7 @@ public class Stand implements Runnable {
     }
 
     /**
-     * sent READY status update
+     * This method will sent READY status update
      * @return single
      */
     public Single<JSONObject> readyFirstOrder()  {
@@ -497,7 +497,7 @@ public class Stand implements Runnable {
     }
 
     /**
-     * delete stand from database and ordermanager
+     * This method will delete stand from database and ordermanager
      * @return single
      */
     public Single<JSONObject> delete() {
@@ -523,7 +523,7 @@ public class Stand implements Runnable {
     }
 
     /**
-     * delete orders from stand
+     * This method will delete orders from stand
      */
     public void reset(){
         orders.clear();

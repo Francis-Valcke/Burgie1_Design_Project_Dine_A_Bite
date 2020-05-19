@@ -32,7 +32,7 @@ public class StandManagerController {
     }
 
     /**
-     * adds schedulers to SM
+     * This api will add schedulers to SM
      *
      * @param stands Stands to put in schedulers
      */
@@ -51,6 +51,15 @@ public class StandManagerController {
         return ResponseEntity.ok(BetterResponseModel.ok("Successfully updated schedulers", "success"));
 
     }
+
+    /**
+     * This api will send new status to scheduler
+     * @param stand
+     * @param brand
+     * @param orderId
+     * @param newState
+     * @return
+     */
     @PostMapping("updateScheduler")
     public ResponseEntity<BetterResponseModel<String>> updateScheduler(@RequestParam(name="standName") String stand, @RequestParam(name="brandName") String brand,@RequestParam(name="orderId") int orderId, @RequestParam(name="newState") CommonOrder.State newState) {
         try {
@@ -70,7 +79,12 @@ public class StandManagerController {
 
     }
 
-
+    /**
+     * delete scheduler from SM
+     * @param standName
+     * @param brandName
+     * @return
+     */
     @PostMapping("/deleteScheduler")
     public ResponseEntity<BetterResponseModel<String>> deleteScheduler(@RequestParam String standName, @RequestParam String brandName) {
 

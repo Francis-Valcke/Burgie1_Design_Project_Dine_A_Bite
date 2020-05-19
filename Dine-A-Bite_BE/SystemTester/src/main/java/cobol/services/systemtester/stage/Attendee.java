@@ -63,7 +63,7 @@ public class Attendee {
     }
 
     /**
-     * create user
+     * This method will create user
      * @return single
      */
     public Single<JSONObject> create() {
@@ -95,7 +95,7 @@ public class Attendee {
     }
 
     /**
-     * authenticate user
+     * This method will authenticate user
      * @return single
      */
     public Single<JSONObject> authenticate() {
@@ -129,7 +129,7 @@ public class Attendee {
     }
 
     /**
-     * getUser
+     * This method will getUser
      * @return single
      */
     public Single<JSONObject> getUser() {
@@ -155,7 +155,7 @@ public class Attendee {
     }
 
     /**
-     * fetch menu
+     * This method will fetch menu
      * @return single with menu
      */
     public Single<JSONObject> getGlobalMenu() {
@@ -181,7 +181,7 @@ public class Attendee {
     }
 
     /**
-     * choose random item from menu
+     * This method will choose random item from menu
      * @param response menu as json
      * @param itemCount amount to order
      */
@@ -218,7 +218,7 @@ public class Attendee {
     }
 
     /**
-     * ask for recommendation
+     * This method will ask for recommendation
      * @param recType recommendation type
      * @return single
      */
@@ -275,7 +275,7 @@ public class Attendee {
     }
 
     /**
-     * look at recommendations and choose rank 1 recommendation
+     * This method will look at recommendations and choose rank 1 recommendation
      * @return uri string with stand and brand for confirmstand
      */
     public String getRecommendedStand() {
@@ -298,7 +298,7 @@ public class Attendee {
     }
 
     /**
-     * confirm stand
+     * This method will confirm stand
      * @return single
      */
     public Single<JSONObject> confirmStand() {
@@ -325,7 +325,7 @@ public class Attendee {
     }
 
     /**
-     * setup attendee by creating and authenticating user
+     * This method will setup attendee by creating and authenticating user
      * @param log logger
      */
     public void setup(Logger log) {
@@ -347,6 +347,7 @@ public class Attendee {
     }
 
     /**
+     * This method will set ordertime
      * in case of systemOff, attendee orders twice (to same stand), once to find stand and once to order
      * @param time
      */
@@ -382,8 +383,7 @@ public class Attendee {
     }
 
     /**
-     * time before attendee walks to stand, only applicable if he orders before going to stand
-     * @return
+     * @return time before attendee walks to stand, only applicable if he orders before going to stand
      */
     public double getWaitingTime() {
         return walkingStartTime-orderTime;

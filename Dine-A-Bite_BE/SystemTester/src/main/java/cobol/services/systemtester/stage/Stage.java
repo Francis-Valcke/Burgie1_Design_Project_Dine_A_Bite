@@ -34,7 +34,7 @@ public class Stage implements Runnable {
     }
 
     /**
-     * initialize stand coordinates close to stage
+     * This method will initialize stand coordinates close to stage
      * @param s stand to add
      */
     public void addStand(Stand s) {
@@ -53,6 +53,7 @@ public class Stage implements Runnable {
 
     /**
      * In case of systemOn
+     * This method will emulate attendees
      * attendees wait for their pregiven orderTime before ordering items
      */
     public void systemRun(){
@@ -76,7 +77,7 @@ public class Stage implements Runnable {
     }
 
     /**
-     * reset attendees and time
+     * This method will reset attendees and time
      */
     public void reset(){
         time=0;
@@ -87,6 +88,7 @@ public class Stage implements Runnable {
 
     /**
      * in case of systemOff
+     * This method will emulate attendees
      * attendees wait for their pregiven orderTime before going to a stand to order an item
      */
     public void noSystemRun(){

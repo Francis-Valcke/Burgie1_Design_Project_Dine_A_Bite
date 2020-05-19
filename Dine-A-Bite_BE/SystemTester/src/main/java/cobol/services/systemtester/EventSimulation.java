@@ -25,7 +25,7 @@ public class EventSimulation {
     private final ArrayList<Stage> stages = new ArrayList<Stage>();
 
     /**
-     * initialize event with stands from dataset.json
+     * This constructor will initialize event with stands from dataset.json
      * @throws IOException
      */
     public EventSimulation() throws IOException {
@@ -39,7 +39,7 @@ public class EventSimulation {
     }
 
     /**
-     * setup event with 5 stages, locations and ordertimes are chosen with gaussian around centerpoint and means are chosen in regards to real events
+     * This method will setup event with 5 stages, locations and ordertimes are chosen with gaussian around centerpoint and means are chosen in regards to real events
      * @param size number of attendees
      */
     public void setup(int size)  {
@@ -88,7 +88,7 @@ public class EventSimulation {
     }
 
     /**
-     * reset event to before orders are made
+     * This method will reset event to before orders are made
      */
     public void resetOrders(){
         for (Stage s : stages) {
@@ -100,7 +100,7 @@ public class EventSimulation {
     }
 
     /**
-     * Calculate performance of system by comparing to situation without it
+     * This method will calculate performance of system by comparing to situation without it
      * @param systemOn if true, attendees can use the applications to order
      */
     public void setSystemOn(boolean systemOn){
@@ -110,7 +110,7 @@ public class EventSimulation {
     }
 
     /**
-     * start stages (pools of attendees) and stands
+     * This method will start stages (pools of attendees) and stands
      * @throws InterruptedException
      */
     public void start() throws InterruptedException {
@@ -135,7 +135,7 @@ public class EventSimulation {
     }
 
     /**
-     * check if all orders made by attendees were received and processed by stands
+     * This method will check if all orders made by attendees were received and processed by stands
      */
     public void checkOrderIds() {
         ArrayList<Integer> orders = new ArrayList<>();
@@ -215,8 +215,7 @@ public class EventSimulation {
     }
 
     /**
-     * time between before getting food
-     * @return
+     * @return time between before getting food
      */
     public double getTotalOrderTime(){
         double orderTime = 0;
