@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * ViewModel for the list of menu items of the logged in stand
+ * ViewModel class for the list of menu items of the logged in stand
  */
 public class MenuViewModel extends ViewModel {
 
@@ -22,15 +22,23 @@ public class MenuViewModel extends ViewModel {
         return menuList;
     }
 
+    public void setMenuList(ArrayList<CommonFood> menuList) {
+        this.menuList.setValue(menuList);
+    }
+
+    /**
+     * Get the list of menu items of the logged in stand
+     *
+     * @return list of CommonFood objects representing the menu items of the stand
+     */
     public ArrayList<CommonFood> getMenuList() {
         return menuList.getValue();
     }
 
-    public void setMenuList(ArrayList<CommonFood> menuList) {
-        this.menuList.setValue(menuList);
-        if (this.menuList.getValue() == null) System.out.println("Something wrong");
-    }
-
+    /**
+     * Clear the saved menu list in the app
+     * (e.g. when there is a stand change)
+     */
     public void resetMenuList() {
         ArrayList<CommonFood> items = menuList.getValue();
         if (items != null) {
@@ -40,6 +48,10 @@ public class MenuViewModel extends ViewModel {
         }
     }
 
+    /**
+     * Load/fetch the menu list from the server of the logged in stand
+     * Not implemented, see fetchMenu in ProfileFragment
+     */
     public void loadMenuList() {
         // see fetchMenu in ProfileFragment
         // could be copied to here
@@ -67,7 +79,7 @@ public class MenuViewModel extends ViewModel {
      * Decrease the current stock values of the menu items of the stand
      * based on incoming orders
      *
-     * @param orderItems: menu items of stand that are being ordered
+     * @param orderItems menu items of stand that are being ordered
      */
     public void decreaseStock(List<CommonOrderItem> orderItems) {
         for (CommonOrderItem orderItem : orderItems) {

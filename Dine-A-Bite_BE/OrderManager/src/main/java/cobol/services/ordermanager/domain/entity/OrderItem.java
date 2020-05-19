@@ -9,6 +9,10 @@ import javax.persistence.*;
 import java.io.Serializable;
 import java.math.BigDecimal;
 
+/**
+ * This class is part of the Order object and specifies the amount of one specific
+ * 'food' item and the price on the moment the order was placed
+ */
 @Entity
 @Table(name="orderitem")
 public class OrderItem implements Serializable {

@@ -19,9 +19,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+/**
+ * Model to represent an order that can be sent and received from the server.
+ * This class also represents an entity in the local order database.
+ */
 @Entity
 public class CommonOrder implements Serializable {
-    // unique id for this order
+    /**
+     * Unique id for this order
+     */
     @PrimaryKey
     private int id;
 
@@ -45,7 +51,7 @@ public class CommonOrder implements Serializable {
     @TypeConverters(Converters.class)
     private List<CommonOrderItem> orderItems;
 
-    // Coordinates Attendee on moment that order was made
+    // Coordinates attendee on moment that order was made
     private double latitude;
     private double longitude;
 
@@ -53,6 +59,10 @@ public class CommonOrder implements Serializable {
     private BigDecimal totalPrice;
 
     private int totalCount;
+
+    /**
+     * Whether or not an update of the order has been seen by the attendee.
+     */
     @JsonIgnore
     private boolean updateSeen = true;
 
@@ -66,7 +76,7 @@ public class CommonOrder implements Serializable {
         BEGUN
     }
 
-    //type of recommendation wanted
+    // Type of recommendation wanted.
     public enum RecommendType {
         DISTANCE,
         TIME,
@@ -205,8 +215,9 @@ public class CommonOrder implements Serializable {
     }
 
     /**
-     * Return the total price of the order with the euro symbol
-     * @return String of euro symbol with total price
+     * Return the total price of the order with the euro symbol.
+     *
+     * @return String of euro symbol and the total order price.
      */
     @JsonIgnore
     public String getTotalPriceEuro() {
@@ -222,8 +233,9 @@ public class CommonOrder implements Serializable {
     }
 
     /**
-     * Helper function that updates the CommonOrderItem prices, because server doesn't send them
-     * @param list: the items to get the price from
+     * Helper function that updates the CommonOrderItem prices, because server doesn't send them.
+     *
+     * @param list The items to get the price from.
      */
     public void setPrices(ArrayList<CommonFood> list) {
         for(CommonFood menuItem : list)  {

@@ -4,7 +4,8 @@ import lombok.Data;
 import org.springframework.security.core.Authentication;
 
 /**
- * Simple class for automatic parsing of JSON to this object via Jackson
+ * Data class for representing authentication requests.
+ * Used for creating users and authenticating.
  */
 @Data
 public class AuthenticationRequest {

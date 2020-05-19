@@ -1,9 +1,6 @@
 package com.example.attendeeapp.stripe;
 
-import android.app.Activity;
 import android.util.Log;
-import android.view.View;
-import android.widget.Toast;
 
 import com.example.attendeeapp.ServerConfig;
 import com.example.attendeeapp.data.LoginDataSource;
@@ -15,20 +12,28 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.stripe.android.EphemeralKeyProvider;
 import com.stripe.android.EphemeralKeyUpdateListener;
-import com.stripe.android.Stripe;
-import com.stripe.android.model.ConfirmPaymentIntentParams;
 
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 import java.util.Objects;
 
+/**
+ * This class is used by the Stripe payment api.
+ * It requires the createEphemeralKey method to contact the backend of the system, and request an
+ * ephemeral key.
+ */
 public class DineABiteEphemeralKeyProvider implements EphemeralKeyProvider {
 
     private static final String TAG = DineABiteEphemeralKeyProvider.class.getSimpleName();
 
     private LoggedInUser user = LoginRepository.getInstance(new LoginDataSource()).getLoggedInUser();
 
+    /**
+     * This method will contact the backend and request an ephemeral key.
+     * @param apiVersion The version of the Stripe API the app uses
+     * @param ephemeralKeyUpdateListener callback
+     */
     @Override
     public void createEphemeralKey(@NotNull String apiVersion, @NotNull EphemeralKeyUpdateListener ephemeralKeyUpdateListener) {
 

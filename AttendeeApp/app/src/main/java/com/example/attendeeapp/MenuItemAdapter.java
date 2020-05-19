@@ -16,7 +16,7 @@ import com.example.attendeeapp.json.CommonFood;
 import java.util.ArrayList;
 
 /**
- * Handles all the menu items in a global/stand menu list
+ * Handles all the menu items in a global, stand or category menu list.
  */
 public class MenuItemAdapter extends BaseAdapter {
 
@@ -54,6 +54,9 @@ public class MenuItemAdapter extends BaseAdapter {
         return 0;
     }
 
+    /**
+     * Method to get a View that displays a food item at the specified position in the menu.
+     */
     @Override
     public View getView(final int position, final View convertView, ViewGroup parent) {
         View view = convertView;

@@ -12,11 +12,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+/**
+ * Class for communicating revenue updates between ProfileFragment and OrderFragment
+ */
 public class RevenueViewModel extends ViewModel {
 
     private MutableLiveData<BigDecimal> revenue = new MutableLiveData<>();
     private MutableLiveData<Map<String, BigDecimal>> prices = new MutableLiveData<>();
 
+    /**
+     * Updates the total revenue
+     *
+     * @param items: list of order items that were ordered
+     */
     public void updateRevenue(List<CommonOrderItem> items) {
         BigDecimal totalRevenue = revenue.getValue();
         for (CommonOrderItem item : items) {
@@ -26,6 +34,8 @@ public class RevenueViewModel extends ViewModel {
         }
         revenue.setValue(totalRevenue);
     }
+
+    //-- Getters and Setters --//
 
     public LiveData<BigDecimal> getRevenue() {
         if (revenue.getValue() == null) {

@@ -23,6 +23,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.robolectric.Shadows.shadowOf;
 
+/**
+ * Test written to unit test the MainActivity functionality.
+ */
 @RunWith(RobolectricTestRunner.class)
 public class MainActivityTest {
 
@@ -35,7 +38,7 @@ public class MainActivityTest {
     }
 
     /**
-     * Tests if main activity launch is successful
+     * Tests if the main activity launch is successful.
      */
     @Test
     public void testLaunch() {
@@ -45,7 +48,7 @@ public class MainActivityTest {
     }
 
     /**
-     * Tests if mainActivity launches loginActivity when not logged in
+     * Tests if MainActivity launches LoginActivity when not logged in.
      */
     @Ignore("Problem with Android Keystore used in MainActivity")
     @Test
@@ -57,7 +60,7 @@ public class MainActivityTest {
     }
 
     /**
-     * Tests if mainActivity launches menuActivity when logged in
+     * Tests if MainActivity launches MenuActivity when logged in.
      */
     @Ignore("Problem with Android Keystore used in MainActivity")
     @Test

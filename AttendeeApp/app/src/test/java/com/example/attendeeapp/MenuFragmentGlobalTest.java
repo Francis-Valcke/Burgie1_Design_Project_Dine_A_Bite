@@ -7,6 +7,9 @@ import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 
+/**
+ * Test written to unit test the MenuFragmentGlobal functionality.
+ */
 @RunWith(RobolectricTestRunner.class)
 public class MenuFragmentGlobalTest {
 
@@ -22,7 +25,7 @@ public class MenuFragmentGlobalTest {
     }
 
     /**
-     * Tests if menuFragmentGlobal launch is successful
+     * Tests if menuFragmentGlobal launch is successful.
      */
     @Test
     public void testLaunch() {
@@ -31,7 +34,7 @@ public class MenuFragmentGlobalTest {
     }
 
     /**
-     * Test not possible for fragments
+     * Test not possible for fragments.
      */
     /*@Test
     public void testFetchMenu() {

@@ -7,6 +7,9 @@ import java.math.BigDecimal;
 import java.text.NumberFormat;
 import java.util.Locale;
 
+/**
+ * Model for one ordered item.
+ */
 public class CommonOrderItem implements Serializable {
 
     private String foodName;
@@ -38,8 +41,8 @@ public class CommonOrderItem implements Serializable {
     }
 
     /**
-     * Return the price of an order item with the euro symbol
-     * @return String of euro symbol with price
+     * Return the price of an order item with the euro symbol.
+     * @return String of euro symbol and the order item price.
      */
     @JsonIgnore
     public String getPriceEuro() {

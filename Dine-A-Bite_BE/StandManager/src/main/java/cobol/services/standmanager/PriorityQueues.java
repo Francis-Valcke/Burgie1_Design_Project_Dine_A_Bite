@@ -11,7 +11,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * this class will serve ass extra estimation for queue times (by calculating times for NOT confirmed orders)
+ * This class will serve ass extra estimation for queue times (by calculating times for NOT confirmed orders)
+ * A more correct name would be "load balancers" instead of priority queues
  */
 
 @Component
@@ -80,6 +81,8 @@ public class PriorityQueues {
     }
 
     /**
+     * Based on factors used, calculate the portion of the waiting time to be added to the specific virtual queue
+     *
      * @param prepTime preparation time of the order for the specific scheduler (this could be different for a different stand possibly at this point)
      * @param priority of the recommendation (so basically just the rank of that recommendation)
      */

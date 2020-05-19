@@ -22,8 +22,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 /**
- * schedulers all have:
- * TODO: change "inc" to proper schedule
+ * Schedulers are an image of the queue of corresponding stand
  */
 public class Scheduler {
 
@@ -155,7 +154,8 @@ public class Scheduler {
      * update menuItem
      *  @param mi  new item
      * @param mi2 old item
-     * @return
+     * @return true if the item to update was present in the menu
+     * false if the item to update was not present in the menu
      */
     static boolean updateItem(CommonFood mi, CommonFood mi2) {
         if (mi.getName().equals(mi2.getName())) {
@@ -192,9 +192,10 @@ public class Scheduler {
      */
 
 
-
     /**
-     * schedules order: add new order to the end of schedule
+     * Adds order to the scheduler queue
+     *
+     * @param o the order to be added
      */
     public void addOrder(CommonOrder o) {
         inc.add(o);
@@ -211,9 +212,9 @@ public class Scheduler {
     */
 
     /**
-     * calculates total time to end of schedule
+     * Calculates scheduler queue time
      *
-     * @return this time
+     * @return the scheduler queue time
      */
     public int timeSum() {
         if (inc.size() == 0){
@@ -269,10 +270,10 @@ public class Scheduler {
     }
      */
     /**
-     * gives preptime of item in scheduler
+     * Calculate preparation time of an item that is available on the menu of the scheduler
      *
      * @param foodname name of item
-     * @return preptime
+     * @return preparation time of that item
      */
     public int getPreptime(String foodname) {
         for (CommonFood m : menu) {
@@ -280,6 +281,12 @@ public class Scheduler {
         }
         return -1;
     }
+
+    /**
+     * Removes an item from the menu
+     *
+     * @param mi the item to remove from the menu
+     */
     public void removeItem(CommonFood mi){
         this.menu.remove(mi);
     }

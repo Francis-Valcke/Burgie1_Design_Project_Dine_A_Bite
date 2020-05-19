@@ -1,6 +1,5 @@
 package cobol.services.authentication;
 
-import cobol.commons.security.Role;
 import cobol.commons.security.exception.DuplicateUserException;
 import cobol.services.authentication.config.ConfigurationBean;
 import cobol.services.authentication.domain.entity.User;
@@ -13,9 +12,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 
+/**
+ * Bean responsible for creating users with certain roles.
+ */
 @Service
 public class AuthenticationHandler {
 
@@ -23,6 +24,13 @@ public class AuthenticationHandler {
     private ConfigurationBean configurationBean;
     private PasswordEncoder passwordEncoder;
 
+    /**
+     * Create user with the supplied roles.
+     * @param details The details to use for user creation.
+     * @param role Roles for the user.
+     * @throws StripeException Exception thrown by the Stripe library when trying to create a customer.
+     * @throws DuplicateUserException The user already exists.
+     */
     public void createUser(AuthenticationRequest details, String... role) throws StripeException, DuplicateUserException {
         if (userRepository.existsById(details.getUsername()))
             throw new DuplicateUserException("A user with that name exists already.");

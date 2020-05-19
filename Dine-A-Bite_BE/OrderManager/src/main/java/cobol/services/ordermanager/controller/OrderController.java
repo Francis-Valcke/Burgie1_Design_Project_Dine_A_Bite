@@ -14,7 +14,6 @@ import cobol.services.ordermanager.domain.repository.BrandRepository;
 import cobol.services.ordermanager.domain.repository.FoodRepository;
 import cobol.services.ordermanager.domain.repository.StandRepository;
 import cobol.services.ordermanager.domain.repository.UserRepository;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -98,8 +97,10 @@ public class OrderController {
     */
 
     /**
-     * This method will add the order to the order processor,
-     * gets a recommendation from the scheduler and forwards it to the attendee app.
+     * This method is called when an attendee places an order
+     * First the transaction is handled
+     * A CommonOrder is transformed to an Order object, so it can be updated and saved to the database if the order can be placed
+     * Recommendations are fetched from the standmanager and the updated order (with id) is sent back with recommendations to the attendee app
      *
      * @param orderObject the order recieved from the attendee app
      * @return JSONObject including CommonOrder "order" and JSONArray "Recommendation"
@@ -108,22 +109,15 @@ public class OrderController {
     public ResponseEntity<BetterResponseModel<JSONObject>> placeOrder(@AuthenticationPrincipal CommonUser userDetails, @RequestBody CommonOrder orderObject) {
         JSONObject completeResponse = new JSONObject();
         try {
-            // First calculate the total price of the order
-            Brand brand = brandRepository.findById(orderObject.getBrandName())
-                    .orElseThrow(() -> new DoesNotExistException("The brand of the given order does not exist in the database, this should not be possible."));
-
             /* -- Money Transaction for this order -- */
-
             orderTransaction(orderObject, userDetails);
 
 
             /* -- Convert CommonOrder to normal Order object -- */
-
             Order newOrder = new Order(orderObject);
             // Set user for this order
             User user = userRepository.findById(userDetails.getUsername()).orElse(userRepository.save(new User(userDetails)));
             newOrder.setUser(user);
-
             // Add order to the processor
             newOrder = orderProcessor.addNewOrder(newOrder);
 
@@ -163,7 +157,7 @@ public class OrderController {
 
 
     /**
-     * Prepare and do the transaction of this order
+     * Check if the transaction of this order can be succeeded and prepare
      * It will simultaneously add prices to the incoming orderitems in the commonorder object
      *
      * @param orderObject CommonOrder object
@@ -207,7 +201,7 @@ public class OrderController {
     }
 
     /**
-     * This method will handle an order from different stands in a certain brand
+     * This method will handle an order from different stands in a certain brand, the superorder will be split in multiple normal orders
      *
      * @param superOrder SuperOrder object containing a list of CommonOrderItems of a certain brand
      * @return JSONArray each element containing a field "recommendations" and a field "order" similar to return of placeOrder
@@ -279,12 +273,11 @@ public class OrderController {
 
 
     /**
-     * Sets stand- and brandname of according order when this recommendations is chosen
+     * Sets stand- and brandname of according order when one of the recommendations is chosen
      *
      * @param orderId   integer id of order to be confirmed
      * @param standName name of stand
      * @param brandName name of brand
-     * @throws JsonProcessingException jsonexception
      */
     @GetMapping("/confirmStand")
     public ResponseEntity<BetterResponseModel<String>> confirmStand(@RequestParam(name = "orderId") int orderId, @RequestParam(name = "standName") String standName, @RequestParam(name = "brandName") String brandName, @AuthenticationPrincipal CommonUser userDetails) {
@@ -325,6 +318,12 @@ public class OrderController {
     }
 
 
+    /**
+     * This method returns all orders that were place by a certain user
+     *
+     * @param userDetails based on this user, orders are returned (based on token)
+     * @return List of CommonFood items, place by user that calls this function
+     */
     @GetMapping(value = "/getUserOrders", produces = "application/json")
     public ResponseEntity<BetterResponseModel<List<CommonOrder>>> getUserOrders(@AuthenticationPrincipal CommonUser userDetails) {
         try{

@@ -10,6 +10,9 @@ import com.example.attendeeapp.json.CommonOrder;
 
 import java.util.List;
 
+/**
+ * Database access object to define the access methods for orders in the local database.
+ */
 @Dao
 public interface OrderDao {
     @Query("SELECT * FROM CommonOrder")

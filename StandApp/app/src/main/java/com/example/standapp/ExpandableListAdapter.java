@@ -265,8 +265,9 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
 
     /**
      * Send order status update to Event Channel
+     *
      * @param groupPosition position of order information in arrays
-     * @param context context of the callback
+     * @param context       context of the callback
      */
     private void sendOrderStatusUpdate(int groupPosition, final Context context) {
 

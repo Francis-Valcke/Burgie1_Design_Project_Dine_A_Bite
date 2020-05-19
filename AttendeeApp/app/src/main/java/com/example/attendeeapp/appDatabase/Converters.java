@@ -16,6 +16,10 @@ import java.math.BigDecimal;
 import java.util.Calendar;
 import java.util.List;
 
+/**
+ * Converters responsible for converting complex data objects to and from the simple data objects
+ * that can be stored in the local database.
+ */
 public class Converters {
     private static ObjectMapper mapper = new ObjectMapper();
 

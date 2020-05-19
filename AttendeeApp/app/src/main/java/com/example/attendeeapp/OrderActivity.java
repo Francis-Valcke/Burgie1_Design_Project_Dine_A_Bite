@@ -46,8 +46,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Activity to handle the show order overview
- * Loads previous orders from the internal database stored on the divide
+ * Activity to handle the order user interface.
  */
 public class OrderActivity extends ToolbarActivity {
 
@@ -63,7 +62,9 @@ public class OrderActivity extends ToolbarActivity {
     private LocationRequest locationRequest;
     private LocationCallback locationCallback;
 
-    // Receives the order updates from the polling service
+    /**
+     * Receives the order updates from the polling service.
+     */
     private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -82,7 +83,9 @@ public class OrderActivity extends ToolbarActivity {
         }
     };
 
-    // If the service polling for order updates is running or not
+    /**
+     * If the service polling for order updates is currently running or not
+     */
     private boolean isPollingServiceRunning(Class<?> serviceClass) {
         ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
         for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
@@ -93,7 +96,11 @@ public class OrderActivity extends ToolbarActivity {
         return false;
     }
 
-
+    /**
+     * Method to setup the activity.
+     *
+     * @param savedInstanceState The previously saved activity state, if available.
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -200,7 +207,8 @@ public class OrderActivity extends ToolbarActivity {
     }
 
     /**
-     * Check if polling service is running and if not request a new subscriberId for the current orders
+     * Method to check if the polling service is running
+     * and if not request a new subscriberId from the server for the current orders.
      */
     private void subscribeToOrderUpdates() {
         // TODO: register to channel of new order non-confirmed orders are no longer present
@@ -223,9 +231,9 @@ public class OrderActivity extends ToolbarActivity {
     }
 
     /**
-     * Confirm the chosen stand and brand when a new order is made
+     * This method will confirm the chosen stand and brand for an order at the server.
      *
-     * @param newOrder new order
+     * @param newOrder The new order that must be confirmed.
      */
     public void confirmNewOrderStand(CommonOrder newOrder) {
         // Instantiate the RequestQueue
@@ -283,8 +291,8 @@ public class OrderActivity extends ToolbarActivity {
     }
 
     /**
-     * This method will request orders from the database and update the according dataset for the
-     * adapter in the UI
+     * This method will request orders from the server's database and update the according dataset for the
+     * adapter in the UI.
      */
     public void updateUserOrdersFromDB() {
         RequestQueue queue = Volley.newRequestQueue(this);
@@ -309,6 +317,7 @@ public class OrderActivity extends ToolbarActivity {
                         // List to keep track of orders with stand and brand != ""
                         ArrayList<CommonOrder> nonEmptyOrders = new ArrayList<>();
                         // TODO: Update local database better way @Nathan
+                        // TODO: Loads previous orders from the internal database stored on the device
                         orderDatabaseService.deleteAllOrders();
                         for (CommonOrder order : allUserOrders) {
                             // TODO solve this, unconfirmed orders give an error when placing in local db
@@ -358,14 +367,13 @@ public class OrderActivity extends ToolbarActivity {
         queue.add(request);
     }
 
-
+    // TODO: unregister subscriber
+    // TODO: save subscriberId instead of asking new one every time
     /**
-     * Subscribes to the server eventChannel for the given order
-     * and launch the polling service to poll for events (order updates) from the server
+     * Method to subscribe to the server EventChannel for the given orders of the list
+     * and launch the polling service to poll for events (order updates for these orders) from the server.
      *
-     * @param orderId : list of order id's that must be subscribed to
-     *                TODO: unregister subscriber
-     *                save subscriberId instead of asking new one every time
+     * @param orderId List of order id's that must be subscribed to.
      */
     public void getSubscriberId(ArrayList<Integer> orderId) {
         // Instantiate the RequestQueue
@@ -404,6 +412,11 @@ public class OrderActivity extends ToolbarActivity {
         queue.add(stringRequest);
     }
 
+    /**
+     * Method to display a toast with a specific message.
+     *
+     * @param message The message to show in the Toast.
+     */
     private void showToast(String message) {
         Toast.makeText(OrderActivity.this, message,
                 Toast.LENGTH_SHORT).show();
@@ -435,12 +448,22 @@ public class OrderActivity extends ToolbarActivity {
     }
 
 
+    /**
+     * Method that overrides pressing the back button to return to the MenuActivity
+     * instead of the ConfirmActivity.
+     */
     @Override
     public void onBackPressed() {
         Intent intent = new Intent(OrderActivity.this, MenuActivity.class);
         startActivity(intent);
     }
 
+    /**
+     * Extends the toolbar option selection to exclude the my order selection button.
+     *
+     * @param item The selected item in the toolbar menu.
+     * @return If the click event should be consumed or forwarded.
+     */
     @Override
     public boolean onOptionsItemSelected(@NonNull android.view.MenuItem item) {
         if (item.getItemId() == R.id.orders_action) {

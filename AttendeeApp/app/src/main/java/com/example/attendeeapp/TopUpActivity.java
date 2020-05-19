@@ -98,6 +98,14 @@ public class TopUpActivity extends ToolbarActivity {
         setupPaymentSession();
     }
 
+    /**
+     * Method to initiate a Stripe transaction for a certain amount.
+     * The Stripe API will request an ephemeral key to identify this session. With that key it will
+     * contact the backend to create a paymentIntent. The identifier of the intent is further used
+     * in the Stripe API to execute the payment. Based on success or fail the right callback will
+     * be called.
+     * @param amount The amount to top up.
+     */
     private void doPayment(String amount) {
 
         HashMap<String,String> params = new HashMap<>();
@@ -157,6 +165,10 @@ public class TopUpActivity extends ToolbarActivity {
 
     }
 
+    /**
+     * As the transaction happens in two phases, it needs to be confirmed before it
+     * actually goes through.
+     */
     private void confirmPayment() {
 
         String url = ServerConfig.AS_ADDRESS + "/stripe/confirmTransaction";
@@ -195,6 +207,10 @@ public class TopUpActivity extends ToolbarActivity {
 
     }
 
+    /**
+     * As the transaction happens in two phases, it can be cancelled when an error occurs during the
+     * payment.
+     */
     private void cancelPayment() {
 
         String url = ServerConfig.AS_ADDRESS + "/stripe/cancelTransaction";
@@ -233,6 +249,12 @@ public class TopUpActivity extends ToolbarActivity {
 
     }
 
+    /**
+     * This method serves to config Stripe's payment session. Settings such as which fields to
+     * require when adding a card can be configured. This method is called when creating Stripe's
+     * payment session, which in this case is when this Activity is started.
+     * @return PaymentSessionConfig
+     */
     private PaymentSessionConfig createPaymentSessionConfig() {
         return new PaymentSessionConfig.Builder()
 
@@ -247,6 +269,9 @@ public class TopUpActivity extends ToolbarActivity {
                 .build();
     }
 
+    /**
+     * Configure the payment session with a custom PaymentSessionListener callback function.
+     */
     private void setupPaymentSession() {
         paymentSession.init(
                 new PaymentSession.PaymentSessionListener() {
@@ -301,6 +326,10 @@ public class TopUpActivity extends ToolbarActivity {
             activityRef = new WeakReference<>(activity);
         }
 
+        /**
+         * Gets called by Stripe when transaction has succeeded.
+         * @param result The result of the payment intent.
+         */
         @Override
         public void onSuccess(@NonNull PaymentIntentResult result) {
             final TopUpActivity activity = activityRef.get();
@@ -329,6 +358,10 @@ public class TopUpActivity extends ToolbarActivity {
             }
         }
 
+        /**
+         * Gets called by Stripe when transaction has failed.
+         * @param e Exception thrown when an error occurred.
+         */
         @Override
         public void onError(@NonNull Exception e) {
             final TopUpActivity activity = activityRef.get();
@@ -342,6 +375,5 @@ public class TopUpActivity extends ToolbarActivity {
             activity.cancelPayment();
         }
     }
-
 
 }

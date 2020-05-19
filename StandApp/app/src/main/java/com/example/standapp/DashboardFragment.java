@@ -188,9 +188,9 @@ public class DashboardFragment extends Fragment
      * Handle the requested permissions,
      * here only the location permission is handled
      *
-     * @param requestCode: 1 = location permission was requested
-     * @param permissions: the requested permission(s) names
-     * @param grantResults: if the permission is granted or not
+     * @param requestCode  1 = location permission was requested
+     * @param permissions  the requested permission(s) names
+     * @param grantResults if the permission is granted or not
      */
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
@@ -269,8 +269,8 @@ public class DashboardFragment extends Fragment
      * Submit menu to server using VolleyRequest
      * to OM /addStand or /updateStand
      *
-     * @param context context from which method is called
-     * @param bundle bundle containing info
+     * @param context   context from which method is called
+     * @param bundle    bundle containing info
      * @param standName stand name
      * @param brandName brand name
      */

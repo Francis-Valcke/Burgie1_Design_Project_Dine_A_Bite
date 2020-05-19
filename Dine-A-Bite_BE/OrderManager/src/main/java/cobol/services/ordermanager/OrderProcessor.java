@@ -33,7 +33,9 @@ import java.time.ZonedDateTime;
 import java.util.*;
 
 /**
- * This is a Singleton
+ * This class is responsible handling orders. This includes persisting them in the database,
+ * updating fields when stands are chosen, and updating preparation times when orders are finished.
+ * The class is also responsible for polling the event channel for orders.
  */
 @Component
 @Scope(value = "singleton")
@@ -97,6 +99,16 @@ public class OrderProcessor {
         return newOrder;
     }
 
+    /**
+     *
+     * This function sets the definitive stand to which an order belongs
+     *
+     * @param orderId: id of the order
+     * @param standName: stand the attendee has chosen
+     * @param brandName: brand the stand belongs to
+     * @return Order: order object with updated stand field
+     * @throws Throwable
+     */
     public Order confirmStand(int orderId, String standName, String brandName) throws Throwable {
         Optional<Order> orderOptional = this.getOrder(orderId);
         Stand stand = standRepository.findStandById(standName, brandName).orElseThrow(() -> new DoesNotExistException("Stand does not exist"));
@@ -155,6 +167,12 @@ public class OrderProcessor {
 
     // ---- Update or Process existing orders ---- //
 
+    /**
+     *
+     * This function updates the preparation time of items belonging to an order that has been finished
+     *
+     * @param order: the order which has just been finished
+     */
     private void updatePreparationEstimate(Order order) {
         ZonedDateTime actualTime = ZonedDateTime.now(ZoneId.of("Europe/Brussels"));
         // Compute how long the stand has been working on this order
@@ -179,6 +197,11 @@ public class OrderProcessor {
 
     }
 
+    /**
+     * This methods adds the recommendations to the orderRecommendation list
+     * @param id the order id
+     * @param recommendations the list of recommendations
+     */
     public void addRecommendations(int id, List<Recommendation> recommendations) {
         for (Recommendation recommendation : recommendations) {
             orderRecommendations.put(id, recommendation);
@@ -193,6 +216,12 @@ public class OrderProcessor {
 
     // ---- Scheduled Requests ---- //
 
+    /**
+     * Scheduled task to poll new events from the Event Channel destined for the OrderProcessor.
+     * @throws CommunicationException Error while sending request.
+     * @throws JsonProcessingException Error while deserializing response.
+     * @throws ParseException Error while parsing the response.
+     */
     @Scheduled(fixedDelay = 500)
     public void pollEvents() throws CommunicationException, JsonProcessingException, ParseException {
         List<Event> newEvents = communicationHandler.pollEventsFromEC(subscriberId);
@@ -200,7 +229,7 @@ public class OrderProcessor {
     }
 
     /**
-     * Process events that were received.
+     * Scheduled task to process the events that were polled with the pollEvents() method.
      */
     @Scheduled(fixedDelay = 500)
     public void processEvents() throws Throwable {

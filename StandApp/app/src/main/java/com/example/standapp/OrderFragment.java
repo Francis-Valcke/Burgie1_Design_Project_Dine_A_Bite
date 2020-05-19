@@ -200,7 +200,9 @@ public class OrderFragment extends Fragment {
         }
     }
 
-    // Receives the order updates from the polling service
+    /**
+     * Receives the order updates from the polling service
+     */
     private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {

@@ -23,7 +23,9 @@ public class Result<T> {
         return "";
     }
 
-    // Success sub-class
+    /**
+     * The success sub-class that holds the resulting data.
+     */
     public final static class Success<T> extends Result {
         private T data;
 
@@ -36,7 +38,9 @@ public class Result<T> {
         }
     }
 
-    // Error sub-class
+    /**
+     * The error sub-class that hold the resulting exception error.
+     */
     public final static class Error extends Result {
         private Exception error;
 

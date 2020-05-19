@@ -10,7 +10,7 @@ import java.text.NumberFormat;
 import java.util.*;
 
 /**
- * Model for one menu item
+ * Class to represent a menu item between different components
  */
 public class CommonFood implements Serializable {
 

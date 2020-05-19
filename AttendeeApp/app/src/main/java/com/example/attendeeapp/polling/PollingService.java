@@ -50,7 +50,7 @@ import static com.example.attendeeapp.notifications.NotificationChannelSetup.CHA
 import static com.example.attendeeapp.notifications.NotificationChannelSetup.CHANNEL_START_ID;
 
 /**
- * Service that polls the server for order updates
+ * Service that polls the server for order updates.
  */
 public class PollingService extends Service {
 
@@ -67,7 +67,9 @@ public class PollingService extends Service {
 
     public static final long DEFAULT_SYNC_INTERVAL = 5 * 1000;
 
-    // Runnable that contains the order polling method
+    /**
+     * Runnable that contains the order polling method.
+     */
     private Runnable runnableService = new Runnable() {
 
         @Override
@@ -257,6 +259,7 @@ public class PollingService extends Service {
         }
     };
 
+
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         context = getBaseContext();
@@ -291,5 +294,32 @@ public class PollingService extends Service {
         sendBroadcast(broadcastIntent);*/
         super.onDestroy();
     }
-}
 
+    /**
+     * Method to create the notification channels for android Oreo or more recent build versions.
+     * The notification settings here are the default settings,
+     * but the user has ultimate control over these settings and can disable them whenever he wants.
+     */
+    private void createNotificationChannels() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel orderStart = new NotificationChannel(
+                    CHANNEL_START_ID,
+                    "Order Start",
+                    NotificationManager.IMPORTANCE_HIGH
+            );
+            orderStart.setDescription("This will notify you when your order is being prepared");
+
+            NotificationChannel orderDone = new NotificationChannel(
+                    CHANNEL_DONE_ID,
+                    "Order Done",
+                    NotificationManager.IMPORTANCE_HIGH
+            );
+            orderDone.setDescription("This will notify you when your order is ready to be picked up");
+
+            NotificationManager manager = getSystemService(NotificationManager.class);
+            manager.createNotificationChannel(orderStart);
+            manager.createNotificationChannel(orderDone);
+        }
+
+    }
+}
