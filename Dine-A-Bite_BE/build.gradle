@@ -2,6 +2,7 @@ plugins {
         id "org.springframework.boot" version "2.2.5.RELEASE" apply false
         id 'io.spring.dependency-management' version '1.0.8.RELEASE' apply false
         id 'java'
+        id "org.asciidoctor.convert" version "1.5.9.2"
         id "org.sonarqube" version "2.7"
         id 'jacoco'
 }
@@ -33,6 +34,7 @@ subprojects {
         apply plugin: 'org.sonarqube'
         apply plugin: 'org.springframework.boot'
         apply plugin: 'io.spring.dependency-management'
+        apply plugin: 'org.asciidoctor.convert'
 
         task cleanJars {
             doLast {
@@ -60,14 +62,34 @@ subprojects {
             }
         }
 
+//        asciidoctor {
+//            sourceDir 'src/main/asciidoc'
+//            attributes 'snippets': file('target/snippets')
+//        }
+
+        ext {
+            snippetsDir = file('build/generated-snippets')
+        }
+
+        test {
+            outputs.dir snippetsDir
+        }
+
+        asciidoctor {
+            inputs.dir snippetsDir
+            dependsOn test
+        }
+
         dependencies {
-            // https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-web
+            asciidoctor 'org.springframework.restdocs:spring-restdocs-asciidoctor'
+
             implementation group: 'org.springframework.boot', name: 'spring-boot-starter-web', version: '2.2.4.RELEASE'
-            // https://mvnrepository.com/artifact/org.springframework/spring-core
             implementation group: 'org.springframework', name: 'spring-core', version: '5.2.4.RELEASE'
-            // https://mvnrepository.com/artifact/org.springframework.security/spring-security-core
             implementation group: 'org.springframework.security', name: 'spring-security-core', version: '5.2.2.RELEASE'
             compile 'com.googlecode.json-simple:json-simple:1.1.1'
+
+            testCompile group: 'org.springframework.boot', name: 'spring-boot-starter-test', version: '2.3.0.RELEASE'
+            testImplementation 'org.springframework.restdocs:spring-restdocs-mockmvc'
             testImplementation "junit:junit:4.12"
         }
     }
