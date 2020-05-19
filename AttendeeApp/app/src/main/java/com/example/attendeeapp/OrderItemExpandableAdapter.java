@@ -192,8 +192,9 @@ public class OrderItemExpandableAdapter extends BaseExpandableListAdapter {
             LinearLayout timeLayout = view.findViewById(R.id.order_footer_timer_layout);
             final TextView remainingTime = view.findViewById(R.id.order_footer_time);
 
-            // Handle timing counter, only visible when order is confirmed and thus being prepared
-            if (currentOrder.getOrderState() == CommonOrder.State.CONFIRMED) {
+            // Handle timing counter, only visible when order is confirmed or begun
+            if (currentOrder.getOrderState() == CommonOrder.State.CONFIRMED
+                    || currentOrder.getOrderState() == CommonOrder.State.BEGUN) {
                 remainingTimeText.setVisibility(View.VISIBLE);
                 remainingTime.setVisibility(View.VISIBLE);
                 timeLayout.setVisibility(View.VISIBLE);
