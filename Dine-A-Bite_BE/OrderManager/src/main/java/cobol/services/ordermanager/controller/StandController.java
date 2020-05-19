@@ -148,7 +148,7 @@ public class StandController {
     /**
      * Returns the locations of all the stands in the database
      *
-     * @return HashMap of String: Map <string, double>. eg: {Stand 1: {latitude: 360, longitude: 360}}
+     * @return HashMap of String: Map of String and Double. eg: {Stand 1: {latitude: 360, longitude: 360}}
      */
     @GetMapping(value = "/standLocations")
     public ResponseEntity<BetterResponseModel<Map<String, Map<String, Double>>>> requestStandLocations() {

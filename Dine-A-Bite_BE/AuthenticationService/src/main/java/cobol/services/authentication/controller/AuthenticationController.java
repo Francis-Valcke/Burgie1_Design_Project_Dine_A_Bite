@@ -48,7 +48,7 @@ public class AuthenticationController {
     /**
      * API endpoint to test if the server is still alive.
      * @param request HTTP request details.
-     * @@return "AuthenticationService is alive!"
+     * @return "AuthenticationService is alive!"
      */
     @GetMapping("/pingAS")
     public ResponseEntity<HashMap<Object,Object>> ping(HttpServletRequest request) {

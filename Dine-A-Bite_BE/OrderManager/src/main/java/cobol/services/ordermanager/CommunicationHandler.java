@@ -176,7 +176,6 @@ public class CommunicationHandler {
      * @return List of events
      * @throws CommunicationException Error while sending the http request.
      * @throws JsonProcessingException Error while deserializing the http response.
-     * @throws ParseException Error while parsing the http response.
      */
     public List<Event> pollEventsFromEC(int subscriberId) throws JsonProcessingException, CommunicationException {
         if (configurationBean.isUnitTest()) return new ArrayList<>();
