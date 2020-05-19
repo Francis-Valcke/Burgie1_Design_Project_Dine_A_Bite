@@ -11,6 +11,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -51,12 +53,14 @@ public class CommunicationHandler {
 
     /**
      * This method will issue HTTP request to StandManager.
-     * Returns a String assuming the caller knows what to expect from the response.
-     * Ex. JSONArray or JSONObject
+     *      * Returns a String assuming the caller knows what to expect from the response.
+     *      * Ex. JSONArray or JSONObject
      *
      * @param path       Example: "/..."
      * @param jsonObject JSONObject or JSONArray format
+     * @param params Parameters to put in the http request
      * @return response as String
+     * @throws Throwable
      */
     public String sendRestCallToStandManager(String path, String jsonObject, Map<String, String> params) throws Throwable {
         if (configurationBean.isUnitTest()) {
@@ -105,10 +109,10 @@ public class CommunicationHandler {
 
     /**
      * This function will pass the superorder to the standmanager and return seperate orders
-     *
-     * @param superOrder SuperOrder Object
+     * @param superOrder Super order to get recommendations for
      * @return JSONArray of  JSONObject with field "recommendations" and a field "order" similar to return of placeOrder
-     * recommendation field will be a JSONArray of Recommendation object
+     *         recommendation field will be a JSONArray of Recommendation object
+     * @throws Throwable throw exception to frontend.
      */
     public List<SuperOrderRec> getSuperRecommendationFromSM(SuperOrder superOrder) throws Throwable {
 
@@ -165,6 +169,14 @@ public class CommunicationHandler {
         }
     }
 
+    /**
+     * HTTP request to get all events for this subscriber from the Event Channel.
+     *
+     * @param subscriberId The subscriber ID of this module.
+     * @return List of events
+     * @throws CommunicationException Error while sending the http request.
+     * @throws JsonProcessingException Error while deserializing the http response.
+     */
     public List<Event> pollEventsFromEC(int subscriberId) throws JsonProcessingException, CommunicationException {
         if (configurationBean.isUnitTest()) return new ArrayList<>();
 
@@ -238,12 +250,26 @@ public class CommunicationHandler {
         ResponseEntity<String> responseEntity = restTemplate.exchange(builder.toUriString(), HttpMethod.GET, httpEntity, String.class);
     }
 
-    public String publishConfirmedStand(CommonOrder updatedOrder, String standName, String brandName) throws JsonProcessingException {
+    /**
+     * Publish to the EventChannel that a certain stand has been selected for a given Order and thus that the
+     * order has been confirmed.
+     *
+     * @param updatedOrder Order that will be confirmed.
+     * @param standName StandName (part of the id of the stand)
+     * @param brandName BrandName (part of the id of the brand)
+     * @return Return success String
+     * @throws JsonProcessingException Error while deserializing the http response.
+     */
+    public String publishConfirmedStand(CommonOrder updatedOrder, String standName, String brandName) throws JsonProcessingException, ParseException {
         if (configurationBean.isUnitTest()) return "";
 
         // Create event for eventchannel
         JSONObject orderJson = new JSONObject();
-        orderJson.put("order", updatedOrder);
+        JSONParser parser= new JSONParser();
+
+        ObjectMapper mapper= new ObjectMapper();
+        JSONObject updateOrderJSON= (JSONObject) parser.parse(mapper.writeValueAsString(updatedOrder));
+        orderJson.put("order", updateOrderJSON);
         List<String> types = new ArrayList<>();
         types.add("o_" + updatedOrder.getId());
         types.add("s_" + standName + "_" + brandName);
@@ -263,37 +289,4 @@ public class CommunicationHandler {
         return restTemplate.postForObject(uri, entity, String.class);
 
     }
-
-
-
-    // ---- TODO te verwijderen? ----//
-
-    /**
-     * Waarom zouden de ordermanager en de standmanager communiceren via de eventchannel?
-     * <p>
-     * publish changed menuItem Event for schedulers
-     *
-     * @param mi    MenuItem
-     * @param brand brandname
-     * @throws JsonProcessingException
-     */
-    public void publishMenuChange(CommonFood mi, String brand) throws JsonProcessingException {
-        JSONObject itemJson = new JSONObject();
-        itemJson.put("menuItem", mi);
-        List<String> types = new ArrayList<>();
-        types.add(brand);
-        Event e = new Event(itemJson, types, "MenuItem");
-
-
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.registerModule(new JavaTimeModule());
-        String jsonString = objectMapper.writeValueAsString(e);
-        String uri = OrderManager.ECURL + "/publishEvent";
-        HttpEntity<String> entity = new HttpEntity<>(jsonString, headers);
-        String response = template.postForObject(uri, entity, String.class);
-        System.out.println(response);
-    }
-
-
-
 }

@@ -2,6 +2,11 @@ package cobol.commons.order;
 
 import java.util.List;
 
+
+/**
+ * This class is used to hold together an order with his recommendations
+ * In this way, it is easy to send an object of this type to the AttendeeApp
+ */
 public class SuperOrderRec {
 
     private CommonOrder order;

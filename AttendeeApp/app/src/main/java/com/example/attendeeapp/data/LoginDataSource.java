@@ -34,7 +34,7 @@ public class LoginDataSource {
     private final OkHttpClient httpClient = new OkHttpClient();
 
     /**
-     * Log in stand manager user
+     * Log in attendee app user
      * - Authenticate with server
      *
      * @param username username
@@ -128,7 +128,7 @@ public class LoginDataSource {
     }
 
     /**
-     * Register new stand manager user
+     * Register new attendee app user
      * - Create user
      * - Authenticate with server
      *

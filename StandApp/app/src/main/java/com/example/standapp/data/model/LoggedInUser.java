@@ -21,6 +21,11 @@ public class LoggedInUser {
         return displayName;
     }
 
+    /**
+     * Get the authorization token for the user to be used in HTTP requests to the server
+     *
+     * @return authorization token as String value with "Bearer" at the beginning
+     */
     public String getAuthorizationToken() {
         return "Bearer " + getUserId();
     }

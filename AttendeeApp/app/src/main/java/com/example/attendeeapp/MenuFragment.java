@@ -27,8 +27,8 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * Abstract parent class of global and stand menuFragments
- * Contains the common variables and functions
+ * Abstract parent class of global, stand and category menuFragments.
+ * Contains the common variables and functions.
  */
 abstract class MenuFragment extends Fragment {
 
@@ -40,9 +40,10 @@ abstract class MenuFragment extends Fragment {
     protected LoggedInUser user = LoginRepository.getInstance(new LoginDataSource()).getLoggedInUser();
 
     /**
-     * Updates the current global/stand menu with the updated version returned from the server
-     * Error are handled in the fetchMenu function
-     * @param response: List of food items from the server
+     * Method to update the current global or stand menu with the updated version returned from the server.
+     * Errors are handled in the fetchMenu function.
+     *
+     * @param response List of food items received from the server.
      */
     protected void updateMenu(List<CommonFood> response) {
         // Renew the list
@@ -55,14 +56,15 @@ abstract class MenuFragment extends Fragment {
         menuAdapter.notifyDataSetChanged();
     }
 
+    // TODO: store menu in cache / fetch menu at splash screen /
+    // TODO: do not update when menu has not changed
+    // TODO: notify user when cart item no long available
     /**
-     * Function to fetch the global or stand menu from the server in JSON
-     * Handles no network connection or server not reachable
-     * TODO: store menu in cache / fetch menu at splash screen /
-     * TODO: do not update when menu has not changed
-     * TODO: notify user when cart item no long available
-     * @param standName: the name of the stand to request the menu of,
-     *                "" if the global menu is required
+     * Function to fetch the global or stand menu from the server in JSON.
+     * Handles no network connection or server not reachable.
+     *
+     * @param standName The name of the stand to request the menu of,
+     *                  "" if the global menu is requested.
      */
     void fetchMenu(final String standName, final String brandName){
         // Instantiate the RequestQueue
@@ -148,7 +150,11 @@ abstract class MenuFragment extends Fragment {
         queue.add(jsonRequest);
     }
 
-
+    /**
+     * Method to display a Toast message.
+     *
+     * @param message The message to be shown.
+     */
     private void showToast(String message){
         if (mToast != null) mToast.cancel();
         mToast = Toast.makeText(getActivity(), message,

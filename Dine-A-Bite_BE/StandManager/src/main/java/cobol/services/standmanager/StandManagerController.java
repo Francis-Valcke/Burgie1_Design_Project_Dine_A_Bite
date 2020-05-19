@@ -16,13 +16,17 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Class containing all API endpoints for stand manager module
+ */
 @RestController
 public class StandManagerController {
     @Autowired
     private SchedulerHandler schedulerHandler;
 
     /**
-     * API endpoint to test if the server is still alive.
+     * API endpoint
+     * Test if the server is still alive.
      *
      * @return "StandManager is alive!"
      */
@@ -32,9 +36,15 @@ public class StandManagerController {
     }
 
     /**
-     * adds schedulers to SM
+     * API endpoint
+     * Load stands from database, and start corresponding schedulers for these stands.
+     * When a stand is added, a scheduler for the stand is created and started automatically, but this function
+     * can be used when we want to start schedulers automatically based on stands already present in database.
+     * This can be used for quick startup, as well as a reboot (based on db date) when the standmanager would fail
      *
      * @param stands Stands to put in schedulers
+     * @return ResponseModel.error if failed
+     * ResponseModel.ok if succeeded
      */
     @PostMapping("/update")
     public ResponseEntity<BetterResponseModel<String>> update(@RequestBody List<CommonStand> stands) {
@@ -52,6 +62,39 @@ public class StandManagerController {
 
     }
 
+    /**
+     * This api will send new status to scheduler
+     * @param stand
+     * @param brand
+     * @param orderId
+     * @param newState
+     * @return
+     */
+    @PostMapping("updateScheduler")
+    public ResponseEntity<BetterResponseModel<String>> updateScheduler(@RequestParam(name="standName") String stand, @RequestParam(name="brandName") String brand,@RequestParam(name="orderId") int orderId, @RequestParam(name="newState") CommonOrder.State newState) {
+        try {
+            for (Scheduler s : schedulerHandler.getSchedulers()){
+                if (s.getStandName().equals(stand)&&s.getBrand().equals(brand)){
+                    s.updateOrder(orderId, newState);
+
+                }
+            }
+
+        } catch (Throwable e) {
+            e.printStackTrace();
+            return ResponseEntity.ok(BetterResponseModel.error("Error while updating schedulers", e));
+        }
+
+        return ResponseEntity.ok(BetterResponseModel.ok("Successfully updated schedulers", "success"));
+
+    }
+
+    /**
+     * delete scheduler from SM
+     * @param standName
+     * @param brandName
+     * @return
+     */
     @PostMapping("/deleteScheduler")
     public ResponseEntity<BetterResponseModel<String>> deleteScheduler(@RequestParam String standName, @RequestParam String brandName) {
 
@@ -69,9 +112,12 @@ public class StandManagerController {
 
 
     /**
-     * @param stand class object StandInfo which is used to start a scheduler for stand added in order manager
-     *              available at localhost:8081/newStand
-     * @return true (if no errors)
+     * API endpoint
+     * Create and start a scheduler when a stand is created in the order manager
+     *
+     * @param stand the stand for which a scheduler needs to be created and started
+     * @return ResponseModel.error if failed
+     * ResponseModel.ok if succeeded, in which the payload consists of a JSON object which states that the stand was added
      */
     @RequestMapping(value = "/newStand", consumes = "application/json")
     public ResponseEntity<BetterResponseModel<String>> addNewStand(@RequestBody() CommonStand stand) {
@@ -87,8 +133,12 @@ public class StandManagerController {
 
 
     /**
-     * @param order order which wants to be placed
-     * TODO: returns a String for now because sendRestTemplate in OM is also String, but when that is fixed, this should become just a regular JSON object as return
+     * API endpoint
+     * Confirm an order and place it in the queue of the chosen scheduler
+     *
+     * @param order order to be added to queue
+     * @return ResponseModel.error if failed
+     * ResponseModel.ok if succeeded
      */
     @RequestMapping(value = "/placeOrder", consumes = "application/json")
     public ResponseEntity<BetterResponseModel<String>> placeOrder(@RequestBody() CommonOrder order) {
@@ -105,11 +155,12 @@ public class StandManagerController {
 
 
     /**
-     * This method will split a superorder and give a recommendation for all the orders
+     * API endpoint
+     * Will split a superorder and give a recommendation for all the orders
      *
      * @param superOrder List with orderitems and corresponding brand
-     * @return JSONArray each element containing a field "recommendations" and a field "order" similar to return of placeOrder
-     * recommendation field will be a JSONArray of Recommendation object
+     * @return ResponseModel.error if failed
+     * ResponseModel.ok if succeeded, in which the payload consists the lists of recommendations
      */
     @PostMapping(value = "/getSuperRecommendation", consumes = "application/json", produces = "application/json")
     public ResponseEntity<BetterResponseModel<List<SuperOrderRec>>> getSuperRecommendation(@RequestBody SuperOrder superOrder) {
@@ -120,10 +171,15 @@ public class StandManagerController {
             /* -- Split superorder in smaller orders -- */
             List<HashSet<CommonOrderItem>> itemSplit = schedulerHandler.splitSuperOrder(superOrder);
 
+            //Following functionality is to (temporary) fix issue between priorityqueue system and superorders
+            int tempOrderId = 0;
+            if (itemSplit.size() == 1){
+                tempOrderId = superOrder.getTempId();
+            }
 
             /* -- Get recommendations for seperate orders -- */
             for (HashSet<CommonOrderItem> commonOrderItems : itemSplit) {
-                ObjectMapper mapper= new ObjectMapper();
+                ObjectMapper mapper = new ObjectMapper();
 
                 // -- Construct a virtual order -- //
                 CommonOrder order = new CommonOrder();
@@ -135,6 +191,7 @@ public class StandManagerController {
                 order.setLatitude(superOrder.getLatitude());
                 order.setLongitude(superOrder.getLongitude());
                 order.setRecType(superOrder.getRecType());
+                order.setId(tempOrderId);
 
 
                 // -- Ask recommendation for newly created order -- //
@@ -155,8 +212,12 @@ public class StandManagerController {
 
 
     /**
+     * API endpoint
+     * Get recommendations for an order
+     *
      * @param order order object for which the Order Manager wants a recommendation
-     * @return recommendation in JSON format
+     * @return ResponseModel.error if failed
+     * ResponseModel.ok if succeeded, in which the payload consists the list of recommendations
      */
     @RequestMapping(value = "/getRecommendation", consumes = "application/json")
     @ResponseBody

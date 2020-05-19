@@ -4,6 +4,11 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
+/**
+ * Class to start the stand manager module
+ * Option to choose for a testing environment is present
+ */
+
 @EnableScheduling
 @SpringBootApplication
 public class StandManager {

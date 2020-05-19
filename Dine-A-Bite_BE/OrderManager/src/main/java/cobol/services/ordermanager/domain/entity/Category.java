@@ -8,9 +8,11 @@ import javax.persistence.Id;
 import javax.persistence.ManyToMany;
 import java.util.*;
 
+/**
+ * This class specifies to which category a food item can be part of
+ */
 @Data
 @Entity
-//@JsonDeserialize(using = CategoryDeserializer.class)
 public class Category {
 
     @Id

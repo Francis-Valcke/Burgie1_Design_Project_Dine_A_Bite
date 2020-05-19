@@ -40,7 +40,7 @@ public class LoginDataSource {
      *
      * @param username username
      * @param password password
-     * @return logged in user object if success, error if not (#Result)
+     * @return         logged in user object if success, error if not (#Result)
      */
     @SuppressWarnings("unchecked")
     public Result<LoggedInUser> login(String username, String password) {
@@ -135,8 +135,8 @@ public class LoginDataSource {
      *
      * @param username username
      * @param password password
-     * @param email email
-     * @return logged in user object if success, error if not (#Result)
+     * @param email    email
+     * @return         logged in user object if success, error if not (#Result)
      */
     @SuppressWarnings({"unchecked", "unused"})
     Result<LoggedInUser> register(String username, String password, String email) {
@@ -258,6 +258,10 @@ public class LoginDataSource {
         return new Result.Success<>(user);
     }
 
+    /**
+     * Log out functionality to revoke authentication of logged in user
+     * (not implemented in current version of Authentication service)
+     */
     void logout() {
         // revoke authentication (not implemented in authentication service)
     }

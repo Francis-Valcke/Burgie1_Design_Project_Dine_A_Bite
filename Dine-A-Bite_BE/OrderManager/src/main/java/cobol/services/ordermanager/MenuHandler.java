@@ -57,7 +57,6 @@ public class MenuHandler {
      * - Clear database
      * - Clear OrderManager cache
      * - Request StandManager to clear cache
-     *
      */
     public void deleteAll() throws Throwable {
 

@@ -3,6 +3,10 @@ package cobol.commons.order;
 
 import java.math.BigDecimal;
 
+/**
+ * Item (order consists of list of items) class used to represent order items between different components
+ */
+
 public class CommonOrderItem {
 
 

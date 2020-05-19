@@ -15,9 +15,9 @@ spring:
 #    password: cobol2020
 
 #    production
-   url: jdbc:mysql://cobol.idlab.ugent.be:3306/auth?useLegacyDatetimeCode=false&serverTimezone=UTC
-   username: www
-   password: cobol2020
+    url: jdbc:mysql://cobol.idlab.ugent.be:3306/auth?useLegacyDatetimeCode=false&serverTimezone=UTC
+    username: www
+    password: cobol2020
 
 
 #    cachePrepStmts: true

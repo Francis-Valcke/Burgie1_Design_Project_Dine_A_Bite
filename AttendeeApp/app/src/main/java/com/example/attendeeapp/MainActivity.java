@@ -21,12 +21,12 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 
 /**
- * MainActivity to show splash-screen on startup
+ * MainActivity to show a splash-screen on startup.
  */
 public class MainActivity extends AppCompatActivity {
 
     /**
-     * Called when app is first instantiated
+     * Called when app is first instantiated.
      */
     @Override
     protected void onCreate(Bundle savedInstanceState) {

@@ -86,6 +86,7 @@ public class MainActivity extends AppCompatActivity
     /**
      * This function is called when an item is clicked in the navigation drawer,
      * and depending on the item clicked, the corresponding switch case will be selected
+     *
      * @param item the item in navigation drawer that was selected by the user
      */
     @Override

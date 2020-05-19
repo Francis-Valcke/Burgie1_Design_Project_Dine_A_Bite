@@ -14,7 +14,8 @@ public class CommonOrderStatusUpdate {
         DECLINED,
         CONFIRMED, // START
         READY, // DONE
-        PICKED_UP
+        PICKED_UP,
+        BEGUN
     }
 
     public CommonOrderStatusUpdate() {}
@@ -40,6 +41,8 @@ public class CommonOrderStatusUpdate {
                 return CommonOrderStatusUpdate.State.PENDING;
             case DECLINED:
                 return CommonOrderStatusUpdate.State.DECLINED;
+            case BEGUN:
+                return CommonOrderStatusUpdate.State.BEGUN;
             case CONFIRMED:
                 return CommonOrderStatusUpdate.State.CONFIRMED;
             case READY:

@@ -12,6 +12,9 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.Date;
 import java.util.List;
 
+/**
+ * This class represents a JSON web token.
+ */
 public class Jwt {
 
     private String token;
@@ -75,9 +78,9 @@ public class Jwt {
 
     /**
      * Retrieving the actual token from the HTTP request header.
-     *
      * @param req HTTP-request
-     * @return JWT
+     * @param key jwt token to verify
+     * @return JWT object
      */
     public static Jwt resolveToken(HttpServletRequest req, String key) {
         String bearerToken = req.getHeader("Authorization");

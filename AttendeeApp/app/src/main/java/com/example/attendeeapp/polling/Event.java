@@ -5,6 +5,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import java.util.List;
 
+/**
+ * Model for an event used in the EventChannel.
+ */
 public class Event {
 
 

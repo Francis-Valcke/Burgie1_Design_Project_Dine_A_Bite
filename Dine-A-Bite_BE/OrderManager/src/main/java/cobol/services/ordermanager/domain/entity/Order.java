@@ -14,10 +14,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * This object specifies an order with time information, orderItems, location of where
+ * an attendee placed an order, which recommmendation type was chosen and which stand an attendee prefers
+ */
 @Entity
 @Table(name = "orders")
 public class Order implements Serializable {
-
 
 
     //----- Backend Information -----//
@@ -28,14 +31,15 @@ public class Order implements Serializable {
     private int id;
 
 
-
-
     @Column(columnDefinition = "datetime")
     private ZonedDateTime startTime;
     @Column(columnDefinition = "datetime")
     private ZonedDateTime expectedTime;
+
     @Column
     private CommonOrder.State orderState;
+
+
     // Coordinates Attendee on moment that order was mad
     @Column
     private double latitude;
@@ -64,6 +68,8 @@ public class Order implements Serializable {
             orphanRemoval = true
     )
     private List<OrderItem> orderItems;
+
+
     private CommonOrder.RecommendType recType;
 
 
@@ -101,8 +107,8 @@ public class Order implements Serializable {
     /**
      * will transform Order object to Commonorder object
      * Used to send
-     *  - an order to the AttendeeApp/StandApp
-     *  - an order to the StandManager in order to receive a recommendation
+     * - an order to the AttendeeApp/StandApp
+     * - an order to the StandManager in order to receive a recommendation
      *
      * @return CommonOrder object
      */
@@ -114,11 +120,11 @@ public class Order implements Serializable {
             brandName = this.stand.getBrandName();
         }
 
-        int totalAmount=0;
-        BigDecimal totalPrice=new BigDecimal(0);
+        int totalAmount = 0;
+        BigDecimal totalPrice = new BigDecimal(0);
         for (OrderItem orderItem : this.orderItems) {
-            totalAmount+=orderItem.getAmount();
-            totalPrice= totalPrice.add(orderItem.getPrice().multiply(BigDecimal.valueOf(orderItem.getAmount())));
+            totalAmount += orderItem.getAmount();
+            totalPrice = totalPrice.add(orderItem.getPrice().multiply(BigDecimal.valueOf(orderItem.getAmount())));
         }
 
 
@@ -139,19 +145,18 @@ public class Order implements Serializable {
 
 
     }
-    
 
 
     /**
      * Computes remaining time till expected time with respect to current time
+     *
      * @return RemainingTime in seconds
      */
     public int computeRemainingTime() {
         ZonedDateTime actual = ZonedDateTime.now(ZoneId.of("Europe/Brussels"));
-        if (actual.isAfter(expectedTime)){
+        if (actual.isAfter(expectedTime)) {
             return 0;
-        }
-        else {
+        } else {
             Duration remaining = Duration.between(actual, expectedTime);
             return (int) remaining.getSeconds();
         }
@@ -178,6 +183,21 @@ public class Order implements Serializable {
         this.expectedTime = expectedTime;
     }
 
+    public void setRecType(CommonOrder.RecommendType recType) {
+        this.recType = recType;
+    }
+    public void setOrderState(CommonOrder.State orderState) {
+        this.orderState = orderState;
+    }
+
+    public void setLatitude(double latitude) {
+        this.latitude = latitude;
+    }
+
+    public void setLongitude(double longitude) {
+        this.longitude = longitude;
+    }
+
     public double getLatitude() {
         return this.latitude;
     }
@@ -198,7 +218,7 @@ public class Order implements Serializable {
         return startTime;
     }
 
-    public void setStartTime(ZonedDateTime startTime){
+    public void setStartTime(ZonedDateTime startTime) {
         this.startTime = startTime;
     }
 
@@ -216,10 +236,6 @@ public class Order implements Serializable {
 
     public CommonOrder.State getOrderState() {
         return orderState;
-    }
-
-    public void setState(CommonOrder.State state) {
-        this.orderState = state;
     }
 
     public void setStand(Stand stand) {

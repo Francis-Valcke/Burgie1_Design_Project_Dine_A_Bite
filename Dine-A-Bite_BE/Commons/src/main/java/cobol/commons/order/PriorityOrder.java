@@ -6,7 +6,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * not confirmed order used in priorityqueues
+ * Not confirmed order used in priority queues system in stand manager
+ * A better name for this would be "NonConfirmedOrder" or "VirtualOrder"
  */
 public class PriorityOrder {
     //order ID of this non confirmed order
@@ -16,34 +17,39 @@ public class PriorityOrder {
     private Map<Integer, Integer> recommendMap;
 
     //time when this order asked for recommendations. Used to check if it is not expired (and hence should be deleted from priority queues)
-    private ZonedDateTime requestTime ;
+    private ZonedDateTime requestTime;
 
-
-    public PriorityOrder(int orderId){
+    /**
+     * Class Constructor
+     *
+     * @param orderId id of the order
+     */
+    public PriorityOrder(int orderId) {
         this.orderId = orderId;
         recommendMap = new HashMap<Integer, Integer>();
         requestTime = ZonedDateTime.now(ZoneId.of("Europe/Brussels"));
     }
 
     /**
-     * save recommend id and the time added (to later easily substract it again)
-     * @param Id of scheduler
-     * @param addedTime is time added to that specific priority queue
+     * Save recommend id and the time added (to later easily substract it again)
+     *
+     * @param Id        id of scheduler
+     * @param addedTime time added to that specific priority queue
      */
-    public void addRecommend(int Id, int addedTime){
+    public void addRecommend(int Id, int addedTime) {
         recommendMap.put(Id, addedTime);
     }
 
     /**
-     * checks if the expiration window for confirming is already done, and if so we should remove this order from priorityQueues
-     * @param timeWindowSeconds this defines the timeWindow in seconds
+     * Checks if the expiration window for confirming is already done, and if so we should remove this order from priorityQueues
+     *
+     * @param timeWindowSeconds defines the timeWindow in seconds
      * @return true if the timeWindow is done so we should remove the order from priority queues
      */
-    public boolean checkExpirationWindow(int timeWindowSeconds){
-        if (this.requestTime.plusSeconds(timeWindowSeconds).isBefore(ZonedDateTime.now(ZoneId.of("Europe/Brussels")))){
+    public boolean checkExpirationWindow(int timeWindowSeconds) {
+        if (this.requestTime.plusSeconds(timeWindowSeconds).isBefore(ZonedDateTime.now(ZoneId.of("Europe/Brussels")))) {
             return true;
-        }
-        else{
+        } else {
             return false;
         }
     }

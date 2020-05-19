@@ -140,6 +140,10 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
             toggleGroup.findViewById(R.id.button_done).setEnabled(false);
             toggleGroup.findViewById(R.id.button_picked_up).setEnabled(false);
         } else if (State == CommonOrderStatusUpdate.State.CONFIRMED) {
+            toggleGroup.findViewById(R.id.button_start).setEnabled(true);
+            toggleGroup.findViewById(R.id.button_done).setEnabled(false);
+            toggleGroup.findViewById(R.id.button_picked_up).setEnabled(false);
+        } else if (State == CommonOrderStatusUpdate.State.BEGUN) {
             toggleGroup.check(R.id.button_start);
             toggleGroup.findViewById(R.id.button_done).setEnabled(true);
             toggleGroup.findViewById(R.id.button_picked_up).setEnabled(false);
@@ -161,13 +165,13 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
                     // User clicks on START button (and checks it)
                     // - enable DONE button
 
-                    if (listStatus.get(headerTitle) == CommonOrderStatusUpdate.State.PENDING) {
+                    if (listStatus.get(headerTitle) == CommonOrderStatusUpdate.State.PENDING||listStatus.get(headerTitle) ==CommonOrderStatusUpdate.State.CONFIRMED) {
                         // The current state is PENDING (not START/CONFIRMED)
                         // - change state to START/CONFIRMED
 
                         Toast.makeText(group.getContext(), headerTitle + ": Start",
                                 Toast.LENGTH_SHORT).show();
-                        listStatus.put(headerTitle, CommonOrderStatusUpdate.State.CONFIRMED);
+                        listStatus.put(headerTitle, CommonOrderStatusUpdate.State.BEGUN);
                         sendOrderStatusUpdate(groupPosition, finalView.getContext());
 
                     }
@@ -261,8 +265,9 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
 
     /**
      * Send order status update to Event Channel
+     *
      * @param groupPosition position of order information in arrays
-     * @param context context of the callback
+     * @param context       context of the callback
      */
     private void sendOrderStatusUpdate(int groupPosition, final Context context) {
 

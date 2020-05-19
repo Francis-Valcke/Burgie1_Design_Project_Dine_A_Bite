@@ -29,7 +29,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-
+/**
+ * RestController responsible for providing payment related endpoints.
+ */
 @RestController
 @RequestMapping("/stripe")
 public class StripeController {
@@ -37,6 +39,13 @@ public class StripeController {
     UserRepository userRepository;
     ConfigurationBean configurationBean;
 
+    /**
+     * The first step in initiating a transaction is getting an ephemeral key from Stripe's backend.
+     * This needs to be returned to the client.
+     * @param version The client's version.
+     * @param user The authenticated user.
+     * @return ephemeral key.
+     */
     @GetMapping(value = "/key", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<BetterResponseModel<?>> getEphemeralKey(@RequestParam("api_version") String version, @AuthenticationPrincipal CommonUser user) {
 
@@ -63,6 +72,13 @@ public class StripeController {
         }
     }
 
+    /**
+     * With the ephemeral key the client can now request the creation of a payment intent, which is the first phase in
+     * the two step process for payments.
+     * @param amount The payment amount, currently fixed in euro as currency.
+     * @param user The authenticated user on which to perform the transaction.
+     * @return intent
+     */
     @PostMapping(value = "/createPaymentIntent", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<BetterResponseModel<?>> createPaymentIntent(String amount, @AuthenticationPrincipal CommonUser user) {
 
@@ -106,6 +122,21 @@ public class StripeController {
         }
     }
 
+    /**
+     * Both a method and a API endpoint to be used by our backend for initiation a two phase transaction for a certain
+     * amount. For adding money the amount should be a positive decimal, for subtracting money, the amount should be
+     * negative. There is a check in place to make sure the user has enough money for the transaction. The amount will
+     * placed in an unconfirmed payment field of the user entity such that the transaction will either go through on
+     * a confirmation or get changed back to 0 when the transaction is cancelled.
+     *
+     * @param amount The transaction amount in euro's.
+     * @param otherUser If this is called by another module such as the OrderManager the authenticated user will be the
+     *                  OrderManager itself, in that case, otherUser contains the user to perform the transaction on.
+     *                  This will only be allowed if this is called though a user with the APPLICATION role in the
+     *                  system so that this cannot be used by other parties to increase their own balance.
+     * @param user The currently authenticated user.
+     * @return success or fail
+     */
     @PostMapping(value = "/createTransaction", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<BetterResponseModel<?>> createTransaction(BigDecimal amount, @RequestParam(value = "user", required = false) String otherUser, @AuthenticationPrincipal CommonUser user) {
 
@@ -138,6 +169,16 @@ public class StripeController {
 
     }
 
+    /**
+     * The second phase in the two phase transaction. Confirming the transaction will calculate the new balance based on
+     * the value that is stored in the unconfirmed transaction field of the user.
+     * @param otherUser If this is called by another module such as the OrderManager the authenticated user will be the
+     *                  OrderManager itself, in that case, otherUser contains the user to perform the transaction on.
+     *                  This will only be allowed if this is called though a user with the APPLICATION role in the
+     *                  system so that this cannot be used by other parties to increase their own balance.
+     * @param user The currently authenticated user.
+     * @return success or fail
+     */
     @GetMapping(value = "/confirmTransaction", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<BetterResponseModel<?>> confirmTransaction(@RequestParam(value = "user", required = false) String otherUser, @AuthenticationPrincipal CommonUser user) {
         try {
@@ -167,6 +208,15 @@ public class StripeController {
         }
     }
 
+    /**
+     * This method will cancell the transaction by setting the unconfirmed payment field of the user back to zero.
+     * @param otherUser If this is called by another module such as the OrderManager the authenticated user will be the
+     *                  OrderManager itself, in that case, otherUser contains the user to perform the transaction on.
+     *                  This will only be allowed if this is called though a user with the APPLICATION role in the
+     *                  system so that this cannot be used by other parties to increase their own balance.
+     * @param user The currently authenticated user.
+     * @return success or fail
+     */
     @GetMapping(value = "/cancelTransaction", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<BetterResponseModel<?>> cancelTransaction(@RequestParam(value = "user", required = false) String otherUser, @AuthenticationPrincipal CommonUser user) {
         try {

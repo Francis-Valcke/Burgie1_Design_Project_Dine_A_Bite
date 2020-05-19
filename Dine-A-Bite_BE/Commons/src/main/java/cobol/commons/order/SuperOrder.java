@@ -7,16 +7,28 @@ import java.util.List;
  */
 public class SuperOrder {
 
+
     String brandName;
     List<CommonOrderItem> orderItems;
 
+
     // Coordinates attendee on moment that order was made
+    private int tempId;
     private double latitude;
     private double longitude;
     private CommonOrder.RecommendType recType;
 
-    public SuperOrder(){
+    public SuperOrder() {
 
+    }
+
+
+    public int getTempId() {
+        return tempId;
+    }
+
+    public void setTempId(int tempId) {
+        this.tempId = tempId;
     }
 
     public String getBrandName() {

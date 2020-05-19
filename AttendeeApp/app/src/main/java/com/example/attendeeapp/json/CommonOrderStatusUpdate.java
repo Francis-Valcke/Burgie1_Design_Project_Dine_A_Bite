@@ -3,7 +3,7 @@ package com.example.attendeeapp.json;
 import java.io.Serializable;
 
 /**
- * Class for sending an order status update of an order to the Event Channel
+ * Class for sending an order status update of an order to the Event Channel.
  */
 public class CommonOrderStatusUpdate implements Serializable {
 
@@ -16,7 +16,8 @@ public class CommonOrderStatusUpdate implements Serializable {
         DECLINED,
         CONFIRMED, // START
         READY, // DONE
-        PICKED_UP
+        PICKED_UP,
+        BEGUN
     }
 
     public CommonOrderStatusUpdate() {}
