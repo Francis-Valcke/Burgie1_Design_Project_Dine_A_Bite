@@ -148,7 +148,7 @@ public class SchedulerHandler {
         ArrayList<Scheduler> goodSchedulers = findCorrespondStands(order);
 
         // weight for when using mixed recommender, for now this is set (like amount of recs), but could also be chosen by attendee in future
-        double weight = 5;
+        double weight = 1.5;
 
         //now look which type of recommendation we want and order the scheduler based on that
         if (order.getRecType().equals(CommonOrder.RecommendType.TIME)){
