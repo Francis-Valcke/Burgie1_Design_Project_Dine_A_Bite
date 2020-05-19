@@ -1,51 +1,34 @@
 package com.example.attendeeapp.polling;
 
-import android.Manifest;
-import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.app.AlarmManager;
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.app.TaskStackBuilder;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationManager;
-import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
-import android.os.Looper;
 import android.util.Log;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
-import androidx.core.content.ContextCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonArrayRequest;
-import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
-import com.example.attendeeapp.MapsActivity;
 import com.example.attendeeapp.OrderActivity;
 import com.example.attendeeapp.R;
 import com.example.attendeeapp.ServerConfig;
-import com.example.attendeeapp.ToolbarActivity;
 import com.example.attendeeapp.data.LoginDataSource;
 import com.example.attendeeapp.data.LoginRepository;
 import com.example.attendeeapp.data.model.LoggedInUser;
@@ -55,32 +38,14 @@ import com.example.attendeeapp.json.CommonOrderStatusUpdate;
 import com.example.attendeeapp.notifications.ReminderBroadcast;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationCallback;
-import com.google.android.gms.location.LocationRequest;
-import com.google.android.gms.location.LocationResult;
-import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
-
-import org.jetbrains.annotations.NotNull;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.concurrent.Executor;
 
-import static com.example.attendeeapp.notifications.NotificationChannelSetup.CHANNEL_DEPART_ID;
 import static com.example.attendeeapp.notifications.NotificationChannelSetup.CHANNEL_DONE_ID;
 import static com.example.attendeeapp.notifications.NotificationChannelSetup.CHANNEL_START_ID;
 
@@ -142,11 +107,11 @@ public class PollingService extends Service {
                                 switch (eventClass) {
                                     case "UpdateOrder":
                                         try{
-                                            JsonNode orderJson = eventData.get(eventClass.toLowerCase());
-                                            CommonOrder order = mapper.readValue(orderJson.toString(), CommonOrder.class);
+                                            CommonOrder order = mapper.readValue(eventData.toString(), CommonOrder.class);
                                             intent.putExtra("orderUpdate", order);
                                         }
                                         catch (JsonProcessingException e){
+                                            e.printStackTrace();
                                             Toast.makeText(context, "error while parsing order", Toast.LENGTH_LONG).show();
                                         }
                                         break;
