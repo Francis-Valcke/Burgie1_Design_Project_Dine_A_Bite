@@ -329,7 +329,6 @@ public class PollingService extends Service {
         sendBroadcast(broadcastIntent);*/
         super.onDestroy();
     }
-}
 
     /**
      * Method to create the notification channels for android Oreo or more recent build versions.
