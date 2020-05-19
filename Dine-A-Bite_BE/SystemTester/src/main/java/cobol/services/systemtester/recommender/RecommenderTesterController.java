@@ -1,8 +1,10 @@
 package cobol.services.systemtester.recommender;
 
 import cobol.services.systemtester.EventSimulation;
+import cobol.services.systemtester.ModuleHandler;
 import cobol.services.systemtester.ServerConfig;
 import cobol.services.systemtester.stage.Attendee;
+import com.mashape.unirest.http.exceptions.UnirestException;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
@@ -23,13 +25,13 @@ public class RecommenderTesterController {
     private ApplicationContext appContext;
 
     @GetMapping("/setup")
-    public void setup() throws IOException {
+    public void setup() throws IOException, UnirestException {
         es = new EventSimulation();
         es.setup(ServerConfig.attendeeCount);
     }
 
     @GetMapping("/test")
-    public void testStands() throws InterruptedException {
+    public void testStands() throws InterruptedException{
         es.start();
     }
 

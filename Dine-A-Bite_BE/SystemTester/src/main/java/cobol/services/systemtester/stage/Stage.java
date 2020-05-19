@@ -7,7 +7,7 @@ import org.apache.logging.log4j.Logger;
 import java.util.ArrayList;
 import java.util.Random;
 
-public class Stage extends Thread {
+public class Stage implements Runnable {
     private final double clusterLocationLongitude;
     private final double clusterLocationLatitude;
     private final double clustermeanLongitude;
@@ -33,6 +33,10 @@ public class Stage extends Thread {
         }
     }
 
+    /**
+     * initialize stand coordinates close to stage
+     * @param s stand to add
+     */
     public void addStand(Stand s) {
         //stand location on 2xmean offset from stage
         s.setLatitude(loc.nextGaussian() * clustermeanLatitude + clusterLocationLatitude + 2 * clustermeanLatitude);
@@ -46,6 +50,11 @@ public class Stage extends Thread {
             );
         }
     }
+
+    /**
+     * In case of systemOn
+     * attendees wait for their pregiven orderTime before ordering items
+     */
     public void systemRun(){
         while (time < ServerConfig.totaltestseconds) {
             try {
@@ -65,6 +74,21 @@ public class Stage extends Thread {
             }
         }
     }
+
+    /**
+     * reset attendees and time
+     */
+    public void reset(){
+        time=0;
+        for (Attendee a: attendees){
+            a.reset();
+        }
+    }
+
+    /**
+     * in case of systemOff
+     * attendees wait for their pregiven orderTime before going to a stand to order an item
+     */
     public void noSystemRun(){
         while (time < ServerConfig.totaltestseconds*3) {
             try {
@@ -75,6 +99,7 @@ public class Stage extends Thread {
             time++;
             for (Attendee a : attendees) {
                 if (Math.ceil(a.getOrderTime()) == time) {
+                    //if attendee already is at stand, he orders his food
                     if (a.getWalking()){
                         a.placeOrder(CommonOrder.RecommendType.DISTANCE).subscribe(
                                 recommendations -> a.confirmStand().subscribe(),
@@ -83,11 +108,13 @@ public class Stage extends Thread {
                         );
                     }
                     else{
+                        //attendee asks around to get to know where to order his food
+                        //this is emulated with  recommendation based on distance
                         a.orderForNearestStand().subscribe(
                                 recommendations -> {
                                     log.info("Attendee" + a.getId()+ " starts walking to stand");
                                     a.getRecommendedStand();
-                                    a.setNewOrdertime(a.getOrderTime()+a.getWalkingStartTime());
+                                    a.setNewOrdertime(a.getOrderTime()+a.getWalkingTime());
                                 },
                                 throwable -> log.error(throwable.getMessage())
 
@@ -105,7 +132,7 @@ public class Stage extends Thread {
     public ArrayList<Attendee> getAttendees() {
         return attendees;
     }
-    public void setSystemOn(boolean SystemOn){
+    public void setSystemOn(boolean systemOn){
         this.systemOn=systemOn;
     }
 }

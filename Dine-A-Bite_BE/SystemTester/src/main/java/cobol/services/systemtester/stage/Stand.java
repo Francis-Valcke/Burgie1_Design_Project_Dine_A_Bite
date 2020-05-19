@@ -27,7 +27,7 @@ import org.springframework.web.client.RestTemplate;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Stand extends Thread {
+public class Stand implements Runnable {
     private static int idCounter = 0;
     private final int id;
     private String token;
@@ -90,7 +90,10 @@ public class Stand extends Thread {
 
     }
 
-
+    /**
+     * create stand user
+     * @return single
+     */
     public Single<JSONObject> create() {
         //Prepare body
         JSONObject requestBody = new JSONObject();
@@ -117,6 +120,10 @@ public class Stand extends Thread {
         }).observeOn(Schedulers.io());
     }
 
+    /**
+     * authenticate stand user
+     * @return single
+     */
     public Single<JSONObject> authenticate() {
 
         //Prepare body
@@ -148,6 +155,10 @@ public class Stand extends Thread {
 
     }
 
+    /**
+     * verify stand
+     * @return single
+     */
     public Single<JSONObject> verify() {
         String url = ServerConfig.OMURL + "/verify?brandName=" + brandName
                 + "&standName=" + standName;
@@ -176,6 +187,10 @@ public class Stand extends Thread {
         }).observeOn(Schedulers.io());
     }
 
+    /**
+     * subscribe to EC
+     * @return single
+     */
     public Single<Integer> subscribe() {
         return Single.create((SingleOnSubscribe<Integer>) emitter -> {
 
@@ -200,6 +215,10 @@ public class Stand extends Thread {
         }).observeOn(Schedulers.io());
     }
 
+    /**
+     * subscribe to stand channel
+     * @return single
+     */
     public Single<String> subscribeToChannel() {
         return Single.create((SingleOnSubscribe<String>) emitter -> {
             String url2 = ServerConfig.ECURL + "/registerSubscriber/toChannel?type=s_" + standName
@@ -218,6 +237,10 @@ public class Stand extends Thread {
         }).observeOn(Schedulers.io());
     }
 
+    /**
+     * add stand to ordermanager
+     * @return single
+     */
     public Single<JSONObject> addstand() {
         //Prepare body
         JSONObject requestBody = new JSONObject();
@@ -260,6 +283,10 @@ public class Stand extends Thread {
         }).observeOn(Schedulers.io());
     }
 
+    /**
+     * emulate stand applications first setup
+     * @param log logger
+     */
     public void setup(Logger log) {
         this.log = log;
         create().subscribe(
@@ -286,6 +313,10 @@ public class Stand extends Thread {
         );
     }
 
+    /**
+     * poll orders from EC
+     * @return single
+     */
     public Single<JSONObject> pollEvents() {
         return Single.create((SingleOnSubscribe<JSONObject>) emitter -> {
 
@@ -318,7 +349,12 @@ public class Stand extends Thread {
         }).observeOn(Schedulers.io());
     }
 
-    @SneakyThrows
+    /**
+     * run stand:
+     * -poll orders every 10 seconds
+     * -if there are incoming orders and no orders are under preparation, start preparing first order and send statusupdate
+     * -if an order is under preparation for its expected time, remove it from queue and update its status to "ready"
+     */
     public void run() {
         int time = 0;
         int pollTime=0;
@@ -330,9 +366,11 @@ public class Stand extends Thread {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-
+            //if not busy
             if (timeToNext<=0) {
+                //if there are orders in queue
                 if (!orders.isEmpty()) {
+                    //if orders just finished: sent ready status update, remove order from queue and start preparing next order
                     if (inprogress) {
                         readyFirstOrder().subscribe(
                                 o -> {
@@ -354,6 +392,7 @@ public class Stand extends Thread {
                         );
 
                     }
+                    //start preparing next order
                     else{
                         prepareFirstOrder().subscribe(
                                 o -> {
@@ -377,6 +416,10 @@ public class Stand extends Thread {
         }
     }
 
+    /**
+     * sent BEGUN status update
+     * @return single
+     */
     public Single<JSONObject> prepareFirstOrder() {
         org.json.simple.JSONObject eventData = new org.json.simple.JSONObject();
         eventData.put("orderId",orders.get(0).getId());
@@ -413,6 +456,10 @@ public class Stand extends Thread {
         }).observeOn(Schedulers.io());
     }
 
+    /**
+     * sent READY status update
+     * @return single
+     */
     public Single<JSONObject> readyFirstOrder()  {
 
         org.json.simple.JSONObject eventData = new org.json.simple.JSONObject();
@@ -449,6 +496,10 @@ public class Stand extends Thread {
         }).observeOn(Schedulers.io());
     }
 
+    /**
+     * delete stand from database and ordermanager
+     * @return single
+     */
     public Single<JSONObject> delete() {
         String url = ServerConfig.OMURL + "/deleteStand?brandName=" + brandName
                 + "&standName=" + standName;
@@ -471,6 +522,9 @@ public class Stand extends Thread {
         }).observeOn(Schedulers.io());
     }
 
+    /**
+     * delete orders from stand
+     */
     public void reset(){
         orders.clear();
         readyOrders.clear();

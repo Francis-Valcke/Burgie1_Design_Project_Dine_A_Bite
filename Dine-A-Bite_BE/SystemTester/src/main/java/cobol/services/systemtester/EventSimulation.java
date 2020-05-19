@@ -8,6 +8,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.google.common.io.Resources;
+import com.mashape.unirest.http.exceptions.UnirestException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -22,8 +23,11 @@ public class EventSimulation {
     private static final Logger log = LogManager.getLogger(EventSimulation.class);
     private ArrayList<Stand> stands = new ArrayList<>();
     private final ArrayList<Stage> stages = new ArrayList<Stage>();
-    private final int stageCount = 5;
 
+    /**
+     * initialize event with stands from dataset.json
+     * @throws IOException
+     */
     public EventSimulation() throws IOException {
         URL url = Thread.currentThread().getContextClassLoader().getResource("dataset.json");
         String body = Resources.toString(url, StandardCharsets.UTF_8);
@@ -34,10 +38,17 @@ public class EventSimulation {
 
     }
 
-    public void setup(int size) {
+    /**
+     * setup event with 5 stages, locations and ordertimes are chosen with gaussian around centerpoint and means are chosen in regards to real events
+     * @param size number of attendees
+     */
+    public void setup(int size)  {
+        ModuleHandler mh = new ModuleHandler();
+        mh.allAlive();
         Random ran = new Random();
         int j = 0;
         //create stages and spread stands around stages
+        int stageCount = 5;
         for (int i = 0; i < stageCount; i++) {
             // Each degree of latitude is approximately 111 kilometers apart
             // At 40 degrees north or south, the distance between a degree of longitude is 85 kilometers
@@ -49,6 +60,7 @@ public class EventSimulation {
             stages.add(s);
             for (Attendee a : s.getAttendees()) {
                 a.setOrdertime(ran.nextGaussian() * ServerConfig.totaltestseconds/4 + ServerConfig.totaltestseconds/2);
+                //emulate attendee application setup
                 a.setup(log);
             }
 
@@ -58,47 +70,67 @@ public class EventSimulation {
             stages.get(0).addStand(stands.get(j));
             j++;
         }
+        //emulate stand application setup
         for (Stand s : stands) {
             s.setup(log);
         }
+        //wait for stands to finsh setup
         for (Stand s : stands) {
             boolean inProcess=true;
             while(inProcess){
                 inProcess=!s.getReady();
             }
         }
+        //have attendees choose their orders from menu by looking at global menu
         for (Stage s : stages) {
             s.chooseOrders();
         }
     }
+
+    /**
+     * reset event to before orders are made
+     */
     public void resetOrders(){
         for (Stage s : stages) {
-            for (Attendee a : s.getAttendees()) {
-                a.reset();
-            }
+            s.reset();
         }
         for (Stand s : stands) {
             s.reset();
         }
     }
+
+    /**
+     * Calculate performance of system by comparing to situation without it
+     * @param systemOn if true, attendees can use the applications to order
+     */
     public void setSystemOn(boolean systemOn){
         for (Stage s : stages) {
             s.setSystemOn(systemOn);
         }
     }
 
+    /**
+     * start stages (pools of attendees) and stands
+     * @throws InterruptedException
+     */
     public void start() throws InterruptedException {
+        ArrayList<Thread> standThreads=new ArrayList<>();
         for (Stand s : stands) {
-            s.start();
+            Thread t = new Thread(s);
+            standThreads.add(t);
+            t.start();
         }
+        ArrayList<Thread> stageThreads=new ArrayList<>();
         for (Stage s : stages) {
-            s.start();
+            Thread t = new Thread(s);
+            stageThreads.add(t);
+            t.start();
         }
-        for (Stage s : stages) {
-            s.join();
+        for (Thread t : stageThreads) {
+            t.join();
         }
-        for (Stand s : stands) {
-            s.join();
+        for (Thread t : standThreads) {
+            t.join();
         }
     }
 
@@ -124,6 +156,10 @@ public class EventSimulation {
         log.info("Unresolved orders: " + orders.size());
     }
 
+    /**
+     * In case of systemOn
+     * @return the time walked to the stands
+     */
     public double getTotalWalkingTime() {
         double walkingTime = 0;
         for (Stage s : stages) {
@@ -134,6 +170,11 @@ public class EventSimulation {
         log.info("Total time walked to stands: " + walkingTime);
         return walkingTime;
     }
+
+    /**
+     * In case of systemOff
+     * @return time waited in front of stands
+     */
     public double getTotalQueueTime(){
         double queueTime = 0;
         for (Stage s : stages) {
@@ -144,6 +185,10 @@ public class EventSimulation {
         log.info("Total time waited in front of stand: " + queueTime);
         return queueTime;
     }
+    /**
+     * In case of systemOff
+     * @return time walked to stands before ordering
+     */
     public double getTotalBetweenOrderTime(){
         double betweenOrderTime = 0;
         for (Stage s : stages) {
@@ -154,7 +199,10 @@ public class EventSimulation {
         log.info("Total time walked to stand: " + betweenOrderTime);
         return betweenOrderTime;
     }
-
+    /**
+     * In case of systemOn
+     * @return time waited before going to stands (time spend as attendees wish)
+     */
     public double getTotalWaitingTime() {
         double waitingTime = 0;
         for (Stage s : stages) {
@@ -162,9 +210,14 @@ public class EventSimulation {
                 waitingTime += a.getWaitingTime();
             }
         }
-        log.info("Total time waited before getting order: " + waitingTime);
+        log.info("Total time waited before going to get order: " + waitingTime);
         return waitingTime;
     }
+
+    /**
+     * time between before getting food
+     * @return
+     */
     public double getTotalOrderTime(){
         double orderTime = 0;
         for (Stage s : stages) {
@@ -176,6 +229,9 @@ public class EventSimulation {
         return orderTime;
     }
 
+    /**
+     * delete teststands
+     */
     public void end() {
         for (Stand s : stands) {
             s.delete().subscribe(

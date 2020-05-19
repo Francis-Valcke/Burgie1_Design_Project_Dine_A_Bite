@@ -5,7 +5,7 @@ import java.util.Random;
 
 public class ServerConfig {
 
-    public static final boolean test = true;
+    public static final boolean test = false;
 
     public static final String ACURL = test ? "http://localhost:8080/" : "http://cobol.idlab.ugent.be:8090/";
     public static final String OMURL = test ? "http://localhost:8081/" : "http://cobol.idlab.ugent.be:8091/";
@@ -15,8 +15,7 @@ public class ServerConfig {
     public static final double latStart = 51.031652;
     public static final double lonStart = 3.782850;
     public static final int attendeeCount = 20;
-    //public static final int standCount=13; //constant for now
-    public static final double totaltestseconds=25.0;//minutes irl
+    public static final double totaltestseconds=40.0;//minutes irl
     
 
 }

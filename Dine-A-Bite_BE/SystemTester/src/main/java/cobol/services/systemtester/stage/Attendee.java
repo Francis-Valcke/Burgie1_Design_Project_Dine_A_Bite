@@ -62,7 +62,10 @@ public class Attendee {
         this.latitude = latitude;
     }
 
-
+    /**
+     * create user
+     * @return single
+     */
     public Single<JSONObject> create() {
 
         //Prepare body
@@ -91,7 +94,10 @@ public class Attendee {
 
     }
 
-
+    /**
+     * authenticate user
+     * @return single
+     */
     public Single<JSONObject> authenticate() {
 
         //Prepare body
@@ -122,7 +128,10 @@ public class Attendee {
 
     }
 
-
+    /**
+     * getUser
+     * @return single
+     */
     public Single<JSONObject> getUser() {
 
         return Single.create((SingleOnSubscribe<JSONObject>) emitter -> {
@@ -145,7 +154,10 @@ public class Attendee {
 
     }
 
-
+    /**
+     * fetch menu
+     * @return single with menu
+     */
     public Single<JSONObject> getGlobalMenu() {
 
         return Single.create((SingleOnSubscribe<JSONObject>) emitter -> {
@@ -167,6 +179,12 @@ public class Attendee {
         }).observeOn(Schedulers.io());
 
     }
+
+    /**
+     * choose random item from menu
+     * @param response menu as json
+     * @param itemCount amount to order
+     */
     public void chooseOrder(JSONObject response, int itemCount){
         //Prepare order
         Random random = new Random();
@@ -199,6 +217,11 @@ public class Attendee {
         this.order=order;
     }
 
+    /**
+     * ask for recommendation
+     * @param recType recommendation type
+     * @return single
+     */
     public Single<JSONObject> placeOrder(CommonOrder.RecommendType recType) {
         order.put("recType", recType);
         return Single.create((SingleOnSubscribe<JSONObject>) emitter -> {
@@ -251,6 +274,10 @@ public class Attendee {
         }).observeOn(Schedulers.io());
     }
 
+    /**
+     * look at recommendations and choose rank 1 recommendation
+     * @return uri string with stand and brand for confirmstand
+     */
     public String getRecommendedStand() {
         //look for closest recommendation
         int index = 0;
@@ -258,17 +285,22 @@ public class Attendee {
             if ((Integer)((JSONObject)recommendations.get(0)).get("rank")==1) index=i;
         }
         double distance = (double) ((JSONObject) recommendations.get(0)).get("distance");
-        orderReadyTime = ((double) ((Integer) ((JSONObject) recommendations.get(0)).get("timeEstimate"))) / 60;
+        orderReadyTime = orderTime+((double) ((Integer) ((JSONObject) recommendations.get(0)).get("timeEstimate"))) / 60;
         //calculate time to start walking to order (time in minutes after ordering)
         double orderDistance = (double) ((JSONObject) recommendations.get(index)).get("distance");
-        walkingStartTime = orderReadyTime - orderDistance / walkingSpeed;
+        walkingStartTime =  orderReadyTime - orderDistance / walkingSpeed;
         if (walkingStartTime < 0) walkingStartTime = 0;
+        walkingStartTime+=orderTime;
         //return parameterstring
         String brand = (String) ((JSONObject) recommendations.get(index)).get("brandName");
         String stand = (String) ((JSONObject) recommendations.get(index)).get("standName");
         return stand.concat("&brandName=").concat(brand);
     }
 
+    /**
+     * confirm stand
+     * @return single
+     */
     public Single<JSONObject> confirmStand() {
         String url = ServerConfig.OMURL + "/confirmStand?standName=" + getRecommendedStand() + "&orderId=" + orderid;
         String finalUrl = url.replace(' ', '+');
@@ -292,7 +324,10 @@ public class Attendee {
         }).observeOn(Schedulers.io());
     }
 
-
+    /**
+     * setup attendee by creating and authenticating user
+     * @param log logger
+     */
     public void setup(Logger log) {
         this.log = log;
         this.orderid = 0;
@@ -307,9 +342,14 @@ public class Attendee {
 
     }
     public void reset(){
+        setOrdertime(initialOrderTime);
         walking=false;
     }
 
+    /**
+     * in case of systemOff, attendee orders twice (to same stand), once to find stand and once to order
+     * @param time
+     */
     public void setOrdertime(double time) {
         if (time < 1) time = 1;
         else if (time > 119) time = 119;
