@@ -306,26 +306,30 @@ public class OrderActivity extends ToolbarActivity {
 
                     if (responseModel.isOk()) {
                         List<CommonOrder> allUserOrders = responseModel.getPayload();
+                        // List to keep track of orders with stand and brand != ""
+                        ArrayList<CommonOrder> nonEmptyOrders = new ArrayList<>();
                         // TODO: Update local database better way @Nathan
                         orderDatabaseService.deleteAllOrders();
                         for (CommonOrder order : allUserOrders) {
                             // TODO solve this, unconfirmed orders give an error when placing in local db
-                            if (order.getRecType() != null) {
+                            if (order.getRecType() != null && !order.getBrandName().equals("")
+                                    && !order.getStandName().equals("")) {
+                                nonEmptyOrders.add(order);
                                 orderDatabaseService.insertOrder(order);
                             }
                         }
 
                         orders.clear();
-                        orders.addAll(allUserOrders);
+                        orders.addAll(nonEmptyOrders);
 
-                        ArrayList<CommonOrder> readyOrders = new ArrayList<CommonOrder>();
+                        ArrayList<CommonOrder> pickedUpOrders = new ArrayList<>();
                         if (runningOrderSwitch.isChecked()) {
                             for (CommonOrder order : orders) {
-                                if (order.getOrderState() == CommonOrder.State.READY || order.getOrderState() == CommonOrder.State.PICKED_UP) {
-                                    readyOrders.add(order);
+                                if (order.getOrderState() == CommonOrder.State.PICKED_UP) {
+                                    pickedUpOrders.add(order);
                                 }
                             }
-                            orders.removeAll(readyOrders);
+                            orders.removeAll(pickedUpOrders);
                         }
 
 

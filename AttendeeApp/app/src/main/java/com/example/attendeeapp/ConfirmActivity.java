@@ -164,6 +164,7 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
                         }
                     }
                 } else if (recommendations.size() > 0) {
+                    // TODO: change: check for rank 1 of recommendation (since complete list is returned)
                     // specificRecommendation is not part of the returned recommendations
                     noRecommend = false;
 
