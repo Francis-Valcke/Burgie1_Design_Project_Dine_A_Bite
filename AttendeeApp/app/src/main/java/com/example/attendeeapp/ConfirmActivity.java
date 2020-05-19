@@ -3,6 +3,7 @@ package com.example.attendeeapp;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.graphics.Typeface;
+import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -110,6 +111,7 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
         // Ignore warning
         ordered = (ArrayList<CommonFood>) getIntent().getSerializableExtra("order");
         recommendType = (CommonOrder.RecommendType) getIntent().getSerializableExtra("recType");
+        lastLocation = getIntent().getParcelableExtra("location");
 
         // Divide items into different brands
         for (CommonFood item : ordered) {
@@ -162,6 +164,7 @@ public class ConfirmActivity extends ToolbarActivity implements AdapterView.OnIt
                         }
                     }
                 } else if (recommendations.size() > 0) {
+                    // TODO: change: check for rank 1 of recommendation (since complete list is returned)
                     // specificRecommendation is not part of the returned recommendations
                     noRecommend = false;
 

@@ -54,7 +54,7 @@ public class ToolbarActivity extends AppCompatActivity {
 
     // TODO:
     //  -make toolbar generalized for all activities
-    //  -make Toast messages cancalable for all activities
+    //  -make Toast messages cancelable for all activities
     @Override
     public boolean onOptionsItemSelected(@NonNull android.view.MenuItem item) {
         switch (item.getItemId()) {
@@ -73,10 +73,10 @@ public class ToolbarActivity extends AppCompatActivity {
                 Intent intent2 = new Intent(ToolbarActivity.this, AccountActivity.class);
                 startActivity(intent2);
                 return true;
-            case R.id.settings_action:
+            /*case R.id.settings_action:
                 // User chooses the "Settings" item
                 // TODO make settings activity
-                return true;
+                return true;*/
             case R.id.map_action:
                 //User chooses the "Map" item
                 Intent mapIntent = new Intent(ToolbarActivity.this, MapsActivity.class);
@@ -86,6 +86,16 @@ public class ToolbarActivity extends AppCompatActivity {
             default:
                 return super.onOptionsItemSelected(item);
         }
+    }
+
+    /**
+     * Called after onCreate()
+     */
+    @Override
+    public void onStart() {
+        super.onStart();
+        // Ask for location permission
+        checkLocationPermission();
     }
 
     /**
