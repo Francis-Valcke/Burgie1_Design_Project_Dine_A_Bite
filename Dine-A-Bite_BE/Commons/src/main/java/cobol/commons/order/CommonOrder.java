@@ -1,5 +1,6 @@
 package cobol.commons.order;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -16,7 +17,9 @@ public class CommonOrder {
 
     private int id;
 
+    @JsonSerialize(using= ZonedDateTimeSerializer.class)
     private ZonedDateTime startTime;
+    @JsonSerialize(using= ZonedDateTimeSerializer.class)
     private ZonedDateTime expectedTime;
     private State orderState;
     private String brandName;

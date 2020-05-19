@@ -11,6 +11,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -238,12 +240,16 @@ public class CommunicationHandler {
         ResponseEntity<String> responseEntity = restTemplate.exchange(builder.toUriString(), HttpMethod.GET, httpEntity, String.class);
     }
 
-    public String publishConfirmedStand(CommonOrder updatedOrder, String standName, String brandName) throws JsonProcessingException {
+    public String publishConfirmedStand(CommonOrder updatedOrder, String standName, String brandName) throws JsonProcessingException, ParseException {
         if (configurationBean.isUnitTest()) return "";
 
         // Create event for eventchannel
         JSONObject orderJson = new JSONObject();
-        orderJson.put("order", updatedOrder);
+        JSONParser parser= new JSONParser();
+
+        ObjectMapper mapper= new ObjectMapper();
+        JSONObject updateOrderJSON= (JSONObject) parser.parse(mapper.writeValueAsString(updatedOrder));
+        orderJson.put("order", updateOrderJSON);
         List<String> types = new ArrayList<>();
         types.add("o_" + updatedOrder.getId());
         types.add("s_" + standName + "_" + brandName);

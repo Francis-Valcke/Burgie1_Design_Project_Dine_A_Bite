@@ -127,18 +127,13 @@ public class Scheduler {
     public String sendOrderStatusUpdate(CommonOrder order) throws JsonProcessingException, ParseException {
         ObjectMapper mapper = new ObjectMapper();
         // Create event for eventchannel
-        JSONObject orderJson = new JSONObject();
-        orderJson.put("startTime", order.getStartTime());
-        orderJson.put("expectedTime", order.getExpectedTime());
-        orderJson.put("brandName", order.getBrandName());
-        orderJson.put("standName", order.getStandName());
-        orderJson.put("orderState", order.getOrderState());
-        orderJson.put("id",order.getId());
-
+        JSONParser parser= new JSONParser();
+        String orderString= mapper.writeValueAsString(order);
+        JSONObject object= (JSONObject) parser.parse(orderString);
         ArrayList<String> types = new ArrayList<>();
         types.add("s_" + standName + "_" + brandName);
         types.add("o_" + order.getId());
-        Event e = new Event(orderJson, types, "UpdateOrder");
+        Event e = new Event(object, types, "UpdateOrder");
 
         // Send Request
         ObjectMapper objectMapper = new ObjectMapper();
