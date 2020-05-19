@@ -73,10 +73,10 @@ public class ToolbarActivity extends AppCompatActivity {
                 Intent intent2 = new Intent(ToolbarActivity.this, AccountActivity.class);
                 startActivity(intent2);
                 return true;
-            case R.id.settings_action:
+            /*case R.id.settings_action:
                 // User chooses the "Settings" item
                 // TODO make settings activity
-                return true;
+                return true;*/
             case R.id.map_action:
                 //User chooses the "Map" item
                 Intent mapIntent = new Intent(ToolbarActivity.this, MapsActivity.class);
