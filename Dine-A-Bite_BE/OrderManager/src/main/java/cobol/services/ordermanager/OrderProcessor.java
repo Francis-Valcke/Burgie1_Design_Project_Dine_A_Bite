@@ -197,6 +197,11 @@ public class OrderProcessor {
 
     }
 
+    /**
+     * This methods adds the recommendations to the orderRecommendation list
+     * @param id the order id
+     * @param recommendations the list of recommendations
+     */
     public void addRecommendations(int id, List<Recommendation> recommendations) {
         for (Recommendation recommendation : recommendations) {
             orderRecommendations.put(id, recommendation);
@@ -211,6 +216,12 @@ public class OrderProcessor {
 
     // ---- Scheduled Requests ---- //
 
+    /**
+     * Scheduled task to poll new events from the Event Channel destined for the OrderProcessor.
+     * @throws CommunicationException Error while sending request.
+     * @throws JsonProcessingException Error while deserializing response.
+     * @throws ParseException Error while parsing the response.
+     */
     @Scheduled(fixedDelay = 500)
     public void pollEvents() throws CommunicationException, JsonProcessingException, ParseException {
         List<Event> newEvents = communicationHandler.pollEventsFromEC(subscriberId);
@@ -218,7 +229,7 @@ public class OrderProcessor {
     }
 
     /**
-     * Process events that were received.
+     * Scheduled task to process the events that were polled with the pollEvents() method.
      */
     @Scheduled(fixedDelay = 500)
     public void processEvents() {

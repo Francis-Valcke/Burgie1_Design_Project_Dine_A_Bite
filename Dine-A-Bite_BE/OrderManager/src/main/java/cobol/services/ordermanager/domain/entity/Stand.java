@@ -17,6 +17,9 @@ import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * Entity data class to represent Stands.
+ */
 @Data
 @Entity
 @JsonIgnoreProperties(ignoreUnknown = true)

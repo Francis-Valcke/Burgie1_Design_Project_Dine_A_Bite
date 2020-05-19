@@ -167,6 +167,15 @@ public class CommunicationHandler {
         }
     }
 
+    /**
+     * HTTP request to get all events for this subscriber from the Event Channel.
+     *
+     * @param subscriberId The subscriber ID of this module.
+     * @return List of events
+     * @throws CommunicationException Error while sending the http request.
+     * @throws JsonProcessingException Error while deserializing the http response.
+     * @throws ParseException Error while parsing the http response.
+     */
     public List<Event> pollEventsFromEC(int subscriberId) throws JsonProcessingException, CommunicationException {
         if (configurationBean.isUnitTest()) return new ArrayList<>();
 
@@ -240,6 +249,16 @@ public class CommunicationHandler {
         ResponseEntity<String> responseEntity = restTemplate.exchange(builder.toUriString(), HttpMethod.GET, httpEntity, String.class);
     }
 
+    /**
+     * Publish to the EventChannel that a certain stand has been selected for a given Order and thus that the
+     * order has been confirmed.
+     *
+     * @param updatedOrder Order that will be confirmed.
+     * @param standName StandName (part of the id of the stand)
+     * @param brandName BrandName (part of the id of the brand)
+     * @return Return success String
+     * @throws JsonProcessingException Error while deserializing the http response.
+     */
     public String publishConfirmedStand(CommonOrder updatedOrder, String standName, String brandName) throws JsonProcessingException {
         if (configurationBean.isUnitTest()) return "";
 
@@ -265,37 +284,4 @@ public class CommunicationHandler {
         return restTemplate.postForObject(uri, entity, String.class);
 
     }
-
-
-
-    // ---- TODO te verwijderen? ----//
-
-    /**
-     * Waarom zouden de ordermanager en de standmanager communiceren via de eventchannel?
-     * <p>
-     * publish changed menuItem Event for schedulers
-     *
-     * @param mi    MenuItem
-     * @param brand brandname
-     * @throws JsonProcessingException
-     */
-    public void publishMenuChange(CommonFood mi, String brand) throws JsonProcessingException {
-        JSONObject itemJson = new JSONObject();
-        itemJson.put("menuItem", mi);
-        List<String> types = new ArrayList<>();
-        types.add(brand);
-        Event e = new Event(itemJson, types, "MenuItem");
-
-
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.registerModule(new JavaTimeModule());
-        String jsonString = objectMapper.writeValueAsString(e);
-        String uri = OrderManager.ECURL + "/publishEvent";
-        HttpEntity<String> entity = new HttpEntity<>(jsonString, headers);
-        String response = template.postForObject(uri, entity, String.class);
-        System.out.println(response);
-    }
-
-
-
 }

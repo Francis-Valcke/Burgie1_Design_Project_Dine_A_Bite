@@ -30,6 +30,14 @@ public class StandController {
     @Autowired
     private StandRepository standRepository;
 
+    /**
+     * This API is used to verify if a authenticated user is the owner of a given stand. This check is needed to allow
+     * modifications.
+     * @param standName standName
+     * @param brandName brandName
+     * @param authenticatedUser authenticatedUser
+     * @return Success or fail
+     */
     @GetMapping(path = "/verify")
     public ResponseEntity<BetterResponseModel<?>> verify(@RequestParam String standName, @RequestParam String brandName, @AuthenticationPrincipal CommonUser authenticatedUser) {
 
